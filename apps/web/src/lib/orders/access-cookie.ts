@@ -39,7 +39,7 @@ export async function withOrderAccess(ref: string, token: string) {
     value: JSON.stringify(next),
     options: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === "true" : process.env.NODE_ENV === "production",
       sameSite: "lax" as const,
       path: "/",
       maxAge: DAYS * 24 * 60 * 60,

@@ -75,7 +75,7 @@ export function BrandStrip({ brands, compact = false }: { brands: HomeData["bran
     // rendered twice and slid by exactly one copy. Pauses on hover/focus; with reduced motion it is a plain scrollable row.
     const copy = Array.from({ length: Math.max(1, Math.ceil(12 / list.length)) }, () => list).flat();
     const tile = (b: (typeof list)[number], hidden: boolean, key: string) => (
-      <li key={key} className="shrink-0 pr-3 sm:pr-4">
+      <li key={key} className={`shrink-0 pr-3 sm:pr-4 ${hidden ? "motion-reduce:hidden" : ""}`} aria-hidden={hidden || undefined}>
         <Link
           href={`/search?q=${encodeURIComponent(b.name)}`}
           aria-label={`${b.name}, ${b.count} ${b.count === 1 ? "product" : "products"}`}
@@ -96,7 +96,8 @@ export function BrandStrip({ brands, compact = false }: { brands: HomeData["bran
         <h2 id="brands" className="mb-4 text-lg font-bold tracking-tight text-ink">Shop by brand</h2>
         <div className="marquee overflow-hidden motion-reduce:overflow-x-auto [mask-image:linear-gradient(to_right,transparent,#000_4%,#000_96%,transparent)]">
           <div className="flex w-max animate-marquee motion-reduce:animate-none" style={{ animationDuration: `${copy.length * 4}s` }}>
-            <ul className="flex shrink-0">{copy.map((b, i) => tile(b, false, `a${i}`))}</ul>
+            {/* Repeats that only fill the row are hidden from assistive tech and the tab order, so each brand is announced once. */}
+            <ul className="flex shrink-0">{copy.map((b, i) => tile(b, i >= list.length, `a${i}`))}</ul>
             <ul className="flex shrink-0 motion-reduce:hidden" aria-hidden>{copy.map((b, i) => tile(b, true, `b${i}`))}</ul>
           </div>
         </div>

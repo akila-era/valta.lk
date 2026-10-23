@@ -43,7 +43,9 @@
 }
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  /* Anchor jumps land below the sticky header (logo row + category row on md+, logo + search rows on phones). */
+  html { scroll-behavior: smooth; scroll-padding-top: 8.5rem; }
+  @media (min-width: 48rem) { html { scroll-padding-top: 10rem; } }
   body {
     background: var(--color-bg);
     color: var(--color-ink);
@@ -157,6 +159,7 @@
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slide-in { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes slide-in-right { from { transform: translateX(100%); } to { transform: none; } }
 
 /* Admin-written product descriptions (sanitised HTML): headings, paragraphs, lists, links. */
 @layer components {

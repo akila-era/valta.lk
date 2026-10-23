@@ -21,7 +21,7 @@ export function CartLink() {
           </span>
         )}
       </span>
-      <span className="hidden text-sm font-semibold sm:block" aria-hidden>{formatLkr(subtotal)}</span>
+      <span className="hidden text-sm font-semibold tabular-nums sm:block" aria-hidden>{count ? formatLkr(subtotal) : "Cart"}</span>
     </Link>
   );
 }

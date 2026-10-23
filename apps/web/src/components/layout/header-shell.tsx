@@ -17,7 +17,7 @@ export function HeaderShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <div ref={sentinel} aria-hidden className="absolute top-0 h-px w-px" />
+      <div ref={sentinel} aria-hidden className="absolute h-px w-px" />
       <header
         data-scrolled={scrolled}
         className="group/hdr sticky top-0 z-40 border-b border-border bg-bg/95 backdrop-blur-md transition-shadow duration-200 data-[scrolled=true]:shadow-raised"

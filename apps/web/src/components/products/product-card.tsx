@@ -7,8 +7,8 @@ import { AddToCartButton } from "./add-to-cart-button";
 import { CatalogueImage } from "./catalogue-image";
 import { WishlistButton } from "./wishlist-button";
 
-export function ProductImage({ src, alt, sizes, priority, contain = true, onError }: { src?: string; alt: string; sizes: string; priority?: boolean; contain?: boolean; onError?: () => void }) {
-  return <CatalogueImage src={src} alt={alt} sizes={sizes} priority={priority} contain={contain} onError={onError} />;
+export function ProductImage({ src, alt, sizes, priority, contain = true, padding, onError }: { src?: string; alt: string; sizes: string; priority?: boolean; contain?: boolean; padding?: string; onError?: () => void }) {
+  return <CatalogueImage src={src} alt={alt} sizes={sizes} priority={priority} contain={contain} padding={padding} onError={onError} />;
 }
 
 export function ProductCard({ product, priority }: { product: ErpProduct; priority?: boolean }) {
@@ -40,24 +40,29 @@ export function ProductCard({ product, priority }: { product: ErpProduct; priori
             ) : null}
           </div>
         </div>
-        <div className="flex flex-1 flex-col items-start px-4 pb-5 pt-3 text-left">
-          <p className="flex min-h-4 items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">
-            <span>{product.brand ?? ""}</span>
-            {product.available && !low && <span className="font-semibold normal-case tracking-normal text-success">In stock</span>}
+        <div className="flex flex-1 flex-col items-start px-4 pb-4 pt-3.5 text-left">
+          <p className="flex min-h-4 w-full items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted">
+            <span className="truncate">{product.brand ?? ""}</span>
+            {product.available && !low && (
+              <span className="inline-flex shrink-0 items-center gap-1 font-semibold normal-case tracking-normal text-success">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
+                In stock
+              </span>
+            )}
           </p>
-          <h3 className="type-product mt-1 min-h-[2.75rem]">{title}</h3>
-          <p className="mt-1 min-h-4 text-xs text-muted">
-            {product.specs.Model && !title.toLowerCase().includes(product.specs.Model.toLowerCase()) ? product.specs.Model : ""}
-          </p>
-          <div className="mt-auto pt-3">
-            <p className="min-h-4 text-[11px] font-medium text-muted">{product.hasVariants ? "From:" : ""}</p>
-            <p className="type-price">{formatLkr(current)}</p>
-            <p className="min-h-4 text-xs text-muted">
+          <h3 className="type-product mt-1.5 transition-colors group-hover:text-brand-700">{title}</h3>
+          {product.specs.Model && !title.toLowerCase().includes(product.specs.Model.toLowerCase()) ? (
+            <p className="mt-0.5 truncate text-xs text-muted">{product.specs.Model}</p>
+          ) : null}
+          <div className="mt-auto w-full pt-3">
+            <p className="flex flex-wrap items-baseline gap-x-2 border-t border-border/70 pt-3">
+              {product.hasVariants ? <span className="text-[11px] font-medium text-muted">From</span> : null}
+              <span className="type-price">{formatLkr(current)}</span>
               {current < product.price && (
-                <>
+                <span className="text-xs text-muted">
                   <span className="sr-only">Regular price</span>
                   <s className="whitespace-nowrap">{formatLkr(product.price)}</s>
-                </>
+                </span>
               )}
             </p>
           </div>

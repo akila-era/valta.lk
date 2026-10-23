@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Check, Loader2, Smartphone } from "lucide-react";
+import { Check, ChevronDown, Loader2, Smartphone } from "lucide-react";
 import { useLiveCart } from "@/components/cart/cart-view";
 import { EmptyState } from "@/components/ui/states";
 import { addMoney, formatLkr, fromCents, multiplyMoney, toCents } from "@/lib/utils/money";
@@ -71,6 +71,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
   const [errors, setErrors] = useState<Errors>({});
   const [banner, setBanner] = useState<{ kind: "error" | "warn"; text: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const [recap, setRecap] = useState<Record<string, string>>({});
   const inFlight = useRef(false);
   const moved = useRef(false);
@@ -339,7 +340,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           {step > 1 ? (
             <button type="button" className="btn-secondary" onClick={() => goTo((step - 1) as Step)} disabled={submitting}>Back</button>
           ) : (
-            <Link href="/cart" className="btn-ghost">Back to cart</Link>
+            <Link href="/cart" className="btn-secondary">Back to cart</Link>
           )}
           {step < 3 ? (
             <button type="submit" className="btn-primary min-w-40">Continue</button>
@@ -351,13 +352,31 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         </div>
       </div>
 
-      <aside className="card order-first h-fit p-5 lg:sticky lg:top-32 lg:order-none" aria-label="Order summary">
-        <h2 className="text-lg font-semibold">Order summary</h2>
+      <aside className="card order-first h-fit p-5 lg:sticky lg:top-40 lg:order-none" aria-label="Order summary">
+        <h2 className="hidden text-lg font-semibold lg:block">Order summary</h2>
+        {/* Phones: the summary sits above the form, so it starts collapsed to the total and opens on demand. */}
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 text-left lg:hidden"
+          aria-expanded={summaryOpen}
+          aria-controls="checkout-summary-details"
+          onClick={() => setSummaryOpen((o) => !o)}
+        >
+          <span>
+            <span className="block text-lg font-semibold text-ink">Order summary</span>
+            <span className="block text-xs text-muted">{lines.length} {lines.length === 1 ? "item" : "items"} · {summaryOpen ? "Hide details" : "Show details"}</span>
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="text-lg font-extrabold tabular-nums text-brand-600">{formatLkr(total)}</span>
+            <ChevronDown className={`h-5 w-5 text-muted transition-transform ${summaryOpen ? "rotate-180" : ""}`} aria-hidden />
+          </span>
+        </button>
         {unavailable.length > 0 && (
           <p role="alert" className="mt-3 rounded-lg bg-danger-bg p-3 text-sm text-danger">
             {unavailable.map((l) => l.name).join(", ")} {unavailable.length === 1 ? "is" : "are"} not available in the requested quantity. Update the cart before placing the order.
           </p>
         )}
+        <div id="checkout-summary-details" className={summaryOpen ? "" : "max-lg:hidden"}>
         <ul className="mt-4 space-y-3 text-sm">
           {lines.map((l) => (
             <li key={lineKey(l)} className="flex items-center gap-3">
@@ -381,6 +400,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         </dl>
         <p className="mt-3 text-xs text-muted">The store has one delivery charge. No other delivery method is offered.</p>
         <p className="mt-4 text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>
+        </div>
       </aside>
     </form>
   );

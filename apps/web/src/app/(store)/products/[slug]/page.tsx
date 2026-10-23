@@ -100,6 +100,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
     ? product.variants.map((v) => ({ productId: product.id, variantKey: v.key, quantity: 1, listPrice: v.price, erpPrice: effectivePrice(v), categoryName: product.category?.name ?? null }))
     : [{ productId: product.id, variantKey: "", quantity: 1, listPrice: product.price, erpPrice: effectivePrice(product), categoryName: product.category?.name ?? null }];
   const [quote, accessories, settings] = await Promise.all([quotePricedLines(priced), offersForSources([product.id]), getSettings().catch(() => null)]);
+  // In-page links, only to the sections this product really has.
+  const jumps = [
+    ...(descHtml || product.description ? [{ id: "desc", label: "Description" }] : []),
+    ...(siteSpecGroups.length > 0 || erpSpecs.length > 0 ? [{ id: "specs", label: "Specifications" }] : []),
+    ...(hasWarranty || product.specs.Warranty ? [{ id: "warranty", label: "Warranty" }] : []),
+    ...(hasDelivery ? [{ id: "delivery", label: "Delivery & pickup" }] : []),
+  ];
   const offerNames = Object.fromEntries(quote.lines.flatMap((l) => (l.offerName ? [[l.variantKey, l.offerName]] : [])));
 
   // Structured data only from real fields: no ratings, review counts or invented stock.
@@ -189,7 +196,21 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
       <AccessoryRail productIds={[product.id]} initial={accessories} intro="Only accessories linked to this product. Prices are the catalogue prices. You can continue without them." />
 
-      <div className="mt-12 space-y-12">
+      {jumps.length > 1 && (
+        <nav aria-label="On this page" className="mt-12 max-w-full overflow-x-auto border-b border-border">
+          <ul className="flex w-max gap-6">
+            {jumps.map((j) => (
+              <li key={j.id}>
+                <a href={`#${j.id}`} className="inline-flex min-h-12 items-center border-b-2 border-transparent text-sm font-semibold text-muted transition-colors hover:border-brand-500 hover:text-ink">
+                  {j.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      <div className={`${jumps.length > 1 ? "mt-8" : "mt-12"} space-y-12`}>
         {(descHtml || product.description) && (
           <Section id="desc" title="Description">
             {descHtml ? <div className="rich" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>}
@@ -203,7 +224,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
                   {siteSpecGroups.length > 1 || g.group !== "General" ? <h3 className="mb-2 text-sm font-semibold text-muted">{g.group}</h3> : null}
                   <dl className="grid gap-px overflow-hidden rounded-xl border border-border bg-border text-sm sm:grid-cols-2">
                     {g.rows.map((s, i) => (
-                      <div key={i} className="min-w-0 bg-bg px-4 py-3">
+                      <div key={i} className="min-w-0 bg-bg px-4 py-3 sm:last:odd:col-span-2">
                         <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{s.name}</dt>
                         <dd className="mt-1 break-words font-medium text-ink">{s.value}{s.unit ? ` ${s.unit}` : ""}</dd>
                       </div>
@@ -214,7 +235,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
               {erpSpecs.length > 0 && (
                 <dl className="grid gap-px overflow-hidden rounded-xl border border-border bg-border text-sm sm:grid-cols-2">
                   {erpSpecs.map(([k, v]) => (
-                    <div key={k} className="min-w-0 bg-bg px-4 py-3">
+                    <div key={k} className="min-w-0 bg-bg px-4 py-3 sm:last:odd:col-span-2">
                       <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{k}</dt>
                       <dd className="mt-1 break-words font-medium text-ink">{v}</dd>
                     </div>

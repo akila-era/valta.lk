@@ -50,39 +50,40 @@ export async function Header() {
   const cod = settings?.paymentMethods.COD === true;
   return (
     <>
-      <HeaderShell>
-        <div className="hidden border-b border-white/10 bg-ink text-white md:block">
-          <div className="container-wide flex h-10 items-center justify-between gap-6 text-xs">
-            <ul className="flex min-w-0 items-center gap-4">
-              <li className="flex min-w-0 items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-500" aria-hidden />
-                <span className="truncate">{note}</span>
+      {/* The service bar scrolls away with the page; only the logo, search and category rows stay pinned. */}
+      <div className="hidden border-b border-white/10 bg-ink text-white md:block">
+        <div className="container-wide flex h-10 items-center justify-between gap-6 text-xs">
+          <ul className="flex min-w-0 items-center gap-4">
+            <li className="flex min-w-0 items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-500" aria-hidden />
+              <span className="truncate">{note}</span>
+            </li>
+            {settings ? (
+              <li className="flex shrink-0 items-center gap-1.5">
+                <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden />
+                Delivery {formatLkr(settings.deliveryCharge)}
               </li>
-              {settings ? (
-                <li className="flex shrink-0 items-center gap-1.5">
-                  <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden />
-                  Delivery {formatLkr(settings.deliveryCharge)}
-                </li>
-              ) : null}
-              {cod ? (
-                <li className="flex shrink-0 items-center gap-1.5">
-                  <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden />
-                  Cash on delivery
-                </li>
-              ) : null}
-              <li>
-                <Link href="/contact" className="flex items-center gap-1.5 rounded-sm hover:text-brand-500">
-                  <Headset className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Customer Support
-                </Link>
+            ) : null}
+            {cod ? (
+              <li className="flex shrink-0 items-center gap-1.5">
+                <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden />
+                Cash on delivery
               </li>
-            </ul>
-            <nav aria-label="Help" className="flex shrink-0 items-center gap-4">
-              {siteConfig.phone ? <a href={`tel:${siteConfig.phone}`} className="rounded-sm hover:text-brand-500">{siteConfig.phone}</a> : null}
-              <Link href="/track-order" className="rounded-sm hover:text-brand-500">Track Order</Link>
-              {siteConfig.address ? <Link href="/contact" className="rounded-sm hover:text-brand-500">Visit</Link> : null}
-            </nav>
-          </div>
+            ) : null}
+            <li>
+              <Link href="/contact" className="flex items-center gap-1.5 rounded-sm hover:text-brand-500">
+                <Headset className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Customer Support
+              </Link>
+            </li>
+          </ul>
+          <nav aria-label="Help" className="flex shrink-0 items-center gap-4">
+            {siteConfig.phone ? <a href={`tel:${siteConfig.phone}`} className="rounded-sm hover:text-brand-500">{siteConfig.phone}</a> : null}
+            <Link href="/track-order" className="rounded-sm hover:text-brand-500">Track Order</Link>
+            {siteConfig.address ? <Link href="/contact" className="rounded-sm hover:text-brand-500">Visit</Link> : null}
+          </nav>
         </div>
+      </div>
+      <HeaderShell>
         <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2.5 py-3 md:grid md:h-20 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
           <Wordmark className="text-[1.6rem] md:text-[2.1rem]" />

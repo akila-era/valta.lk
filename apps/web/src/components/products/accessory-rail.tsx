@@ -25,6 +25,9 @@ function readDismissed(): string[] {
 let dismissedCache: string[] | null = null;
 const dismissListeners = new Set<() => void>();
 const dismissedSnapshot = () => dismissedCache ?? (dismissedCache = readDismissed());
+// The server snapshot must be the same array every call, or React warns and re-renders in a loop.
+const NONE_DISMISSED: string[] = [];
+const noneDismissed = () => NONE_DISMISSED;
 const subscribeDismissed = (cb: () => void) => {
   dismissListeners.add(cb);
   return () => dismissListeners.delete(cb);
@@ -57,7 +60,7 @@ export function AccessoryRail({ productIds, initial, selections, intro = "Only a
   const choice = useVariantChoice();
   const picked = selections ?? productIds.map((productId) => ({ productId, variantKey: choice?.variantKey ?? "" }));
   const [items, setItems] = useState<AccessoryOffer[] | null>(initial ?? null);
-  const dismissed = useSyncExternalStore(subscribeDismissed, dismissedSnapshot, () => [] as string[]);
+  const dismissed = useSyncExternalStore(subscribeDismissed, dismissedSnapshot, noneDismissed);
   const [pickedIds, setPickedIds] = useState<string[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const signature = [...new Set(productIds)].sort().join(",");

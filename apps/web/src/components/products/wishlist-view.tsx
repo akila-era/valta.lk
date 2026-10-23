@@ -5,17 +5,23 @@ import Link from "next/link";
 import { Heart, Smartphone, X } from "lucide-react";
 import { formatLkr } from "@/lib/utils/money";
 import { useWishlist, wishlistActions } from "@/store/wishlist";
+import { SuggestedProducts } from "./suggested-products";
 
 export function WishlistView() {
   const { items } = useWishlist();
   if (!items.length) {
     return (
-      <div className="card flex flex-col items-center gap-3 p-10 text-center">
-        <Heart className="h-10 w-10 text-muted" aria-hidden />
-        <p className="font-semibold">Your wishlist is empty</p>
-        <p className="text-sm text-muted">Tap the heart on any product to save it here.</p>
-        <Link href="/products" className="btn-primary mt-2">Browse products</Link>
-      </div>
+      <>
+        <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
+          <span className="mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+            <Heart className="h-7 w-7" aria-hidden />
+          </span>
+          <p className="text-lg font-semibold">Your wishlist is empty</p>
+          <p className="max-w-sm text-sm text-muted">Tap the heart on any product to save it here.</p>
+          <Link href="/products" className="btn-primary mt-3">Browse products</Link>
+        </div>
+        <SuggestedProducts />
+      </>
     );
   }
   return (

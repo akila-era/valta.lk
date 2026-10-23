@@ -100,13 +100,11 @@ export function HeroSlides() {
         ))}
       </div>
 
-      <button type="button" onClick={() => go(i - 1)} aria-label="Previous slide" className="absolute bottom-3 left-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm hover:bg-white sm:left-5">
-        <ChevronLeft className="h-5 w-5" aria-hidden />
-      </button>
-      <button type="button" onClick={() => go(i + 1)} aria-label="Next slide" className="absolute bottom-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-sm hover:bg-white sm:right-5">
-        <ChevronRight className="h-5 w-5" aria-hidden />
-      </button>
-      <div className="absolute inset-x-0 bottom-4 z-20 flex items-center justify-center gap-2">
+      {/* One compact control pill: bottom corner of the photo on phones (swipe replaces the arrows), under the copy on wider screens so it never sits on the products. */}
+      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-0.5 rounded-full bg-white/85 p-0.5 shadow-card backdrop-blur-md sm:p-1 md:bottom-5 md:left-16 md:right-auto lg:left-20">
+        <button type="button" onClick={() => go(i - 1)} aria-label="Previous slide" className="hidden h-9 w-9 sm:flex items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5">
+          <ChevronLeft className="h-4.5 w-4.5" aria-hidden />
+        </button>
         {SLIDES.map((slide, idx) => (
           <button
             key={slide.src}
@@ -114,14 +112,20 @@ export function HeroSlides() {
             onClick={() => go(idx)}
             aria-label={`Go to slide ${idx + 1}`}
             aria-current={idx === i ? "true" : undefined}
-            className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-brand-500" : "w-2 bg-white/80 hover:bg-white"}`}
-          />
+            className="group/dot flex h-9 min-w-6 items-center justify-center"
+          >
+            <span aria-hidden className={`block h-1.5 rounded-full transition-all duration-300 ${idx === i ? "w-6 bg-brand-500" : "w-1.5 bg-ink/25 group-hover/dot:bg-ink/50"}`} />
+          </button>
         ))}
+        <button type="button" onClick={() => go(i + 1)} aria-label="Next slide" className="hidden h-9 w-9 sm:flex items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5">
+          <ChevronRight className="h-4.5 w-4.5" aria-hidden />
+        </button>
+        <span aria-hidden className="mx-0.5 hidden h-5 w-px bg-ink/10 sm:block" />
         <button
           type="button"
           onClick={() => setPaused((p) => !p)}
           aria-label={paused ? "Play slideshow" : "Pause slideshow"}
-          className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-ink hover:bg-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5"
         >
           {paused ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
         </button>

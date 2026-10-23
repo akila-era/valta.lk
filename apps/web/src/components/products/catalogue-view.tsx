@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { X } from "lucide-react";
 import { listProducts, type ProductQuery, type SortKey } from "@/lib/erp/catalogue";
 import { Pagination } from "@/components/ui/chrome";
 import { EmptyState, ErpUnavailable } from "@/components/ui/states";
@@ -77,14 +79,23 @@ function ActiveFilters({ basePath, params, query, categories, filtered, fixedCat
   if (query.onSale) chips.push({ label: "On sale", href: drop({ sale: "" }) });
   if (!chips.length) return null;
   return (
-    <ul className="mb-4 flex flex-wrap gap-2" aria-label="Selected filters">
+    <ul className="mb-4 flex flex-wrap items-center gap-2" aria-label="Selected filters">
       {chips.map((chip) => (
         <li key={chip.label}>
-          <Link href={chip.href} className="inline-flex min-h-9 items-center rounded-full border border-border bg-bg px-3 text-sm font-medium text-ink hover:border-ink">
-            {chip.label} <span className="sr-only">, remove filter</span>
+          <Link href={chip.href} className="group/chip inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-surface pl-3 pr-2 text-sm font-medium text-ink transition-colors hover:border-ink">
+            {chip.label}
+            <X className="h-3.5 w-3.5 text-muted group-hover/chip:text-ink" aria-hidden />
+            <span className="sr-only">, remove filter</span>
           </Link>
         </li>
       ))}
+      {chips.length > 1 && (
+        <li>
+          <Link href={fixedCategory ? basePath : "/products"} className="inline-flex min-h-9 items-center rounded-full px-2 text-sm font-semibold text-brand-600 hover:underline">
+            Clear all
+          </Link>
+        </li>
+      )}
     </ul>
   );
 }
@@ -97,6 +108,8 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
   } catch {
     return <ErpUnavailable retryHref={href(basePath, params, {})} />;
   }
+  // A page past the end is served as the last page; send the shopper to that URL so the address bar and pager agree.
+  if (query.page !== result.page) redirect(href(basePath, params, { page: result.page > 1 ? String(result.page) : "" }));
   const filtered = Boolean(query.sub || query.q || query.brand || query.minPrice || query.maxPrice || query.inStockOnly || query.onSale || (!fixedCategory && query.category));
   const brandValue = result.brands.find((b) => b.name.toLowerCase() === (query.brand ?? "").toLowerCase())?.name ?? "";
 
@@ -179,7 +192,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
             {query.q ? ` for “${query.q}”` : ""}
           </p>
           <nav aria-label="Sort" className="min-w-0 max-w-full overflow-x-auto">
-            <ul className="flex w-max gap-1">
+            <ul className="flex w-max gap-0.5 rounded-xl bg-surface p-1">
               {SORTS.map((s) => {
                 const on = query.sort === s.value;
                 return (
@@ -187,7 +200,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
                     <Link
                       href={href(basePath, params, { sort: s.value === "newest" ? "" : s.value, page: "" })}
                       aria-current={on ? "page" : undefined}
-                      className={`inline-flex min-h-10 items-center rounded-lg px-3 text-sm font-semibold ${on ? "bg-brand-500 text-ink" : "text-ink hover:bg-surface"}`}
+                      className={`inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-semibold transition-colors ${on ? "bg-bg text-ink shadow-card ring-1 ring-border" : "text-muted hover:text-ink"}`}
                     >
                       {s.label}
                     </Link>
@@ -201,7 +214,11 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
         {result.items.length === 0 ? (
           <>
             <EmptyState title="No products found" action={{ href: fixedCategory ? basePath : "/products", label: filtered ? "Clear filters" : "Browse all products" }}>
-              {filtered ? "Try a different search or adjust your filters." : "Products will appear here once they are available."}
+              {query.minPrice != null && query.maxPrice != null && query.minPrice > query.maxPrice
+                ? "The minimum price is higher than the maximum price. Swap them and try again."
+                : filtered
+                  ? "Try a different search or adjust your filters."
+                  : "Products will appear here once they are available."}
             </EmptyState>
             {query.q && result.categories.length > 0 && (
               <nav aria-label="Browse categories" className="mt-6">
@@ -224,6 +241,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
           pageCount={result.pageCount}
           prevHref={result.page > 1 ? href(basePath, params, { page: String(result.page - 1) }) : null}
           nextHref={result.page < result.pageCount ? href(basePath, params, { page: String(result.page + 1) }) : null}
+          pageHref={(p) => href(basePath, params, { page: p > 1 ? String(p) : "" })}
         />
       </section>
     </div>

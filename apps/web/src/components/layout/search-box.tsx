@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Loader2, Search, X } from "lucide-react";
 import { effectivePrice } from "@/lib/erp/product-utils";
 import { formatLkr } from "@/lib/utils/money";
+import { CatalogueImage } from "@/components/products/catalogue-image";
 
 interface Suggestion {
   id: string;
@@ -16,6 +17,7 @@ interface Suggestion {
   specs?: { Model?: string };
   price: number;
   salePrice?: number | null;
+  images?: string[];
 }
 
 /**
@@ -131,7 +133,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input ${size === "lg" ? "min-h-12 rounded-full border-transparent bg-surface pl-12 pr-28 text-[15px]" : "pl-11 pr-16"}`}
+          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-full border-transparent bg-surface pl-12 pr-28 text-[15px]" : "pl-11 pr-16"}`}
         />
         {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
@@ -157,22 +159,33 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
       </form>
 
       {visible && (
-        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-border bg-bg shadow-card">
+        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-bg py-1 shadow-overlay">
           {items.length === 0 && !loading && <li role="presentation" className="px-4 py-3 text-sm text-muted">No matching products</li>}
           {items.map((s, i) => (
             <li key={s.id} role="option" id={`${listId}-opt-${i}`} aria-selected={active === i}>
               <Link
                 href={`/products/${s.slug}`}
                 onClick={() => setOpen(false)}
-                className={`flex items-center justify-between gap-3 px-4 py-2.5 text-sm ${active === i ? "bg-brand-50" : "hover:bg-surface"}`}
+                className={`flex items-center gap-3 px-3 py-2 text-sm ${active === i ? "bg-brand-50" : "hover:bg-surface"}`}
               >
-                <span className="min-w-0">
+                <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-border bg-surface">
+                  <CatalogueImage src={s.images?.[0]} alt="" sizes="44px" padding="p-1" />
+                </span>
+                <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{s.name}</span>
                   {(s.brand || s.specs?.Model || s.sku) && (
                     <span className="block truncate text-xs text-muted">{[s.brand, s.specs?.Model, s.sku].filter(Boolean).join(" · ")}</span>
                   )}
                 </span>
-                <span className="shrink-0 font-semibold">{formatLkr(effectivePrice(s))}</span>
+                <span className="shrink-0 text-right">
+                  <span className="block font-semibold tabular-nums text-brand-600">{formatLkr(effectivePrice(s))}</span>
+                  {effectivePrice(s) < s.price && (
+                    <span className="block text-xs text-muted">
+                      <span className="sr-only">Regular price</span>
+                      <s>{formatLkr(s.price)}</s>
+                    </span>
+                  )}
+                </span>
               </Link>
             </li>
           ))}

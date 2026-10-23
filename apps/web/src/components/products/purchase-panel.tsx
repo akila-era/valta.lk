@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Minus, Plus } from "lucide-react";
+import { Check, Minus, Plus, RefreshCw, ShieldCheck, Truck, Wallet, type LucideIcon } from "lucide-react";
 import { effectivePrice, quantityCap, variantChoiceRequired } from "@/lib/erp/product-utils";
 import { cartActions } from "@/store/cart";
 import { MAX_LINE_QTY } from "@/lib/utils/cart-math";
@@ -23,6 +23,21 @@ export interface PanelProduct {
   available: boolean;
   purchasableQuantity: number;
   variants: { key: string; label: string; sku?: string; price?: number; salePrice?: number | null; available: boolean; purchasableQuantity: number }[];
+}
+
+/** One delivery / payment fact under the buy buttons. Only facts the store really offers are passed in. */
+function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-3 rounded-xl border border-border bg-bg p-3">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+        <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+      </span>
+      <span className="min-w-0">
+        <span className="block font-semibold leading-5 text-ink">{title}</span>
+        <span className="block text-xs leading-5 text-muted">{children}</span>
+      </span>
+    </li>
+  );
 }
 
 export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean }) {
@@ -59,10 +74,11 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
   }, []);
 
   useEffect(() => {
-    const main = document.getElementById("main");
+    // Pad the whole page (not just <main>) so the footer and back-to-top button stay reachable above the fixed bar.
+    const main = document.body;
     if (!main) return;
     const narrow = window.matchMedia("(max-width: 1023px)").matches;
-    main.style.paddingBottom = showBar && narrow ? "4.5rem" : "";
+    main.style.paddingBottom = showBar && narrow ? "6.5rem" : "";
     return () => {
       main.style.paddingBottom = "";
     };
@@ -104,7 +120,6 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <Price price={price} salePrice={salePrice} large offerName={offerNames[variantKey] ?? offerNames[""]} />
         <WishlistButton className="shrink-0" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.image, price: unit }} />
       </div>
-      {sku ? <p className="text-sm text-muted">SKU: {sku}</p> : null}
 
       {product.variants.length > 0 && (
         <fieldset>
@@ -126,12 +141,17 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         </fieldset>
       )}
 
-      <p className={`text-sm font-medium ${purchasable ? "text-success" : mustChoose && !variant ? "text-ink" : "text-danger"}`} data-testid="availability">
-        {mustChoose && !variant ? "Select an option to continue" : purchasable ? "Available" : "Out of stock"}
-      </p>
-      {purchasable && stock > 0 && stock < MAX_LINE_QTY && (
-        <p className="text-sm text-muted">Only {stock} available.</p>
-      )}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border py-3 text-sm">
+        <p
+          className={`inline-flex items-center gap-2 font-semibold ${purchasable ? "text-success" : mustChoose && !variant ? "text-ink" : "text-danger"}`}
+          data-testid="availability"
+        >
+          <span aria-hidden className={`h-2 w-2 rounded-full ${purchasable ? "bg-success" : mustChoose && !variant ? "bg-muted" : "bg-danger"}`} />
+          {mustChoose && !variant ? "Select an option to continue" : purchasable ? "Available" : "Out of stock"}
+        </p>
+        {purchasable && stock > 0 && stock < MAX_LINE_QTY && <p className="font-medium text-warn">Only {stock} available.</p>}
+        {sku ? <p className="ml-auto text-xs text-muted">SKU: {sku}</p> : null}
+      </div>
 
       <div ref={actionsRef} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex w-fit items-center rounded-lg border border-border bg-bg" role="group" aria-label="Quantity">
@@ -144,12 +164,12 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>
         </div>
         <div className="flex flex-1 gap-3">
-          <button type="button" className="btn-primary min-w-0 flex-1 whitespace-nowrap sm:min-w-44 sm:flex-none" disabled={!purchasable || added} onClick={add}>
+          <button type="button" className="btn-primary min-w-0 flex-1 whitespace-nowrap shadow-[0_8px_20px_-12px_rgb(255_92_0/0.8)]" disabled={!purchasable || added} onClick={add}>
             {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : "Add to cart"}
           </button>
           <button
             type="button"
-            className="btn-dark min-w-0 flex-1 whitespace-nowrap sm:min-w-40 sm:flex-none"
+            className="btn-dark min-w-0 flex-1 whitespace-nowrap"
             disabled={!purchasable || added}
             onClick={() => {
               if (add()) router.push("/checkout");
@@ -159,11 +179,17 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>
         </div>
       </div>
-      <ul className="space-y-1 text-xs text-muted">
-        <li>Stock is confirmed again when you place your order.</li>
-        {deliveryCharge != null ? <li>Delivery {formatLkr(deliveryCharge)}. <Link href="/shipping-policy" className="font-semibold text-ink underline">Shipping policy</Link></li> : null}
-        {cod ? <li>Cash on delivery.</li> : null}
-        <li><Link href="/returns-policy" className="font-semibold text-ink underline">Returns policy</Link></li>
+      <ul className="grid gap-2 text-sm sm:grid-cols-2" aria-label="Delivery and payment">
+        {deliveryCharge != null ? (
+          <Assurance icon={Truck} title={`Delivery ${formatLkr(deliveryCharge)}`}>
+            <Link href="/shipping-policy" className="underline underline-offset-2 hover:text-ink">Shipping policy</Link>
+          </Assurance>
+        ) : null}
+        {cod ? <Assurance icon={Wallet} title="Cash on delivery">Pay when your order arrives</Assurance> : null}
+        <Assurance icon={RefreshCw} title="Returns">
+          <Link href="/returns-policy" className="underline underline-offset-2 hover:text-ink">Returns policy</Link>
+        </Assurance>
+        <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>
       {showBar ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">
@@ -176,7 +202,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         </div>
       ) : null}
 
-      <div role="status" aria-live="polite" className="min-h-5 text-sm">
+      <div role="status" aria-live="polite" className="-mt-2 text-sm">
         {added && (
           <Link href="/cart" className="font-semibold text-brand-600 underline">
             View cart

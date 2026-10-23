@@ -6,7 +6,9 @@ import { Notice } from "./notice";
 export function EmptyState({ title, children, action }: { title: string; children?: ReactNode; action?: { href: string; label: string } }) {
   return (
     <div className="card flex flex-col items-center px-6 py-14 text-center">
-      <PackageSearch className="mb-4 h-10 w-10 text-muted" aria-hidden />
+      <span className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-surface text-muted">
+        <PackageSearch className="h-7 w-7" aria-hidden />
+      </span>
       <h2 className="text-lg font-semibold">{title}</h2>
       {children && <p className="mt-2 max-w-md text-sm text-muted">{children}</p>}
       {action && (
@@ -59,12 +61,16 @@ export function Skeleton({ className = "" }: { className?: string }) {
 
 export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4" role="status" aria-label="Loading products">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4" role="status" aria-label="Loading products">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="card p-3">
-          <Skeleton className="aspect-square w-full" />
-          <Skeleton className="mt-3 h-4 w-3/4" />
-          <Skeleton className="mt-2 h-4 w-1/3" />
+        <div key={i} className="overflow-hidden rounded-xl border border-border bg-bg shadow-card">
+          <Skeleton className="aspect-square w-full rounded-none" />
+          <div className="px-4 pb-5 pt-3">
+            <Skeleton className="h-3 w-1/4" />
+            <Skeleton className="mt-2 h-4 w-11/12" />
+            <Skeleton className="mt-1.5 h-4 w-2/3" />
+            <Skeleton className="mt-7 h-5 w-2/5" />
+          </div>
         </div>
       ))}
     </div>

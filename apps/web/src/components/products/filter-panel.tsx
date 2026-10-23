@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { SlidersHorizontal, X } from "lucide-react";
+import { useDialogLifecycle } from "@/components/ui/overlay";
 
 /** Filters stay in the sidebar on large screens and open as a drawer on a phone. */
 export function FilterPanel({ children, active }: { children: React.ReactNode; active: boolean }) {
   const [open, setOpen] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
     const form = rootRef.current?.querySelector("form");
@@ -28,14 +30,15 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
     return () => form.removeEventListener("submit", onSubmit);
   }, []);
 
+  useDialogLifecycle(open, close, panelRef);
+
+  // The drawer only exists below the lg breakpoint; widening the window turns it back into the sidebar.
   useEffect(() => {
     if (!open) return;
-    closeRef.current?.focus();
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const wide = window.matchMedia("(min-width: 64rem)");
+    const onChange = () => wide.matches && setOpen(false);
+    wide.addEventListener("change", onChange);
+    return () => wide.removeEventListener("change", onChange);
   }, [open]);
 
   return (
@@ -48,22 +51,25 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
         onClick={() => setOpen(true)}
       >
         <SlidersHorizontal className="h-4 w-4" aria-hidden />
-        Filters{active ? " · On" : ""}
+        Filters
+        {active ? <span className="h-2 w-2 rounded-full bg-brand-500" aria-hidden /> : null}
+        {active ? <span className="sr-only">(active)</span> : null}
       </button>
       {open ? (
-        <button type="button" className="fixed inset-0 z-[70] bg-ink/40 lg:hidden" aria-label="Close filters" onClick={() => setOpen(false)} />
+        <button type="button" tabIndex={-1} className="fixed inset-0 z-[70] animate-[fade-in_0.2s_ease-out] bg-ink/40 lg:hidden" aria-label="Close filters" onClick={close} />
       ) : null}
       <aside
+        ref={panelRef}
         id="catalogue-filters"
         aria-label="Filters"
         role={open ? "dialog" : undefined}
         aria-modal={open ? true : undefined}
-        className={`${open ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] overflow-y-auto bg-bg p-5 shadow-overlay" : "hidden"} lg:static lg:z-auto lg:block lg:w-auto lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-surface lg:p-5 lg:shadow-none`}
+        className={`${open ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-bg p-5 shadow-overlay" : "hidden"} lg:static lg:animate-none lg:z-auto lg:block lg:w-auto lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-surface lg:p-5 lg:shadow-none`}
       >
         <div className="mb-4 flex items-center justify-between lg:hidden">
           <h2 className="text-lg font-bold text-ink">Filters</h2>
-          <button ref={closeRef} type="button" className="btn-text" onClick={() => setOpen(false)}>
-            Close
+          <button type="button" className="btn-text px-3" onClick={close}>
+            <X className="h-4 w-4" aria-hidden /> Close
           </button>
         </div>
         {children}

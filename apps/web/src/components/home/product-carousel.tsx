@@ -46,7 +46,7 @@ export function ProductCarousel({
     const atEnd = step === "item" ? el.scrollLeft >= max - 4 : el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
     const page = atEnd ? pages - 1 : Math.min(pages - 1, Math.round(el.scrollLeft / delta));
     setState((s) => (s.pages === pages && s.page === page ? s : { pages, page }));
-  }, [distance]);
+  }, [distance, step]);
 
   useEffect(() => {
     const el = scroller.current;

@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Minus, Plus, Smartphone, Trash2 } from "lucide-react";
 import { AccessoryRail } from "@/components/products/accessory-rail";
 import { SaleNote } from "@/components/products/price";
+import { SuggestedProducts } from "@/components/products/suggested-products";
+import { Dialog } from "@/components/ui/overlay";
 import { EmptyState } from "@/components/ui/states";
 import { lineKey, MAX_LINE_QTY } from "@/lib/utils/cart-math";
 import { addMoney, formatLkr, fromCents, multiplyMoney, toCents } from "@/lib/utils/money";
@@ -96,6 +98,8 @@ export function CartView() {
   const info = useCheckoutInfo();
   const summaryRef = useRef<HTMLElement>(null);
   const [dockSummary, setDockSummary] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const closeConfirm = useCallback(() => setConfirmClear(false), []);
 
   useEffect(() => {
     const el = summaryRef.current;
@@ -106,10 +110,11 @@ export function CartView() {
   }, [lines.length]);
 
   useEffect(() => {
-    const main = document.getElementById("main");
+    // Pad the whole page (not just <main>) so the footer and back-to-top button stay reachable above the fixed bar.
+    const main = document.body;
     if (!main) return;
     const narrow = window.matchMedia("(max-width: 1023px)").matches;
-    main.style.paddingBottom = dockSummary && narrow && lines.length ? "4.5rem" : "";
+    main.style.paddingBottom = dockSummary && narrow && lines.length ? "6.5rem" : "";
     return () => {
       main.style.paddingBottom = "";
     };
@@ -117,9 +122,12 @@ export function CartView() {
 
   if (!lines.length) {
     return (
-      <EmptyState title="Your cart is empty" action={{ href: "/products", label: "Continue shopping" }}>
-        Add products to your cart and they will appear here.
-      </EmptyState>
+      <>
+        <EmptyState title="Your cart is empty" action={{ href: "/products", label: "Continue shopping" }}>
+          Add products to your cart and they will appear here.
+        </EmptyState>
+        <SuggestedProducts />
+      </>
     );
   }
 
@@ -197,7 +205,7 @@ export function CartView() {
                 </div>
                 <div className="col-span-2 flex items-center justify-between gap-2 sm:col-span-1 sm:justify-end">
                   <div className="flex items-center rounded-lg border border-border bg-bg" role="group" aria-label={`Quantity for ${l.name}`}>
-                    <button type="button" className="btn-ghost min-h-11 min-w-11 px-3" aria-label={`Decrease quantity of ${l.name}`} onClick={() => cartActions.setQuantity(key, l.quantity - 1)}>
+                    <button type="button" className="btn-ghost min-h-11 min-w-11 px-3" aria-label={`Decrease quantity of ${l.name}`} disabled={l.quantity <= 1} onClick={() => cartActions.setQuantity(key, l.quantity - 1)}>
                       <Minus className="h-4 w-4" aria-hidden />
                     </button>
                     <span className="w-8 text-center text-sm font-semibold tabular-nums" data-testid="line-qty">{l.quantity}</span>
@@ -217,19 +225,31 @@ export function CartView() {
             );
           })}
         </ul>
-        <button
-          type="button"
-          className="btn-text mt-4"
-          onClick={() => {
-            if (window.confirm("Remove all items from your cart?")) cartActions.clear();
-          }}
-        >
-          Clear cart
+        <button type="button" className="btn-text mt-4 text-muted hover:text-danger" onClick={() => setConfirmClear(true)}>
+          <Trash2 className="h-4 w-4" aria-hidden /> Clear cart
         </button>
+        <Dialog open={confirmClear} title="Remove all items?" onClose={closeConfirm}>
+          <p className="text-muted">
+            {lines.length === 1 ? "This removes the item from your cart. You can add it again later." : `This removes all ${lines.length} items from your cart. You can add them again later.`}
+          </p>
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button type="button" className="btn-secondary" onClick={closeConfirm}>Keep my cart</button>
+            <button
+              type="button"
+              className="btn-danger"
+              onClick={() => {
+                cartActions.clear();
+                setConfirmClear(false);
+              }}
+            >
+              Remove all
+            </button>
+          </div>
+        </Dialog>
         <AccessoryRail productIds={lines.map((l) => l.productId)} selections={lines.map((l) => ({ productId: l.productId, variantKey: l.variantKey }))} />
       </div>
 
-      <aside ref={summaryRef} className="card h-fit p-5 lg:sticky lg:top-32" aria-label="Order summary">
+      <aside ref={summaryRef} className="card h-fit p-5 lg:sticky lg:top-40" aria-label="Order summary">
         <h2 className="text-lg font-semibold">Order summary</h2>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between"><dt>Subtotal</dt><dd data-testid="subtotal">{formatLkr(subtotal)}</dd></div>

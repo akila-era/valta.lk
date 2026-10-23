@@ -21,7 +21,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
             <div className="relative aspect-[16/9] md:absolute md:inset-0 md:aspect-auto">
               <HeroSlides />
             </div>
-            <div className="pointer-events-none relative z-10 flex flex-col justify-center px-5 py-6 sm:px-8 md:absolute md:inset-y-0 md:left-0 md:w-[46%] md:bg-gradient-to-r md:from-white/70 md:via-white/30 md:to-transparent md:pb-12 md:pl-16 md:pr-4 md:pt-6 lg:pl-20">
+            <div className="pointer-events-none relative z-10 flex flex-col justify-center px-5 py-6 sm:px-8 md:absolute md:inset-y-0 md:left-0 md:w-[46%] md:bg-gradient-to-r md:from-white/70 md:via-white/30 md:to-transparent md:pb-20 md:pl-16 md:pr-4 md:pt-6 lg:pl-20">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-600 sm:text-xs">Latest technology</p>
               <h1 id="hero-title" className="mt-2 max-w-[11ch] text-[2rem] font-black leading-[0.98] tracking-[-0.04em] text-ink sm:text-4xl lg:text-[2.9rem]">
                 Technology that <span className="text-brand-500">moves</span> you.
@@ -29,21 +29,21 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
               <p className="mt-3 max-w-md text-sm leading-6 text-ink/70 sm:mt-4 sm:text-base sm:leading-7">
                 Discover smartphones, everyday tech and accessories at VALTA.LK.
               </p>
-              <div className="pointer-events-auto mt-5 flex flex-wrap items-center gap-2.5 sm:mt-6 sm:gap-3">
-                <Link href="/products" className="btn-primary rounded-full px-5 sm:btn-lg sm:px-7">
+              <div className="pointer-events-auto mt-5 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
+                <Link href="/products" className="btn-primary rounded-full px-4 shadow-[0_8px_20px_-10px_rgb(255_92_0/0.7)] sm:btn-lg sm:px-7">
                   Shop now <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
                 {phonesHref && (
-                  <Link href={phonesHref} className="btn-outline rounded-full bg-white px-5 sm:btn-lg sm:px-7">
+                  <Link href={phonesHref} className="btn-outline rounded-full bg-white px-4 sm:btn-lg sm:px-7">
                     Explore latest phones
                   </Link>
                 )}
-                {accessoriesHref && (
-                  <Link href={accessoriesHref} className="btn-text rounded-full px-2">
-                    Explore accessories
-                  </Link>
-                )}
               </div>
+              {accessoriesHref && (
+                <Link href={accessoriesHref} className="pointer-events-auto group mt-3 inline-flex min-h-10 w-fit items-center gap-1.5 rounded-sm text-sm font-semibold text-ink underline-offset-4 hover:underline">
+                  Explore accessories <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
+                </Link>
+              )}
             </div>
           </div>
         </div>

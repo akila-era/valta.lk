@@ -4,7 +4,8 @@ import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react"
 
 const FOCUSABLE = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
 
-function useDialogLifecycle(open: boolean, onClose: () => void, root: RefObject<HTMLElement | null>) {
+/** Focus the first control, trap Tab inside `root`, close on Escape and lock page scroll while open; restore focus on close. */
+export function useDialogLifecycle(open: boolean, onClose: () => void, root: RefObject<HTMLElement | null>) {
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -26,8 +27,11 @@ function useDialogLifecycle(open: boolean, onClose: () => void, root: RefObject<
       }
     }
     document.addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
       previous?.focus();
     };
   }, [open, onClose, root]);

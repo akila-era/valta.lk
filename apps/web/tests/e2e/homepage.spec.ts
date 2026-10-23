@@ -175,7 +175,7 @@ test.describe("hero", () => {
     await expect(page.getByRole("link", { name: "Pulse Wireless Earbuds" })).toBeVisible();
     await page.getByRole("button", { name: "Remove Pulse Wireless Earbuds from wishlist" }).click();
     await expect(page.getByText("Your wishlist is empty")).toBeVisible();
-    await expect(page.getByTestId("wishlist-count")).toHaveText("0");
+    await expect(page.getByTestId("wishlist-count")).toHaveCount(0); // the badge is hidden when the wishlist is empty
   });
 
   test("uses the supplied photograph with real HTML text and only verifiable facts", async ({ page }) => {
@@ -455,12 +455,12 @@ test.describe("more homepage sections", () => {
     await expect(page.getByRole("link", { name: "Pulse Wireless Earbuds", exact: true })).toBeVisible();
   });
 
-  test("product card (Ugreen-style): centred text, In stock / New badges, action bar on hover and keyboard focus", async ({ page }) => {
+  test("product card: left-aligned text, In stock / New badges, action bar on hover and keyboard focus", async ({ page }) => {
     await page.goto("/");
     const card = page.locator("#products article", { hasText: "Pulse Wireless Earbuds" }).first();
     await expect(card.getByText("In stock")).toBeVisible();
     await expect(card.getByText("New", { exact: true })).toBeVisible(); // published in the last 30 days
-    expect(await card.locator("h3").evaluate((el) => getComputedStyle(el).textAlign)).toBe("center");
+    expect(await card.locator("h3").evaluate((el) => getComputedStyle(el).textAlign)).toBe("left");
     const bar = card.getByRole("button", { name: /^Add to cart:/ });
     // hidden (translated out of the image area) until hovered or focused
     const box = async () => { const b = await bar.boundingBox(); const c = await card.boundingBox(); return { barTop: b!.y, cardTop: c!.y, barH: b!.height }; };
@@ -479,7 +479,7 @@ test.describe("more homepage sections", () => {
     // variant products get "Choose options" instead of Add to cart
     const phone = page.locator("#products article", { hasText: "Nova X1 Smartphone" }).first();
     await expect(phone.getByRole("link", { name: "Choose options" })).toHaveAttribute("href", /\/products\/nova-x1-smartphone-/);
-    await expect(phone.getByText("From:")).toBeVisible();
+    await expect(phone.getByText("From", { exact: true })).toBeVisible();
   });
 
   test("product card action bar is always visible on touch screens (with and without reduced motion)", async ({ browser }) => {
@@ -547,7 +547,8 @@ test.describe("motion", () => {
     await expect(brands.getByRole("link", { name: /^Atlas, 2 products/ })).toBeVisible();
     // each brand is listed once (no duplicated marquee copy)
     await expect(brands.getByRole("link", { name: /^Volt,/ })).toHaveCount(1);
-    await volt.click();
+    await volt.focus(); // focus pauses the moving marquee, the same way a keyboard shopper reaches it
+    await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/search\?q=Volt/);
     await expect(page.locator("main article", { hasText: "Volt 20W Fast Charger" })).toBeVisible();
   });
