@@ -1,0 +1,23 @@
+{
+  "name": "valta-lk",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @valta/web",
+    "build": "npm run build -w @valta/web",
+    "start": "npm run start -w @valta/web",
+    "lint": "npm run lint -w @valta/web",
+    "typecheck": "npm run typecheck -w @valta/web",
+    "test": "npm run test -w @valta/web",
+    "mock-erp": "npm run mock-erp -w @valta/web",
+    "e2e": "npm run e2e -w @valta/web",
+    "dev-db": "npm run dev-db -w @valta/web"
+  },
+  "overrides": {
+    "pglite-prisma-adapter": {
+      "@electric-sql/pglite": "0.4.3"
+    }
+  }
+}

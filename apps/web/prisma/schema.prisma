@@ -1,0 +1,269 @@
+// Website-only data. Products, stock, prices and orders stay in HEXALYTE ERP; nothing here duplicates them.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Customer {
+  id           String               @id @default(cuid())
+  email        String               @unique // stored lower-cased
+  name         String
+  phone        String? // +94 normalised
+  passwordHash String
+  failedLogins Int                  @default(0)
+  lockedUntil  DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  sessions     Session[]
+  resetTokens  PasswordResetToken[]
+  orders       CustomerOrder[]
+  webOrders    WebOrder[]
+}
+
+/// Server-side session. Only a SHA-256 hash of the cookie token is stored.
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([customerId])
+}
+
+/// Links a website order reference (the ERP externalRef) to the customer who placed it.
+/// The ERP has no "orders by customer" endpoint, so this is the only way to list a customer's orders.
+model CustomerOrder {
+  externalRef String   @id
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([customerId, createdAt])
+}
+
+/// Whether a website order has reached HEXALYTE ERP. PENDING orders are retried automatically; FAILED ones need a person.
+enum SyncStatus {
+  PENDING
+  SYNCED
+  FAILED
+}
+
+/// The website's own record of every confirmed order, written BEFORE the ERP is called so a valid order is never lost
+/// when the ERP is temporarily unreachable. The ERP remains authoritative for status, stock, dispatch and COD collection;
+/// `erpStatus` & co. are only a cached copy for listings. `payload` is the exact ERP request, so a retry is identical
+/// (same externalRef + same body = the ERP replays instead of creating a second order).
+model WebOrder {
+  externalRef      String     @id
+  source           String     @default("ONLINE_STORE")
+  customerId       String?
+  customer         Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  paymentMethod    String     @default("COD")
+  currency         String
+  subtotal         Decimal    @db.Decimal(12, 2)
+  deliveryCharge   Decimal    @db.Decimal(12, 2)
+  total            Decimal    @db.Decimal(12, 2)
+  customerName     String
+  customerPhone    String
+  customerEmail    String?
+  /// Exact request body sent to the ERP (customer + delivery + priced lines).
+  payload          Json
+  /// Display copy of the lines (names/variant labels) for pages shown while the ERP cannot answer.
+  items            Json
+  /// SHA-256 of the access token given to the browser that placed the order (lets it see delivery details).
+  accessHash       String?
+  syncStatus       SyncStatus @default(PENDING)
+  syncAttempts     Int        @default(0)
+  lastError        String?
+  lastErrorCode    String?
+  nextAttemptAt    DateTime   @default(now())
+  lockedUntil      DateTime?
+  syncedAt         DateTime?
+  erpStatus        String?
+  erpPaymentStatus String?
+  erpStatusAt      DateTime?
+  trackingNumber   String?
+  carrierName      String?
+  /// Audit of catalogue savings and which admin promotions matched them. Never a second charge amount.
+  priceBreakdown   Json?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([syncStatus, nextAttemptAt])
+  @@index([createdAt])
+  @@index([customerId, createdAt])
+}
+
+/// Website-owned product content. The ERP stays authoritative for identity, SKU, price and stock; everything here is
+/// presentation content shown on the storefront product page. `draft` is what staff edit and preview; `published` is the
+/// only copy customers ever see (null = not published, the storefront shows the plain ERP product).
+model ProductContent {
+  erpItemId   String    @id
+  draft       Json
+  published   Json?
+  publishedAt DateTime?
+  /// Bumped on every draft save; a save with a stale version is rejected so two editors cannot overwrite each other.
+  version     Int       @default(0)
+  updatedBy   String?
+  updatedAt   DateTime  @updatedAt
+}
+
+/// Uploaded product image, stored in the database so no object-storage service is needed. Served by /api/media/[id].
+model MediaAsset {
+  id          String   @id @default(cuid())
+  erpItemId   String
+  contentType String
+  size        Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  @@index([erpItemId])
+}
+
+/// Explicit accessory compatibility. A row exists only when staff link two ERP products. Nothing is inferred from names.
+enum AccessoryKind {
+  BACK_COVER
+  SCREEN_PROTECTOR
+  LENS_PROTECTOR
+  CHARGER
+  CABLE
+  OTHER
+}
+
+model AccessoryLink {
+  id               String        @id @default(cuid())
+  sourceItemId     String
+  /// Empty string: the accessory fits every variant of the source product. Otherwise an ERP variant key.
+  sourceVariantKey String        @default("")
+  accessoryItemId  String
+  kind             AccessoryKind
+  createdBy        String?
+  createdAt        DateTime      @default(now())
+
+  @@unique([sourceItemId, sourceVariantKey, accessoryItemId])
+  @@index([sourceItemId])
+  @@index([accessoryItemId])
+}
+
+/// First-party counts for accessory recommendations. No customer identity is stored.
+model RecommendationEvent {
+  id              String   @id @default(cuid())
+  type            String
+  sourceItemId    String
+  accessoryItemId String
+  createdAt       DateTime @default(now())
+
+  @@index([sourceItemId, type])
+  @@index([createdAt])
+}
+
+enum PromotionType {
+  PERCENT
+  FIXED
+}
+
+/// Admin-configured offer. The charged total stays the HEXALYTE price; a rule is advertised only when its discount
+/// equals the catalogue sale already on those lines (the ERP rejects any other price).
+model Promotion {
+  id                 String               @id @default(cuid())
+  name               String
+  type               PromotionType
+  /// PERCENT: whole percent 1–100. FIXED: amount in cents.
+  value              Int
+  minSubtotalCents   Int                  @default(0)
+  maxDiscountCents   Int?
+  startsAt           DateTime
+  endsAt             DateTime?
+  usageLimit         Int?
+  perCustomerLimit   Int?
+  stackable          Boolean              @default(false)
+  active             Boolean              @default(false)
+  productIds         String[]             @default([])
+  categoryNames      String[]             @default([])
+  bundleAccessoryId  String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  redemptions        PromotionRedemption[]
+}
+
+model PromotionRedemption {
+  id          String    @id @default(cuid())
+  promotionId String
+  promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  externalRef String
+  customerId  String?
+  discount    Decimal   @db.Decimal(12, 2)
+  createdAt   DateTime  @default(now())
+
+  @@unique([promotionId, externalRef])
+  @@index([externalRef])
+  @@index([customerId])
+}
+
+/// ERP connection entered in the admin (one per deployment). Overrides HX_API_BASE / HX_STORE_CREDENTIAL when present.
+/// The credential is stored encrypted (AES-256-GCM, key from SETTINGS_ENCRYPTION_KEY) and is never sent back to the browser.
+model ErpConnectionConfig {
+  id            String   @id @default("default")
+  baseUrl       String
+  credentialEnc String
+  credentialHint String
+  updatedBy     String?
+  updatedAt     DateTime @updatedAt
+}
+
+/// Brand logo uploaded by staff, shown in the storefront "Shop by brand" strip. Brands themselves come from the ERP
+/// (product.brand); this only adds an image, matched on the lower-cased brand name. A new row (new id) is created on every
+/// replacement so the long-cached /api/brand-logo/[id] URL never serves a stale logo.
+model BrandLogo {
+  id          String   @id @default(cuid())
+  brandKey    String   @unique
+  brandName   String
+  contentType String
+  size        Int
+  data        Bytes
+  updatedBy   String?
+  updatedAt   DateTime @default(now())
+}
+
+/// Promotional banner card on the storefront homepage, managed by staff in Admin > Marketing > Banners. The image is
+/// optional and lives in the database (served by /api/banner-image/[id]); without one the storefront uses its stock photo.
+/// While at least one banner is active these replace the banners derived from categories or HOME_BANNERS.
+model Banner {
+  id        String   @id @default(cuid())
+  /// CARDS = picture-and-button cards; WIDE = one full-width picture between "Shop by budget" and "Why shop with VALTA.LK".
+  placement String   @default("CARDS")
+  eyebrow   String?
+  headline  String
+  text      String?
+  ctaLabel  String
+  href      String
+  imageType String?
+  imageData Bytes?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}

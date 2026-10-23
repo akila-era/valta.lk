@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Neutrals: white, warm stone, charcoal */
+  --color-bg: #ffffff;
+  --color-surface: #f5f3f0;
+  --color-border: #e7e2dc;
+  --color-ink: #171717;
+  --color-muted: #5c574f;
+  --color-dark: #171717;
+
+  /* Brand: neon orange is for fills with dark text; brand-600/700 are the text-safe oranges on white (>= 4.5:1) */
+  --color-brand-50: #fff4ec;
+  --color-brand-100: #ffe2d0;
+  --color-brand-500: #ff5c00;
+  --color-brand-600: #c24100;
+  --color-brand-700: #9a3300;
+
+  /* Status colors stay clearly distinct from the brand orange */
+  --color-danger: #b42318;
+  --color-danger-strong: #8f1c14;
+  --color-danger-bg: #fef3f2;
+  --color-success: #067647;
+  --color-success-bg: #ecfdf3;
+  --color-warn: #7a4a00;
+  --color-warn-bg: #fff8e1;
+  --color-info: #1849a9;
+  --color-info-bg: #eff4ff;
+
+  /* Admin navigation uses the same charcoal, not a second brand colour */
+  --color-navy-950: #101010;
+  --color-navy-900: #171717;
+  --color-navy-800: #242424;
+  --color-navy-700: #333333;
+
+  --shadow-card: 0 1px 2px rgb(23 23 23 / 0.04), 0 8px 24px -12px rgb(23 23 23 / 0.16);
+  --shadow-raised: 0 8px 24px -16px rgb(23 23 23 / 0.35);
+  --shadow-lift: 0 10px 26px -12px rgb(23 23 23 / 0.28);
+  --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
+  --breakpoint-xs: 30rem;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .on-dark :focus-visible { outline-color: #ffffff; }
+}
+
+/* One content width for the whole site so header, hero text, service bar and sections share the same left/right edges. */
+@utility container-page { @apply mx-auto w-full max-w-[100rem] px-4 sm:px-6 lg:px-10; }
+/* Full-width bands (header): edge to edge with comfortable side padding, capped only on very wide screens. */
+@utility container-wide { @apply mx-auto w-full max-w-[100rem] px-4 sm:px-6 lg:px-10; }
+@utility card { @apply rounded-xl border border-border bg-bg; }
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-colors
+    disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary { @apply btn bg-brand-500 text-ink hover:bg-brand-600 hover:text-white; }
+@utility btn-secondary { @apply btn border border-border bg-bg text-ink hover:border-ink; }
+@utility btn-outline { @apply btn border border-border bg-bg text-ink hover:border-ink; }
+@utility btn-ghost { @apply btn text-ink hover:bg-surface; }
+@utility btn-text { @apply btn text-ink hover:bg-surface; }
+@utility btn-dark { @apply btn bg-ink text-white hover:bg-black; }
+@utility btn-danger { @apply btn bg-danger text-white hover:bg-danger-strong; }
+@utility btn-lg { @apply min-h-12 px-7 text-base; }
+@utility input {
+  @apply min-h-11 w-full rounded-lg border border-border bg-bg px-3 text-sm text-ink placeholder:text-muted
+    aria-[invalid=true]:border-danger disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-70;
+}
+@utility select { @apply input; }
+@utility textarea { @apply input min-h-28 resize-y py-3; }
+@utility check { @apply h-4 w-4 shrink-0 accent-brand-600 disabled:cursor-not-allowed; }
+@utility label { @apply mb-1.5 block text-sm font-medium text-ink; }
+@utility field-error { @apply mt-1.5 text-sm text-danger; }
+@utility eyebrow { @apply text-xs font-semibold uppercase tracking-[0.14em] text-brand-600; }
+@utility badge { @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold; }
+@utility section-title { @apply text-2xl font-bold tracking-tight text-ink sm:text-3xl; }
+@utility page-title { @apply text-2xl font-bold leading-tight tracking-tight text-ink sm:text-3xl; }
+@utility type-product { @apply line-clamp-2 text-base font-bold leading-[1.35rem] text-ink; }
+@utility type-price { @apply whitespace-nowrap text-lg font-extrabold leading-6 tracking-tight text-brand-600 tabular-nums; }
+@utility type-body { @apply text-sm leading-6 text-ink; }
+@utility type-meta { @apply text-sm leading-5 text-muted; }
+@utility type-caption { @apply text-xs leading-4 text-muted; }
+@utility section-space { @apply mt-10 sm:mt-14; }
+@utility media-square { @apply relative aspect-square overflow-hidden bg-surface; }
+
+@keyframes pop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@utility animate-pop { animation: pop 0.25s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* The resting opacity-0 utility is emitted after the hover variants, so these selectors are more specific. */
+.group:hover .show-on-touch,
+.group:focus-within .show-on-touch,
+.show-on-touch:focus-within {
+  --tw-translate-y: 0px;
+  translate: var(--tw-translate-x) var(--tw-translate-y);
+  transform: none;
+  opacity: 1;
+}
+
+/* Touch screens have no hover, so card actions stay visible. The value must not be `translate: 0`, which the CSS minifier drops. */
+@media (hover: none) {
+  .show-on-touch {
+    --tw-translate-y: 0px !important;
+    translate: var(--tw-translate-x) var(--tw-translate-y) !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ---------- Motion (all effects are disabled by the prefers-reduced-motion rule above) ---------- */
+@keyframes fade-up { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+@keyframes scale-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-10px) rotate(var(--r, 0deg)); } }
+@keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-24px, 18px) scale(1.12); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+@utility animate-fade-up { animation: fade-up 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
+@utility animate-scale-in { animation: scale-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
+@utility animate-float { animation: float var(--dur, 6s) ease-in-out infinite; animation-delay: var(--d, 0ms); }
+@utility animate-drift { animation: drift 14s ease-in-out infinite; }
+@utility animate-spin-slow { animation: spin-slow 60s linear infinite; }
+@utility animate-draw { stroke-dasharray: 260; stroke-dashoffset: 260; animation: draw 1s ease-out 0.9s forwards; }
+@utility animate-marquee { animation: marquee 40s linear infinite; }
+
+/* Scroll reveal: content is visible by default; the Reveal component hides below-the-fold blocks only after hydration. */
+[data-reveal] { transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: var(--d, 0ms); }
+[data-reveal="hidden"] { opacity: 0; transform: translateY(26px); }
+[data-reveal="shown"] { opacity: 1; transform: none; }
+.marquee:hover .animate-marquee, .marquee:focus-within .animate-marquee { animation-play-state: paused; }
+
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+@keyframes settle { from { transform: scale(1.08); } to { transform: scale(1); } }
+@utility animate-settle { animation: settle 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-in { from { transform: translateX(-100%); } to { transform: none; } }
+
+/* Admin-written product descriptions (sanitised HTML): headings, paragraphs, lists, links. */
+@layer components {
+  .rich { font-size: 0.9375rem; line-height: 1.7; color: var(--color-ink); }
+  .rich > * + * { margin-top: 0.85em; }
+  .rich h2 { font-size: 1.25rem; font-weight: 700; line-height: 1.3; margin-top: 1.4em; }
+  .rich h3 { font-size: 1.05rem; font-weight: 700; line-height: 1.35; margin-top: 1.2em; }
+  .rich ul, .rich ol { padding-left: 1.4rem; }
+  .rich ul { list-style: disc; }
+  .rich ol { list-style: decimal; }
+  .rich li + li { margin-top: 0.3em; }
+  .rich a { color: var(--color-brand-600); text-decoration: underline; }
+  .rich blockquote { border-left: 3px solid var(--color-border); padding-left: 1rem; color: var(--color-muted); }
+}
+
+/* Admin console: clean white SaaS theme with brand blue #2563EB (decided by the owner). Scoped to .admin-theme so the
+   storefront keeps its own orange palette; admin components keep using brand-* tokens, which resolve to blue here. */
+.admin-theme {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #2563eb;
+  --color-brand-600: #1d4ed8;
+  --color-brand-700: #1e40af;
+  --color-surface: #f6f8fb;
+  --color-border: #e4e8ef;
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
+}
+.admin-theme .card { box-shadow: var(--shadow-card); }
+.admin-theme .btn-primary, .admin-theme .bg-brand-500 { color: #fff; }
