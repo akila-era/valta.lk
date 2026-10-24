@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { ArrowDown, ArrowRight, Headset, PackageSearch, Truck, Wallet } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
@@ -13,6 +14,8 @@ interface HeroProps {
   cod: boolean;
   deliveryCharge: number | null;
 }
+
+const HEADLINE = ["Technology", "that", "moves", "you."];
 
 /**
  * Chapter 01 of the homepage story: a large light statement with a serif accent word, the product on a 3D stage in the
@@ -44,8 +47,18 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
             <p className="kicker animate-fade-up">
               <span className="text-brand-600">01</span> / VALTA.LK
             </p>
-            <h1 id="hero-title" className="statement mt-4 max-w-[11ch] animate-fade-up text-[clamp(2.8rem,1.4rem+5vw,6.5rem)] [--d:90ms]">
-              Technology that <Accent>moves</Accent> you.
+            {/* Each word rises out of its own mask in turn; the spaces stay real text so the heading reads normally. */}
+            <h1 id="hero-title" className="statement mt-4 max-w-[11ch] text-[clamp(2.8rem,1.4rem+5vw,6.5rem)]">
+              {HEADLINE.map((w, i) => (
+                <Fragment key={w}>
+                  {i > 0 && " "}
+                  <span className="-mb-[0.12em] inline-block overflow-y-clip pb-[0.12em] align-top">
+                    <span className="inline-block word-rise" style={{ "--i": i } as React.CSSProperties}>
+                      {w === "moves" ? <Accent>moves</Accent> : w}
+                    </span>
+                  </span>
+                </Fragment>
+              ))}
             </h1>
             <p className="mt-5 max-w-md animate-fade-up text-base leading-7 text-ink/75 [--d:180ms] sm:text-lg">
               Discover smartphones, everyday tech and accessories at VALTA.LK.

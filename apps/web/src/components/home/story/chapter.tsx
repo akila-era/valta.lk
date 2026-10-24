@@ -31,7 +31,7 @@ export function Chapter({
             <p className="kicker">
               <span className="text-brand-600">{chapterNumber(n)}</span> / {label}
             </p>
-            <p className="statement mt-3 max-w-[18ch] text-[clamp(2.2rem,1.3rem+3.4vw,4.75rem)] sm:mt-4">{statement}</p>
+            <p className="statement statement-wipe mt-3max-w-[18ch] text-[clamp(2.2rem,1.3rem+3.4vw,4.75rem)] sm:mt-4">{statement}</p>
           </div>
           {aside ? <div className="max-w-sm text-sm leading-6 text-muted lg:justify-self-end lg:text-right">{aside}</div> : null}
         </Reveal>

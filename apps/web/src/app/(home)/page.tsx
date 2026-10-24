@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Hero } from "@/components/home/hero";
 import { HeroSlides } from "@/components/home/hero-slides";
 import { BestDeals, CategoryTiles, TabbedShowcase } from "@/components/home/home-sections";
@@ -8,6 +8,8 @@ import { PromoBanners, WideBanner } from "@/components/home/sections";
 import { Faq, WhyChoose } from "@/components/home/more-sections";
 import { Accent, Chapter } from "@/components/home/story/chapter";
 import { ChapterRail } from "@/components/home/story/chapter-rail";
+import { MarqueeBand } from "@/components/home/story/marquee-band";
+import { ScrollExpand } from "@/components/home/story/scroll-expand";
 import { ErpUnavailable } from "@/components/ui/states";
 import { getHomeData } from "@/lib/home-data";
 
@@ -50,9 +52,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     ),
     aside: "Laptops for work, phones for everything, and the accessories that keep them going.",
     content: (
-      <div className="relative h-[clamp(18rem,62svh,44rem)] overflow-hidden rounded-[1.75rem] shadow-float ring-1 ring-ink/[0.06] lg:rounded-feature">
+      <ScrollExpand className="scroll-expand relative h-[clamp(18rem,62svh,44rem)] overflow-hidden rounded-[1.75rem] lg:rounded-feature">
         <HeroSlides />
-      </div>
+      </ScrollExpand>
     ),
   };
 
@@ -152,9 +154,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <ChapterRail chapters={rail} />
       <div className="pb-6 sm:pb-10">
         {chapters.map((c, i) => (
-          <Chapter key={c.id} id={c.id} n={i + 2} label={c.label} statement={c.statement} aside={c.aside}>
-            {c.content}
-          </Chapter>
+          <Fragment key={c.id}>
+            <Chapter id={c.id} n={i + 2} label={c.label} statement={c.statement} aside={c.aside}>
+              {c.content}
+            </Chapter>
+            {/* A band of the real category names drifting between the lifestyle and categories chapters. */}
+            {c.id === "story-lifestyle" && <MarqueeBand words={data.categories.map((cat) => cat.name)} />}
+          </Fragment>
         ))}
       </div>
     </>
