@@ -300,6 +300,26 @@
 
 /* ---------- Landing motion (all off with reduced motion) ---------- */
 
+/* Hero intro: fills exactly the full screen on desktop so chapter 2 starts off-screen */
+.hero-intro {
+  margin-top: calc(-1 * var(--hdr-sticky, 7rem));
+}
+@media (min-width: 48rem) {
+  .hero-intro {
+    min-height: calc(100vh - (var(--hdr-h, 9rem) - var(--hdr-sticky, 7rem)) + 2.5rem);
+    padding-bottom: 1.5rem;
+  }
+}
+
+.hero-content {
+  padding-top: calc(var(--hdr-sticky, 7rem) + 1.25rem);
+}
+@media (min-width: 48rem) {
+  .hero-content {
+    padding-top: calc(var(--hdr-sticky, 7rem) + 2rem);
+  }
+}
+
 /* Staggered entrance: children slide up and fade in one after another. Apply to a parent container. */
 @keyframes stagger-in { from { opacity: 0; transform: translateY(28px) scale(0.96); } to { opacity: 1; transform: none; } }
 @utility animate-stagger-in {

@@ -75,15 +75,15 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
         </div>
       </div>
       <HeaderShell overlay={overlay}>
-        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2 py-2 md:grid md:h-14 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0">
+        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2 py-3 md:grid md:h-[4.75rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="text-[1.35rem] text-ink md:text-[1.65rem]" />
+          <Wordmark className="text-[1.95rem] leading-none text-ink sm:text-[2.35rem] md:text-[2.75rem] lg:text-[3rem]" />
           <div className="order-last w-full md:order-none">
             <SearchBox size="lg" />
           </div>
           <div className="ml-auto flex items-center md:ml-0 md:divide-x md:divide-border">
-            <Link href="/contact" className="hidden items-center gap-2 px-3 text-sm font-medium hover:text-brand-600 lg:inline-flex">
-              <Headset className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Support
+            <Link href="/contact" className="hidden items-center gap-2 px-3 text-[15px] font-medium hover:text-brand-600 lg:inline-flex">
+              <Headset className="h-[22px] w-[22px]" strokeWidth={1.5} aria-hidden /> Support
             </Link>
             {/* Track order lives in the announcement bar, so the main row only adds the account menu when accounts exist. */}
             {accounts ? <AccountMenu customer={customer ? { name: customer.name } : null} enabled /> : null}

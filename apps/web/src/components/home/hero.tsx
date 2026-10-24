@@ -33,7 +33,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
     // the categories chapter already shows at the bottom of the first screen.
     <div
       id="story-intro"
-      className="-mt-[var(--hdr-sticky,7rem)] flex flex-col md:min-h-[calc(100svh-var(--hdr-h,9rem)+var(--hdr-sticky,7rem))]"
+      className="hero-intro flex flex-col"
     >
       <HeroDepth
         aria-labelledby="hero-title"
@@ -50,7 +50,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
           controlsClassName="absolute bottom-9 right-4 z-20 sm:right-6 md:bottom-11 lg:right-10"
         />
 
-        <div className="container-page relative z-10 flex flex-1 items-start pb-[calc(37.5vw+0.5rem)] pt-[calc(var(--hdr-sticky,7rem)+1.25rem)] md:items-center md:pb-16 md:pt-[calc(var(--hdr-sticky,7rem)+2rem)]">
+        <div className="hero-content container-page relative z-10 flex flex-1 items-start pb-[calc(37.5vw+0.5rem)] md:items-center md:pb-16">
           {/* Kicker, statement, copy, actions and live facts, on the calm left side of the film. It drifts up and fades as
               the hero scrolls away (hero-exit, scroll-driven CSS). */}
           <div className="hero-exit max-w-xl">

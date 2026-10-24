@@ -134,12 +134,12 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-10 rounded-full border-border bg-surface/90 py-1.5 pl-10 pr-24 text-sm focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
+          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-full border-border bg-surface/90 py-2.5 pl-11 pr-24 text-[15px] focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
         />
-        {size === "lg" && <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
+        {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute bottom-1 right-1 top-1 flex w-11 items-center justify-center rounded-full bg-brand-500 text-on-brand transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
-            <Search className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+          <button type="submit" className="absolute bottom-1.5 right-1.5 top-1.5 flex w-12 items-center justify-center rounded-full bg-brand-500 text-on-brand transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
+            <Search className="h-[18px] w-[18px]" strokeWidth={2.5} aria-hidden />
           </button>
         ) : (
           <button type="submit" className="absolute left-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink" aria-label="Search">
