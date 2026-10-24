@@ -29,9 +29,11 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
 
   return (
     // Pulled up under the sticky header (by --hdr-sticky) so header and hero read as one scene until the page scrolls.
+    // From md the hero and service strip fill the first screen; on phones the hero is only as tall as its content, so
+    // the categories chapter already shows at the bottom of the first screen.
     <div
       id="story-intro"
-      className="-mt-[var(--hdr-sticky,7rem)] flex min-h-[calc(100svh-var(--hdr-h,8rem)+var(--hdr-sticky,7rem))] flex-col md:min-h-[calc(100svh-var(--hdr-h,9rem)+var(--hdr-sticky,7rem))]"
+      className="-mt-[var(--hdr-sticky,7rem)] flex flex-col md:min-h-[calc(100svh-var(--hdr-h,9rem)+var(--hdr-sticky,7rem))]"
     >
       <HeroDepth
         aria-labelledby="hero-title"
@@ -44,18 +46,18 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
         {/* The brand film as the moving background: a full-width band along the bottom on phones, a 16:9 frame on the
             right from md (so its logo clears the headline). Its beige matches the hero, and masked edges melt it in. */}
         <BrandFilm
-          frameClassName="pointer-events-none absolute inset-x-0 bottom-0 aspect-video [mask-image:linear-gradient(to_bottom,transparent,#000_30%)] md:bottom-auto md:left-auto md:right-0 md:top-1/2 md:w-[58%] md:-translate-y-[44%] md:[mask-image:radial-gradient(ellipse_closest-side_at_center,#000_62%,transparent)]"
+          frameClassName="pointer-events-none absolute inset-x-0 bottom-0 aspect-[16/6] [mask-image:linear-gradient(to_bottom,transparent,#000_30%)] md:bottom-auto md:left-auto md:right-0 md:top-1/2 md:w-[58%] md:-translate-y-[44%] md:[mask-image:radial-gradient(ellipse_closest-side_at_center,#000_62%,transparent)]"
           controlsClassName="absolute bottom-9 right-4 z-20 sm:right-6 md:bottom-11 lg:right-10"
         />
 
-        <div className="container-page relative z-10 flex flex-1 items-start pb-[calc(56vw+0.5rem)] pt-[calc(var(--hdr-sticky,7rem)+1.25rem)] md:items-center md:pb-16 md:pt-[calc(var(--hdr-sticky,7rem)+2rem)]">
+        <div className="container-page relative z-10 flex flex-1 items-start pb-[calc(37.5vw+0.5rem)] pt-[calc(var(--hdr-sticky,7rem)+1.25rem)] md:items-center md:pb-16 md:pt-[calc(var(--hdr-sticky,7rem)+2rem)]">
           {/* Kicker, statement, copy, actions and live facts, on the calm left side of the film. */}
           <div className="max-w-xl">
             <p className="kicker animate-fade-up">
               <span className="text-brand-600">01</span> / VALTA.LK
             </p>
             {/* Each word rises out of its own mask in turn; the spaces stay real text so the heading reads normally. */}
-            <h1 id="hero-title" className="statement mt-4 max-w-[11ch] text-[clamp(2.8rem,1.4rem+5vw,6.5rem)]">
+            <h1 id="hero-title" className="statement mt-3 sm:mt-4 max-w-[11ch] text-[clamp(2.8rem,1.4rem+5vw,6.5rem)]">
               {HEADLINE.map((w, i) => (
                 <Fragment key={w}>
                   {i > 0 && " "}
@@ -67,10 +69,10 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
                 </Fragment>
               ))}
             </h1>
-            <p className="mt-5 max-w-md animate-fade-up text-base leading-7 text-ink/75 [--d:180ms] sm:text-lg">
+            <p className="mt-3 max-w-md animate-fade-up text-base leading-7 text-ink/75 [--d:180ms] sm:mt-5 sm:text-lg">
               Discover smartphones, everyday tech and accessories at VALTA.LK.
             </p>
-            <div className="mt-6 flex animate-fade-up flex-wrap items-center gap-2 [--d:270ms] sm:gap-3">
+            <div className="mt-5 flex animate-fade-up flex-wrap items-center gap-2 [--d:270ms] sm:gap-3">
               <Link href="/products" className="btn-primary px-6 shadow-[0_10px_24px_-8px_rgb(255_92_0/0.65)]">
                 Shop now <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
@@ -99,7 +101,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
 
         {/* Scroll cue to the next chapter. */}
         <a
-          href="#story-lifestyle"
+          href="#story-categories"
           className="absolute bottom-11 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 rounded-full p-1 text-label font-semibold uppercase tracking-[0.22em] text-ink/60 transition-colors hover:text-ink lg:flex"
         >
           Scroll
@@ -131,7 +133,8 @@ function ServiceBar({ cod, deliveryCharge }: { cod: boolean; deliveryCharge: num
       <div className="relative overflow-hidden rounded-2xl bg-white/80 p-2 shadow-float ring-1 ring-ink/[0.06] backdrop-blur-xl sm:p-2.5">
         <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-1/4 animate-sweep bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.85),rgb(255_92_0/0.12),transparent)] [--d:1.2s]" />
         <span aria-hidden className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(255_92_0/0.6),transparent)]" />
-        <ul className="relative grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4">
+        {/* Phones: one swipeable row (about one and a half tiles show) to keep the first screen short; sm+: a grid. */}
+        <ul className="relative grid snap-x snap-mandatory auto-cols-[68%] grid-flow-col gap-1.5 overflow-x-auto [scrollbar-width:none] sm:auto-cols-auto sm:grid-flow-row sm:grid-cols-2 sm:gap-2 sm:overflow-visible lg:grid-cols-4">
           {items.map(({ icon: I, title, text, href }, i) => {
             const body = (
               <>
@@ -147,7 +150,7 @@ function ServiceBar({ cod, deliveryCharge }: { cod: boolean; deliveryCharge: num
             const tile =
               "group flex h-full items-center gap-2.5 rounded-xl px-2 py-2 transition-[background-color,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-soft motion-reduce:hover:translate-y-0 sm:gap-3.5 sm:px-3";
             return (
-              <li key={title} className="animate-fade-up" style={{ "--d": `${250 + i * 120}ms` } as React.CSSProperties}>
+              <li key={title} className="animate-fade-up snap-start" style={{ "--d": `${250 + i * 120}ms` } as React.CSSProperties}>
                 {href ? <Link href={href} className={tile}>{body}</Link> : <div className={tile}>{body}</div>}
               </li>
             );

@@ -46,8 +46,9 @@ export function CategoryTiles({ categories }: { categories: HomeData["categories
   const shown = categories.slice(0, MAX_CATEGORY_CARDS);
   return (
     <section aria-labelledby="cats" className="section-space">
-      <SectionHeader id="cats" eyebrow="Top categories" title="Shop by Category" action={{ href: "/products", label: "View all categories" }}>
-        <p>Find the right upgrade in a tap.</p>
+      {/* No eyebrow: the homepage chapter kicker ("02 / Categories") already labels it. */}
+      <SectionHeader id="cats" title="Shop by Category" action={{ href: "/products", label: "View all categories" }}>
+        <p className="hidden sm:block">Find the right upgrade in a tap.</p>
       </SectionHeader>
       <ul
         className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-[repeat(var(--cat-cols),minmax(0,1fr))] [&::-webkit-scrollbar]:hidden"
@@ -214,7 +215,7 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
       <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl" />
       <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 [background-image:radial-gradient(rgb(23_23_23/0.06)_1px,transparent_1.3px)] [background-size:16px_16px] [mask-image:linear-gradient(180deg,#000,transparent)]" />
       <div className="relative">
-      <SectionHeader id="featured" eyebrow="Collections" title="Featured Products">
+      <SectionHeader id="featured" title="Featured Products">
         <p aria-live="polite">{blurb}</p>
       </SectionHeader>
       {tabs.length > 1 && (

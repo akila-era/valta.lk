@@ -28,15 +28,15 @@ export const metadata: Metadata = {
 interface StoryChapter {
   id: string;
   label: string;
-  statement: ReactNode;
+  statement?: ReactNode;
   aside?: ReactNode;
   content: ReactNode;
 }
 
 /**
- * The homepage as a scroll story: the hero is chapter 01, then numbered chapters, each a large statement over its
- * content, with a fixed chapter rail on wide screens. Chapters without content (no deals today) are left out and the
- * numbering follows.
+ * The homepage as a scroll story: the hero is chapter 01, then the shopping chapters (categories, deals, arrivals) with
+ * compact headers so products come first, then the brand chapters with large statements, and a fixed chapter rail on
+ * wide screens. Chapters without content (no deals today) are left out and the numbering follows.
  */
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
   const [{ tab }, data] = await Promise.all([searchParams, getHomeData()]);
@@ -60,15 +60,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   const chapters: StoryChapter[] = data.catalogueOk
     ? [
-        lifestyle,
         {
           id: "story-categories",
           label: "Categories",
-          statement: (
-            <>
-              Find your <Accent>world</Accent>.
-            </>
-          ),
           content: <CategoryTiles categories={data.categories} />,
         },
         ...(data.hotDeals.some((p) => p.available)
@@ -76,11 +70,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               {
                 id: "story-deals",
                 label: "Deals",
-                statement: (
-                  <>
-                    Today&apos;s <Accent>best</Accent> prices.
-                  </>
-                ),
                 content: <BestDeals products={data.hotDeals} curated={data.hotDealsCurated} />,
               },
             ]
@@ -88,13 +77,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {
           id: "story-arrivals",
           label: "Arrivals",
-          statement: (
-            <>
-              Fresh <Accent>arrivals</Accent>.
-            </>
-          ),
           content: <TabbedShowcase data={data} tab={tab ?? "new"} />,
         },
+        lifestyle,
         {
           id: "story-why",
           label: "Why VALTA",
@@ -158,8 +143,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <Chapter id={c.id} n={i + 2} label={c.label} statement={c.statement} aside={c.aside}>
               {c.content}
             </Chapter>
-            {/* A band of the real category names drifting between the lifestyle and categories chapters. */}
-            {c.id === "story-lifestyle" && <MarqueeBand words={data.categories.map((cat) => cat.name)} />}
+            {/* A band of the real category names drifting between the shopping chapters and the brand story. */}
+            {c.id === "story-arrivals" && <MarqueeBand words={data.categories.map((cat) => cat.name)} />}
           </Fragment>
         ))}
       </div>
