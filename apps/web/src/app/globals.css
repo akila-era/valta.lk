@@ -98,8 +98,8 @@
   h1, h2, h3 { font-family: var(--font-display); }
 }
 
-/* One content width for the whole site so header, hero text, service bar and sections share the same left/right edges. */
-@utility container-page { @apply mx-auto w-full max-w-[120rem] px-3 sm:px-4 lg:px-6; }
+/* Content width for every section below the hero: capped at 1700px with comfortable side padding on each side. */
+@utility container-page { @apply mx-auto w-full max-w-[106.25rem] px-4 sm:px-6 lg:px-10 2xl:px-12; }
 /* Full-width bands (header): edge to edge with comfortable side padding, capped only on very wide screens. */
 @utility container-wide { @apply mx-auto w-full max-w-[120rem] px-3 sm:px-4 lg:px-6; }
 @utility card { @apply rounded-card border border-border bg-bg; }

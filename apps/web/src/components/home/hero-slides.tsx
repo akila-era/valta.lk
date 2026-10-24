@@ -98,17 +98,19 @@ export function HeroSlides() {
             aria-roledescription="slide"
             aria-label={`${idx + 1} of ${n}`}
             aria-hidden={idx !== i}
-            className="relative h-full w-full shrink-0"
+            className="relative h-full w-full shrink-0 overflow-hidden"
           >
-            <span className="absolute inset-0">
-              <Image src={slide.src} alt={idx === i ? slide.alt : ""} fill priority={idx === 0} sizes="100vw" className={`object-cover object-[center_60%] md:object-[70%_50%] ${idx === i ? "animate-kenburns" : ""}`} />
+            {/* Back layer of the hero's 3D camera: moves against the cursor, slightly overscanned so no edge shows. */}
+            <span className="absolute inset-0 [transform:translate3d(calc(var(--mx,0)*-14px),calc(var(--my,0)*-10px),0)_scale(1.04)]">
+              <Image src={slide.src} alt={idx === i ? slide.alt : ""} fill priority={idx === 0} sizes="100vw" className={`object-cover object-[62%_55%] md:object-[70%_50%] ${idx === i ? "animate-kenburns" : ""}`} />
             </span>
           </div>
         ))}
       </div>
 
-      {/* Dots (and pause, since the slides move on their own) bottom-left under the copy; round arrows bottom-right. */}
-      <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1 rounded-full bg-white/70 px-1 backdrop-blur-sm md:bottom-6 md:left-4 md:bg-transparent md:px-0 md:backdrop-blur-none lg:left-6">
+      {/* Dots (and pause, since the slides move on their own): top-left of the photo band on phones (the glass card
+          overlaps its bottom), bottom-left under the copy from md; round arrows bottom-right. */}
+      <div className="absolute left-3 top-3 z-20 flex items-center gap-1 rounded-full bg-white/70 px-1 backdrop-blur-sm md:bottom-6 md:left-4 md:top-auto md:bg-transparent md:px-0 md:backdrop-blur-none lg:left-6">
         {SLIDES.map((slide, idx) => (
           <button
             key={slide.src}

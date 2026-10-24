@@ -50,7 +50,7 @@ export function CategoryTiles({ categories }: { categories: HomeData["categories
         <p>Find the right upgrade in a tap.</p>
       </SectionHeader>
       <ul
-        className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-3 px-3 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-[repeat(var(--cat-cols),minmax(0,1fr))] [&::-webkit-scrollbar]:hidden"
+        className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-[repeat(var(--cat-cols),minmax(0,1fr))] [&::-webkit-scrollbar]:hidden"
         style={{ "--cat-cols": Math.min(shown.length, 6) } as React.CSSProperties}
       >
         {shown.map((c, i) => {
