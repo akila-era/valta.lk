@@ -179,7 +179,7 @@ export function BestDeals({ products, curated = false }: { products: HomeData["h
           ))}
         </ul>
       ) : (
-        <ul className="relative grid flex-1 content-center grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 max-sm:[&>li:nth-child(n+5)]:hidden sm:max-lg:[&>li:nth-child(n+4)]:hidden lg:max-xl:[&>li:nth-child(n+6)]:hidden">
+        <ul className="relative grid flex-1 content-center grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 max-sm:[&>li:nth-child(n+5)]:hidden sm:max-lg:[&>li:nth-child(n+7)]:hidden lg:max-xl:[&>li:nth-child(n+7)]:hidden xl:max-2xl:[&>li:nth-child(n+9)]:hidden 2xl:[&>li:nth-child(n+11)]:hidden">
           {items.map((p, i) => (
             <Reveal as="li" key={p.id} delay={i * 60}><CompactProductCard product={p} panel /></Reveal>
           ))}
@@ -211,7 +211,7 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
   const blurb = TAB_BLURB[active.id] ?? `Available now in ${active.label}.`;
   return (
     // A warm "stage" panel: white product cards stand out on it, and the 2D dot grid echoes the cards' own pattern.
-    <section id="products" aria-labelledby="featured" className="section-space relative scroll-mt-40 overflow-hidden rounded-[1.75rem] bg-[linear-gradient(180deg,#faf9f7,#f3f1ed)] px-3 py-5 ring-1 ring-inset ring-ink/[0.04] sm:px-5 sm:py-7 lg:rounded-feature lg:px-7 lg:py-9">
+    <section id="products" aria-labelledby="featured" className="section-space relative scroll-mt-40 overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-b from-[#FAF8F5] via-white to-[#F5EFE9]/40 p-4 shadow-soft sm:p-6 lg:p-8">
       <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl" />
       <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 [background-image:radial-gradient(rgb(23_23_23/0.06)_1px,transparent_1.3px)] [background-size:16px_16px] [mask-image:linear-gradient(180deg,#000,transparent)]" />
       <div className="relative">
@@ -244,11 +244,10 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
         </nav>
       )}
       {active.products.length ? (
-        // 2 columns on phones, 3 on tablets, 4 on laptops, 5 on desktops, 6 on wide screens. Extra items are hidden per
-        // breakpoint so the last row is never left short: 6, 9, 8, 10 and one row of 6.
+        // Balanced responsive grid: 2 on phones, 3 on tablets/laptops, 4 on desktop, 5 on wide 2XL screens.
         <ul
           aria-label={`${active.label} products`}
-          className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-md:[&>li:nth-child(n+7)]:hidden md:max-lg:[&>li:nth-child(n+10)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden 2xl:[&>li:nth-child(n+7)]:hidden"
+          className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 max-md:[&>li:nth-child(n+7)]:hidden md:max-lg:[&>li:nth-child(n+10)]:hidden lg:max-xl:[&>li:nth-child(n+10)]:hidden xl:max-2xl:[&>li:nth-child(n+9)]:hidden 2xl:[&>li:nth-child(n+11)]:hidden"
         >
           {active.products.slice(0, 10).map((p, i) => (
             <Reveal as="li" key={p.id} delay={(i % 6) * 50}>

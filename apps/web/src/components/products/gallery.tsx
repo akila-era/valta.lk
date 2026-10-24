@@ -66,7 +66,7 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
     <div className="lg:sticky lg:top-36 lg:self-start">
       <div className={many ? "lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-3" : undefined}>
         <div
-          className="group/stage relative mx-auto aspect-square w-full touch-pan-y overflow-hidden rounded-panel bg-[linear-gradient(150deg,#faf9f7,#eeebe6)] shadow-soft ring-1 ring-ink/[0.05] lg:order-2 lg:h-[min(36rem,calc(100svh-16rem))] lg:w-auto lg:max-w-full"
+          className="group/stage relative mx-auto aspect-square w-full touch-pan-y overflow-hidden rounded-3xl border border-border/80 bg-white shadow-soft lg:order-2 lg:h-[min(36rem,calc(100svh-16rem))] lg:w-auto lg:max-w-full"
           tabIndex={many ? 0 : undefined}
           role={many ? "group" : undefined}
           aria-label={many ? `${alt}. Image ${index + 1} of ${images.length}. Use the arrow keys to change image.` : undefined}
@@ -121,8 +121,8 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
                   onClick={() => setActive(i)}
                   aria-label={`Show image ${i + 1} of ${images.length}`}
                   aria-current={i === index}
-                  className={`relative block h-16 w-16 overflow-hidden rounded-xl border bg-bg transition-[border-color,box-shadow,opacity] duration-200 lg:h-[4.5rem] lg:w-[4.5rem] ${
-                    i === index ? "border-brand-500 shadow-[0_0_0_2px_var(--color-brand-100)]" : "border-border opacity-75 hover:border-ink/25 hover:opacity-100"
+                  className={`relative block h-16 w-16 overflow-hidden rounded-2xl border bg-white transition-[border-color,box-shadow,opacity] duration-200 lg:h-[4.5rem] lg:w-[4.5rem] ${
+                    i === index ? "border-brand-500 shadow-[0_0_0_2px_var(--color-brand-100)]" : "border-border/80 opacity-75 hover:border-ink/25 hover:opacity-100"
                   }`}
                 >
                   <ProductImage src={broken[i] ? undefined : src} alt="" sizes="72px" padding="p-1.5" onError={() => setBroken((current) => ({ ...current, [i]: true }))} />

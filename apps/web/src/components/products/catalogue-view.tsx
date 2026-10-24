@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { X } from "lucide-react";
+import { LayoutGrid, List, X } from "lucide-react";
 import { listProducts, type ProductQuery, type SortKey } from "@/lib/erp/catalogue";
 import { Pagination } from "@/components/ui/chrome";
 import { EmptyState, ErpUnavailable } from "@/components/ui/states";
@@ -43,7 +43,7 @@ export function parseParams(p: RawParams, fixedCategory?: string): ProductQuery 
     maxPrice: num(p.max),
     inStockOnly: p.stock === "1",
     onSale: p.sale === "1",
-    pageSize: 12,
+    pageSize: 15,
   };
 }
 
@@ -54,7 +54,14 @@ function href(base: string, params: RawParams, patch: Partial<RawParams>) {
   return s ? `${base}?${s}` : base;
 }
 
-function ActiveFilters({ basePath, params, query, categories, filtered, fixedCategory }: {
+function ActiveFilters({
+  basePath,
+  params,
+  query,
+  categories,
+  filtered,
+  fixedCategory,
+}: {
   basePath: string;
   params: RawParams;
   query: ProductQuery;
@@ -78,20 +85,27 @@ function ActiveFilters({ basePath, params, query, categories, filtered, fixedCat
   if (query.inStockOnly) chips.push({ label: "Available only", href: drop({ stock: "" }) });
   if (query.onSale) chips.push({ label: "On sale", href: drop({ sale: "" }) });
   if (!chips.length) return null;
+
   return (
     <ul className="mb-4 flex flex-wrap items-center gap-2" aria-label="Selected filters">
       {chips.map((chip) => (
         <li key={chip.label}>
-          <Link href={chip.href} className="group/chip inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-surface pl-3 pr-2 text-sm font-medium text-ink transition-colors hover:border-ink">
+          <Link
+            href={chip.href}
+            className="group/chip inline-flex min-h-8 items-center gap-1.5 rounded-full border border-border bg-white px-3 text-xs font-semibold text-ink shadow-xs transition-colors hover:border-brand-500 hover:text-brand-600"
+          >
             {chip.label}
-            <X className="h-3.5 w-3.5 text-muted group-hover/chip:text-ink" aria-hidden />
+            <X className="h-3 w-3 text-muted group-hover/chip:text-brand-600" aria-hidden />
             <span className="sr-only">, remove filter</span>
           </Link>
         </li>
       ))}
       {chips.length > 1 && (
         <li>
-          <Link href={fixedCategory ? basePath : "/products"} className="inline-flex min-h-9 items-center rounded-full px-2 text-sm font-semibold text-brand-600 hover:underline">
+          <Link
+            href={fixedCategory ? basePath : "/products"}
+            className="inline-flex min-h-8 items-center rounded-full px-2 text-xs font-bold text-brand-600 hover:underline"
+          >
             Clear all
           </Link>
         </li>
@@ -100,7 +114,17 @@ function ActiveFilters({ basePath, params, query, categories, filtered, fixedCat
   );
 }
 
-export async function CatalogueView({ basePath, params, fixedCategory, showCategories = true }: { basePath: string; params: RawParams; fixedCategory?: string; showCategories?: boolean }) {
+export async function CatalogueView({
+  basePath,
+  params,
+  fixedCategory,
+  showCategories = true,
+}: {
+  basePath: string;
+  params: RawParams;
+  fixedCategory?: string;
+  showCategories?: boolean;
+}) {
   const query = parseParams(params, fixedCategory);
   let result;
   try {
@@ -108,125 +132,255 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
   } catch {
     return <ErpUnavailable retryHref={href(basePath, params, {})} />;
   }
+
   // A page past the end is served as the last page; send the shopper to that URL so the address bar and pager agree.
-  if (query.page !== result.page) redirect(href(basePath, params, { page: result.page > 1 ? String(result.page) : "" }));
-  const filtered = Boolean(query.sub || query.q || query.brand || query.minPrice || query.maxPrice || query.inStockOnly || query.onSale || (!fixedCategory && query.category));
+  if (query.page !== result.page) {
+    redirect(href(basePath, params, { page: result.page > 1 ? String(result.page) : "" }));
+  }
+
+  const filtered = Boolean(
+    query.sub ||
+      query.q ||
+      query.brand ||
+      query.minPrice ||
+      query.maxPrice ||
+      query.inStockOnly ||
+      query.onSale ||
+      (!fixedCategory && query.category),
+  );
   const brandValue = result.brands.find((b) => b.name.toLowerCase() === (query.brand ?? "").toLowerCase())?.name ?? "";
 
   return (
-    <div className="grid min-w-0 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="grid min-w-0 gap-5 lg:grid-cols-[236px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)]">
+      {/* Sticky Filter Sidebar on Desktop, Drawer on Mobile */}
       <FilterPanel active={filtered}>
-        <form action={basePath} method="get" className="space-y-5">
+        <form action={basePath} method="get" className="space-y-3">
           {query.q && <input type="hidden" name="q" value={query.q} />}
           {query.onSale && <input type="hidden" name="sale" value="1" />}
           {query.sub && <input type="hidden" name="sub" value={query.sub} />}
           {!fixedCategory && query.category && <input type="hidden" name="category" value={query.category} />}
+
+          {/* Brand select */}
           {result.brands.length > 0 && (
             <div>
-              <label htmlFor="brand" className="label">Brand</label>
-              <select id="brand" name="brand" defaultValue={brandValue} className="select">
+              <label htmlFor="brand" className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink">
+                Brand
+              </label>
+              <select
+                id="brand"
+                name="brand"
+                defaultValue={brandValue}
+                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs font-medium text-ink transition-colors focus:border-brand-500 focus:bg-white focus:outline-none"
+              >
                 <option value="">All brands</option>
                 {result.brands.map((b) => (
-                  <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
+                  <option key={b.name} value={b.name}>
+                    {b.name} ({b.count})
+                  </option>
                 ))}
               </select>
             </div>
           )}
+
           <input type="hidden" name="sort" value={query.sort} />
+
+          {/* Price range */}
           <fieldset>
-            <legend className="label">Price (LKR)</legend>
+            <legend className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink">
+              Price (LKR)
+            </legend>
             <div className="flex gap-2">
-              <input aria-label="Minimum price" name="min" inputMode="numeric" placeholder="Min" defaultValue={params.min} className="input" />
-              <input aria-label="Maximum price" name="max" inputMode="numeric" placeholder="Max" defaultValue={params.max} className="input" />
+              <input
+                aria-label="Minimum price"
+                name="min"
+                inputMode="numeric"
+                placeholder="Min"
+                defaultValue={params.min}
+                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white focus:outline-none"
+              />
+              <input
+                aria-label="Maximum price"
+                name="max"
+                inputMode="numeric"
+                placeholder="Max"
+                defaultValue={params.max}
+                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white focus:outline-none"
+              />
             </div>
           </fieldset>
-          <label className="flex min-h-11 items-center gap-2 text-sm">
-            <input type="checkbox" name="stock" value="1" defaultChecked={query.inStockOnly} className="check" />
+
+          {/* Availability checkbox */}
+          <label className="flex cursor-pointer items-center gap-2 py-0.5 text-xs font-medium text-ink">
+            <input
+              type="checkbox"
+              name="stock"
+              value="1"
+              defaultChecked={query.inStockOnly}
+              className="h-3.5 w-3.5 rounded border-border accent-brand-500"
+            />
             Available items only
           </label>
-          <button className="btn-primary w-full" type="submit">Apply filters</button>
-          {filtered && <Link href={fixedCategory ? basePath : "/products"} className="btn-secondary w-full">Clear all</Link>}
+
+          {/* Apply button */}
+          <button
+            className="btn-primary w-full rounded-full py-2 text-xs font-bold uppercase tracking-wider shadow-soft hover:shadow-lift transition-all"
+            type="submit"
+          >
+            Apply filters
+          </button>
+
+          {filtered && (
+            <Link
+              href={fixedCategory ? basePath : "/products"}
+              className="btn-secondary block w-full rounded-full py-1.5 text-center text-xs font-semibold"
+            >
+              Clear all
+            </Link>
+          )}
         </form>
 
+        {/* Categories list in sidebar */}
         {showCategories && result.categories.length > 0 && (
-          <nav aria-label="Filter by category" className="mt-8">
-            <h2 className="label">Categories</h2>
-            <ul className="space-y-1 text-sm">
-              {result.categories.map((c) => (
-                <li key={c.slug}>
-                  <Link
-                    href={`/categories/${c.slug}`}
-                    aria-current={fixedCategory === c.slug ? "page" : undefined}
-                    className={`flex justify-between rounded-lg px-3 py-2 hover:bg-surface ${fixedCategory === c.slug ? "bg-brand-50 font-semibold text-brand-700" : ""}`}
-                  >
-                    <span>{c.name}</span>
-                    <span className="text-muted">{c.count}</span>
-                  </Link>
-                  {fixedCategory === c.slug && c.subs.length > 0 && (
-                    <ul className="ml-3 mt-1 space-y-1 border-l border-border pl-2">
-                      {c.subs.map((sc) => (
-                        <li key={sc.slug}>
-                          <Link
-                            href={`/categories/${c.slug}?sub=${sc.slug}`}
-                            aria-current={query.sub === sc.slug ? "page" : undefined}
-                            className={`flex justify-between rounded-lg px-3 py-1.5 hover:bg-surface ${query.sub === sc.slug ? "font-semibold text-brand-700" : "text-ink/80"}`}
-                          >
-                            <span>{sc.name}</span>
-                            <span className="text-muted">{sc.count}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-        )}
-      </FilterPanel>
-
-      <section aria-label="Products" className="min-w-0">
-        <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="type-meta" role="status">
-            {result.total} {result.total === 1 ? "product" : "products"}
-            {query.q ? ` for “${query.q}”` : ""}
-          </p>
-          <nav aria-label="Sort" className="min-w-0 max-w-full overflow-x-auto">
-            <ul className="flex w-max gap-0.5 rounded-xl bg-surface p-1">
-              {SORTS.map((s) => {
-                const on = query.sort === s.value;
+          <nav aria-label="Filter by category" className="mt-4 border-t border-border/80 pt-3.5">
+            <h2 className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink">Categories</h2>
+            <ul className="space-y-0.5 text-xs">
+              {result.categories.map((c) => {
+                const isCurrent = fixedCategory === c.slug;
                 return (
-                  <li key={s.value}>
+                  <li key={c.slug}>
                     <Link
-                      href={href(basePath, params, { sort: s.value === "newest" ? "" : s.value, page: "" })}
-                      aria-current={on ? "page" : undefined}
-                      className={`inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-semibold transition-colors ${on ? "bg-bg text-ink shadow-card ring-1 ring-border" : "text-muted hover:text-ink"}`}
+                      href={`/categories/${c.slug}`}
+                      aria-current={isCurrent ? "page" : undefined}
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                        isCurrent
+                          ? "bg-brand-50 font-bold text-brand-700"
+                          : "font-medium text-ink/80 hover:bg-surface hover:text-brand-600"
+                      }`}
                     >
-                      {s.label}
+                      <span className="truncate pr-1">{c.name}</span>
+                      <span className={`shrink-0 text-[11px] ${isCurrent ? "font-bold text-brand-600" : "text-muted"}`}>
+                        {c.count}
+                      </span>
                     </Link>
+
+                    {isCurrent && c.subs.length > 0 && (
+                      <ul className="my-0.5 ml-2.5 space-y-0.5 border-l-2 border-brand-500/25 pl-2">
+                        {c.subs.map((sc) => {
+                          const isSub = query.sub === sc.slug;
+                          return (
+                            <li key={sc.slug}>
+                              <Link
+                                href={`/categories/${c.slug}?sub=${sc.slug}`}
+                                aria-current={isSub ? "page" : undefined}
+                                className={`flex items-center justify-between rounded-md px-2 py-1 text-[11px] transition-colors ${
+                                  isSub
+                                    ? "bg-brand-50/80 font-bold text-brand-700"
+                                    : "text-muted hover:bg-surface hover:text-brand-600"
+                                }`}
+                              >
+                                <span className="truncate pr-1">{sc.name}</span>
+                                <span className="shrink-0 text-[10px] text-muted">{sc.count}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </li>
                 );
               })}
             </ul>
           </nav>
+        )}
+      </FilterPanel>
+
+      {/* Main product area */}
+      <section aria-label="Products" className="min-w-0">
+        {/* Controls Bar: Count on left, Sort pills + View icons on right (matching screenshot) */}
+        <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold text-muted" role="status">
+            {result.total} {result.total === 1 ? "product" : "products"}
+            {query.q ? ` for “${query.q}”` : ""}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Sort pills */}
+            <nav aria-label="Sort" className="min-w-0 max-w-full overflow-x-auto">
+              <ul className="flex items-center gap-1 rounded-full border border-border/80 bg-surface/80 p-1">
+                {SORTS.map((s) => {
+                  const on = query.sort === s.value;
+                  return (
+                    <li key={s.value}>
+                      <Link
+                        href={href(basePath, params, { sort: s.value === "newest" ? "" : s.value, page: "" })}
+                        aria-current={on ? "page" : undefined}
+                        className={`inline-flex items-center rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                          on
+                            ? "border border-border bg-white text-ink shadow-xs font-bold"
+                            : "text-muted hover:text-ink"
+                        }`}
+                      >
+                        {s.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {/* View Mode icons matching reference */}
+            <div className="hidden items-center gap-1 rounded-full border border-border/80 bg-surface/80 p-1 sm:flex">
+              <button
+                type="button"
+                aria-label="Grid view"
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-white text-brand-600 shadow-xs"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
+              </button>
+              <button
+                type="button"
+                aria-label="List view"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-muted transition-colors hover:text-ink"
+              >
+                <List className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            </div>
+          </div>
         </div>
-        <ActiveFilters basePath={basePath} params={params} query={query} categories={result.categories} filtered={filtered} fixedCategory={fixedCategory} />
+
+        {/* Active filter chips */}
+        <ActiveFilters
+          basePath={basePath}
+          params={params}
+          query={query}
+          categories={result.categories}
+          filtered={filtered}
+          fixedCategory={fixedCategory}
+        />
+
+        {/* Products or Empty state */}
         {result.items.length === 0 ? (
           <>
-            <EmptyState title="No products found" action={{ href: fixedCategory ? basePath : "/products", label: filtered ? "Clear filters" : "Browse all products" }}>
+            <EmptyState
+              title="No products found"
+              action={{ href: fixedCategory ? basePath : "/products", label: filtered ? "Clear filters" : "Browse all products" }}
+            >
               {query.minPrice != null && query.maxPrice != null && query.minPrice > query.maxPrice
                 ? "The minimum price is higher than the maximum price. Swap them and try again."
                 : filtered
                   ? "Try a different search or adjust your filters."
                   : "Products will appear here once they are available."}
             </EmptyState>
+
             {query.q && result.categories.length > 0 && (
               <nav aria-label="Browse categories" className="mt-6">
                 <h2 className="text-sm font-semibold text-ink">Browse a category</h2>
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {result.categories.map((c) => (
                     <li key={c.slug}>
-                      <Link href={`/categories/${c.slug}`} className="btn-secondary">{c.name}</Link>
+                      <Link href={`/categories/${c.slug}`} className="btn-secondary rounded-full px-4 text-xs font-semibold">
+                        {c.name}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -234,8 +388,10 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
             )}
           </>
         ) : (
-          <ProductGrid products={result.items} />
+          <ProductGrid products={result.items} columns={5} />
         )}
+
+        {/* Pagination */}
         <Pagination
           page={result.page}
           pageCount={result.pageCount}

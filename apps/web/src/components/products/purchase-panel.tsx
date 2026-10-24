@@ -29,7 +29,7 @@ export interface PanelProduct {
 /** One delivery / payment fact under the buy buttons. Only facts the store really offers are passed in. */
 function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
   return (
-    <li className="group flex items-start gap-3 rounded-2xl bg-surface/70 p-3 ring-1 ring-ink/[0.05] transition-colors duration-200 hover:bg-brand-50">
+    <li className="group flex items-start gap-3 rounded-2xl border border-border/80 bg-warm-white/40 p-3 transition-colors duration-200 hover:border-brand-500/30 hover:bg-brand-50/30">
       <Icon3D icon={Icon} tone="glass" size="sm" />
       <span className="min-w-0">
         <span className="block font-semibold leading-5 text-ink">{title}</span>
@@ -157,7 +157,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       </div>
 
       <div ref={actionsRef} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="flex w-fit items-center rounded-full border border-border bg-bg p-0.5" role="group" aria-label="Quantity">
+        <div className="flex w-fit items-center rounded-full border border-border/80 bg-white p-0.5 shadow-soft" role="group" aria-label="Quantity">
           <button type="button" className="btn-ghost min-w-11 rounded-full px-3" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
             <Minus className="h-4 w-4" aria-hidden />
           </button>
@@ -167,12 +167,12 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>
         </div>
         <div className="flex flex-1 gap-3">
-          <button type="button" className="btn-primary btn-lg shine min-w-0 flex-1 whitespace-nowrap px-5" disabled={!purchasable || added} onClick={add}>
+          <button type="button" className="btn-primary btn-lg rounded-full shine min-w-0 flex-1 whitespace-nowrap px-6 shadow-soft hover:shadow-lift transition-all" disabled={!purchasable || added} onClick={add}>
             {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : <><ShoppingCart className="h-4 w-4" aria-hidden /> Add to cart</>}
           </button>
           <button
             type="button"
-            className="btn-dark btn-lg min-w-0 flex-1 whitespace-nowrap px-5"
+            className="btn-dark btn-lg rounded-full min-w-0 flex-1 whitespace-nowrap px-6 shadow-soft hover:shadow-lift transition-all"
             disabled={!purchasable || added}
             onClick={() => {
               if (add()) router.push("/checkout");
@@ -195,10 +195,10 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>
       {showBar ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-white/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-[-0.02em] text-ink tabular-nums">{formatLkr(unit)}</p>
-            <button type="button" className="btn-primary shrink-0" disabled={!purchasable || added} aria-label={added ? `${product.name} added to cart` : `Add ${product.name} to cart`} onClick={add}>
+            <button type="button" className="btn-primary rounded-full px-5 py-2.5 text-xs font-semibold shrink-0 shadow-soft" disabled={!purchasable || added} aria-label={added ? `${product.name} added to cart` : `Add ${product.name} to cart`} onClick={add}>
               {added ? "Added" : "Add to cart"}
             </button>
           </div>

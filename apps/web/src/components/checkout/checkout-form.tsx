@@ -257,8 +257,8 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         )}
 
         {/* All three steps stay in the page (inactive ones are hidden) so nothing the customer typed is ever lost. */}
-          <section {...hide(1)} className="card space-y-4 p-5 sm:p-6" aria-labelledby="step-1">
-          <h2 id="step-1" ref={step === 1 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Your details</h2>
+        <section {...hide(1)} className="space-y-4 rounded-3xl border border-border/80 bg-white p-6 shadow-soft" aria-labelledby="step-1">
+          <h2 id="step-1" ref={step === 1 ? headingRef : undefined} tabIndex={-1} className="text-base font-bold text-ink outline-none">Your details</h2>
           <Field id="name" label="Full name" error={err("name")}>
             <input id="name" name="name" autoComplete="name" defaultValue={prefill?.name} className="input" {...aria("name")} maxLength={100} />
           </Field>
@@ -272,8 +272,8 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           </div>
         </section>
 
-          <section {...hide(2)} className="card space-y-4 p-5 sm:p-6" aria-labelledby="step-2">
-          <h2 id="step-2" ref={step === 2 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Delivery address</h2>
+        <section {...hide(2)} className="space-y-4 rounded-3xl border border-border/80 bg-white p-6 shadow-soft" aria-labelledby="step-2">
+          <h2 id="step-2" ref={step === 2 ? headingRef : undefined} tabIndex={-1} className="text-base font-bold text-ink outline-none">Delivery address</h2>
           <Field id="address" label="Address" error={err("address")}>
             <input id="address" name="address" autoComplete="street-address" className="input" {...aria("address")} maxLength={250} />
           </Field>
@@ -352,8 +352,8 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         </div>
       </div>
 
-      <aside className="card order-first h-fit p-5 lg:sticky lg:top-40 lg:order-none" aria-label="Order summary">
-        <h2 className="hidden text-lg font-semibold lg:block">Order summary</h2>
+      <aside className="order-first h-fit rounded-3xl border border-border/80 bg-white p-6 shadow-soft lg:sticky lg:top-28 xl:top-32 lg:order-none" aria-label="Order summary">
+        <h2 className="hidden text-base font-bold text-ink lg:block">Order Summary</h2>
         {/* Phones: the summary sits above the form, so it starts collapsed to the total and opens on demand. */}
         <button
           type="button"

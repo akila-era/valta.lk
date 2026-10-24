@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { CatalogueView, type RawParams } from "@/components/products/catalogue-view";
-import { Breadcrumbs } from "@/components/ui/chrome";
-import { PageIntro } from "@/components/ui/page-intro";
+import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
 
 export const metadata: Metadata = {
   title: "All products",
@@ -12,8 +11,15 @@ export const metadata: Metadata = {
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<RawParams> }) {
   return (
     <>
-      <Breadcrumbs items={[{ href: "/", label: "Home" }, { label: "All products" }]} />
-      <PageIntro section="Shop" label="Catalogue" title="All products" />
+      <StoreHeroBanner
+        breadcrumbs={[{ href: "/", label: "Home" }, { label: "All products" }]}
+        section="SHOP"
+        label="CATALOGUE"
+        title="All Products"
+        intro="Explore our complete catalogue of mobile phones, electronics and tech accessories."
+        categoryName="accessories"
+        tagline="Curated Tech Collection"
+      />
       <CatalogueView basePath="/products" params={await searchParams} />
     </>
   );

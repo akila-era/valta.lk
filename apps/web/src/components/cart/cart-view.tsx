@@ -164,60 +164,60 @@ export function CartView() {
           </p>
         )}
 
-        <ul className="divide-y divide-border rounded-2xl border border-border bg-bg">
+        <ul className="divide-y divide-border/70 overflow-hidden rounded-3xl border border-border/80 bg-white shadow-soft">
           {lines.map((l) => {
             const key = lineKey(l);
             const d = liveFor(l);
             const note = priceNotes[key];
             const max = d?.maxQuantity ?? null;
             return (
-              <li key={key} className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-3 p-4 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-center" data-testid="cart-line">
+              <li key={key} className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 gap-y-3 p-4 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-center sm:p-5" data-testid="cart-line">
                 <Link href={`/products/${l.slug}`} className="thumb-stage relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-2xl sm:h-[5.5rem] sm:w-[5.5rem]" aria-label={`View ${l.name}`}>
                   {l.image ? <Image src={l.image} alt="" fill sizes="88px" className="object-contain p-2" /> : <Smartphone className="m-auto h-full w-8 text-muted" aria-hidden />}
                 </Link>
                 <div className="min-w-0">
-                  <Link href={`/products/${l.slug}`} className="type-product hover:underline">{l.name}</Link>
-                  {l.variantLabel && <p className="text-sm text-muted">{l.variantLabel}</p>}
-                  {l.sku && <p className="text-xs text-muted">SKU: <span data-testid="line-sku">{l.sku}</span></p>}
-                  <p className="mt-1 text-sm text-muted">{formatLkr(l.unitPrice)} each</p>
+                  <Link href={`/products/${l.slug}`} className="type-product font-bold hover:text-brand-600 hover:underline">{l.name}</Link>
+                  {l.variantLabel && <p className="text-xs font-semibold text-muted">{l.variantLabel}</p>}
+                  {l.sku && <p className="text-xs text-muted/80">SKU: <span data-testid="line-sku">{l.sku}</span></p>}
+                  <p className="mt-1 text-sm font-medium text-muted">{formatLkr(l.unitPrice)} each</p>
                   <SaleNote listPrice={d?.listPrice} unitPrice={l.unitPrice} offerName={d?.offerName} />
-                  {d?.available && <p className="mt-1 text-sm font-medium text-success">Available</p>}
+                  {d?.available && <p className="mt-1 text-xs font-semibold text-success">● In stock</p>}
                   {note && (
-                    <p className="mt-1 text-sm font-medium text-warn" data-testid="price-note">
+                    <p className="mt-1 text-xs font-medium text-warn" data-testid="price-note">
                       Price updated from {formatLkr(note.from)} to {formatLkr(note.to)}.
                     </p>
                   )}
                   {d && !d.available && (
-                    <p className="mt-1 text-sm font-medium text-danger" data-testid="stock-note">
+                    <p className="mt-1 text-xs font-semibold text-danger" data-testid="stock-note">
                       {max && max > 0 ? (
                         <>
                           Only {max} available.{" "}
-                          <button type="button" className="underline" onClick={() => cartActions.setQuantity(key, max)}>Change to {max}</button>
+                          <button type="button" className="underline font-bold" onClick={() => cartActions.setQuantity(key, max)}>Change to {max}</button>
                         </>
                       ) : (
                         <>
                           Out of stock.{" "}
-                          <button type="button" className="underline" onClick={() => cartActions.remove(key)}>Remove</button>
+                          <button type="button" className="underline font-bold" onClick={() => cartActions.remove(key)}>Remove</button>
                         </>
                       )}
                     </p>
                   )}
                 </div>
-                <div className="col-span-2 flex items-center justify-between gap-2 sm:col-span-1 sm:justify-end">
-                  <div className="flex items-center rounded-lg border border-border bg-bg" role="group" aria-label={`Quantity for ${l.name}`}>
-                    <button type="button" className="btn-ghost min-h-11 min-w-11 px-3" aria-label={`Decrease quantity of ${l.name}`} disabled={l.quantity <= 1} onClick={() => cartActions.setQuantity(key, l.quantity - 1)}>
-                      <Minus className="h-4 w-4" aria-hidden />
+                <div className="col-span-2 flex items-center justify-between gap-3 sm:col-span-1 sm:justify-end">
+                  <div className="flex items-center rounded-full border border-border bg-surface/70 p-0.5" role="group" aria-label={`Quantity for ${l.name}`}>
+                    <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-white" aria-label={`Decrease quantity of ${l.name}`} disabled={l.quantity <= 1} onClick={() => cartActions.setQuantity(key, l.quantity - 1)}>
+                      <Minus className="h-3.5 w-3.5" aria-hidden />
                     </button>
-                    <span className="w-8 text-center text-sm font-semibold tabular-nums" data-testid="line-qty">{l.quantity}</span>
-                    <button type="button" className="btn-ghost min-h-11 min-w-11 px-3" aria-label={`Increase quantity of ${l.name}`} disabled={l.quantity >= MAX_LINE_QTY || (max != null && l.quantity >= max)} onClick={() => cartActions.setQuantity(key, l.quantity + 1)}>
-                      <Plus className="h-4 w-4" aria-hidden />
+                    <span className="w-8 text-center text-xs font-bold tabular-nums" data-testid="line-qty">{l.quantity}</span>
+                    <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-white" aria-label={`Increase quantity of ${l.name}`} disabled={l.quantity >= MAX_LINE_QTY || (max != null && l.quantity >= max)} onClick={() => cartActions.setQuantity(key, l.quantity + 1)}>
+                      <Plus className="h-3.5 w-3.5" aria-hidden />
                     </button>
                   </div>
-                  <p className="min-w-[6.5rem] text-right text-base font-extrabold tabular-nums text-ink">
+                  <p className="min-w-[6.5rem] text-right font-display text-base font-extrabold tabular-nums text-ink">
                     <span className="sr-only">Line total </span>
                     {formatLkr(multiplyMoney(l.unitPrice, l.quantity))}
                   </p>
-                  <button type="button" className="btn-ghost min-h-11 min-w-11 px-2" aria-label={`Remove ${l.name}`} onClick={() => cartActions.remove(key)}>
+                  <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-danger" aria-label={`Remove ${l.name}`} onClick={() => cartActions.remove(key)}>
                     <Trash2 className="h-4 w-4" aria-hidden />
                   </button>
                 </div>
@@ -249,18 +249,18 @@ export function CartView() {
         <AccessoryRail productIds={lines.map((l) => l.productId)} selections={lines.map((l) => ({ productId: l.productId, variantKey: l.variantKey }))} />
       </div>
 
-      <aside ref={summaryRef} className="card h-fit p-5 lg:sticky lg:top-40" aria-label="Order summary">
-        <h2 className="text-lg font-semibold">Order summary</h2>
-        <dl className="mt-4 space-y-2 text-sm">
-          <div className="flex justify-between"><dt>Subtotal</dt><dd data-testid="subtotal">{formatLkr(subtotal)}</dd></div>
-          <div className="flex justify-between">
+      <aside ref={summaryRef} className="rounded-3xl border border-border/80 bg-white p-6 shadow-soft lg:sticky lg:top-28 xl:top-32 h-fit" aria-label="Order summary">
+        <h2 className="text-base font-bold text-ink">Order Summary</h2>
+        <dl className="mt-4 space-y-2.5 text-sm">
+          <div className="flex justify-between text-muted"><dt>Subtotal</dt><dd data-testid="subtotal" className="font-semibold text-ink">{formatLkr(subtotal)}</dd></div>
+          <div className="flex justify-between text-muted">
             <dt>Delivery</dt>
-            <dd data-testid="delivery" className={info?.deliveryCharge == null ? "text-muted" : undefined}>
+            <dd data-testid="delivery" className={info?.deliveryCharge == null ? "text-muted" : "font-semibold text-ink"}>
               {info?.deliveryCharge != null ? formatLkr(info.deliveryCharge) : "Calculated at checkout"}
             </dd>
           </div>
           {savings > 0 && (
-            <div className="flex justify-between text-success">
+            <div className="flex justify-between font-semibold text-success">
               <dt>Catalogue savings</dt>
               <dd>{formatLkr(fromCents(savings))}</dd>
             </div>
@@ -268,16 +268,18 @@ export function CartView() {
           {[...new Set(lines.map((l) => liveFor(l)?.offerName).filter((name): name is string => Boolean(name)))].map((name) => (
             <div key={name} className="text-xs text-muted">{name}</div>
           ))}
-          <div className="flex items-baseline justify-between border-t border-border pt-3 text-base">
-            <dt className="font-semibold">{total != null ? "Total" : "Total before delivery"}</dt>
-            <dd className="font-display text-2xl font-bold tracking-[-0.02em] tabular-nums text-ink" data-testid="total">{formatLkr(total ?? subtotal)}</dd>
+          <div className="flex items-baseline justify-between border-t border-border/80 pt-3.5 text-base">
+            <dt className="font-bold text-ink">{total != null ? "Total" : "Total before delivery"}</dt>
+            <dd className="font-display text-2xl font-black tracking-tight tabular-nums text-ink" data-testid="total">{formatLkr(total ?? subtotal)}</dd>
           </div>
         </dl>
-        <p className="mt-3 text-xs text-muted">Payment is cash on delivery. Prices and stock are confirmed again when you place your order.</p>
-        <Link href="/checkout" className={`btn-primary mt-5 w-full ${blocked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={blocked} tabIndex={blocked ? -1 : undefined}>
-          Proceed to checkout
+        <p className="mt-3 text-xs text-muted">Payment is cash on delivery. Prices and stock are confirmed live with our ERP.</p>
+        <Link href="/checkout" className={`btn-primary mt-5 w-full rounded-full py-3 text-sm font-bold shadow-[0_8px_20px_-6px_rgb(255_92_0/0.5)] ${blocked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={blocked} tabIndex={blocked ? -1 : undefined}>
+          Proceed to Checkout
         </Link>
-        <Link href="/products" className="btn-secondary mt-3 w-full">Continue shopping</Link>
+        <Link href="/products" className="btn-secondary mt-2.5 w-full rounded-full py-2.5 text-xs font-semibold">
+          Continue Shopping
+        </Link>
       </aside>
       {dockSummary && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">

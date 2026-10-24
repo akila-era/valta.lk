@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
 import { CartView } from "@/components/cart/cart-view";
-import { PageIntro } from "@/components/ui/page-intro";
+import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
 
 export const metadata: Metadata = { title: "Shopping cart", robots: { index: false } };
 
 export default function CartPage() {
   return (
     <>
-      <PageIntro section="Your bag" label="Cart" title="Shopping cart" />
+      <StoreHeroBanner
+        breadcrumbs={[{ href: "/", label: "Home" }, { label: "Shopping cart" }]}
+        section="YOUR BAG"
+        label="CART"
+        title="Shopping Cart"
+        intro="Review selected items, update quantities and proceed to secure checkout."
+        categoryName="accessories"
+        tagline="Ready for Checkout"
+      />
       <CartView />
     </>
   );

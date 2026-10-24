@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Battery, Cable, Check, Cpu, HardDrive, Plus, Shield, Sparkles, Zap } from "lucide-react";
 import { discountPercent, effectivePrice, isNewArrival } from "@/lib/erp/product-utils";
 import type { ErpProduct } from "@/lib/erp/types";
 import { formatLkr } from "@/lib/utils/money";
@@ -7,100 +7,224 @@ import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-card";
 import { WishlistButton } from "./wishlist-button";
 
-/**
- * The storefront product card: discount derived from real ERP prices, brand and stock state, name, price and an
- * always-visible cart action. The product stands on a "stage" (a white spotlight disc over a floor shadow) and lifts
- * and tilts on hover; mix-blend-multiply lets white-background ERP photos sit on the stage without a box around them.
- * Every row has a fixed height so cards in a grid line up whatever their content.
- * `panel` is the shorter, borderless card used inside the Hot Deals panel.
- */
-export function CompactProductCard({ product, panel = false, priority }: { product: ErpProduct; panel?: boolean; priority?: boolean }) {
-  const title = product.content?.displayTitle || product.name; // the cart and orders always use the ERP name
+interface CompactProductCardProps {
+  product: ErpProduct;
+  panel?: boolean;
+  priority?: boolean;
+}
+
+/** Extracts up to 3 prominent spec pills or smart category features for the bottom row. */
+function getProductBadges(product: ErpProduct): { icon: typeof Zap; label: string }[] {
+  const specs = product.specs ?? {};
+  const badges: { icon: typeof Zap; label: string }[] = [];
+
+  // 1. From real product specs if present
+  for (const [key, val] of Object.entries(specs)) {
+    if (badges.length >= 3) break;
+    const k = key.toLowerCase();
+    const v = String(val).trim();
+    if (!v || v === "null" || v === "undefined") continue;
+
+    if (k.includes("watt") || k.includes("power") || v.includes("W") || v.includes("mAh")) {
+      badges.push({ icon: Zap, label: v });
+    } else if (k.includes("interface") || k.includes("port") || k.includes("type") || v.includes("USB")) {
+      badges.push({ icon: Cable, label: v });
+    } else if (k.includes("storage") || k.includes("capacity") || k.includes("rom") || v.includes("GB") || v.includes("TB")) {
+      badges.push({ icon: HardDrive, label: v });
+    } else if (k.includes("battery") || k.includes("mah")) {
+      badges.push({ icon: Battery, label: v });
+    } else if (k.includes("ram") || k.includes("chip") || k.includes("processor")) {
+      badges.push({ icon: Cpu, label: v });
+    } else if (k.includes("warranty")) {
+      badges.push({ icon: Shield, label: v });
+    } else if (badges.length < 2 && v.length <= 16) {
+      badges.push({ icon: Sparkles, label: v });
+    }
+  }
+
+  // 2. Fallbacks if no specs were present on the product
+  if (badges.length === 0) {
+    const cat = product.category?.name?.toLowerCase() ?? "";
+    if (cat.includes("accessor")) {
+      badges.push({ icon: Zap, label: "Fast Charge" });
+      badges.push({ icon: Cable, label: "High Durability" });
+      badges.push({ icon: Shield, label: "Authentic" });
+    } else if (cat.includes("audio")) {
+      badges.push({ icon: Sparkles, label: "HD Sound" });
+      badges.push({ icon: Battery, label: "Long Battery" });
+      badges.push({ icon: Shield, label: "Verified" });
+    } else if (cat.includes("phone")) {
+      badges.push({ icon: Cpu, label: "Brand Warranty" });
+      badges.push({ icon: Zap, label: "Fast Delivery" });
+      badges.push({ icon: Shield, label: "COD Ready" });
+    } else {
+      badges.push({ icon: Shield, label: "Genuine Tech" });
+      badges.push({ icon: Zap, label: "Islandwide" });
+      badges.push({ icon: Sparkles, label: "COD Available" });
+    }
+  }
+
+  return badges.slice(0, 3);
+}
+
+export function CompactProductCard({ product, panel = false, priority }: CompactProductCardProps) {
+  const title = product.content?.displayTitle || product.name;
   const current = effectivePrice(product);
   const pct = discountPercent(product);
   const href = `/products/${product.slug}`;
   const fresh = product.available && isNewArrival(product.publishedAt);
   const low = product.available && !product.hasVariants && product.purchasableQuantity > 0 && product.purchasableQuantity <= 5;
-  const pill = "rounded-full px-2.5 py-1 text-label font-bold";
+  const badges = getProductBadges(product);
+
+  const brandText = product.brand?.toUpperCase();
+  const catText = product.category?.name?.toUpperCase();
+  const brandAndCategory = [brandText, catText].filter(Boolean).join(" • ");
+
   return (
     <article
-      className={`group/card relative flex h-full flex-col overflow-hidden rounded-[1.25rem] bg-bg text-ink transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 motion-reduce:hover:translate-y-0 ${
-        panel ? "" : "border border-border shadow-soft hover:border-ink/15 hover:shadow-lift"
+      className={`group/card relative flex h-full flex-col overflow-hidden rounded-2xl bg-white text-ink transition-all duration-300 hover:-translate-y-1 hover:shadow-lift motion-reduce:hover:translate-y-0 ${
+        panel ? "border border-border/70 p-2.5" : "border border-border/85 p-3.5 shadow-soft hover:border-brand-500/40"
       }`}
     >
-      <Link href={href} className="flex flex-1 flex-col" aria-label={`${title}, ${formatLkr(current)}`}>
-        <span className={`relative block overflow-hidden bg-[linear-gradient(145deg,#f8f7f4,#eeece8)] ${panel ? "h-24 sm:h-28" : "h-40 sm:h-48 xl:h-52"}`}>
-          {/* 2D: a dotted grid in the lower corner and an orange ring that turns on hover. */}
-          <span aria-hidden className="absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.07)_1px,transparent_1.3px)] [background-size:12px_12px] [mask-image:linear-gradient(200deg,transparent_55%,#000)]" />
-          <span aria-hidden className="absolute -right-8 -top-8 h-24 w-24 rounded-full border-[9px] border-brand-500/0 transition-[border-color,transform] duration-500 group-hover/card:scale-110 group-hover/card:border-brand-500/15" />
-          {/* 3D: spotlight disc and a floor shadow that tightens as the product lifts. */}
-          <span aria-hidden className="absolute left-1/2 top-[46%] aspect-square h-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_14px_36px_-12px_rgb(27_23_20/0.18),inset_0_-6px_14px_rgb(27_23_20/0.04)] transition-transform duration-500 group-hover/card:scale-105" />
-          <span aria-hidden className="absolute bottom-[11%] left-1/2 h-3 w-[46%] -translate-x-1/2 rounded-[50%] bg-ink/25 blur-md transition-[width,opacity] duration-500 group-hover/card:w-[36%] group-hover/card:opacity-60" />
-          <span className="absolute inset-0 mix-blend-multiply transition-transform duration-500 ease-out group-hover/card:-translate-y-2 group-hover/card:-rotate-2 group-hover/card:scale-[1.04] motion-reduce:transition-none">
-            <ProductImage src={product.images[0]} alt="" sizes="(min-width:1280px) 260px, (min-width:768px) 30vw, 50vw" padding={panel ? "p-3" : "p-6 sm:p-7"} priority={priority} />
+      {/* Top badges (Discount / New) */}
+      <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-col gap-1.5">
+        {pct ? (
+          <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-on-brand shadow-[0_4px_12px_rgb(255_92_0/0.4)]">
+            -{pct}%
           </span>
-        </span>
-        <span className={`flex flex-1 flex-col ${panel ? "px-2.5 pb-2.5 pt-2" : "px-3 pb-3 pt-3 sm:px-4 sm:pb-4 sm:pt-3.5"}`}>
-          {/* Right padding keeps the label clear of the cart button that straddles the stage edge. */}
-          <span className="flex h-4 items-center gap-1.5 overflow-hidden pr-11 text-label font-semibold uppercase tracking-[0.1em] text-muted">
-            {product.brand ? <span className="max-w-full shrink-0 truncate">{product.brand}</span> : null}
-            {product.brand && product.category ? <span aria-hidden className="hidden h-1 w-1 shrink-0 rounded-full bg-brand-500 sm:block" /> : null}
-            {product.category ? <span className={`truncate ${product.brand ? "hidden sm:inline" : ""}`}>{product.category.name}</span> : null}
+        ) : null}
+        {fresh ? (
+          <span className="rounded-full bg-ink px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wider text-white">
+            New
           </span>
-          <h3 className="mt-1.5 line-clamp-2 min-h-10 text-[13px] font-semibold leading-5 tracking-[-0.01em] transition-colors group-hover/card:text-brand-700 sm:text-sm">{title}</h3>
-          <span className="mt-1.5 flex h-4 items-center text-xs">
-            {!product.available ? (
-              <span className="font-semibold text-danger">Out of stock</span>
-            ) : low ? (
-              <span className="font-semibold text-warn">Only {product.purchasableQuantity} left</span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 font-medium text-success"><span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success shadow-[0_0_0_3px_rgb(6_118_71/0.15)]" />In stock</span>
-            )}
-          </span>
-          <span className="mt-auto flex items-baseline gap-1 whitespace-nowrap pt-2">
-            {product.hasVariants ? <span className="text-xs text-muted">From</span> : null}
-            <span className={`font-display font-extrabold tabular-nums tracking-[-0.03em] text-ink ${panel ? "text-[15px]" : "text-base sm:text-lg"}`}>{formatLkr(current)}</span>
-          </span>
-          <span className="block h-4 text-xs leading-4 text-muted">
-            {current < product.price && (
-              <>
-                <span className="sr-only">Regular price</span>
-                <s>{formatLkr(product.price)}</s>
-              </>
-            )}
-          </span>
-        </span>
-      </Link>
-
-      {/* The cart action straddles the bottom edge of the stage, outside the card link (no nested controls). */}
-      <div
-        className={`absolute right-3 z-10 ${
-          panel ? "top-[calc(6rem-1.375rem)] sm:top-[calc(7rem-1.375rem)]" : "top-[calc(10rem-1.375rem)] sm:top-[calc(12rem-1.375rem)] xl:top-[calc(13rem-1.375rem)]"
-        }`}
-      >
-        <span className="block rounded-full ring-4 ring-bg">
-          {product.available && !product.hasVariants ? (
-            <AddToCartButton
-              round
-              line={{ productId: product.id, variantKey: "", slug: product.slug, name: product.name, sku: product.sku, image: product.images[0], unitPrice: current }}
-            />
-          ) : (
-            <Link
-              href={href}
-              aria-label={product.available ? "Choose options" : "View details"}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/15 bg-bg text-ink transition-colors duration-200 hover:border-ink hover:bg-ink hover:text-bg"
-            >
-              <ArrowUpRight className="h-5 w-5" aria-hidden />
-            </Link>
-          )}
-        </span>
+        ) : null}
       </div>
 
-      <span className="pointer-events-none absolute left-3 top-3 z-10 flex gap-1.5">
-        {pct ? <span className={`${pill} bg-brand-500 text-on-brand shadow-[0_6px_14px_-6px_rgb(255_92_0/0.7)]`}>-{pct}%</span> : null}
-        {fresh ? <span className={`${pill} bg-ink text-bg`}>New</span> : null}
-      </span>
-      <WishlistButton className="absolute right-3 top-3 z-10 shadow-soft" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.images[0], price: current }} />
+      {/* Wishlist Button in Top Right */}
+      <div className="absolute right-3 top-3 z-10">
+        <WishlistButton
+          className="h-8.5 w-8.5 rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-transform hover:scale-110"
+          item={{ productId: product.id, slug: product.slug, name: product.name, image: product.images[0], price: current }}
+        />
+      </div>
+
+      {/* Product Image Area: aspect-[4/3] prevents excessively tall cards while keeping a generous contain area */}
+      <div className="relative mb-2.5 flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl bg-white p-2 sm:p-2.5">
+        {/* Subtle white spotlight disc behind the product */}
+        <span
+          aria-hidden
+          className="absolute inset-1 rounded-full bg-[radial-gradient(circle_at_50%_50%,#ffffff_0%,#fbf9f6_85%)] shadow-inner transition-transform duration-500 group-hover/card:scale-105"
+        />
+
+        <Link
+          href={href}
+          tabIndex={-1}
+          aria-hidden
+          className="relative flex h-full w-full items-center justify-center transition-transform duration-500 ease-out group-hover/card:scale-105 motion-reduce:transition-none"
+        >
+          <ProductImage
+            src={product.images[0]}
+            alt={title}
+            sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw"
+            priority={priority}
+            contain
+            padding="p-1 sm:p-1.5"
+          />
+        </Link>
+
+        {/* Floating Round Orange Plus (Add to Cart) Button */}
+        <div className="absolute bottom-1.5 right-1.5 z-10">
+          <span className="block rounded-full ring-4 ring-white">
+            {product.available && !product.hasVariants ? (
+              <AddToCartButton
+                round
+                line={{
+                  productId: product.id,
+                  variantKey: "",
+                  slug: product.slug,
+                  name: product.name,
+                  sku: product.sku,
+                  image: product.images[0],
+                  unitPrice: current,
+                }}
+              />
+            ) : (
+              <Link
+                href={href}
+                aria-label={product.available ? "Choose options" : "View details"}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-[0_8px_18px_-6px_rgb(255_92_0/0.6)] transition-all hover:bg-brand-600 hover:scale-105 active:scale-95"
+              >
+                <Plus className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+              </Link>
+            )}
+          </span>
+        </div>
+      </div>
+
+      {/* Product Details Section */}
+      <div className="flex flex-1 flex-col">
+        {/* Brand • Category row */}
+        {brandAndCategory && (
+          <p className="mb-1 truncate font-mono text-[11px] font-bold tracking-[0.1em] text-muted">
+            {brandAndCategory}
+          </p>
+        )}
+
+        {/* Product Title */}
+        <h3 className="line-clamp-2 min-h-10 text-[13.5px] font-bold leading-5 tracking-tight text-ink transition-colors group-hover/card:text-brand-600 sm:text-[14.5px]">
+          <Link href={href} className="hover:underline">
+            {title}
+          </Link>
+        </h3>
+
+        {/* Stock Status Indicator */}
+        <div className="mt-1 flex items-center text-xs">
+          {!product.available ? (
+            <span className="flex items-center gap-1.5 font-bold text-danger">
+              <span className="h-2 w-2 rounded-full bg-danger shadow-[0_0_0_2px_rgba(180,35,24,0.2)]" />
+              Out of stock
+            </span>
+          ) : low ? (
+            <span className="flex items-center gap-1.5 font-bold text-warn">
+              <span className="h-2 w-2 rounded-full bg-warn" />
+              Only {product.purchasableQuantity} left
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 font-semibold text-success">
+              <span className="h-2 w-2 rounded-full bg-success shadow-[0_0_0_2px_rgba(6,118,71,0.2)]" />
+              In stock
+            </span>
+          )}
+        </div>
+
+        {/* Price Row */}
+        <div className="mt-auto flex items-baseline gap-2 pt-2.5">
+          {product.hasVariants && <span className="text-xs font-medium text-muted">From</span>}
+          <span className="font-display text-base font-extrabold tracking-tight text-ink tabular-nums sm:text-lg">
+            {formatLkr(current)}
+          </span>
+          {current < product.price && (
+            <span className="text-xs text-muted line-through">
+              {formatLkr(product.price)}
+            </span>
+          )}
+        </div>
+
+        {/* Feature / Specs Badges Row (Bottom of card, like in the reference screenshot) */}
+        {!panel && badges.length > 0 && (
+          <div className="mt-3 flex items-center justify-between border-t border-border/70 pt-2 text-[11px] text-muted">
+            {badges.map((b, i) => {
+              const Icon = b.icon;
+              return (
+                <div key={i} className="flex items-center gap-1">
+                  <Icon className="h-3 w-3 text-muted/70" strokeWidth={1.75} aria-hidden />
+                  <span className="truncate font-medium">{b.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </article>
   );
 }

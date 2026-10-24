@@ -55,7 +55,17 @@ async function track(events: { type: "impression" | "click" | "add"; sourceItemI
  * Compatible accessories for one or more products already chosen. Dismissal is kept for this browser tab only
  * and never blocks checkout. Adding an accessory uses the same cart and does not duplicate a line.
  */
-export function AccessoryRail({ productIds, initial, selections, intro = "Only accessories linked to items in your cart. Prices are the catalogue prices. You can continue without them." }: { productIds: string[]; initial?: AccessoryOffer[]; selections?: { productId: string; variantKey: string }[]; intro?: string }) {
+export function AccessoryRail({
+  productIds,
+  initial,
+  selections,
+  intro = "Only accessories linked to items in your cart. Prices are the catalogue prices. You can continue without them.",
+}: {
+  productIds: string[];
+  initial?: AccessoryOffer[];
+  selections?: { productId: string; variantKey: string }[];
+  intro?: string;
+}) {
   const { lines } = useCart();
   const choice = useVariantChoice();
   const picked = selections ?? productIds.map((productId) => ({ productId, variantKey: choice?.variantKey ?? "" }));
@@ -126,38 +136,59 @@ export function AccessoryRail({ productIds, initial, selections, intro = "Only a
   }
 
   return (
-    <section aria-labelledby="accessories" className="mt-8 rounded-2xl border border-border bg-surface p-4 sm:p-5">
+    <section aria-labelledby="accessories" className="mt-8 rounded-3xl border border-border/80 bg-white p-5 shadow-soft sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 id="accessories" className="text-base font-semibold text-ink">Compatible accessories</h2>
-          <p className="mt-1 text-sm text-muted">{intro}</p>
+          <h2 id="accessories" className="font-display text-base font-bold text-ink">
+            Compatible accessories
+          </h2>
+          <p className="mt-1 text-xs text-muted">{intro}</p>
         </div>
-        <button type="button" className="btn-ghost px-2" onClick={dismiss}>
-          <X className="h-4 w-4" aria-hidden /> Dismiss
+        <button type="button" className="btn-ghost rounded-full px-3 text-xs" onClick={dismiss}>
+          <X className="h-3.5 w-3.5" aria-hidden /> Dismiss
         </button>
       </div>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {visible.map((item) => (
-          <li key={`${item.sourceItemId}-${item.sourceVariantKey}-${item.productId}`} className="flex gap-3 rounded-lg border border-border bg-bg p-3">
+          <li
+            key={`${item.sourceItemId}-${item.sourceVariantKey}-${item.productId}`}
+            className="flex gap-3 rounded-2xl border border-border/80 bg-warm-white/40 p-3.5 shadow-soft"
+          >
             <Link
               href={`/products/${item.slug}`}
-              className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-surface"
+              className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-white"
               aria-label={item.title}
               onClick={() => void track([{ type: "click", sourceItemId: item.sourceItemId, accessoryItemId: item.productId }])}
             >
-              {item.image ? <Image src={item.image} alt="" fill sizes="64px" className="object-contain p-1" /> : <Smartphone className="m-auto h-full w-6 text-muted" aria-hidden />}
+              {item.image ? (
+                <Image src={item.image} alt="" fill sizes="64px" className="object-contain p-1.5" />
+              ) : (
+                <Smartphone className="m-auto h-full w-6 text-muted" aria-hidden />
+              )}
             </Link>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted">{item.kindLabel}</p>
-              <p className="truncate font-semibold">{item.title}</p>
-              <p className="text-sm">{item.priceFrom ? `From ${formatLkr(item.unitPrice)}` : formatLkr(item.unitPrice)}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">{item.kindLabel}</p>
+              <p className="truncate text-sm font-bold text-ink">{item.title}</p>
+              <p className="text-xs font-semibold text-brand-600">
+                {item.priceFrom ? `From ${formatLkr(item.unitPrice)}` : formatLkr(item.unitPrice)}
+              </p>
               {item.canAdd ? (
-                <label className="mt-2 flex min-h-9 items-center gap-2 text-xs font-semibold">
-                  <input type="checkbox" checked={pickedIds.includes(lineKey(item))} aria-label={`Select ${item.title}`} onChange={() => toggle(item)} />
+                <label className="mt-2 flex min-h-8 cursor-pointer items-center gap-2 text-xs font-semibold text-ink">
+                  <input
+                    type="checkbox"
+                    className="accent-brand-500 rounded"
+                    checked={pickedIds.includes(lineKey(item))}
+                    aria-label={`Select ${item.title}`}
+                    onChange={() => toggle(item)}
+                  />
                   Select
                 </label>
               ) : (
-                <Link href={`/products/${item.slug}`} className="btn-secondary mt-2 min-h-9 px-3 text-xs" onClick={() => void track([{ type: "click", sourceItemId: item.sourceItemId, accessoryItemId: item.productId }])}>
+                <Link
+                  href={`/products/${item.slug}`}
+                  className="btn-secondary mt-2 inline-flex min-h-8 items-center rounded-full px-3 text-xs font-semibold shadow-soft"
+                  onClick={() => void track([{ type: "click", sourceItemId: item.sourceItemId, accessoryItemId: item.productId }])}
+                >
                   Choose options
                 </Link>
               )}
@@ -166,7 +197,12 @@ export function AccessoryRail({ productIds, initial, selections, intro = "Only a
         ))}
       </ul>
       {visible.some((item) => item.canAdd) && (
-        <button type="button" className="btn-primary mt-4" disabled={!pickedIds.length} onClick={addSelected}>
+        <button
+          type="button"
+          className="btn-primary mt-4 rounded-full px-5 py-2 text-xs font-semibold shadow-soft hover:shadow-lift"
+          disabled={!pickedIds.length}
+          onClick={addSelected}
+        >
           Add selected
         </button>
       )}

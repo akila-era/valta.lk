@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Battery, Camera, Check, Cpu, Headphones, ShieldCheck, Smartphone, Store, Truck, Wifi, Zap, type LucideIcon } from "lucide-react";
+import { Battery, Camera, Check, ChevronRight, Cpu, Headphones, ShieldCheck, Smartphone, Store, Truck, Wifi, Zap, type LucideIcon } from "lucide-react";
 import { Breadcrumbs, SectionHeader } from "@/components/ui/chrome";
 import { Notice } from "@/components/ui/notice";
 import { ErpUnavailable } from "@/components/ui/states";
@@ -68,15 +68,15 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 const FEATURE_ICON: Record<string, LucideIcon> = { zap: Zap, shield: ShieldCheck, battery: Battery, wifi: Wifi, cpu: Cpu, camera: Camera, smartphone: Smartphone, headphones: Headphones };
 
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
-  <section aria-labelledby={id} className="scroll-mt-40">
-    <h2 id={id} className="border-l-[3px] border-brand-500 pl-3 font-display text-xl font-bold tracking-[-0.015em]">{title}</h2>
-    <div className="mt-4">{children}</div>
+  <section aria-labelledby={id} className="scroll-mt-40 rounded-3xl border border-border/80 bg-white p-6 shadow-soft sm:p-8">
+    <h2 id={id} className="border-l-[3px] border-brand-500 pl-3 font-display text-lg font-bold tracking-[-0.015em] text-ink sm:text-xl">{title}</h2>
+    <div className="mt-5">{children}</div>
   </section>
 );
 
 /** One label/value row of a specification list: label on the left, value on the right, on a hairline divider. */
 const SpecRow = ({ name, value }: { name: string; value: string }) => (
-  <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 px-4 py-3 text-sm">
+  <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 px-4 py-3 text-xs sm:text-sm">
     <dt className="text-muted">{name}</dt>
     <dd className="break-words font-medium text-ink">{value}</dd>
   </div>
@@ -140,15 +140,51 @@ export default async function ProductPage({ params, searchParams }: Props) {
         </div>
       )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <Breadcrumbs
-        items={[
-          { href: "/", label: "Home" },
-          { href: "/products", label: "All products" },
-          ...(product.category ? [{ href: `/categories/${product.category.slug}`, label: product.category.name }] : []),
-          ...(product.category && product.subCategory ? [{ href: `/categories/${product.category.slug}?sub=${product.subCategory.slug}`, label: product.subCategory.name }] : []),
-          { label: title },
-        ]}
-      />
+      {/* Pill Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="mb-6 w-fit">
+        <ol className="flex flex-wrap items-center gap-1.5 rounded-full border border-border/80 bg-white px-4 py-1.5 text-xs text-muted shadow-soft">
+          <li>
+            <Link href="/" className="transition-colors hover:text-ink">
+              Home
+            </Link>
+          </li>
+          <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+          <li>
+            <Link href="/products" className="transition-colors hover:text-ink">
+              All products
+            </Link>
+          </li>
+          {product.category && (
+            <>
+              <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+              <li>
+                <Link href={`/categories/${product.category.slug}`} className="transition-colors hover:text-ink">
+                  {product.category.name}
+                </Link>
+              </li>
+            </>
+          )}
+          {product.category && product.subCategory && (
+            <>
+              <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+              <li>
+                <Link
+                  href={`/categories/${product.category.slug}?sub=${product.subCategory.slug}`}
+                  className="transition-colors hover:text-ink"
+                >
+                  {product.subCategory.name}
+                </Link>
+              </li>
+            </>
+          )}
+          <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+          <li>
+            <span className="font-semibold text-brand-600 truncate max-w-[20ch] sm:max-w-[32ch] inline-block align-bottom" aria-current="page">
+              {title}
+            </span>
+          </li>
+        </ol>
+      </nav>
 
       <VariantChoice initial={initialVariant}>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
@@ -171,11 +207,11 @@ export default async function ProductPage({ params, searchParams }: Props) {
           )}
           {badges.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2" aria-label="Highlights">
-              {badges.map((b) => <li key={b} className="badge border border-brand-100 bg-brand-50 text-brand-700">{b}</li>)}
+              {badges.map((b) => <li key={b} className="badge rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">{b}</li>)}
             </ul>
           )}
           {c?.shortDescription && <p className="mt-4 max-w-prose text-[15px] leading-7 text-muted">{c.shortDescription}</p>}
-          <div className="relative mt-6 rounded-panel bg-white/90 p-5 shadow-float ring-1 ring-ink/[0.06] backdrop-blur before:pointer-events-none before:absolute before:right-0 before:top-0 before:-z-10 before:h-40 before:w-40 before:rounded-full before:bg-brand-500/15 before:blur-3xl before:content-[''] sm:p-6">
+          <div className="relative mt-6 rounded-3xl border border-border/80 bg-white p-6 shadow-soft ring-1 ring-ink/[0.04] sm:p-7">
             <PurchasePanel
               offerNames={offerNames}
               deliveryCharge={settings?.deliveryCharge}
@@ -196,16 +232,16 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </div>
           {c && c.features.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted">Key features</h2>
-              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Key features</h2>
+              <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
                 {c.features.map((f, i) => {
                   const Icon = FEATURE_ICON[f.icon] ?? Check;
                   return (
-                  <li key={i} className="flex gap-3 rounded-xl border border-border bg-surface/60 p-3 text-sm">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                  <li key={i} className="flex gap-3 rounded-2xl border border-border/80 bg-warm-white/40 p-3.5 text-sm shadow-soft">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                       <Icon className="h-4 w-4" aria-hidden />
                     </span>
-                    <span className="min-w-0"><span className="block font-semibold leading-5">{f.title}</span>{f.description && <span className="mt-0.5 block text-xs leading-5 text-muted">{f.description}</span>}</span>
+                    <span className="min-w-0"><span className="block font-semibold leading-5 text-ink">{f.title}</span>{f.description && <span className="mt-0.5 block text-xs leading-5 text-muted">{f.description}</span>}</span>
                   </li>
                   );
                 })}
@@ -218,11 +254,11 @@ export default async function ProductPage({ params, searchParams }: Props) {
       <AccessoryRail productIds={[product.id]} initial={accessories} intro="Only accessories linked to this product. Prices are the catalogue prices. You can continue without them." />
 
       {jumps.length > 1 && (
-        <nav aria-label="On this page" className="sticky top-[var(--hdr-sticky,8.5rem)] z-20 mt-12 max-w-full overflow-x-auto border-b border-border bg-bg/95 backdrop-blur">
-          <ul className="flex w-max gap-6">
+        <nav aria-label="On this page" className="sticky top-[var(--hdr-sticky,7.5rem)] z-20 mt-10 max-w-full overflow-x-auto rounded-full border border-border/80 bg-white/95 px-4 py-1.5 shadow-soft backdrop-blur">
+          <ul className="flex w-max gap-4 sm:gap-6">
             {jumps.map((j) => (
               <li key={j.id}>
-                <a href={`#${j.id}`} className="inline-flex min-h-12 items-center border-b-2 border-transparent text-sm font-semibold text-muted transition-colors hover:border-brand-500 hover:text-ink">
+                <a href={`#${j.id}`} className="inline-flex min-h-9 items-center text-xs font-bold text-muted transition-colors hover:text-brand-600">
                   {j.label}
                 </a>
               </li>
@@ -243,13 +279,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
               {siteSpecGroups.map((g) => (
                 <div key={g.group}>
                   {siteSpecGroups.length > 1 || g.group !== "General" ? <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">{g.group}</h3> : null}
-                  <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border [&>div:nth-child(odd)]:bg-surface/60">
+                  <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-warm-white/60">
                     {g.rows.map((s, i) => <SpecRow key={i} name={s.name} value={`${s.value}${s.unit ? ` ${s.unit}` : ""}`} />)}
                   </dl>
                 </div>
               ))}
               {erpSpecs.length > 0 && (
-                <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border [&>div:nth-child(odd)]:bg-surface/60">
+                <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-warm-white/60">
                   {erpSpecs.map(([k, v]) => <SpecRow key={k} name={k} value={v} />)}
                 </dl>
               )}
@@ -288,9 +324,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
       </VariantChoice>
 
       {related.length > 0 && (
-        <section aria-labelledby="related" className="mt-16 border-t border-border pt-10">
-          <SectionHeader id="related" eyebrow="You may also like" title="Related products">{chosen.length ? "Chosen for this product." : product.category ? `Other products in ${product.category.name}.` : undefined}</SectionHeader>
-          <ProductGrid products={related} />
+        <section aria-labelledby="related" className="mt-16 border-t border-border/80 pt-10">
+          <SectionHeader id="related" eyebrow="RECOMMENDED / MORE TO EXPLORE" title="Related products">{chosen.length ? "Handpicked additions for this item." : product.category ? `Other popular items in ${product.category.name}.` : undefined}</SectionHeader>
+          <ProductGrid products={related} columns={5} />
         </section>
       )}
     </>

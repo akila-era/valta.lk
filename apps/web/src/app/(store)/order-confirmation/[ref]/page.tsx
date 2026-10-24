@@ -39,7 +39,6 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
   }
   const { order, local } = view;
   const customer = await getCurrentCustomer();
-  // Delivery details are personal data: shown only to the customer it belongs to, the browser that placed the order, or staff.
   const canSee = canSeeOrderDetails(local, {
     customerId: customer?.id,
     tokens: await accessTokensFor(ref),
@@ -50,62 +49,80 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="relative overflow-hidden rounded-panel bg-[linear-gradient(150deg,#fff4ec,#ffffff_55%,#f6f4f0)] px-6 py-10 text-center shadow-soft ring-1 ring-brand-500/10">
-        {pending ? <Clock className="mx-auto h-12 w-12 text-warn" aria-hidden /> : <CheckCircle2 className="mx-auto h-12 w-12 text-success" aria-hidden />}
-        <p className="kicker mt-4"><span className="text-brand-600">Orders</span> / Confirmation</p>
-        <h1 className="statement mx-auto mt-3 max-w-[16ch] text-[clamp(2rem,1.5rem+2vw,3.25rem)]">{accentize(pending ? "Thank you, we have your order" : "Thank you, your order is placed", "Thank you")}</h1>
-        <p className="mt-2 text-sm text-muted">Your order reference</p>
-        <p className="mt-1 text-xl font-bold tracking-wider" data-testid="order-ref">{order.ref}</p>
-        <p className="mt-2 text-sm text-muted">Keep this reference to track your order.</p>
+      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-r from-[#FFF6EF] via-[#FAF8F5] to-[#FFF3E8] px-6 py-10 text-center shadow-soft">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.06)_1px,transparent_1.3px)] [background-size:16px_16px]"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-500/12 blur-3xl"
+        />
+        <div className="relative z-10">
+          {pending ? (
+            <Clock className="mx-auto h-12 w-12 text-warn" aria-hidden />
+          ) : (
+            <CheckCircle2 className="mx-auto h-12 w-12 text-success" aria-hidden />
+          )}
+          <p className="kicker mt-4"><span className="text-brand-600">Orders</span> / Confirmation</p>
+          <h1 className="statement mx-auto mt-2 max-w-[16ch] text-[clamp(2rem,1.5rem+2vw,3rem)]">
+            {accentize(pending ? "Thank you, we have your order" : "Thank you, your order is placed", "Thank you")}
+          </h1>
+          <p className="mt-3 text-xs uppercase tracking-wider font-bold text-muted">Your order reference</p>
+          <p className="mt-1 font-mono text-2xl font-black tracking-widest text-brand-600" data-testid="order-ref">
+            {order.ref}
+          </p>
+          <p className="mt-2 text-xs text-muted">Keep this reference code to track your order anytime.</p>
+        </div>
       </div>
 
       {pending && (
-        <p role="status" className="rounded-lg bg-warn-bg p-4 text-sm text-warn" data-testid="pending-note">
+        <p role="status" className="rounded-2xl border border-warn/30 bg-warn-bg p-4 text-sm text-warn" data-testid="pending-note">
           Your order is saved and is being confirmed with our system. This can take a few minutes; there is no need to order again.
           You can follow its progress on the tracking page.
         </p>
       )}
 
-      <section className="card p-5" aria-label="Order status and payment">
-        <h2 className="text-lg font-semibold">Status and payment</h2>
-        <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2">
+      <section className="rounded-3xl border border-border/80 bg-white p-6 shadow-soft" aria-label="Order status and payment">
+        <h2 className="text-base font-bold text-ink">Status and payment</h2>
+        <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2.5">
           <dt className="text-muted">Order status</dt>
-          <dd className="font-semibold" data-testid="order-status">{STATUS_LABEL[order.status] ?? order.status}</dd>
+          <dd className="font-bold text-ink" data-testid="order-status">{STATUS_LABEL[order.status] ?? order.status}</dd>
           <dt className="text-muted">Payment method</dt>
-          <dd>{order.paymentMethod === "COD" ? "Cash on delivery" : order.paymentMethod}</dd>
+          <dd className="font-medium text-ink">{order.paymentMethod === "COD" ? "Cash on delivery" : order.paymentMethod}</dd>
           <dt className="text-muted">Payment status</dt>
-          <dd data-testid="payment-status">{order.codCollected ? "Paid (cash collected)" : "Pending: pay in cash on delivery"}</dd>
+          <dd className="font-medium" data-testid="payment-status">{order.codCollected ? "Paid (cash collected)" : "Pending: pay in cash on delivery"}</dd>
         </dl>
       </section>
 
       <CodNote collected={order.codCollected} />
       {(order.trackingNumber || order.carrier) && (
-        <section className="card p-5" aria-label="Tracking">
-          <h2 className="text-lg font-semibold">Tracking</h2>
-          <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2">
-            {order.carrier && (<><dt className="text-muted">Carrier</dt><dd>{order.carrier}</dd></>)}
-            {order.trackingNumber && (<><dt className="text-muted">Tracking number</dt><dd className="font-semibold">{order.trackingNumber}</dd></>)}
+        <section className="rounded-3xl border border-border/80 bg-white p-6 shadow-soft" aria-label="Tracking">
+          <h2 className="text-base font-bold text-ink">Tracking</h2>
+          <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2.5">
+            {order.carrier && (<><dt className="text-muted">Carrier</dt><dd className="font-medium text-ink">{order.carrier}</dd></>)}
+            {order.trackingNumber && (<><dt className="text-muted">Tracking number</dt><dd className="font-mono font-bold text-ink">{order.trackingNumber}</dd></>)}
           </dl>
         </section>
       )}
       <OrderSummary order={order} />
 
       {payload && (
-        <section className="card p-5" aria-label="Delivery details">
-          <h2 className="text-lg font-semibold">Delivery details</h2>
-          <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2" data-testid="delivery-details">
-            <dt className="text-muted">Name</dt><dd>{payload.customer.name}</dd>
-            <dt className="text-muted">Phone</dt><dd>{payload.customer.phone}</dd>
+        <section className="rounded-3xl border border-border/80 bg-white p-6 shadow-soft" aria-label="Delivery details">
+          <h2 className="text-base font-bold text-ink">Delivery details</h2>
+          <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2.5" data-testid="delivery-details">
+            <dt className="text-muted">Name</dt><dd className="font-medium text-ink">{payload.customer.name}</dd>
+            <dt className="text-muted">Phone</dt><dd className="font-medium text-ink">{payload.customer.phone}</dd>
             <dt className="text-muted">Address</dt>
-            <dd>{payload.delivery.addressLine1}, {payload.delivery.city}, {payload.delivery.district}{payload.delivery.postalCode ? ` ${payload.delivery.postalCode}` : ""}</dd>
-            {payload.delivery.notes && (<><dt className="text-muted">Notes</dt><dd>{payload.delivery.notes}</dd></>)}
+            <dd className="font-medium text-ink">{payload.delivery.addressLine1}, {payload.delivery.city}, {payload.delivery.district}{payload.delivery.postalCode ? ` ${payload.delivery.postalCode}` : ""}</dd>
+            {payload.delivery.notes && (<><dt className="text-muted">Notes</dt><dd className="font-medium text-ink">{payload.delivery.notes}</dd></>)}
           </dl>
         </section>
       )}
 
-      <div className="flex flex-wrap justify-center gap-3">
-        <Link href={`/track-order?ref=${order.ref}`} className="btn-primary">Track your order</Link>
-        <Link href="/products" className="btn-secondary">Continue shopping</Link>
+      <div className="flex flex-wrap justify-center gap-3 pt-2">
+        <Link href={`/track-order?ref=${order.ref}`} className="btn-primary rounded-full px-6 shadow-glow">Track your order</Link>
+        <Link href="/products" className="btn-secondary rounded-full px-6">Continue shopping</Link>
       </div>
     </div>
   );

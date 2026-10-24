@@ -156,7 +156,7 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
         </p>
       )}
 
-      <button type="submit" disabled={busy} className="btn-primary w-full">
+      <button type="submit" disabled={busy} className="btn-primary w-full rounded-full min-h-12 text-sm font-semibold shadow-soft hover:shadow-lift transition-all">
         {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         {SUBMIT[mode]}
       </button>
