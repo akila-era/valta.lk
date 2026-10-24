@@ -121,6 +121,16 @@ describe("catalogue", () => {
     expect((await getProductBySlug(`volt-usb-c-cable-1m-${id(6)}`))?.price).toBe(1700); // incremental update applied
     resetCatalogueCache();
   });
+  it("keeps products without ERP images empty (SKU-6, SKU-7) and resolves relative images against the ERP origin", async () => {
+    const { getSnapshot } = await import("@/lib/erp/catalogue");
+    const { products } = await getSnapshot();
+    expect(products.get(id(6))?.sku).toBe("SKU-6");
+    expect(products.get(id(6))?.images).toEqual([]);
+    expect(products.get(id(7))?.sku).toBe("SKU-7");
+    expect(products.get(id(7))?.images).toEqual([]);
+    expect(products.get(id(1))?.sku).toBe("SKU-1");
+    expect(products.get(id(1))?.images).toEqual([`http://localhost:${PORT}/uploads/${id(1)}.svg`]);
+  });
 });
 
 describe("availability + reservations", () => {
