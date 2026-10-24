@@ -1,19 +1,20 @@
 /**
- * First-visit intro: the VALTA.LK wordmark on a dark screen with a thin orange line drawing under it, then a fade into
- * the site (like a splash screen). It is server-rendered, so it covers the page from the first paint with no flash, and it
- * dismisses itself with CSS alone (about 1.6 s), so it never depends on JavaScript.
- *
- * Shown once per browser: the inline script right after it marks the browser as having seen it and, on later visits,
- * hides it before it is painted. Hidden from assistive tech, and skipped with reduced motion (see .site-intro in
- * globals.css). The page underneath renders normally, so content and SEO are unaffected.
+ * Intro screen: the VALTA.LK wordmark on a dark screen with a thin orange line drawing under it, then a fade into the
+ * site (about 1.7 s). Hidden by default; the inline script right after it switches it on (data-show) before the first
+ * paint, and only:
+ *   - when the homepage is loaded or refreshed, and
+ *   - on the first page of a visit (browser tab session) when someone arrives on another page.
+ * It lives in the root layout, which navigation never re-renders, so pages reached by a link never show it; admin pages
+ * (/admin) never show it either. It dismisses itself with CSS alone, is hidden from assistive tech, and is skipped with
+ * reduced motion (see .site-intro in globals.css). The page underneath renders normally, so content and SEO are unaffected.
  */
-const KEY = "valta.intro.v1";
-const SCRIPT = `try{var e=document.getElementById("site-intro");if(localStorage.getItem("${KEY}"))e.setAttribute("data-seen","");else localStorage.setItem("${KEY}","1")}catch(_){}`;
+const KEY = "valta.intro.arrived";
+const SCRIPT = `try{var e=document.getElementById("site-intro"),s=sessionStorage,p=location.pathname;if((p+"/").indexOf("/admin/")!==0){if(p==="/"||!s.getItem("${KEY}"))e.setAttribute("data-show","");s.setItem("${KEY}","1")}}catch(_){}`;
 
 export function SiteIntro() {
   return (
     <>
-      {/* suppressHydrationWarning: the script below may add data-seen before React hydrates. */}
+      {/* suppressHydrationWarning: the script below adds data-show before React hydrates. */}
       <div id="site-intro" aria-hidden className="site-intro" suppressHydrationWarning>
         <div className="site-intro-stage">
           <span className="site-intro-glow" />

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Inter_Tight, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { SiteIntro } from "@/components/layout/site-intro";
 import { siteConfig } from "@/lib/site-config";
 import "./globals.css";
 
@@ -23,7 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${interTight.variable} ${mono.variable} ${serif.variable}`}>
       {/* Browser extensions such as Grammarly add attributes to <body>; ignore only that mismatch. */}
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {/* In the root layout so it is never re-rendered by in-site navigation (it only runs on real page loads). */}
+        <SiteIntro />
+        {children}
+      </body>
     </html>
   );
 }
