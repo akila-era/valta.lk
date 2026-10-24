@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { categoryVisual } from "@/components/home/category-art";
+import { accentize } from "@/components/ui/page-intro";
 
 interface BreadcrumbItem {
   href?: string;
@@ -18,6 +19,8 @@ interface StoreHeroBannerProps {
   categoryName?: string;
   customVisual?: string;
   tagline?: string;
+  /** Word or phrase of the title set in the serif accent (default: the last word); false for none. */
+  accent?: string | false;
 }
 
 const CATEGORY_TAGLINES: Record<string, string> = {
@@ -49,6 +52,7 @@ export function StoreHeroBanner({
   categoryName,
   customVisual,
   tagline,
+  accent,
 }: StoreHeroBannerProps) {
   const cat = categoryName || title;
   const art = customVisual || categoryVisual(cat) || (cat.toLowerCase().includes("product") ? "/images/home/valta-category-accessories.webp" : undefined);
@@ -96,16 +100,18 @@ export function StoreHeroBanner({
             </nav>
           )}
 
-          <p className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-brand-600">
-            {section} {label ? <> / {label}</> : null}
+          {/* Same story typography as the homepage chapters: kicker, then a light headline with one serif accent word. */}
+          <p className="kicker animate-fade-up">
+            <span className="text-brand-600">{section}</span>
+            {label ? <> / {label}</> : null}
           </p>
 
-          <h1 className="mt-0.5 font-serif text-3xl font-normal italic tracking-tight text-brand-hover sm:text-4xl lg:text-[2.6rem] leading-[1.08]">
-            {title}
+          <h1 className="statement mt-2 max-w-[20ch] animate-fade-up text-[clamp(2.1rem,1.4rem+2.4vw,3.6rem)] [--d:80ms]">
+            {accentize(title, accent)}
           </h1>
 
           {intro && (
-            <div className="mt-1 text-xs text-muted sm:text-[13.5px] leading-relaxed">
+            <div className="mt-2 max-w-xl animate-fade-up text-sm leading-6 text-muted [--d:160ms] sm:text-[15px]">
               {intro}
             </div>
           )}
@@ -115,13 +121,15 @@ export function StoreHeroBanner({
         {art && (
           <div className="relative hidden shrink-0 items-center justify-end md:flex">
             <div className="flex flex-col items-end pr-3">
-              <span className="font-serif text-xs italic text-ink/40 sm:text-sm">
+              <span className="font-serif text-base italic text-ink/55 lg:text-lg">
                 {displayTagline}
               </span>
               <span className="mt-0.5 h-0.5 w-8 rounded-full bg-brand-500/30" />
             </div>
 
-            <div className="relative aspect-square h-16 w-16 sm:h-20 sm:w-20 lg:h-22 lg:w-22">
+            <div className="relative aspect-square h-24 w-24 animate-float [--dur:7s] lg:h-28 lg:w-28">
+              {/* A tilted orange orbit under the product: the same 3D stage as the homepage. */}
+              <span aria-hidden className="absolute inset-x-[-30%] top-[62%] aspect-square -translate-y-1/2 rounded-full border border-brand-500/40 [transform:perspective(600px)_rotateX(76deg)]" />
               {/* Soft spotlight disc */}
               <span
                 aria-hidden
@@ -131,12 +139,12 @@ export function StoreHeroBanner({
                 aria-hidden
                 className="absolute bottom-1 left-1/2 h-2 w-3/4 -translate-x-1/2 rounded-[50%] bg-ink/15 blur-sm"
               />
-              <div className="relative h-full w-full mix-blend-multiply">
+              <div className="relative h-full w-full mix-blend-multiply [mask-image:radial-gradient(closest-side,#000_72%,transparent)]">
                 <Image
                   src={art}
                   alt=""
                   fill
-                  sizes="88px"
+                  sizes="112px"
                   className="object-contain p-1 filter drop-shadow-[0_4px_8px_rgba(27,23,20,0.08)]"
                   priority
                 />

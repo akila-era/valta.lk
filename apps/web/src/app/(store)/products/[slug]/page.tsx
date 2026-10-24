@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Battery, Camera, Check, ChevronRight, Cpu, Headphones, ShieldCheck, Smartphone, Store, Truck, Wifi, Zap, type LucideIcon } from "lucide-react";
-import { Breadcrumbs, SectionHeader } from "@/components/ui/chrome";
 import { Notice } from "@/components/ui/notice";
 import { ErpUnavailable } from "@/components/ui/states";
 import { AccessoryRail } from "@/components/products/accessory-rail";
@@ -24,6 +23,7 @@ import type { PricedLine } from "@/lib/promotions/evaluate";
 import { getSettings } from "@/lib/erp/settings";
 import type { ErpProduct } from "@/lib/erp/types";
 import { siteConfig } from "@/lib/site-config";
+import { accentize } from "@/components/ui/page-intro";
 import { formatLkr } from "@/lib/utils/money";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ preview?: string }> };
@@ -67,10 +67,13 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 const FEATURE_ICON: Record<string, LucideIcon> = { zap: Zap, shield: ShieldCheck, battery: Battery, wifi: Wifi, cpu: Cpu, camera: Camera, smartphone: Smartphone, headphones: Headphones };
 
-const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
-  <section aria-labelledby={id} className="scroll-mt-40 rounded-3xl border border-border/80 bg-white p-6 shadow-soft sm:p-8">
-    <h2 id={id} className="border-l-[3px] border-brand-500 pl-3 font-display text-lg font-bold tracking-[-0.015em] text-ink sm:text-xl">{title}</h2>
-    <div className="mt-5">{children}</div>
+/** A detail card in the homepage story style: kicker, light heading with one serif accent word, soft glass surface. */
+const Section = ({ id, title, kicker, children, className = "" }: { id: string; title: string; kicker: string; children: React.ReactNode; className?: string }) => (
+  <section aria-labelledby={id} className={`relative min-w-0 scroll-mt-40 overflow-hidden rounded-panel bg-white/90 p-6 shadow-float ring-1 ring-ink/[0.06] backdrop-blur sm:p-8 ${className}`}>
+    <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-brand-500/10 blur-3xl" />
+    <p className="kicker relative"><span className="text-brand-600">Details</span> / {kicker}</p>
+    <h2 id={id} className="statement relative mt-2 text-[clamp(1.75rem,1.3rem+1.4vw,2.5rem)]">{accentize(title)}</h2>
+    <div className="relative mt-6">{children}</div>
   </section>
 );
 
@@ -267,14 +270,15 @@ export default async function ProductPage({ params, searchParams }: Props) {
         </nav>
       )}
 
-      <div className={`${jumps.length > 1 ? "mt-8" : "mt-12"} max-w-4xl space-y-12`}>
+      {/* Two columns on wide screens (description beside specifications) so the page has no empty right half. */}
+      <div className={`${jumps.length > 1 ? "mt-8" : "mt-12"} grid items-start gap-6 lg:grid-cols-2 lg:gap-8`}>
         {(descHtml || product.description) && (
-          <Section id="desc" title="Description">
+          <Section id="desc" title="Description" kicker="Overview">
             {descHtml ? <div className="rich" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>}
           </Section>
         )}
         {(siteSpecGroups.length > 0 || erpSpecs.length > 0) && (
-          <Section id="specs" title="Specifications">
+          <Section id="specs" title="Specifications" kicker="Tech specs">
             <div className="space-y-5">
               {siteSpecGroups.map((g) => (
                 <div key={g.group}>
@@ -293,12 +297,12 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </Section>
         )}
         {!hasWarranty && product.specs.Warranty && (
-          <Section id="warranty" title="Warranty">
+          <Section id="warranty" title="Warranty" kicker="Cover">
             <p className="flex gap-3 rounded-xl border border-border p-4 text-sm"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span className="font-medium">{product.specs.Warranty}</span></p>
           </Section>
         )}
         {hasWarranty && c && (
-          <Section id="warranty" title="Warranty">
+          <Section id="warranty" title="Warranty" kicker="Cover">
             <div className="flex gap-3 rounded-xl border border-border p-4 text-sm">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
               <div className="min-w-0">
@@ -312,7 +316,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </Section>
         )}
         {hasDelivery && c && (
-          <Section id="delivery" title="Delivery & pickup">
+          <Section id="delivery" title="Delivery & pickup" kicker="Getting it to you">
             <ul className="space-y-3 rounded-xl border border-border p-4 text-sm">
               <li className="flex gap-3"><Truck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Delivery{settings ? ` · ${formatLkr(settings.deliveryCharge)}` : ""}</span>{c.delivery.estimate && <span className="block text-muted">{c.delivery.estimate}</span>}{c.delivery.notes && <span className="block text-muted">{c.delivery.notes}</span>}</span></li>
               {c.delivery.pickup && <li className="flex gap-3"><Store className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Store pickup</span><span className="block whitespace-pre-line text-muted">{c.delivery.pickup}</span></span></li>}
@@ -324,8 +328,14 @@ export default async function ProductPage({ params, searchParams }: Props) {
       </VariantChoice>
 
       {related.length > 0 && (
-        <section aria-labelledby="related" className="mt-16 border-t border-border/80 pt-10">
-          <SectionHeader id="related" eyebrow="RECOMMENDED / MORE TO EXPLORE" title="Related products">{chosen.length ? "Handpicked additions for this item." : product.category ? `Other popular items in ${product.category.name}.` : undefined}</SectionHeader>
+        <section aria-labelledby="related" className="mt-20">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-2 sm:mb-8">
+            <div>
+              <p className="kicker"><span className="text-brand-600">More</span> / To explore</p>
+              <h2 id="related" className="statement mt-2 text-[clamp(1.9rem,1.3rem+2vw,3.25rem)]">{accentize("Related products")}</h2>
+            </div>
+            <p className="max-w-sm text-sm leading-6 text-muted">{chosen.length ? "Handpicked additions for this item." : product.category ? `Other popular items in ${product.category.name}.` : null}</p>
+          </div>
           <ProductGrid products={related} columns={5} />
         </section>
       )}
