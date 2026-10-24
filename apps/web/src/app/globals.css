@@ -189,6 +189,13 @@
 
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+/* A band of light that travels across a glass strip, pausing between passes. */
+@keyframes sweep { 0% { transform: translateX(-120%) skewX(-18deg); } 55%, 100% { transform: translateX(520%) skewX(-18deg); } }
+@utility animate-sweep { animation: sweep 5.5s cubic-bezier(0.45, 0, 0.2, 1) infinite; animation-delay: var(--d, 0ms); }
+/* A small vertical bob; staggered with --d it ripples along a row of icons like a wave. */
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@utility animate-bob { animation: bob 3.2s ease-in-out infinite; animation-delay: var(--d, 0ms); }
+
 @keyframes settle { from { transform: scale(1.08); } to { transform: scale(1); } }
 @utility animate-settle { animation: settle 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 

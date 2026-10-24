@@ -25,7 +25,8 @@ export function StoreShell({ children, contained = true }: { children: React.Rea
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-bg focus:px-3 focus:py-2 focus:text-ink">
         Skip to content
       </a>
-      <Header />
+      {/* The homepage lets its hero run up under a see-through header; other pages get the solid glass header. */}
+      <Header overlay={!contained} />
       {contained ? (
         // overflow-x-clip: decoration may extend past the edges without ever causing a sideways scroll (sticky still works).
         <div className="relative isolate overflow-x-clip">

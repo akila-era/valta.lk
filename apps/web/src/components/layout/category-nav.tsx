@@ -32,12 +32,12 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
 
   return (
     <nav aria-label="Categories" className="hidden border-t border-border md:block">
-      <div className="container-wide flex flex-wrap items-center gap-x-7 gap-y-1 py-1.5">
+      <div className="container-wide flex flex-wrap items-center gap-x-7 gap-y-1 py-1">
         <button
           type="button"
           aria-haspopup="dialog"
           onClick={() => setOpenedAt(pathname)}
-          className="my-1 inline-flex min-h-10 items-center gap-2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-400 hover:shadow-glow"
+          className="my-1 inline-flex min-h-9 items-center gap-2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-400 hover:shadow-glow"
         >
           <Menu className="h-4 w-4" aria-hidden /> All Categories <ChevronDown className="h-4 w-4" aria-hidden />
         </button>
@@ -60,12 +60,12 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
           <Link
             href="/products?sale=1"
             aria-current={dealsActive ? "page" : undefined}
-            className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 text-sm font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
+            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 text-sm font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
           >
             <Flame className="h-4 w-4 animate-flicker fill-brand-500/30" strokeWidth={2} aria-hidden /> Deals
           </Link>
         )}
-        <Link href="/#products" className="inline-flex min-h-10 shrink-0 items-center gap-1.5 text-sm font-medium text-ink/75 hover:text-ink">
+        <Link href="/#products" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 text-sm font-medium text-ink/75 hover:text-ink">
           <Star className="h-4 w-4" strokeWidth={1.75} aria-hidden /> New Arrivals
         </Link>
       </div>

@@ -29,8 +29,12 @@ const DEPTH = {
  */
 export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroProps) {
   return (
-    <div className="flex min-h-[calc(100svh-var(--hdr-h,8rem))] flex-col md:h-[calc(100svh-var(--hdr-h,10.5rem))] md:min-h-[36rem]">
+    // Pulled up under the sticky header (by --hdr-sticky) so a new visitor sees header and hero as one scene: the header
+    // is a thin glass layer over the photo until the page scrolls. Together they still fill exactly the first screen.
+    <div className="-mt-[var(--hdr-sticky,7rem)] flex min-h-[calc(100svh-var(--hdr-h,8rem)+var(--hdr-sticky,7rem))] flex-col md:h-[calc(100svh-var(--hdr-h,9rem)+var(--hdr-sticky,7rem))] md:min-h-[40rem]">
       <HeroDepth aria-labelledby="hero-title" className="relative isolate flex flex-1 flex-col justify-end overflow-hidden bg-[#f6efe7] text-ink md:justify-center">
+        {/* A soft white fade behind the see-through header keeps the logo, search and links readable on any photo. */}
+        <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[7] h-[calc(var(--hdr-sticky,7rem)+3rem)] bg-gradient-to-b from-white/75 via-white/30 to-transparent" />
         {/* Phones: the photo is a full-width band and the glass card overlaps its lower edge. md+: it fills the hero. */}
         <div className="absolute inset-x-0 top-0 h-[62%] md:inset-0 md:h-auto">
           <HeroSlides />
@@ -54,7 +58,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
 
         {/* Front layer: floating glass chips with facts from live ERP settings only. */}
         {cod && (
-          <div aria-hidden className={`pointer-events-none absolute right-[7%] top-[14%] z-[8] hidden lg:block ${DEPTH.chipNear}`}>
+          <div aria-hidden className={`pointer-events-none absolute right-[7%] top-[calc(var(--hdr-sticky,7rem)+3rem)] z-[8] hidden lg:block ${DEPTH.chipNear}`}>
             <div className="flex animate-float items-center gap-3 rounded-2xl border border-white/70 bg-white/65 px-4 py-3 shadow-[0_18px_40px_-14px_rgb(60_30_10/0.35)] backdrop-blur-xl [--dur:7s]">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 text-on-brand shadow-[0_8px_18px_-6px_rgb(255_92_0/0.6)]"><Wallet className="h-5 w-5" /></span>
               <span><span className="block text-sm font-bold">Cash on Delivery</span><span className="block text-xs text-ink/70">Pay when it arrives</span></span>
@@ -71,7 +75,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
         )}
 
         {/* The copy on a frosted glass card that tilts toward the cursor. */}
-        <div className="pointer-events-none relative z-10 container-wide pb-14 pt-[14rem] md:pb-12 md:pt-6">
+        <div className="pointer-events-none relative z-10 container-wide pb-14 pt-[calc(var(--hdr-sticky,7rem)+11rem)] md:pb-12 md:pt-[calc(var(--hdr-sticky,7rem)+1.5rem)]">
           <div className={`pointer-events-auto w-full max-w-xl rounded-[1.75rem] border border-white/70 bg-white/70 p-5 shadow-[0_30px_80px_-30px_rgb(60_30_10/0.45)] backdrop-blur-xl transition-transform duration-200 ease-out sm:p-7 lg:rounded-feature lg:p-9 ${DEPTH.card}`}>
             <p className="inline-flex w-fit animate-fade-up items-center gap-2 rounded-full bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-on-brand shadow-[0_8px_18px_-6px_rgb(255_92_0/0.6)]">
               <Zap className="h-3.5 w-3.5 fill-current" aria-hidden /> Latest technology
@@ -117,27 +121,36 @@ function ServiceBar({ cod, deliveryCharge }: { cod: boolean; deliveryCharge: num
   ].filter(Boolean) as { icon: typeof Truck; title: string; text: string; href?: string }[];
 
   return (
-    // A frosted glass strip that overlaps the hero's lower edge (3D layering); each fact has a 3D glass icon tile.
+    // A frosted glass strip that overlaps the hero's lower edge (3D layering). Motion: the four facts rise in one after
+    // another, a band of light sweeps across the glass, the icon tiles bob in a wave and a tile lifts on hover. The
+    // global reduced-motion rule stops all of it.
     <section aria-label="Shopping with VALTA.LK" className="container-page relative z-20 -mt-5 shrink-0 pb-3 md:-mt-7">
-      <ul className="grid grid-cols-2 gap-2 rounded-2xl bg-white/80 p-2 shadow-float ring-1 ring-ink/[0.06] backdrop-blur-xl sm:gap-3 sm:p-3 lg:grid-cols-4">
-        {items.map(({ icon: I, title, text, href }) => {
-          const body = (
-            <>
-              <Icon3D icon={I} tone="glass" size="sm" />
-              <span className="min-w-0">
-                <span className="block text-xs font-bold leading-tight text-ink sm:text-[13px]">{title}</span>
-                {text && <span className="hidden truncate text-xs text-muted sm:block">{text}</span>}
-              </span>
-            </>
-          );
-          const tile = "group flex h-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors duration-200 sm:gap-3.5 sm:px-3";
-          return (
-            <li key={title}>
-              {href ? <Link href={href} className={`${tile} hover:bg-brand-50`}>{body}</Link> : <div className={tile}>{body}</div>}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="relative overflow-hidden rounded-2xl bg-white/80 p-2 shadow-float ring-1 ring-ink/[0.06] backdrop-blur-xl sm:p-2.5">
+        <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-1/4 animate-sweep bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.85),rgb(255_92_0/0.12),transparent)] [--d:1.2s]" />
+        <span aria-hidden className="pointer-events-none absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(255_92_0/0.6),transparent)]" />
+        <ul className="relative grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4">
+          {items.map(({ icon: I, title, text, href }, i) => {
+            const body = (
+              <>
+                <span className="animate-bob" style={{ "--d": `${i * 320}ms` } as React.CSSProperties}>
+                  <Icon3D icon={I} tone="glass" size="sm" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-xs font-bold leading-tight text-ink sm:text-[13px]">{title}</span>
+                  {text && <span className="mt-0.5 block text-[11px] leading-4 text-muted sm:text-xs">{text}</span>}
+                </span>
+              </>
+            );
+            const tile =
+              "group flex h-full items-center gap-2.5 rounded-xl px-2 py-2 transition-[background-color,transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-soft motion-reduce:hover:translate-y-0 sm:gap-3.5 sm:px-3";
+            return (
+              <li key={title} className="animate-fade-up" style={{ "--d": `${250 + i * 120}ms` } as React.CSSProperties}>
+                {href ? <Link href={href} className={tile}>{body}</Link> : <div className={tile}>{body}</div>}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </section>
   );
 }

@@ -134,7 +134,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-full border-border bg-surface pl-12 pr-28 text-[15px] focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
+          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-11 rounded-full border-border bg-surface/90 pl-12 pr-28 text-[15px] focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
         />
         {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (

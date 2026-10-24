@@ -110,7 +110,7 @@ export function HeroSlides() {
 
       {/* Dots (and pause, since the slides move on their own): top-left of the photo band on phones (the glass card
           overlaps its bottom), bottom-left under the copy from md; round arrows bottom-right. */}
-      <div className="absolute left-3 top-3 z-20 flex items-center gap-1 rounded-full bg-white/70 px-1 backdrop-blur-sm md:bottom-12 md:left-4 md:top-auto md:bg-transparent md:px-0 md:backdrop-blur-none lg:left-6">
+      <div className="absolute left-3 top-[calc(var(--hdr-sticky,7rem)+0.75rem)] z-20 flex items-center gap-1 rounded-full bg-white/70 px-1 backdrop-blur-sm md:bottom-12 md:left-4 md:top-auto md:bg-transparent md:px-0 md:backdrop-blur-none lg:left-6">
         {SLIDES.map((slide, idx) => (
           <button
             key={slide.src}
