@@ -5,24 +5,29 @@
   --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* VALTA.LK storefront: light and neon orange. White and cool light-grey canvas, deep charcoal text; the header,
-     hero and a few promotional panels use the night colours. "on-brand" is the dark text used on orange fills. */
+  /* VALTA.LK storefront: light and neon orange. White and warm light-neutral canvas, deep charcoal text; the footer
+     uses the night colours. "on-brand" is the dark text used on orange fills (5.8:1 on brand-500).
+     muted passes 4.5:1 on bg, surface and brand-50 alike, because text-muted is used on all three.
+     border is for decorative separators; border-strong (>= 3:1 on bg and surface) outlines form controls. */
   --color-bg: #ffffff;
-  --color-surface: #f5f6f8;
-  --color-border: #e4e6ea;
-  --color-ink: #141518;
-  --color-muted: #686d76;
+  --color-surface: #f8f7f5;
+  --color-border: #ece9e6;
+  --color-border-strong: #8a857f;
+  --color-ink: #171717;
+  --color-muted: #6b6b6b;
   --color-dark: #101113;
   --color-night: #101113;
   --color-night-2: #191b1f;
-  --color-media: #f5f6f8;
-  --color-on-brand: #141518;
+  --color-media: #f8f7f5;
+  --color-on-brand: #171717;
 
-  /* Brand: neon orange #FF5C00 is for fills with dark text; brand-600/700 are the text-safe oranges on white (>= 4.5:1) */
-  --color-brand-50: #fff4ec;
+  /* Brand: neon orange #FF5C00 is for fills with dark text; brand-600/700 are the text-safe oranges on white (>= 4.5:1).
+     brand-50 is the soft orange surface; brand-hover is the pressed/hover fill (ink on it is 5:1). */
+  --color-brand-50: #fff0e7;
   --color-brand-100: #ffe2d0;
   --color-brand-400: #ff7a2e;
   --color-brand-500: #ff5c00;
+  --color-brand-hover: #f04f00;
   --color-brand-600: #c24100;
   --color-brand-700: #9a3300;
 
@@ -45,9 +50,19 @@
 
   --shadow-card: 0 1px 2px rgb(23 23 23 / 0.04), 0 8px 24px -12px rgb(23 23 23 / 0.16);
   --shadow-raised: 0 8px 24px -16px rgb(23 23 23 / 0.35);
-  --shadow-lift: 0 16px 34px -18px rgb(255 92 0 / 0.45), 0 2px 6px -2px rgb(23 23 23 / 0.08);
+  /* Neutral warm shadows: soft for resting cards, float for raised panels, lift for hover. */
+  --shadow-soft: 0 2px 8px rgb(26 23 20 / 0.04);
+  --shadow-float: 0 12px 34px rgb(27 23 20 / 0.065);
+  --shadow-lift: 0 22px 52px -18px rgb(27 23 20 / 0.12), 0 2px 6px -2px rgb(23 23 23 / 0.06);
   --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
   --shadow-glow: 0 10px 28px -10px rgb(255 92 0 / 0.65);
+
+  /* Named radii (Tailwind's rounded-sm..4xl defaults stay as they are): controls, cards, panels, feature blocks, pills */
+  --radius-control: 10px;
+  --radius-card: 18px;
+  --radius-panel: 27px;
+  --radius-feature: 34px;
+  --radius-pill: 9999px;
   --breakpoint-xs: 30rem;
 }
 
