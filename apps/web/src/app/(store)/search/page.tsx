@@ -27,7 +27,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       />
 
       <div className="mx-auto mb-8 max-w-2xl">
-        <SearchBox size="lg" autoFocus initialQuery={q?.slice(0, 100) ?? ""} />
+        <SearchBox size="lg" autoFocus initialQuery={q?.slice(0, 100) ?? ""} label="Search the catalogue" />
       </div>
 
       {q ? (

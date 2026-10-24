@@ -63,7 +63,6 @@ export function CategoryTiles({ categories }: { categories: HomeData["categories
             <Reveal as="li" key={c.slug} delay={Math.min(i, 7) * 50} className="w-[44%] shrink-0 snap-start sm:w-auto">
               <Link
                 href={`/categories/${c.slug}`}
-                aria-label={`${c.name}, ${count}`}
                 className="group relative flex h-full min-h-[12.5rem] flex-col overflow-hidden rounded-[1.375rem] p-4 ring-1 ring-inset ring-ink/[0.05] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift sm:min-h-[13.5rem] lg:min-h-[15.5rem] lg:rounded-panel lg:p-5 motion-reduce:hover:translate-y-0"
                 style={{ background: TILE_TINTS[i % TILE_TINTS.length] }}
               >

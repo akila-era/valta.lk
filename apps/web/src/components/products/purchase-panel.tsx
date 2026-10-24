@@ -185,12 +185,12 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       <ul className="grid gap-2 text-sm sm:grid-cols-2" aria-label="Delivery and payment">
         {deliveryCharge != null ? (
           <Assurance icon={Truck} title={`Delivery ${formatLkr(deliveryCharge)}`}>
-            <Link href="/shipping-policy" className="underline underline-offset-2 hover:text-ink">Shipping policy</Link>
+            <Link href="/shipping-policy" className="py-1 underline underline-offset-2 hover:text-ink">Shipping policy</Link>
           </Assurance>
         ) : null}
         {cod ? <Assurance icon={Wallet} title="Cash on delivery">Pay when your order arrives</Assurance> : null}
         <Assurance icon={RefreshCw} title="Returns">
-          <Link href="/returns-policy" className="underline underline-offset-2 hover:text-ink">Returns policy</Link>
+          <Link href="/returns-policy" className="py-1 underline underline-offset-2 hover:text-ink">Returns policy</Link>
         </Assurance>
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>
@@ -198,7 +198,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-white/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-[-0.02em] text-ink tabular-nums">{formatLkr(unit)}</p>
-            <button type="button" className="btn-primary rounded-full px-5 py-2.5 text-xs font-semibold shrink-0 shadow-soft" disabled={!purchasable || added} aria-label={added ? `${product.name} added to cart` : `Add ${product.name} to cart`} onClick={add}>
+            <button type="button" className="btn-primary rounded-full px-5 py-2.5 text-xs font-semibold shrink-0 shadow-soft" disabled={!purchasable || added} aria-label={added ? `Added: ${product.name} is in your cart` : `Add to cart: ${product.name}`} onClick={add}>
               {added ? "Added" : "Add to cart"}
             </button>
           </div>

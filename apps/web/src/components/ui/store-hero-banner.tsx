@@ -87,7 +87,7 @@ export function StoreHeroBanner({
                     <li key={`${item.label}-${i}`} className="inline-flex items-center gap-1.5">
                       {i > 0 && <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />}
                       {item.href && !isLast ? (
-                        <Link href={item.href} className="hover:text-ink hover:underline">
+                        <Link href={item.href} className="inline-flex min-h-6 items-center hover:text-ink hover:underline">
                           {item.label}
                         </Link>
                       ) : (

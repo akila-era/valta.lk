@@ -215,9 +215,9 @@ test.describe("reference-inspired patterns", () => {
     await expect(cats.getByRole("link", { name: "View all categories" })).toHaveAttribute("href", "/products");
     await expect(cats.getByRole("link")).toHaveCount(6);
     for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables"]) await expect(cats.getByText(name, { exact: true })).toBeVisible();
-    const audio = cats.getByRole("link", { name: "Audio, 4 products" });
+    const audio = cats.getByRole("link", { name: /^Audio.*4 products$/ });
     await expect(audio).toHaveAttribute("href", "/categories/audio");
-    await expect(cats.getByRole("link", { name: "Tablets, 1 product" })).toHaveAttribute("href", "/categories/tablets");
+    await expect(cats.getByRole("link", { name: /^Tablets.*1 product$/ })).toHaveAttribute("href", "/categories/tablets");
     await expect(cats.getByRole("link", { name: "Accessories, 5 products" })).toHaveAttribute("href", "/categories/accessories");
     await audio.click();
     await expect(page).toHaveURL(/\/categories\/audio$/);
@@ -232,7 +232,7 @@ test.describe("reference-inspired patterns", () => {
     const outline = await first.evaluate((el) => getComputedStyle(el).outlineStyle);
     expect(outline).not.toBe("none");
     await page.keyboard.press("Tab");
-    await expect(page.locator("section[aria-labelledby=cats]").getByRole("link", { name: /^Audio,/ })).toBeFocused();
+    await expect(page.locator("section[aria-labelledby=cats]").getByRole("link", { name: /^Audio / })).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/categories\/audio/);
   });

@@ -16,7 +16,10 @@ export default function WishlistPage() {
         categoryName="accessories"
         tagline="Personal Favourites"
       />
-      <WishlistView />
+      {/* Filled in the browser (saved on this device): reserve the space so the footer does not jump down. */}
+      <div className="min-h-[55svh]">
+        <WishlistView />
+      </div>
     </>
   );
 }

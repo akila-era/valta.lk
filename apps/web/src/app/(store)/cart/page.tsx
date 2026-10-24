@@ -16,7 +16,10 @@ export default function CartPage() {
         categoryName="accessories"
         tagline="Ready for Checkout"
       />
-      <CartView />
+      {/* Filled in the browser (saved on this device): reserve the space so the footer does not jump down. */}
+      <div className="min-h-[55svh]">
+        <CartView />
+      </div>
     </>
   );
 }

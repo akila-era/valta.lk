@@ -53,7 +53,7 @@ export function WideBannerSlider({ slides }: { slides: WideSlide[] }) {
     >
       {slides.map((s, i) => {
         const active = i === index;
-        const picture = <Image src={s.image} alt={s.alt} fill unoptimized sizes="(min-width:1536px) 1400px, 100vw" className="object-cover" loading={i === 0 ? "eager" : "lazy"} />;
+        const picture = <Image src={s.image} alt={s.alt} fill unoptimized={s.image.startsWith("/api/")} sizes="(min-width:1536px) 1400px, 100vw" className="object-cover" loading={i === 0 ? "eager" : "lazy"} />;
         return (
           <div
             key={s.image}

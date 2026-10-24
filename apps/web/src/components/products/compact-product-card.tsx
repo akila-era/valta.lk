@@ -172,7 +172,7 @@ export function CompactProductCard({ product, panel = false, priority }: Compact
 
         {/* Product Title */}
         <h3 className="line-clamp-2 min-h-10 text-[13.5px] font-bold leading-5 tracking-tight text-ink transition-colors group-hover/card:text-brand-600 sm:text-[14.5px]">
-          <Link href={href} className="hover:underline">
+          <Link href={href} className="py-1 hover:underline">
             {title}
           </Link>
         </h3>

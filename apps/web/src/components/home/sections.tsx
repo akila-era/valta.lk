@@ -67,7 +67,7 @@ export function PromoBanners({ banners }: { banners: ResolvedBanner[] }) {
             {b.custom && b.image ? (
               // Staff pictures are shown exactly as uploaded.
               <div className="relative min-h-44 sm:min-h-56 md:min-h-full">
-                <Image src={b.image} alt="" fill unoptimized sizes="(min-width:1024px) 36vw, 100vw" className="object-cover" loading="lazy" />
+                <Image src={b.image} alt="" fill unoptimized={b.image.startsWith("/api/")} sizes="(min-width:1024px) 36vw, 100vw" className="object-cover" loading="lazy" />
               </div>
             ) : (
               // 3D: the studio object floats over a white disc and a floor shadow, and lifts on hover.

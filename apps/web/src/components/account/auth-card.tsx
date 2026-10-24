@@ -21,7 +21,7 @@ export function AuthCard({
       <nav aria-label="Breadcrumb" className="mb-6 flex justify-center">
         <ol className="flex items-center gap-1.5 rounded-full border border-border/80 bg-white px-3.5 py-1.5 text-xs text-muted shadow-soft">
           <li>
-            <Link href="/" className="transition-colors hover:text-ink">
+            <Link href="/" className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
               Home
             </Link>
           </li>

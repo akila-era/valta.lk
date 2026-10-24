@@ -24,7 +24,8 @@ interface Suggestion {
  * Search combobox. Works without JavaScript (plain GET form to /search); with JavaScript it suggests real
  * products from the catalogue API as the shopper types.
  */
-export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoFocus?: boolean; size?: "md" | "lg"; initialQuery?: string }) {
+/** `label` names the search landmark; pages with a second search box pass their own so the two can be told apart. */
+export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "Site search" }: { autoFocus?: boolean; size?: "md" | "lg"; initialQuery?: string; label?: string }) {
   const router = useRouter();
   const listId = useId();
   const [q, setQ] = useState(initialQuery);
@@ -102,7 +103,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
 
   return (
     <div ref={wrap} className="relative">
-      <form action="/search" role="search" onSubmit={() => setOpen(false)}>
+      <form action="/search" role="search" aria-label={label} onSubmit={() => setOpen(false)}>
         <label htmlFor={`${listId}-input`} className="sr-only">
           Search products
         </label>

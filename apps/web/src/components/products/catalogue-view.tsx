@@ -170,7 +170,7 @@ export async function CatalogueView({
                 id="brand"
                 name="brand"
                 defaultValue={brandValue}
-                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs font-medium text-ink transition-colors focus:border-brand-500 focus:bg-white focus:outline-none"
+                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs font-medium text-ink transition-colors focus:border-brand-500 focus:bg-white"
               >
                 <option value="">All brands</option>
                 {result.brands.map((b) => (
@@ -196,7 +196,7 @@ export async function CatalogueView({
                 inputMode="numeric"
                 placeholder="Min"
                 defaultValue={params.min}
-                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white focus:outline-none"
+                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white"
               />
               <input
                 aria-label="Maximum price"
@@ -204,7 +204,7 @@ export async function CatalogueView({
                 inputMode="numeric"
                 placeholder="Max"
                 defaultValue={params.max}
-                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white focus:outline-none"
+                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white"
               />
             </div>
           </fieldset>
@@ -305,8 +305,8 @@ export async function CatalogueView({
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Sort pills */}
-            <nav aria-label="Sort" className="min-w-0 max-w-full overflow-x-auto">
-              <ul className="flex items-center gap-1 rounded-full border border-border/80 bg-surface/80 p-1">
+            <nav aria-label="Sort" className="min-w-0 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <ul className="flex w-max items-center gap-1 rounded-full border border-border/80 bg-surface/80 p-1">
                 {SORTS.map((s) => {
                   const on = query.sort === s.value;
                   return (
@@ -314,7 +314,7 @@ export async function CatalogueView({
                       <Link
                         href={href(basePath, params, { sort: s.value === "newest" ? "" : s.value, page: "" })}
                         aria-current={on ? "page" : undefined}
-                        className={`inline-flex items-center rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                        className={`inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                           on
                             ? "border border-border bg-white text-ink shadow-xs font-bold"
                             : "text-muted hover:text-ink"
@@ -388,7 +388,11 @@ export async function CatalogueView({
             )}
           </>
         ) : (
-          <ProductGrid products={result.items} columns={5} />
+          <>
+            {/* Names the results so the card titles (h3) never follow the page h1 directly. */}
+            <h2 className="sr-only">Products</h2>
+            <ProductGrid products={result.items} columns={5} />
+          </>
         )}
 
         {/* Pagination */}

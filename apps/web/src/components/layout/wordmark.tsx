@@ -5,8 +5,8 @@ export function Wordmark({ className = "" }: { className?: string }) {
     <Link
       href="/"
       className={`inline-flex items-baseline font-display font-extrabold tracking-[-0.02em] ${className}`}
-      aria-label="VALTA.LK home"
     >
+      <span className="sr-only">VALTA.LK home</span>
       <span aria-hidden>V</span>
       <span aria-hidden className="text-brand-500">Λ</span>
       <span aria-hidden>LTA</span>

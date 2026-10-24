@@ -44,7 +44,7 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
   return (
     <>
       {/* Slim announcement bar: the owner's SITE_ANNOUNCEMENT plus facts from live ERP settings only. It scrolls away. */}
-      <div className={`border-b border-border bg-surface text-muted ${siteConfig.announcement ? "" : "hidden sm:block"}`}>
+      <div role="region" aria-label="Store information" className={`border-b border-border bg-surface text-muted ${siteConfig.announcement ? "" : "hidden sm:block"}`}>
         <div className="container-wide flex h-7 items-center justify-between gap-6 text-[11.5px]">
           <ul className="flex min-w-0 items-center gap-3 divide-x divide-border [&>li+li]:pl-3">
             {siteConfig.announcement ? <li className="truncate font-medium text-ink">{siteConfig.announcement}</li> : null}

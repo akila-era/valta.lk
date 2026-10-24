@@ -29,7 +29,7 @@ export default function ContactPage() {
             {siteConfig.phone && (
               <a
                 href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}
-                className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-warm-white/40 p-4 transition-all hover:border-brand-500/40 hover:bg-brand-50/30 hover:shadow-soft"
+                className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-warm-white/40 p-4 !text-ink !no-underline transition-all hover:border-brand-500/40 hover:bg-brand-50/30 hover:shadow-soft"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-500 group-hover:text-white">
                   <Phone className="h-5 w-5" />
@@ -51,7 +51,7 @@ export default function ContactPage() {
             {siteConfig.email && (
               <a
                 href={`mailto:${siteConfig.email}`}
-                className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-warm-white/40 p-4 transition-all hover:border-brand-500/40 hover:bg-brand-50/30 hover:shadow-soft"
+                className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-warm-white/40 p-4 !text-ink !no-underline transition-all hover:border-brand-500/40 hover:bg-brand-50/30 hover:shadow-soft"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-500 group-hover:text-white">
                   <Mail className="h-5 w-5" />
@@ -105,7 +105,7 @@ export default function ContactPage() {
         <div className="!mt-4">
           <Link
             href="/track-order"
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold text-white shadow-soft transition-all hover:bg-brand-500 hover:shadow-lift"
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold !text-white !no-underline shadow-soft transition-all hover:bg-brand-500 hover:!text-on-brand hover:shadow-lift"
           >
             <Package className="h-4 w-4" />
             Track Order Status

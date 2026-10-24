@@ -147,13 +147,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
       <nav aria-label="Breadcrumb" className="mb-6 w-fit">
         <ol className="flex flex-wrap items-center gap-1.5 rounded-full border border-border/80 bg-white px-4 py-1.5 text-xs text-muted shadow-soft">
           <li>
-            <Link href="/" className="transition-colors hover:text-ink">
+            <Link href="/" className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
               Home
             </Link>
           </li>
           <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
           <li>
-            <Link href="/products" className="transition-colors hover:text-ink">
+            <Link href="/products" className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
               All products
             </Link>
           </li>
@@ -161,7 +161,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
             <>
               <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
               <li>
-                <Link href={`/categories/${product.category.slug}`} className="transition-colors hover:text-ink">
+                <Link href={`/categories/${product.category.slug}`} className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
                   {product.category.name}
                 </Link>
               </li>
@@ -173,7 +173,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
               <li>
                 <Link
                   href={`/categories/${product.category.slug}?sub=${product.subCategory.slug}`}
-                  className="transition-colors hover:text-ink"
+                  className="inline-flex min-h-6 items-center transition-colors hover:text-ink"
                 >
                   {product.subCategory.name}
                 </Link>

@@ -39,7 +39,7 @@ export function Breadcrumbs({ items }: { items: { href?: string; label: string }
           return (
             <li key={`${item.label}-${i}`} aria-current={last ? "page" : undefined} className={`flex items-center gap-1.5 ${last ? "min-w-0 max-w-full font-medium text-ink" : ""}`}>
               {i > 0 ? <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted/70" aria-hidden /> : null}
-              {item.href && !last ? <Link href={item.href} className="rounded-sm hover:text-ink hover:underline">{item.label}</Link> : <span className="truncate">{item.label}</span>}
+              {item.href && !last ? <Link href={item.href} className="inline-flex min-h-6 items-center rounded-sm hover:text-ink hover:underline">{item.label}</Link> : <span className="truncate">{item.label}</span>}
             </li>
           );
         })}

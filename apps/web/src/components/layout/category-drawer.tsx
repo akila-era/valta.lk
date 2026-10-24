@@ -149,7 +149,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
               onChange={(e) => setTerm(e.target.value)}
               placeholder="Search products..."
               maxLength={100}
-              className="h-10 w-full rounded-full border border-border bg-surface pl-10 pr-10 text-[13.5px] outline-none transition-colors placeholder:text-muted focus:border-brand-500 focus:bg-bg"
+              className="h-10 w-full rounded-full border border-border bg-surface pl-10 pr-10 text-[13.5px] outline-none transition-colors placeholder:text-muted focus:border-brand-500 focus:bg-bg focus-visible:ring-2 focus-visible:ring-brand-500/40"
             />
             {term ? (
               <button

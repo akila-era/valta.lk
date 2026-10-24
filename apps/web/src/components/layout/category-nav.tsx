@@ -32,16 +32,16 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
 
   return (
     <nav aria-label="Categories" className="hidden border-t border-border md:block">
-      <div className="container-wide flex flex-wrap items-center gap-x-4 gap-y-0.5 py-px">
+      {/* One row; on narrow tablets it scrolls sideways instead of wrapping onto a second line. */}
+      <div className="container-wide flex items-center gap-x-4 overflow-x-auto whitespace-nowrap py-px [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           aria-haspopup="dialog"
           onClick={() => setOpenedAt(pathname)}
-          className="my-0.5 inline-flex min-h-7 items-center gap-1.5 rounded-full bg-brand-500 px-3 text-[11.5px] font-semibold text-on-brand transition-colors hover:bg-brand-400 hover:shadow-glow"
+          className="my-0.5 inline-flex min-h-7 shrink-0 items-center gap-1.5 rounded-full bg-brand-500 px-3 text-[11.5px] font-semibold text-on-brand transition-colors hover:bg-brand-400 hover:shadow-glow"
         >
           <Menu className="h-3.5 w-3.5" aria-hidden /> All Categories <ChevronDown className="h-3.5 w-3.5" aria-hidden />
         </button>
-        <CategoryDrawer open={open} onClose={close} categories={categories} hasDeals={showDeals} />
         <ul className="contents">
           {categories.map((c) => {
             const active = pathname === `/categories/${c.slug}`;
@@ -69,6 +69,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
           <Star className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> New Arrivals
         </Link>
       </div>
+      <CategoryDrawer open={open} onClose={close} categories={categories} hasDeals={showDeals} />
     </nav>
   );
 }
