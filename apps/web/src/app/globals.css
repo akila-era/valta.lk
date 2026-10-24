@@ -63,6 +63,15 @@
   --radius-panel: 27px;
   --radius-feature: 34px;
   --radius-pill: 9999px;
+
+  /* Heading scale (fluid between phone and desktop) and the smallest UI label size (11px floor). */
+  --text-title-page: clamp(1.625rem, 1.25rem + 1.2vw, 2.125rem);
+  --text-title-page--line-height: 1.12;
+  --text-title-section: clamp(1.375rem, 1.1rem + 0.9vw, 1.875rem);
+  --text-title-section--line-height: 1.15;
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1rem;
+  --tracking-title: -0.025em;
   --breakpoint-xs: 30rem;
 }
 
@@ -119,15 +128,15 @@
 @utility field-error { @apply mt-1.5 text-sm text-danger; }
 /* Mono label with a neon signal dot, used above section and hero titles. */
 @utility eyebrow {
-  @apply inline-flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-brand-600
+  @apply inline-flex items-center gap-2 font-mono text-label font-medium uppercase tracking-[0.2em] text-brand-600
     before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-brand-500 before:content-[''];
 }
 @utility badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
-@utility section-title { @apply font-display text-xl font-bold leading-[1.2] tracking-[-0.015em] text-ink sm:text-[1.4rem]; }
-@utility page-title { @apply font-display text-[1.6rem] font-bold leading-[1.15] tracking-[-0.018em] text-ink sm:text-[2rem]; }
+@utility section-title { @apply font-display text-title-section font-bold tracking-title text-ink; }
+@utility page-title { @apply font-display text-title-page font-bold tracking-title text-ink; }
 @utility type-product { @apply line-clamp-2 font-display text-sm font-semibold leading-[1.2rem] tracking-[-0.005em] text-ink; }
 @utility type-price { @apply whitespace-nowrap font-display text-base font-bold leading-6 tracking-[-0.015em] text-ink tabular-nums sm:text-[17px]; }
-@utility type-mono { @apply font-mono text-[11px] font-medium uppercase tracking-[0.14em]; }
+@utility type-mono { @apply font-mono text-label font-medium uppercase tracking-[0.14em]; }
 @utility type-body { @apply text-sm leading-6 text-ink; }
 @utility type-meta { @apply text-sm leading-5 text-muted; }
 @utility type-caption { @apply text-xs leading-4 text-muted; }

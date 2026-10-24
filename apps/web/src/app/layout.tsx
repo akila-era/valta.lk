@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: { siteName: "VALTA.LK", type: "website", locale: "en_LK" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#101113" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
