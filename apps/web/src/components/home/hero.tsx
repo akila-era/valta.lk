@@ -6,7 +6,7 @@ import { formatLkr } from "@/lib/utils/money";
 import { Icon3D } from "@/components/ui/icon-3d";
 import { HeroDepth } from "./hero-depth";
 import { Accent } from "./story/chapter";
-import { StoryStage } from "./story/story-stage";
+import { BrandFilm } from "./story/brand-film";
 
 interface HeroProps {
   phonesHref?: string;
@@ -18,8 +18,8 @@ interface HeroProps {
 const HEADLINE = ["Technology", "that", "moves", "you."];
 
 /**
- * Chapter 01 of the homepage story: a large light statement with a serif accent word, the product on a 3D stage in the
- * middle (it turns and rises as the page scrolls, and follows the cursor), and a short serif note with live ERP facts.
+ * Chapter 01 of the homepage story: a large light statement with a serif accent word and live ERP facts on the left,
+ * over the VALTA.LK brand film playing as the hero's moving background.
  * Hero and service strip together fill the first screen below the header (see --hdr-h in HeaderShell).
  */
 export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroProps) {
@@ -41,9 +41,16 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
         <span aria-hidden className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.08)_1px,transparent_1.3px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_at_25%_20%,#000,transparent_65%)]" />
         <span aria-hidden className="pointer-events-none absolute -left-24 top-[22%] h-80 w-80 animate-glow rounded-full bg-brand-500/10 blur-3xl" />
 
-        <div className="container-page relative z-10 grid flex-1 items-center gap-x-8 gap-y-4 pb-12 pt-[calc(var(--hdr-sticky,7rem)+1.25rem)] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.65fr)] lg:pb-16 lg:pt-[calc(var(--hdr-sticky,7rem)+2rem)]">
-          {/* Left: kicker, statement, copy and actions. */}
-          <div>
+        {/* The brand film as the moving background: a full-width band along the bottom on phones, a 16:9 frame on the
+            right from md (so its logo clears the headline). Its beige matches the hero, and masked edges melt it in. */}
+        <BrandFilm
+          frameClassName="pointer-events-none absolute inset-x-0 bottom-0 aspect-video [mask-image:linear-gradient(to_bottom,transparent,#000_30%)] md:bottom-auto md:left-auto md:right-0 md:top-1/2 md:w-[58%] md:-translate-y-[44%] md:[mask-image:radial-gradient(ellipse_closest-side_at_center,#000_62%,transparent)]"
+          controlsClassName="absolute bottom-9 right-4 z-20 sm:right-6 md:bottom-11 lg:right-10"
+        />
+
+        <div className="container-page relative z-10 flex flex-1 items-start pb-[calc(56vw+0.5rem)] pt-[calc(var(--hdr-sticky,7rem)+1.25rem)] md:items-center md:pb-16 md:pt-[calc(var(--hdr-sticky,7rem)+2rem)]">
+          {/* Kicker, statement, copy, actions and live facts, on the calm left side of the film. */}
+          <div className="max-w-xl">
             <p className="kicker animate-fade-up">
               <span className="text-brand-600">01</span> / VALTA.LK
             </p>
@@ -78,17 +85,8 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
                 </Link>
               )}
             </div>
-          </div>
-
-          {/* Centre: the product on its 3D stage (the 3D model slot). */}
-          <div className="animate-scale-in [--d:120ms]">
-            <StoryStage src="/images/home/valta-category-smartphones.webp" alt="" />
-          </div>
-
-          {/* Right: a serif note and facts from live ERP settings only. */}
-          <div className="hidden animate-fade-up [--d:360ms] lg:block lg:justify-self-end">
-            <p className="max-w-[14ch] font-serif text-[1.75rem] italic leading-[1.15] text-ink/85">Chosen with care, delivered to your door.</p>
-            <ul className="mt-5 space-y-2.5 border-t border-ink/15 pt-4">
+            {/* Facts from live ERP settings only. */}
+            <ul className="mt-7 hidden animate-fade-up flex-wrap gap-x-5 gap-y-2 border-t border-ink/15 pt-4 [--d:360ms] md:flex">
               {facts.map((f) => (
                 <li key={f} className="flex items-center gap-2 text-label font-semibold uppercase tracking-[0.18em] text-ink/70">
                   <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-500" />
