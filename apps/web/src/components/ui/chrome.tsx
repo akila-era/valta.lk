@@ -17,7 +17,7 @@ export function SectionHeader({ id, title, eyebrow, action, children, center = f
     <div className={`mb-3 flex flex-wrap items-end gap-3 ${center ? "justify-center text-center" : "justify-between"}`}>
       {/* An orange side bar marks the section start; the small label sits above the title. */}
       <div className={`min-w-0 ${center ? "" : "border-l-[3px] border-brand-500 pl-3"}`}>
-        {eyebrow ? <p className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">{eyebrow}</p> : null}
+        {eyebrow ? <p className="mb-0.5 text-label font-bold uppercase tracking-[0.12em] text-brand-600">{eyebrow}</p> : null}
         <h2 id={id} className="section-title">{title}</h2>
         {children ? <div className={`mt-1 max-w-2xl text-sm text-muted ${center ? "mx-auto" : ""}`}>{children}</div> : null}
       </div>

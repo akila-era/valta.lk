@@ -102,14 +102,14 @@
 @utility container-page { @apply mx-auto w-full max-w-[120rem] px-3 sm:px-4 lg:px-6; }
 /* Full-width bands (header): edge to edge with comfortable side padding, capped only on very wide screens. */
 @utility container-wide { @apply mx-auto w-full max-w-[120rem] px-3 sm:px-4 lg:px-6; }
-@utility card { @apply rounded-2xl border border-border bg-bg; }
-/* Pill buttons. Primary is the neon signal (ink text keeps >= 6:1 contrast); it brightens and glows on hover. */
+@utility card { @apply rounded-card border border-border bg-bg; }
+/* Pill buttons. Primary is the neon signal with dark on-brand text (>= 5:1 at rest and on hover); it deepens on hover. */
 @utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-semibold tracking-[-0.005em]
+  @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-pill px-6 text-sm font-semibold tracking-[-0.005em]
     transition-[background-color,color,border-color,box-shadow,transform] duration-200 active:scale-[0.98]
     disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
 }
-@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-brand-400 hover:shadow-glow; }
+@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-brand-hover; }
 @utility btn-secondary { @apply btn border border-ink/15 bg-bg text-ink hover:border-ink; }
 @utility btn-outline { @apply btn border border-ink/15 bg-bg text-ink hover:border-ink hover:bg-ink hover:text-bg; }
 @utility btn-ghost { @apply btn text-ink hover:bg-surface; }
@@ -118,7 +118,7 @@
 @utility btn-danger { @apply btn bg-danger text-white hover:bg-danger-strong; }
 @utility btn-lg { @apply min-h-12 px-7 text-base; }
 @utility input {
-  @apply min-h-11 w-full rounded-lg border border-border bg-bg px-3 text-sm text-ink placeholder:text-muted
+  @apply min-h-11 w-full rounded-control border border-border-strong bg-bg px-3 text-sm text-ink placeholder:text-muted
     aria-[invalid=true]:border-danger disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-70;
 }
 @utility select { @apply input; }
