@@ -68,10 +68,18 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 const FEATURE_ICON: Record<string, LucideIcon> = { zap: Zap, shield: ShieldCheck, battery: Battery, wifi: Wifi, cpu: Cpu, camera: Camera, smartphone: Smartphone, headphones: Headphones };
 
 const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
-  <section aria-labelledby={id}>
-    <h2 id={id} className="text-lg font-semibold">{title}</h2>
-    <div className="mt-3">{children}</div>
+  <section aria-labelledby={id} className="scroll-mt-40">
+    <h2 id={id} className="border-l-[3px] border-brand-500 pl-3 font-display text-xl font-bold tracking-[-0.015em]">{title}</h2>
+    <div className="mt-4">{children}</div>
   </section>
+);
+
+/** One label/value row of a specification list: label on the left, value on the right, on a hairline divider. */
+const SpecRow = ({ name, value }: { name: string; value: string }) => (
+  <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 px-4 py-3 text-sm">
+    <dt className="text-muted">{name}</dt>
+    <dd className="break-words font-medium text-ink">{value}</dd>
+  </div>
 );
 
 export default async function ProductPage({ params, searchParams }: Props) {
@@ -143,20 +151,31 @@ export default async function ProductPage({ params, searchParams }: Props) {
       />
 
       <VariantChoice initial={initialVariant}>
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
         <Gallery images={product.images} alt={title} alts={c?.gallery.length ? c.gallery.map((g) => g.alt) : undefined} captions={c?.gallery.length ? c.gallery.map((g) => g.caption) : undefined} />
         <div>
-          {product.brand && <p className="text-sm font-medium uppercase tracking-wide text-muted">{product.brand}</p>}
-          <h1 className="page-title mt-1">{title}</h1>
-          {showModel && <p className="mt-1 text-sm text-muted">Model {model}</p>}
-          {c?.subtitle && <p className="mt-1 text-base text-muted">{c.subtitle}</p>}
+          {(product.brand || product.category) && (
+            <p className="flex flex-wrap items-center gap-x-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+              {product.brand && <span className="text-brand-600">{product.brand}</span>}
+              {product.brand && product.category && <span aria-hidden className="h-1 w-1 rounded-full bg-border" />}
+              {product.category && <Link href={`/categories/${product.category.slug}`} className="hover:text-ink">{product.category.name}</Link>}
+            </p>
+          )}
+          <h1 className="mt-2 font-display text-[1.75rem] font-bold leading-[1.1] tracking-[-0.025em] text-ink sm:text-[2.25rem]">{title}</h1>
+          {(showModel || c?.subtitle) && (
+            <p className="mt-2 text-base text-muted">
+              {c?.subtitle}
+              {c?.subtitle && showModel ? " · " : ""}
+              {showModel ? `Model ${model}` : ""}
+            </p>
+          )}
           {badges.length > 0 && (
-            <ul className="mt-3 flex flex-wrap gap-2" aria-label="Highlights">
-              {badges.map((b) => <li key={b} className="badge bg-brand-50 text-brand-700">{b}</li>)}
+            <ul className="mt-4 flex flex-wrap gap-2" aria-label="Highlights">
+              {badges.map((b) => <li key={b} className="badge border border-brand-100 bg-brand-50 text-brand-700">{b}</li>)}
             </ul>
           )}
-          {c?.shortDescription && <p className="mt-4 max-w-prose text-sm leading-6 text-muted">{c.shortDescription}</p>}
-          <div className="mt-6 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+          {c?.shortDescription && <p className="mt-4 max-w-prose text-[15px] leading-7 text-muted">{c.shortDescription}</p>}
+          <div className="mt-6 rounded-2xl border border-border bg-bg p-5 shadow-card sm:p-6">
             <PurchasePanel
               offerNames={offerNames}
               deliveryCharge={settings?.deliveryCharge}
@@ -177,14 +196,16 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </div>
           {c && c.features.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-base font-semibold">Key features</h2>
-              <ul className="mt-3 space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted">Key features</h2>
+              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                 {c.features.map((f, i) => {
                   const Icon = FEATURE_ICON[f.icon] ?? Check;
                   return (
-                  <li key={i} className="flex gap-3 text-sm">
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
-                    <span><span className="font-semibold">{f.title}</span>{f.description && <span className="block text-muted">{f.description}</span>}</span>
+                  <li key={i} className="flex gap-3 rounded-xl border border-border bg-surface/60 p-3 text-sm">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                      <Icon className="h-4 w-4" aria-hidden />
+                    </span>
+                    <span className="min-w-0"><span className="block font-semibold leading-5">{f.title}</span>{f.description && <span className="mt-0.5 block text-xs leading-5 text-muted">{f.description}</span>}</span>
                   </li>
                   );
                 })}
@@ -197,7 +218,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
       <AccessoryRail productIds={[product.id]} initial={accessories} intro="Only accessories linked to this product. Prices are the catalogue prices. You can continue without them." />
 
       {jumps.length > 1 && (
-        <nav aria-label="On this page" className="mt-12 max-w-full overflow-x-auto border-b border-border">
+        <nav aria-label="On this page" className="sticky top-[var(--hdr-sticky,8.5rem)] z-20 mt-12 max-w-full overflow-x-auto border-b border-border bg-bg/95 backdrop-blur">
           <ul className="flex w-max gap-6">
             {jumps.map((j) => (
               <li key={j.id}>
@@ -210,7 +231,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
         </nav>
       )}
 
-      <div className={`${jumps.length > 1 ? "mt-8" : "mt-12"} space-y-12`}>
+      <div className={`${jumps.length > 1 ? "mt-8" : "mt-12"} max-w-4xl space-y-12`}>
         {(descHtml || product.description) && (
           <Section id="desc" title="Description">
             {descHtml ? <div className="rich" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>}
@@ -221,25 +242,15 @@ export default async function ProductPage({ params, searchParams }: Props) {
             <div className="space-y-5">
               {siteSpecGroups.map((g) => (
                 <div key={g.group}>
-                  {siteSpecGroups.length > 1 || g.group !== "General" ? <h3 className="mb-2 text-sm font-semibold text-muted">{g.group}</h3> : null}
-                  <dl className="grid gap-px overflow-hidden rounded-xl border border-border bg-border text-sm sm:grid-cols-2">
-                    {g.rows.map((s, i) => (
-                      <div key={i} className="min-w-0 bg-bg px-4 py-3 sm:last:odd:col-span-2">
-                        <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{s.name}</dt>
-                        <dd className="mt-1 break-words font-medium text-ink">{s.value}{s.unit ? ` ${s.unit}` : ""}</dd>
-                      </div>
-                    ))}
+                  {siteSpecGroups.length > 1 || g.group !== "General" ? <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">{g.group}</h3> : null}
+                  <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border [&>div:nth-child(odd)]:bg-surface/60">
+                    {g.rows.map((s, i) => <SpecRow key={i} name={s.name} value={`${s.value}${s.unit ? ` ${s.unit}` : ""}`} />)}
                   </dl>
                 </div>
               ))}
               {erpSpecs.length > 0 && (
-                <dl className="grid gap-px overflow-hidden rounded-xl border border-border bg-border text-sm sm:grid-cols-2">
-                  {erpSpecs.map(([k, v]) => (
-                    <div key={k} className="min-w-0 bg-bg px-4 py-3 sm:last:odd:col-span-2">
-                      <dt className="text-xs font-semibold uppercase tracking-wide text-muted">{k}</dt>
-                      <dd className="mt-1 break-words font-medium text-ink">{v}</dd>
-                    </div>
-                  ))}
+                <dl className="divide-y divide-border overflow-hidden rounded-xl border border-border [&>div:nth-child(odd)]:bg-surface/60">
+                  {erpSpecs.map(([k, v]) => <SpecRow key={k} name={k} value={v} />)}
                 </dl>
               )}
             </div>
@@ -247,25 +258,28 @@ export default async function ProductPage({ params, searchParams }: Props) {
         )}
         {!hasWarranty && product.specs.Warranty && (
           <Section id="warranty" title="Warranty">
-            <p className="rounded-xl border border-border p-4 text-sm">{product.specs.Warranty}</p>
+            <p className="flex gap-3 rounded-xl border border-border p-4 text-sm"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span className="font-medium">{product.specs.Warranty}</span></p>
           </Section>
         )}
         {hasWarranty && c && (
           <Section id="warranty" title="Warranty">
-            <div className="rounded-xl border border-border p-4 text-sm">
+            <div className="flex gap-3 rounded-xl border border-border p-4 text-sm">
+              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
+              <div className="min-w-0">
               {c.warranty.duration && <p className="font-semibold">{c.warranty.duration}{c.warranty.provider ? ` · ${c.warranty.provider}` : ""}</p>}
               {!c.warranty.duration && c.warranty.provider && <p className="font-semibold">{c.warranty.provider}</p>}
               {c.warranty.description && <p className="mt-1 text-muted">{c.warranty.description}</p>}
               {c.warranty.terms && <details className="mt-3"><summary className="cursor-pointer font-medium">Warranty terms</summary><p className="mt-2 whitespace-pre-line text-muted">{c.warranty.terms}</p></details>}
               {c.warranty.notes && <p className="mt-3 text-xs text-muted">{c.warranty.notes}</p>}
+              </div>
             </div>
           </Section>
         )}
         {hasDelivery && c && (
           <Section id="delivery" title="Delivery & pickup">
             <ul className="space-y-3 rounded-xl border border-border p-4 text-sm">
-              <li className="flex gap-3"><Truck className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden /><span><span className="font-semibold">Delivery{settings ? ` · ${formatLkr(settings.deliveryCharge)}` : ""}</span>{c.delivery.estimate && <span className="block text-muted">{c.delivery.estimate}</span>}{c.delivery.notes && <span className="block text-muted">{c.delivery.notes}</span>}</span></li>
-              {c.delivery.pickup && <li className="flex gap-3"><Store className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden /><span><span className="font-semibold">Store pickup</span><span className="block whitespace-pre-line text-muted">{c.delivery.pickup}</span></span></li>}
+              <li className="flex gap-3"><Truck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Delivery{settings ? ` · ${formatLkr(settings.deliveryCharge)}` : ""}</span>{c.delivery.estimate && <span className="block text-muted">{c.delivery.estimate}</span>}{c.delivery.notes && <span className="block text-muted">{c.delivery.notes}</span>}</span></li>
+              {c.delivery.pickup && <li className="flex gap-3"><Store className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Store pickup</span><span className="block whitespace-pre-line text-muted">{c.delivery.pickup}</span></span></li>}
             </ul>
           </Section>
         )}
@@ -274,8 +288,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
       </VariantChoice>
 
       {related.length > 0 && (
-        <section aria-labelledby="related" className="mt-14">
-          <SectionHeader id="related" title="Related products">{chosen.length ? "Chosen for this product." : product.category ? `Other products in ${product.category.name}.` : undefined}</SectionHeader>
+        <section aria-labelledby="related" className="mt-16 border-t border-border pt-10">
+          <SectionHeader id="related" eyebrow="You may also like" title="Related products">{chosen.length ? "Chosen for this product." : product.category ? `Other products in ${product.category.name}.` : undefined}</SectionHeader>
           <ProductGrid products={related} />
         </section>
       )}

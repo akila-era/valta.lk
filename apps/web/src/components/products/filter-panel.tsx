@@ -42,7 +42,8 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
   }, [open]);
 
   return (
-    <div ref={rootRef}>
+    // Desktop: the sidebar stays in view under the sticky header while the product grid scrolls; long filters scroll inside it.
+    <div ref={rootRef} className="lg:sticky lg:top-36 lg:self-start">
       <button
         type="button"
         className="btn-secondary mb-4 w-full lg:hidden"
@@ -56,7 +57,7 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
         {active ? <span className="sr-only">(active)</span> : null}
       </button>
       {open ? (
-        <button type="button" tabIndex={-1} className="fixed inset-0 z-[70] animate-[fade-in_0.2s_ease-out] bg-ink/40 lg:hidden" aria-label="Close filters" onClick={close} />
+        <button type="button" tabIndex={-1} className="fixed inset-0 z-[70] animate-[fade-in_0.2s_ease-out] bg-black/60 lg:hidden" aria-label="Close filters" onClick={close} />
       ) : null}
       <aside
         ref={panelRef}
@@ -64,7 +65,7 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
         aria-label="Filters"
         role={open ? "dialog" : undefined}
         aria-modal={open ? true : undefined}
-        className={`${open ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-bg p-5 shadow-overlay" : "hidden"} lg:static lg:animate-none lg:z-auto lg:block lg:w-auto lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-surface lg:p-5 lg:shadow-none`}
+        className={`${open ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-bg p-5 shadow-overlay" : "hidden"} lg:static lg:animate-none lg:z-auto lg:block lg:max-h-[calc(100svh-10rem)] lg:w-auto lg:overflow-y-auto lg:overscroll-contain lg:rounded-2xl lg:border lg:border-border lg:bg-surface lg:p-5 lg:shadow-none`}
       >
         <div className="mb-4 flex items-center justify-between lg:hidden">
           <h2 className="text-lg font-bold text-ink">Filters</h2>

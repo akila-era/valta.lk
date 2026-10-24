@@ -1,3 +1,4 @@
+import { renderProductSvg } from "./product-art";
 /**
  * Mock HEXALYTE store-api for local development and automated tests ONLY.
  * Behaviour follows docs/API_INTEGRATION_GUIDE.md, docs/openapi.yaml, docs/STORE_ORDER_API.md and
@@ -88,7 +89,7 @@ const qty = (stock: number) => Math.min(stock, 20);
 const wireItem = (i: Item) => ({
   id: i.id, externalId: null, sku: i.sku, name: i.name, description: `${i.name} by ${i.brand}.`, brand: i.brand,
   category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: null, warrantyNote: null,
-  images: i.sku === "SKU-6" || i.sku === "SKU-7" ? [] : [{ url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
+  images: [{ url: `/uploads/${i.id}.svg`, relative: true }] : [{ url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
   salePrice: i.salePrice, discountActive: i.discountActive, discountEndsAt: null, hasVariants: i.variants.length > 0,
   variants: i.variants.map((v) => ({ key: v.key, sku: v.sku, storage: v.storage, color: v.color, colorHex: null, price: v.price, salePrice: null, discountActive: false, availability: avail(v.stock), purchasableQuantity: qty(v.stock) })),
   availability: i.variants.length ? avail(i.variants.reduce((a, v) => a + v.stock, 0)) : avail(i.stock),
@@ -156,16 +157,9 @@ const server = http.createServer(async (req, res) => {
   const img = url.pathname.match(/^\/uploads\/([A-Za-z0-9]+)\.svg$/);
   if (img) {
     const it = state.items.find((i) => i.id === img[1]);
-    const c = it?.category ?? "";
-    const shape = /phone|tablet/i.test(c)
-      ? `<rect x="130" y="40" width="140" height="320" rx="26" fill="#101820"/><rect x="138" y="52" width="124" height="296" rx="20" fill="#1d2a38"/><circle cx="200" cy="200" r="38" fill="#ff5c00"/>`
-      : /audio/i.test(c)
-        ? `<rect x="90" y="190" width="220" height="130" rx="46" fill="#e6e8ec"/><ellipse cx="150" cy="130" rx="26" ry="42" fill="#101820"/><ellipse cx="250" cy="130" rx="26" ry="42" fill="#101820"/>`
-        : /wear/i.test(c)
-          ? `<rect x="165" y="30" width="70" height="90" rx="14" fill="#475467"/><rect x="165" y="280" width="70" height="90" rx="14" fill="#475467"/><rect x="120" y="110" width="160" height="180" rx="40" fill="#101820"/><circle cx="200" cy="200" r="36" fill="none" stroke="#ff5c00" stroke-width="10"/>`
-          : `<rect x="110" y="120" width="180" height="160" rx="24" fill="#344054"/><rect x="170" y="150" width="60" height="30" rx="8" fill="#ff5c00"/>`;
+    const svg = renderProductSvg(it);
     res.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=60" });
-    return res.end(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">${shape}</svg>`);
+    return res.end(svg);
   }
 
   if (!url.pathname.startsWith(BASE)) return err(res, 404, "NOT_FOUND");

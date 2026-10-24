@@ -46,7 +46,7 @@ export function AccountMenu({ customer, enabled }: { customer: { name: string } 
         <ChevronDown className={`hidden h-4 w-4 transition-transform lg:block ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
       {open && (
-        <div id={`${id}-menu`} className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-border bg-bg p-2 shadow-card">
+        <div id={`${id}-menu`} className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-border bg-bg p-2 text-ink shadow-card">
           {customer ? (
             <>
               <p className="truncate px-3 pb-2 pt-1 text-xs text-muted">Signed in as <span className="font-semibold text-ink">{customer.name}</span></p>

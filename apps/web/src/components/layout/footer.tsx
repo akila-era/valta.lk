@@ -49,15 +49,15 @@ function PaymentBadge({ id }: { id: string }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/payments/${id}.svg`} alt={name} width={48} height={24} className="h-6 w-auto max-w-[3.5rem] object-contain" loading="lazy" />
       ) : (
-        <span className="whitespace-nowrap text-xs font-bold text-ink">{name}</span>
+        <span className="whitespace-nowrap text-xs font-bold text-on-brand">{name}</span>
       )}
     </li>
   );
 }
 
-const colHead = "text-base font-semibold text-white";
-const accentBar = "mt-3 block h-[3px] w-9 rounded-full bg-brand-500";
-const rowLink = "group flex items-center gap-3 rounded-lg py-2 pr-1 sm:gap-3.5 sm:py-2.5 sm:pr-2 text-[15px] text-white/80 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+const colHead = "text-sm font-semibold text-white";
+const accentBar = "mt-2 block h-[3px] w-8 rounded-full bg-brand-500";
+const rowLink = "group flex items-center gap-3 rounded-lg py-1.5 pr-1 sm:pr-2 text-sm text-white/80 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 function LinkList({ items, label }: { items: typeof support; label: string }) {
   return (
@@ -107,8 +107,9 @@ export async function Footer() {
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark mt-20 border-t border-white/10 bg-dark text-white">
-      <div className="container-page grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-14">
+    <footer className="on-dark relative mt-12 bg-night text-white">
+      <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-500 via-brand-400 to-brand-500" />
+      <div className="container-page grid grid-cols-2 gap-x-6 gap-y-8 py-9 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-10">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
           <p className="text-3xl font-extrabold tracking-tight">VALTA<span className="text-brand-500">.LK</span></p>
           <p className="mt-4 max-w-xs text-[15px] leading-7 text-white/75">{siteConfig.description}</p>
@@ -118,7 +119,7 @@ export async function Footer() {
                 const Icon = SOCIAL_ICON[s.label] ?? Share2;
                 return (
                   <li key={s.label}>
-                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-brand-500 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-brand-500 hover:text-on-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
                       <Icon className="h-[22px] w-[22px]" aria-hidden />
                     </a>
                   </li>
@@ -170,7 +171,7 @@ export async function Footer() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-white/10 pb-5 text-sm text-white/75">
               <span className="font-medium text-white">We accept</span>
               <ul className="flex flex-wrap items-center gap-2" aria-label="Accepted payment methods">
-                {cod && <li className="inline-flex h-9 items-center gap-1.5 rounded-md bg-white px-3 text-xs font-bold text-ink"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
+                {cod && <li className="inline-flex h-9 items-center gap-1.5 rounded-md bg-white px-3 text-xs font-bold text-on-brand"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
                 {siteConfig.paymentMethods.map((id) => <PaymentBadge key={id} id={id} />)}
               </ul>
             </div>

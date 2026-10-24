@@ -2,18 +2,26 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
-export function SectionHeader({ id, title, action, children, center = false }: { id?: string; title: string; action?: { href: string; label: string }; children?: ReactNode; center?: boolean }) {
+/** "View all" style link: ink text with an arrow that slides on hover. */
+export function ArrowLink({ href, children, className = "" }: { href: string; children: ReactNode; className?: string }) {
   return (
-    <div className={`mb-5 flex flex-wrap items-end gap-4 ${center ? "justify-center text-center" : "justify-between"}`}>
-      <div className="min-w-0">
+    <Link href={href} className={`group/al inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand-600 ${className}`}>
+      <span className="underline decoration-transparent underline-offset-4 transition-colors group-hover/al:decoration-current">{children}</span>
+      <ChevronRight aria-hidden className="h-4 w-4 transition-transform group-hover/al:translate-x-0.5" />
+    </Link>
+  );
+}
+
+export function SectionHeader({ id, title, eyebrow, action, children, center = false }: { id?: string; title: string; eyebrow?: string; action?: { href: string; label: string }; children?: ReactNode; center?: boolean }) {
+  return (
+    <div className={`mb-3 flex flex-wrap items-end gap-3 ${center ? "justify-center text-center" : "justify-between"}`}>
+      {/* An orange side bar marks the section start; the small label sits above the title. */}
+      <div className={`min-w-0 ${center ? "" : "border-l-[3px] border-brand-500 pl-3"}`}>
+        {eyebrow ? <p className="mb-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">{eyebrow}</p> : null}
         <h2 id={id} className="section-title">{title}</h2>
-        {children ? <div className={`type-meta mt-2 max-w-2xl ${center ? "mx-auto" : ""}`}>{children}</div> : null}
+        {children ? <div className={`mt-1 max-w-2xl text-sm text-muted ${center ? "mx-auto" : ""}`}>{children}</div> : null}
       </div>
-      {action ? (
-        <Link href={action.href} className="shrink-0 text-sm font-semibold text-brand-600 hover:underline">
-          {action.label}
-        </Link>
-      ) : null}
+      {action ? <ArrowLink href={action.href}>{action.label}</ArrowLink> : null}
     </div>
   );
 }
@@ -73,7 +81,7 @@ export function Pagination({ page, pageCount, prevHref, nextHref, pageHref }: { 
                     href={pageHref(p)}
                     aria-label={`Page ${p}`}
                     aria-current={p === page ? "page" : undefined}
-                    className={`${step} tabular-nums ${p === page ? "border-ink bg-ink text-white" : "border-border bg-bg text-ink hover:border-ink"}`}
+                    className={`${step} tabular-nums ${p === page ? "border-ink bg-ink text-bg" : "border-border bg-bg text-ink hover:border-ink"}`}
                   >
                     {p}
                   </Link>

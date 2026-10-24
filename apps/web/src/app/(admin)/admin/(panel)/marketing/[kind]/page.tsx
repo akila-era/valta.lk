@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BannerManager, type BannerRow } from "@/components/admin/banner-manager";
+import { HotDealManager } from "@/components/admin/hot-deal-manager";
 import { PromotionManager } from "@/components/admin/promotion-manager";
 import { ErrorNote, NotAvailable, PageHeader } from "@/components/admin/ui";
 import { adminGate } from "@/lib/admin/gate";
@@ -29,6 +30,14 @@ export default async function Page({ params }: Props) {
       <>
         <PageHeader title="Promotions" subtitle="Rules are checked on the server. Customers are charged the HEXALYTE price." />
         <PromotionManager />
+      </>
+    );
+  }
+  if (kind === "hot-deals") {
+    return (
+      <>
+        <PageHeader title="Hot Deals" subtitle="Choose the products in the homepage Hot Deals panel. Prices and stock always come from the ERP." />
+        {getDb() ? <HotDealManager /> : <ErrorNote>The website database is not available, so Hot Deals cannot be managed right now.</ErrorNote>}
       </>
     );
   }

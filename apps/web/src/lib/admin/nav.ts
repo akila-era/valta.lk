@@ -85,6 +85,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Promotions & Discounts", href: "/admin/marketing/promotions" },
       { label: "Promotional Banners", href: "/admin/marketing/banners" },
+      { label: "Hot Deals", href: "/admin/marketing/hot-deals" },
     ],
   },
   {

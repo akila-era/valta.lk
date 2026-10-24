@@ -12,7 +12,7 @@ export function MobileMenu({ categories, hasDeals = false }: { categories: Drawe
   const close = useCallback(() => setOpenedAt(null), []);
   return (
     <div className="md:hidden">
-      <button type="button" className="btn-ghost -ml-2 min-h-11 min-w-11 px-2" aria-label="Open menu" aria-haspopup="dialog" onClick={() => setOpenedAt(pathname)}>
+      <button type="button" className="-ml-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-2 text-ink transition-colors hover:bg-surface" aria-label="Open menu" aria-haspopup="dialog" onClick={() => setOpenedAt(pathname)}>
         <Menu className="h-6 w-6" aria-hidden />
       </button>
       <CategoryDrawer open={openedAt === pathname} onClose={close} categories={categories} hasDeals={hasDeals} />

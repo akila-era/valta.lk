@@ -1,10 +1,11 @@
 import "server-only";
 import { activeBanners, activeWideBanners, type WideBanner } from "./banners";
 import { brandKey, brandLogoMap } from "./brand-logos";
-import { budgetBands, listBrands, listPrices, listProducts, type ProductListResult } from "./erp/catalogue";
+import { budgetBands, getSnapshot, listBrands, listPrices, listProducts, type ProductListResult } from "./erp/catalogue";
 import { isOnSale } from "./erp/product-utils";
 import { getCheckoutAvailability } from "./erp/settings";
 import type { ErpProduct } from "./erp/types";
+import { configuredHotDeals } from "./hot-deals-store";
 import { configuredBanners, configuredVideos, type BannerConfig, type VideoConfig } from "./home-config";
 
 export interface ResolvedBanner extends BannerConfig {
@@ -74,9 +75,15 @@ export interface HomeData {
   categories: Category[];
   newArrivals: ErpProduct[];
   offers: ErpProduct[];
+  /** Products for the Hot Deals panel: staff-picked deals when any are live, otherwise the ERP sale products. */
+  hotDeals: ErpProduct[];
+  /** True when hotDeals is the staff selection (some may have no price reduction), false when it is ERP sales. */
+  hotDealsCurated: boolean;
   featured: ErpProduct[];
   brands: { name: string; count: number; image?: string; logo?: string }[];
   banners: ResolvedBanner[];
+  /** True when the banners were created by staff in the admin (not derived from categories). */
+  staffBanners: boolean;
   /** Full-width pictures staff placed between "Shop by budget" and "Why shop with VALTA.LK"; they rotate when there are several. */
   wideBanners: WideBanner[];
   /** Further products beyond the ones already shown in "New Arrivals": same catalogue, next in line. */
@@ -98,7 +105,10 @@ export async function getHomeData(): Promise<HomeData> {
     safe(() => getCheckoutAvailability()),
     safe(() => listPrices()),
   ]);
-  const [logos, staffBanners, wideBanners] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners()]);
+  const [logos, staffBanners, wideBanners, snapshot] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners(), safe(() => getSnapshot())]);
+  // Staff-picked Hot Deals, matched against the same ERP snapshot as every other section (real prices and stock).
+  const curatedDeals = await configuredHotDeals(snapshot?.products ?? null);
+  const saleOffers = (offers?.items ?? []).filter(isOnSale);
 
   const all = newest?.items ?? [];
 
@@ -124,12 +134,24 @@ export async function getHomeData(): Promise<HomeData> {
       const v = configuredVideos();
       return { title: v.title, items: v.videos };
     })(),
-    offers: (offers?.items ?? []).filter(isOnSale),
+    offers: saleOffers,
+    hotDeals: curatedDeals ?? saleOffers,
+    hotDealsCurated: curatedDeals !== null,
     featured: featured?.items ?? [],
     brands: (brands ?? []).map((b) => ({ ...b, logo: logos.get(brandKey(b.name)) })),
     // Banners staff created in the admin win; with none active the category-derived / HOME_BANNERS ones remain.
     banners: staffBanners.length ? staffBanners : resolveBanners(categories),
-    wideBanners,
+    staffBanners: staffBanners.length > 0,
+    wideBanners:
+      wideBanners.length > 0
+        ? wideBanners
+        : [
+            {
+              image: "/images/home/valta-banner-laptop.webp",
+              alt: "Discover premium laptops and tech accessories at VALTA.LK",
+              href: "/products",
+            },
+          ],
     rails,
     budget: prices ? budgetBands(prices) : null,
     phonesSlug: categories.find((c) => /phone|mobile/i.test(c.name))?.slug,

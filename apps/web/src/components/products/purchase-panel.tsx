@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Minus, Plus, RefreshCw, ShieldCheck, Truck, Wallet, type LucideIcon } from "lucide-react";
+import { Check, Minus, Plus, RefreshCw, ShieldCheck, ShoppingCart, Truck, Wallet, type LucideIcon } from "lucide-react";
 import { effectivePrice, quantityCap, variantChoiceRequired } from "@/lib/erp/product-utils";
 import { cartActions } from "@/store/cart";
 import { MAX_LINE_QTY } from "@/lib/utils/cart-math";
@@ -115,7 +115,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <Price price={price} salePrice={salePrice} large offerName={offerNames[variantKey] ?? offerNames[""]} />
         <WishlistButton className="shrink-0" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.image, price: unit }} />
@@ -123,18 +123,22 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
 
       {product.variants.length > 0 && (
         <fieldset>
-          <legend className="label">Options</legend>
+          <legend className="label flex w-full items-baseline justify-between gap-3">
+            <span>Options</span>
+            {variant ? <span className="text-xs font-normal text-muted">{variant.label}</span> : null}
+          </legend>
           <div className="flex flex-wrap gap-2">
             {product.variants.map((v) => (
               <label
                 key={v.key}
-                className={`flex min-h-11 cursor-pointer items-center rounded-lg border px-4 text-sm font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand-600 ${
-                  v.key === variantKey ? "border-brand-600 bg-brand-50 font-semibold text-brand-700" : "border-border bg-bg"
-                } ${v.available ? "" : "cursor-not-allowed opacity-50"}`}
+                className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-medium transition-[border-color,background-color,box-shadow] duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand-600 ${
+                  v.key === variantKey ? "border-brand-500 bg-brand-50 font-semibold text-brand-700 shadow-[0_0_0_1px_var(--color-brand-500)]" : "border-border bg-bg hover:border-ink/30"
+                } ${v.available ? "" : "cursor-not-allowed opacity-50 line-through decoration-muted/60"}`}
               >
                 <input type="radio" name="variant" value={v.key} checked={v.key === variantKey} disabled={!v.available} onChange={() => choose(v.key)} className="sr-only" />
+                {v.key === variantKey ? <Check className="h-3.5 w-3.5" aria-hidden /> : null}
                 {v.label}
-                {!v.available && <span className="ml-2 text-xs">(unavailable)</span>}
+                {!v.available && <span className="text-xs no-underline">(unavailable)</span>}
               </label>
             ))}
           </div>
@@ -154,22 +158,22 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       </div>
 
       <div ref={actionsRef} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="flex w-fit items-center rounded-lg border border-border bg-bg" role="group" aria-label="Quantity">
-          <button type="button" className="btn-ghost px-3" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
+        <div className="flex w-fit items-center rounded-full border border-border bg-bg p-0.5" role="group" aria-label="Quantity">
+          <button type="button" className="btn-ghost min-w-11 rounded-full px-3" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
             <Minus className="h-4 w-4" aria-hidden />
           </button>
-          <span className="w-10 text-center text-sm font-semibold" aria-live="polite" data-testid="qty">{qty}</span>
-          <button type="button" className="btn-ghost px-3" aria-label="Increase quantity" disabled={qty >= maxQty} onClick={() => setQty((q) => Math.min(maxQty, q + 1))}>
+          <span className="w-10 text-center text-base font-semibold tabular-nums" aria-live="polite" data-testid="qty">{qty}</span>
+          <button type="button" className="btn-ghost min-w-11 rounded-full px-3" aria-label="Increase quantity" disabled={qty >= maxQty} onClick={() => setQty((q) => Math.min(maxQty, q + 1))}>
             <Plus className="h-4 w-4" aria-hidden />
           </button>
         </div>
         <div className="flex flex-1 gap-3">
-          <button type="button" className="btn-primary min-w-0 flex-1 whitespace-nowrap shadow-[0_8px_20px_-12px_rgb(255_92_0/0.8)]" disabled={!purchasable || added} onClick={add}>
-            {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : "Add to cart"}
+          <button type="button" className="btn-primary btn-lg shine min-w-0 flex-1 whitespace-nowrap px-5" disabled={!purchasable || added} onClick={add}>
+            {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : <><ShoppingCart className="h-4 w-4" aria-hidden /> Add to cart</>}
           </button>
           <button
             type="button"
-            className="btn-dark min-w-0 flex-1 whitespace-nowrap"
+            className="btn-dark btn-lg min-w-0 flex-1 whitespace-nowrap px-5"
             disabled={!purchasable || added}
             onClick={() => {
               if (add()) router.push("/checkout");
@@ -194,7 +198,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       {showBar ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
-            <p className="min-w-0 flex-1 truncate text-base font-extrabold text-brand-600 tabular-nums">{formatLkr(unit)}</p>
+            <p className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-[-0.02em] text-ink tabular-nums">{formatLkr(unit)}</p>
             <button type="button" className="btn-primary shrink-0" disabled={!purchasable || added} aria-label={added ? `${product.name} added to cart` : `Add ${product.name} to cart`} onClick={add}>
               {added ? "Added" : "Add to cart"}
             </button>

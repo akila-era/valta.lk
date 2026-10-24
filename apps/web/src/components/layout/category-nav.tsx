@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
-import { Cable, ChevronDown, Headphones, Menu, Smartphone, Tablet, Watch, type LucideIcon } from "lucide-react";
+import { Cable, ChevronDown, Flame, Headphones, Menu, Smartphone, Star, Tablet, Watch, type LucideIcon } from "lucide-react";
 import { CategoryDrawer, type DrawerCategory } from "./category-drawer";
 
 export type NavCategory = DrawerCategory;
 
 /** Desktop category bar built from the categories that really exist in the catalogue. */
-export function CategoryNav({ categories, showDeals, showBrands = false }: { categories: NavCategory[]; showDeals: boolean; showBrands?: boolean }) {
+export function CategoryNav({ categories, showDeals }: { categories: NavCategory[]; showDeals: boolean }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const [openedAt, setOpenedAt] = useState<string | null>(null);
@@ -26,18 +26,18 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
   };
   const dealsActive = pathname === "/products" && params.get("sale") === "1";
   const item = (active: boolean) =>
-    `relative flex h-12 items-center whitespace-nowrap px-1 text-sm font-medium transition-colors hover:text-brand-600 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 ${
-      active ? "text-brand-600 after:bg-brand-500" : "after:bg-transparent"
+    `relative flex h-12 items-center whitespace-nowrap px-1 text-sm font-medium transition-colors text-ink/75 hover:text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:bg-brand-500 after:transition-transform after:duration-300 ${
+      active ? "text-brand-600! after:scale-x-100" : "after:scale-x-0 hover:after:scale-x-100"
     }`;
 
   return (
     <nav aria-label="Categories" className="hidden border-t border-border md:block">
-      <div className="container-wide flex flex-wrap items-center gap-x-6 gap-y-1 py-2">
+      <div className="container-wide flex flex-wrap items-center gap-x-7 gap-y-1 py-1.5">
         <button
           type="button"
           aria-haspopup="dialog"
           onClick={() => setOpenedAt(pathname)}
-          className="my-1 inline-flex min-h-10 items-center gap-2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-ink hover:bg-brand-600"
+          className="my-1 inline-flex min-h-10 items-center gap-2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-400 hover:shadow-glow"
         >
           <Menu className="h-4 w-4" aria-hidden /> All Categories <ChevronDown className="h-4 w-4" aria-hidden />
         </button>
@@ -60,18 +60,13 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
           <Link
             href="/products?sale=1"
             aria-current={dealsActive ? "page" : undefined}
-            className={`inline-flex min-h-10 shrink-0 items-center text-sm font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
+            className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 text-sm font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
           >
-            Deals
+            <Flame className="h-4 w-4 animate-flicker fill-brand-500/30" strokeWidth={2} aria-hidden /> Deals
           </Link>
         )}
-        {showBrands && (
-          <Link href="/#brands" className="inline-flex min-h-10 shrink-0 items-center text-sm font-semibold text-ink hover:text-brand-600">
-            Brands
-          </Link>
-        )}
-        <Link href="/#products" className="inline-flex min-h-10 shrink-0 items-center text-sm font-semibold text-ink hover:text-brand-600">
-          New Arrivals
+        <Link href="/#products" className="inline-flex min-h-10 shrink-0 items-center gap-1.5 text-sm font-medium text-ink/75 hover:text-ink">
+          <Star className="h-4 w-4" strokeWidth={1.75} aria-hidden /> New Arrivals
         </Link>
       </div>
     </nav>

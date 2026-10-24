@@ -230,7 +230,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
               const canGo = s.n <= reached && s.n !== step && !submitting;
               const inner = (
                 <>
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-ink" : done ? "border-brand-600 bg-brand-50 text-brand-700" : "border-border text-muted"}`}>
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-on-brand" : done ? "border-brand-600 bg-brand-50 text-brand-700" : "border-border text-muted"}`}>
                     {done ? <Check className="h-4 w-4" aria-hidden /> : s.n}
                   </span>
                   <span className={`min-w-0 text-xs sm:text-sm ${current ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
@@ -367,7 +367,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
             <span className="block text-xs text-muted">{lines.length} {lines.length === 1 ? "item" : "items"} · {summaryOpen ? "Hide details" : "Show details"}</span>
           </span>
           <span className="flex items-center gap-2">
-            <span className="text-lg font-extrabold tabular-nums text-brand-600">{formatLkr(total)}</span>
+            <span className="font-display text-lg font-bold tracking-[-0.02em] tabular-nums text-ink">{formatLkr(total)}</span>
             <ChevronDown className={`h-5 w-5 text-muted transition-transform ${summaryOpen ? "rotate-180" : ""}`} aria-hidden />
           </span>
         </button>
@@ -396,7 +396,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           {savings > 0 && <div className="flex justify-between text-success"><dt>Catalogue savings included</dt><dd>{formatLkr(fromCents(savings))}</dd></div>}
           {offers.map((name) => <div key={name} className="text-xs text-muted">{name}</div>)}
           <div className="flex justify-between"><dt>Delivery</dt><dd data-testid="delivery">{formatLkr(deliveryCharge)}</dd></div>
-          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">Pay on delivery</dt><dd className="text-xl font-extrabold tabular-nums text-brand-600" data-testid="total">{formatLkr(total)}</dd></div>
+          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">Pay on delivery</dt><dd className="font-display text-2xl font-bold tracking-[-0.02em] tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd></div>
         </dl>
         <p className="mt-3 text-xs text-muted">The store has one delivery charge. No other delivery method is offered.</p>
         <p className="mt-4 text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>

@@ -51,6 +51,11 @@ export const MARKETING_PAGES: Record<string, Unavailable> = {
     why: "The storefront has no banner slots backed by data, and no image upload storage exists.",
     needs: ["File/image storage", "A banners table and storefront slots that read from it"],
   },
+  "hot-deals": {
+    title: "Hot Deals",
+    why: "Hot Deals need the website database to store the selection.",
+    needs: ["A configured website database (DATABASE_URL) with the HotDeal migration applied"],
+  },
   promotions: {
     title: "Promotions & discounts",
     why: "Prices and sale prices come from the ERP and the website cannot change them. There is no coupon or discount engine, and orders are validated against ERP prices.",

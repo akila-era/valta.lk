@@ -98,13 +98,13 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
   // Portal to <body>: the sticky header uses backdrop-filter, which would otherwise clip a fixed-position drawer.
   return createPortal(
     <div className="fixed inset-0 z-[60]" role="presentation">
-      <button type="button" aria-label="Close menu overlay" tabIndex={-1} onClick={onClose} className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-ink/50" />
+      <button type="button" aria-label="Close menu overlay" tabIndex={-1} onClick={onClose} className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-black/60" />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label="Browse VALTA.LK"
-        className="absolute inset-y-0 left-0 flex w-[88%] max-w-[22rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg shadow-2xl"
+        className="absolute inset-y-0 left-0 flex w-[88%] max-w-[22rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg text-ink shadow-2xl"
       >
         <div className="flex items-center justify-end border-b border-border px-5 py-4">
           <button type="button" onClick={onClose} className="inline-flex min-h-10 items-center gap-2 text-[15px] font-medium hover:text-brand-600" data-autofocus>

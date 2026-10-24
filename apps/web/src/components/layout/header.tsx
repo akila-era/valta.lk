@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Headset, MapPin, PackageSearch, Truck, Wallet } from "lucide-react";
+import { Headset, Truck, Wallet } from "lucide-react";
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
@@ -30,7 +30,7 @@ async function loadNavData() {
 
 export function Wordmark({ className = "" }: { className?: string }) {
   return (
-    <Link href="/" className={`inline-flex items-baseline font-black tracking-tight text-ink ${className}`} aria-label="VALTA.LK home">
+    <Link href="/" className={`inline-flex items-baseline font-display font-extrabold tracking-[-0.02em] ${className}`} aria-label="VALTA.LK home">
       <span aria-hidden>V</span>
       <span aria-hidden className="text-brand-500">Λ</span>
       <span aria-hidden>LTA</span>
@@ -41,52 +41,42 @@ export function Wordmark({ className = "" }: { className?: string }) {
 
 export async function Header() {
   const accounts = accountsEnabled();
-  const [{ categories, hasDeals, hasBrands }, customer, settings] = await Promise.all([
+  const [{ categories, hasDeals }, customer, settings] = await Promise.all([
     loadNavData(),
     accounts ? getCurrentCustomer() : null,
     getSettings().catch(() => null),
   ]);
-  const note = siteConfig.announcement || siteConfig.highlights[0] || "Prices and availability are checked again at checkout.";
   const cod = settings?.paymentMethods.COD === true;
   return (
     <>
-      {/* The service bar scrolls away with the page; only the logo, search and category rows stay pinned. */}
-      <div className="hidden border-b border-white/10 bg-ink text-white md:block">
-        <div className="container-wide flex h-10 items-center justify-between gap-6 text-xs">
-          <ul className="flex min-w-0 items-center gap-4">
-            <li className="flex min-w-0 items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-500" aria-hidden />
-              <span className="truncate">{note}</span>
-            </li>
+      {/* Slim announcement bar: the owner's SITE_ANNOUNCEMENT plus facts from live ERP settings only. It scrolls away. */}
+      <div className={`border-b border-border bg-surface text-muted ${siteConfig.announcement ? "" : "hidden sm:block"}`}>
+        <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
+          <ul className="flex min-w-0 items-center gap-3 divide-x divide-border [&>li+li]:pl-3">
+            {siteConfig.announcement ? <li className="truncate font-medium text-ink">{siteConfig.announcement}</li> : null}
             {settings ? (
-              <li className="flex shrink-0 items-center gap-1.5">
-                <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden />
-                Delivery {formatLkr(settings.deliveryCharge)}
+              <li className="hidden shrink-0 items-center gap-1.5 sm:flex">
+                <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
               </li>
             ) : null}
             {cod ? (
-              <li className="flex shrink-0 items-center gap-1.5">
-                <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden />
-                Cash on delivery
+              <li className="hidden shrink-0 items-center gap-1.5 md:flex">
+                <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Cash on Delivery Available
               </li>
             ) : null}
-            <li>
-              <Link href="/contact" className="flex items-center gap-1.5 rounded-sm hover:text-brand-500">
-                <Headset className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Customer Support
-              </Link>
-            </li>
           </ul>
-          <nav aria-label="Help" className="flex shrink-0 items-center gap-4">
-            {siteConfig.phone ? <a href={`tel:${siteConfig.phone}`} className="rounded-sm hover:text-brand-500">{siteConfig.phone}</a> : null}
-            <Link href="/track-order" className="rounded-sm hover:text-brand-500">Track Order</Link>
-            {siteConfig.address ? <Link href="/contact" className="rounded-sm hover:text-brand-500">Visit</Link> : null}
+          <nav aria-label="Help" className="hidden shrink-0 items-center gap-3 divide-x divide-border md:flex [&>*+*]:pl-3">
+            {siteConfig.phone ? <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="rounded-sm hover:text-ink">{siteConfig.phone}</a> : null}
+            <Link href="/track-order" className="rounded-sm hover:text-ink">Track order</Link>
+            <Link href="/contact" className="rounded-sm hover:text-ink">Help</Link>
+            <Link href="/about" className="rounded-sm hover:text-ink">About Us</Link>
           </nav>
         </div>
       </div>
       <HeaderShell>
-        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2.5 py-3 md:grid md:h-20 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
+        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2.5 py-3 md:grid md:h-[4.5rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="text-[1.6rem] md:text-[2.1rem]" />
+          <Wordmark className="text-[1.6rem] text-ink md:text-[2.25rem]" />
           <div className="order-last w-full md:order-none">
             <SearchBox size="lg" />
           </div>
@@ -94,19 +84,14 @@ export async function Header() {
             <Link href="/contact" className="hidden items-center gap-2 px-3 text-sm font-medium hover:text-brand-600 lg:inline-flex">
               <Headset className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Support
             </Link>
-            {accounts ? (
-              <AccountMenu customer={customer ? { name: customer.name } : null} enabled />
-            ) : (
-              <Link href="/track-order" className="hidden items-center gap-2 pr-5 text-sm font-medium hover:text-brand-600 lg:inline-flex">
-                <PackageSearch className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Track Order
-              </Link>
-            )}
+            {/* Track order lives in the announcement bar, so the main row only adds the account menu when accounts exist. */}
+            {accounts ? <AccountMenu customer={customer ? { name: customer.name } : null} enabled /> : null}
             <WishlistLink />
             <div className="md:pl-5"><CartLink /></div>
           </div>
         </div>
         <Suspense fallback={null}>
-          <CategoryNav categories={categories} showDeals={hasDeals} showBrands={hasBrands} />
+          <CategoryNav categories={categories} showDeals={hasDeals} />
         </Suspense>
       </HeaderShell>
     </>

@@ -120,7 +120,8 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
             }
           }}
           onFocus={() => {
-            if (q.trim().length >= 2) setArmed(true);
+            // The search page autofocuses with the query already shown; open suggestions only once the shopper edits it.
+            if (q.trim().length >= 2 && q !== initialQuery) setArmed(true);
             if (items.length) setOpen(true);
           }}
           onKeyDown={onKeyDown}
@@ -133,11 +134,11 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-full border-transparent bg-surface pl-12 pr-28 text-[15px]" : "pl-11 pr-16"}`}
+          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-full border-border bg-surface pl-12 pr-28 text-[15px] focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
         />
         {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute bottom-1 right-1 top-1 flex w-14 items-center justify-center rounded-full bg-brand-500 text-ink transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
+          <button type="submit" className="absolute bottom-1 right-1 top-1 flex w-14 items-center justify-center rounded-full bg-brand-500 text-on-brand transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
             <Search className="h-5 w-5" strokeWidth={2.5} aria-hidden />
           </button>
         ) : (
@@ -159,7 +160,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
       </form>
 
       {visible && (
-        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-bg py-1 shadow-overlay">
+        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-bg py-1 text-ink shadow-overlay">
           {items.length === 0 && !loading && <li role="presentation" className="px-4 py-3 text-sm text-muted">No matching products</li>}
           {items.map((s, i) => (
             <li key={s.id} role="option" id={`${listId}-opt-${i}`} aria-selected={active === i}>
@@ -178,7 +179,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
                   )}
                 </span>
                 <span className="shrink-0 text-right">
-                  <span className="block font-semibold tabular-nums text-brand-600">{formatLkr(effectivePrice(s))}</span>
+                  <span className="block font-display font-semibold tabular-nums text-ink">{formatLkr(effectivePrice(s))}</span>
                   {effectivePrice(s) < s.price && (
                     <span className="block text-xs text-muted">
                       <span className="sr-only">Regular price</span>

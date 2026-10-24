@@ -11,7 +11,7 @@ export function WishlistLink() {
       <span className="relative">
         <Heart className="h-5 w-5" strokeWidth={1.5} aria-hidden />
         {count > 0 && (
-          <span key={count} className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] animate-pop items-center justify-center rounded-full bg-brand-500 px-1 text-[11px] font-bold text-ink" data-testid="wishlist-count">{count}</span>
+          <span key={count} className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] animate-pop items-center justify-center rounded-full bg-brand-500 px-1 text-[11px] font-bold text-on-brand" data-testid="wishlist-count">{count}</span>
         )}
       </span>
       <span className="hidden lg:inline">Wishlist</span>

@@ -5,10 +5,22 @@ import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 const SLIDES = [
-  { src: "/images/home/valta-hero-match.webp", alt: "Smartphones, earbuds, a watch and headphones on stone with orange fabric" },
-  { src: "/images/home/valta-hero-audio.webp", alt: "Wireless earbuds and an open charging case in a warm studio" },
-  { src: "/images/home/valta-hero-watch.webp", alt: "A silver smartwatch in a warm studio" },
-  { src: "/images/home/valta-hero-electronics.webp", alt: "A smartphone and wireless earbuds in a warm studio" },
+  {
+    src: "/images/home/valta-hero-laptops.webp",
+    alt: "Premium laptops and ultrabooks in a modern workspace",
+  },
+  {
+    src: "/images/home/valta-hero-gaming.webp",
+    alt: "Dark gaming setup with RGB PC, ultra-wide monitor, mechanical keyboard and headset",
+  },
+  {
+    src: "/images/home/valta-hero-mobile.webp",
+    alt: "Flagship smartphone, smartwatch and wireless earbuds in a modern product studio",
+  },
+  {
+    src: "/images/home/valta-hero-accessories.webp",
+    alt: "Premium travel backpack, power banks, fast chargers and braided cables",
+  },
 ] as const;
 
 const INTERVAL_MS = 6000;
@@ -25,7 +37,7 @@ function useReducedMotion() {
   );
 }
 
-/** Four campaign photographs. Copy stays in the hero; only the picture moves. */
+/** Four warm studio campaign photographs. Copy stays in the hero; only the picture moves. */
 export function HeroSlides() {
   const n = SLIDES.length;
   const [i, setI] = useState(0);
@@ -47,7 +59,7 @@ export function HeroSlides() {
       aria-roledescription="carousel"
       aria-label="Campaign photographs"
       tabIndex={0}
-      className="absolute inset-0 overflow-hidden bg-surface outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+      className="absolute inset-0 overflow-hidden bg-[#f6efe7] outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocusCapture={() => setHover(true)}
@@ -88,23 +100,15 @@ export function HeroSlides() {
             aria-hidden={idx !== i}
             className="relative h-full w-full shrink-0"
           >
-            <Image
-              src={slide.src}
-              alt={idx === i ? slide.alt : ""}
-              fill
-              priority={idx === 0}
-              sizes="100vw"
-              className="object-cover object-[center_58%] md:object-[center_46%]"
-            />
+            <span className="absolute inset-0">
+              <Image src={slide.src} alt={idx === i ? slide.alt : ""} fill priority={idx === 0} sizes="100vw" className={`object-cover object-[center_60%] md:object-[70%_50%] ${idx === i ? "animate-kenburns" : ""}`} />
+            </span>
           </div>
         ))}
       </div>
 
-      {/* One compact control pill: bottom corner of the photo on phones (swipe replaces the arrows), under the copy on wider screens so it never sits on the products. */}
-      <div className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-0.5 rounded-full bg-white/85 p-0.5 shadow-card backdrop-blur-md sm:p-1 md:bottom-5 md:left-16 md:right-auto lg:left-20">
-        <button type="button" onClick={() => go(i - 1)} aria-label="Previous slide" className="hidden h-9 w-9 sm:flex items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5">
-          <ChevronLeft className="h-4.5 w-4.5" aria-hidden />
-        </button>
+      {/* Dots (and pause, since the slides move on their own) bottom-left under the copy; round arrows bottom-right. */}
+      <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1 rounded-full bg-white/70 px-1 backdrop-blur-sm md:bottom-6 md:left-4 md:bg-transparent md:px-0 md:backdrop-blur-none lg:left-6">
         {SLIDES.map((slide, idx) => (
           <button
             key={slide.src}
@@ -112,22 +116,26 @@ export function HeroSlides() {
             onClick={() => go(idx)}
             aria-label={`Go to slide ${idx + 1}`}
             aria-current={idx === i ? "true" : undefined}
-            className="group/dot flex h-9 min-w-6 items-center justify-center"
+            className="group/dot flex h-8 min-w-6 items-center justify-center"
           >
             <span aria-hidden className={`block h-1.5 rounded-full transition-all duration-300 ${idx === i ? "w-6 bg-brand-500" : "w-1.5 bg-ink/25 group-hover/dot:bg-ink/50"}`} />
           </button>
         ))}
-        <button type="button" onClick={() => go(i + 1)} aria-label="Next slide" className="hidden h-9 w-9 sm:flex items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5">
-          <ChevronRight className="h-4.5 w-4.5" aria-hidden />
-        </button>
-        <span aria-hidden className="mx-0.5 hidden h-5 w-px bg-ink/10 sm:block" />
         <button
           type="button"
           onClick={() => setPaused((p) => !p)}
           aria-label={paused ? "Play slideshow" : "Pause slideshow"}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5"
+          className="ml-1 flex h-8 w-8 items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
         >
           {paused ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
+        </button>
+      </div>
+      <div className="absolute bottom-3 right-3 z-20 hidden gap-2 sm:flex md:bottom-6 md:right-6">
+        <button type="button" onClick={() => go(i - 1)} aria-label="Previous slide" className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/85 text-ink shadow-card backdrop-blur-sm transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand">
+          <ChevronLeft className="h-5 w-5" aria-hidden />
+        </button>
+        <button type="button" onClick={() => go(i + 1)} aria-label="Next slide" className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/85 text-ink shadow-card backdrop-blur-sm transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand">
+          <ChevronRight className="h-5 w-5" aria-hidden />
         </button>
       </div>
     </div>

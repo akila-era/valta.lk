@@ -7,3 +7,30 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Agent tooling: keep reviewed skill text, never local settings, binaries or caches
+.claude/settings.local.json
+.codex/
+**/scripts/bin/
+**/__pycache__/
+*.pyc
+*.exe
+# Absolute-path symlinks created by `npx skills add` (point at this machine only); the real files live in .agents/skills
+.claude/skills/animate
+.claude/skills/animate-expo
+.claude/skills/animation-performance
+.claude/skills/animation-vocabulary
+.claude/skills/apple-design
+.claude/skills/ask-sonner
+.claude/skills/break-ui
+.claude/skills/emil-design-eng
+.claude/skills/find-animation-opportunities
+.claude/skills/improve-animations
+.claude/skills/mobile-native
+.claude/skills/pick-ui-library
+.claude/skills/prototype
+.claude/skills/review-animations
+.claude/skills/write-swift
+# Impeccable launchers download and run a binary when it is missing; not committed until reviewed
+**/skills/impeccable/scripts/impeccable
+**/skills/impeccable/scripts/impeccable.cmd

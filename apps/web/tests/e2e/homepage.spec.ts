@@ -24,10 +24,10 @@ test.describe("homepage", () => {
     await expect(page.getByRole("link", { name: "Explore latest phones" })).toHaveAttribute("href", "/categories/mobile-phones");
 
     await expect(page.getByRole("heading", { name: "Shop by category" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Explore mobile phones" })).toBeVisible(); // derived dark banner
-    await expect(page.getByRole("heading", { name: "Shop accessories" })).toBeVisible(); // derived light banner
+    await expect(page.getByRole("heading", { name: "Hot Deals" })).toBeVisible(); // the ERP has a real sale price
     await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Shop by brand" })).toBeVisible();
+    // a short page: category-derived promo banners only appear once staff create banners in the admin
+    await expect(page.getByRole("heading", { name: "Explore mobile phones" })).toHaveCount(0);
     const bar = page.getByRole("region", { name: "Shopping with VALTA.LK" });
     await expect(bar.getByText("Delivery LKR 450")).toBeVisible(); // from ERP settings, not hardcoded
     await expect(bar.getByText("Cash on delivery")).toBeVisible();
@@ -245,8 +245,8 @@ test.describe("reference-inspired patterns", () => {
       const items = await page.locator("section[aria-labelledby=cats] ul > li").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, r: r.right }; }));
       expect(items.length).toBeGreaterThanOrEqual(4);
       for (const i of items.slice(1)) expect(Math.abs(i.w - items[0].w)).toBeLessThan(2); // uniform
-      const track = await page.locator("section[aria-labelledby=cats] [aria-roledescription=carousel]").boundingBox();
-      if (w >= 640 && track) expect(Math.abs(track.x - (w - (track.x + track.width)))).toBeLessThan(w * 0.12); // the scroller sits in the middle
+      const track = await page.locator("section[aria-labelledby=cats] ul").first().boundingBox(); // the card grid
+      if (w >= 640 && track) expect(Math.abs(track.x - (w - (track.x + track.width)))).toBeLessThan(w * 0.12); // the grid sits in the middle
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
       await ctx.close();
     }
@@ -288,7 +288,7 @@ test.describe("reference-inspired patterns", () => {
   });
 });
 
-test.describe("videos and more products", () => {
+test.describe("videos", () => {
   test("videos: configured videos only; no YouTube request until play is pressed", async ({ page }) => {
     const youtube: string[] = [];
     page.on("request", (r) => /youtube|ytimg|googlevideo/.test(r.url()) && youtube.push(r.url()));
@@ -310,67 +310,10 @@ test.describe("videos and more products", () => {
     await expect(sec.getByRole("button", { name: "Play video: Test video two" })).toBeVisible(); // the other stays a thumbnail
   });
 
-  test("more products carousel: honest title, 2 cards per view on phones with working dots", async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: "reduce" });
-    const page = await ctx.newPage();
-    await page.goto("/");
-    const sec = page.locator("section[aria-labelledby=more-products]");
-    await sec.scrollIntoViewIfNeeded();
-    await expect(sec.getByRole("heading", { name: "Explore More Products" })).toBeVisible();
-    await expect(page.getByText(/most popular|best.?sellers?/i)).toHaveCount(0); // no sales data, so no such claim
-    const n = await sec.locator("article").count();
-    expect(n).toBeGreaterThanOrEqual(3);
-    const dots = sec.getByRole("group", { name: "More products pages" }).getByRole("button");
-    await expect(dots).toHaveCount(Math.ceil(n / 2)); // a partly filled last page still gets a dot
-    await expect(dots.first()).toHaveAttribute("aria-current", "true");
-    const region = sec.getByRole("region", { name: "More products" });
-    await dots.nth(1).click();
-    await expect.poll(() => region.evaluate((el) => el.scrollLeft)).toBeGreaterThan(100);
-    await expect(dots.nth(1)).toHaveAttribute("aria-current", "true");
-    await dots.first().click();
-    await expect.poll(() => region.evaluate((el) => el.scrollLeft)).toBeLessThan(5);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
-    await ctx.close();
-  });
-
-  test("more products carousel: arrows work on desktop and nothing shows when everything fits one page", async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width: 820, height: 900 }, reducedMotion: "reduce" });
-    const page = await ctx.newPage();
-    await page.goto("/");
-    const sec = page.locator("section[aria-labelledby=more-products]");
-    await sec.scrollIntoViewIfNeeded();
-    const n = await sec.locator("article").count();
-    const perView = 3; // md: 3 cards per view
-    if (n > perView) {
-      const pages = Math.ceil(n / perView);
-      await expect(sec.getByRole("group", { name: "More products pages" }).getByRole("button")).toHaveCount(pages);
-      await sec.getByRole("button", { name: "Next More products" }).click();
-      await expect.poll(() => sec.getByRole("region", { name: "More products" }).evaluate((el) => el.scrollWidth - el.clientWidth - el.scrollLeft)).toBeLessThan(2); // scrolled to the end
-      // the final page is reachable and the last card is fully inside the scroller
-      const region = await sec.getByRole("region", { name: "More products" }).boundingBox();
-      const last = await sec.locator("article").last().boundingBox();
-      expect(last!.x + last!.width).toBeLessThanOrEqual(region!.x + region!.width + 2);
-      await expect(sec.getByRole("button", { name: "Next More products" })).toBeDisabled(); // last page
-    } else {
-      await expect(sec.getByRole("button", { name: /Next|Previous/ })).toHaveCount(0);
-    }
-    // wide screen: fewer cards than fit a row are centred, not pushed to the left
-    await page.setViewportSize({ width: 1700, height: 900 });
-    const cards = sec.locator("article");
-    if ((await cards.count()) < 5) {
-      await expect
-        .poll(async () => {
-          const f = (await cards.first().boundingBox())!, l = (await cards.last().boundingBox())!, r = (await sec.getByRole("region", { name: "More products" }).boundingBox())!;
-          return Math.abs(f.x - r.x - (r.x + r.width - (l.x + l.width)));
-        })
-        .toBeLessThan(6);
-    }
-    await ctx.close();
-  });
 });
 
 test.describe("more homepage sections", () => {
-  test("product tabs, budget shortcuts, how-it-works and FAQ are present and data-driven", async ({ page }) => {
+  test("product tabs and FAQ are present and data-driven", async ({ page }) => {
     await page.goto("/");
     await scrollThrough(page);
     const tabs = page.getByRole("navigation", { name: "Product collections" });
@@ -386,22 +329,9 @@ test.describe("more homepage sections", () => {
     // the duplicate "Featured categories" block was removed: categories appear once, in "Shop by category"
     await expect(page.getByRole("heading", { name: "Featured categories" })).toHaveCount(0);
 
-    await expect(page.getByRole("heading", { name: "How ordering works" })).toBeVisible();
-    await expect(page.getByText("Enter your delivery details and choose cash on delivery")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Questions, answered" })).toBeVisible();
     const ld = await page.$$eval("script[type='application/ld+json']", (els) => els.map((e) => e.textContent ?? ""));
     expect(ld.some((t) => t.includes('"FAQPage"') && t.includes("What about returns?"))).toBe(true);
-  });
-
-  test("every budget tile opens a non-empty, correctly filtered list", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.locator("section[aria-labelledby=budget]"), "budget section missing from the homepage").toBeVisible();
-    const links = await page.locator("section[aria-labelledby=budget]").getByRole("link").evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!));
-    expect(links).toHaveLength(3);
-    for (const href of links) {
-      await page.goto(href);
-      await expect(page.locator("main article").first(), href).toBeVisible();
-    }
   });
 
   test("the FAQ expands with the keyboard", async ({ page }) => {
@@ -455,25 +385,15 @@ test.describe("more homepage sections", () => {
     await expect(page.getByRole("link", { name: "Pulse Wireless Earbuds", exact: true })).toBeVisible();
   });
 
-  test("product card: left-aligned text, In stock / New badges, action bar on hover and keyboard focus", async ({ page }) => {
+  test("compact product card: left-aligned title, real price and an always-visible Add to cart", async ({ page }) => {
     await page.goto("/");
     const card = page.locator("#products article", { hasText: "Pulse Wireless Earbuds" }).first();
-    await expect(card.getByText("In stock")).toBeVisible();
-    await expect(card.getByText("New", { exact: true })).toBeVisible(); // published in the last 30 days
-    expect(await card.locator("h3").evaluate((el) => getComputedStyle(el).textAlign)).toBe("left");
-    const bar = card.getByRole("button", { name: /^Add to cart:/ });
-    // hidden (translated out of the image area) until hovered or focused
-    const box = async () => { const b = await bar.boundingBox(); const c = await card.boundingBox(); return { barTop: b!.y, cardTop: c!.y, barH: b!.height }; };
+    expect(["left", "start"]).toContain(await card.locator("h3").evaluate((el) => getComputedStyle(el).textAlign)); // start = left in LTR
+    await expect(card.getByText("LKR 14,900")).toBeVisible();
+    const button = card.getByRole("button", { name: /^Add to cart:/ });
     await page.mouse.move(2, 2);
-    const m = await box();
-    expect(m.barTop).toBeGreaterThan(m.cardTop + 150); // below the visible image area when idle
-    await card.hover();
-    await expect.poll(async () => (await box()).barTop).toBeLessThan(m.barTop - 20);
-    await expect(bar).toContainText(/add to cart/i);
-    // keyboard focus reveals it too
-    await page.mouse.move(2, 2);
-    await bar.focus();
-    await expect.poll(async () => (await box()).barTop).toBeLessThan(m.barTop - 20);
+    await expect(button).toBeVisible(); // no hover needed
+    await button.focus();
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("cart-count")).toHaveText("1");
     // variant products get "Choose options" instead of Add to cart
@@ -482,28 +402,22 @@ test.describe("more homepage sections", () => {
     await expect(phone.getByText("From", { exact: true })).toBeVisible();
   });
 
-  test("product card action bar is always visible on touch screens (with and without reduced motion)", async ({ browser }) => {
-    for (const reducedMotion of ["no-preference", "reduce"] as const) {
-      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion });
-      const page = await ctx.newPage();
-      await page.goto("/");
-      const card = page.locator("#products article", { hasText: "Pulse Wireless Earbuds" }).first();
-      await card.scrollIntoViewIfNeeded();
-      const bar = card.getByRole("button", { name: /^Add to cart:/ });
-      const wrap = bar.locator("xpath=..");
-      await expect.poll(() => wrap.evaluate((el) => getComputedStyle(el).opacity)).toBe("1");
-      const b = (await bar.boundingBox())!;
-      const c = (await card.boundingBox())!;
-      expect(b.y + b.height).toBeLessThanOrEqual(c.y + c.width + 1); // sits inside the square image area, not below it
-      expect(b.height).toBeGreaterThanOrEqual(40); // comfortable touch target
-      await bar.tap();
-      await expect(page.getByTestId("cart-count")).toHaveText("1");
-      await ctx.close();
-    }
+  test("compact product card Add to cart works by tap on touch screens", async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    const card = page.locator("#products article", { hasText: "Pulse Wireless Earbuds" }).first();
+    await card.scrollIntoViewIfNeeded();
+    const button = card.getByRole("button", { name: /^Add to cart:/ });
+    await expect(button).toBeVisible();
+    expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(36);
+    await button.tap();
+    await expect(page.getByTestId("cart-count")).toHaveText("1");
+    await ctx.close();
   });
 
   test("product showcase: grid columns follow the breakpoint and never overflow", async ({ browser }) => {
-    for (const [w, cols] of [[1700, 5], [1100, 4], [820, 3], [390, 2]] as const) {
+    for (const [w, cols] of [[1700, 6], [1300, 6], [1100, 5], [820, 3], [390, 2]] as const) {
       const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" });
       const page = await ctx.newPage();
       await page.goto("/");
@@ -523,7 +437,7 @@ test.describe("motion", () => {
     await scrollThrough(page);
     const hidden = await page.$$eval("[data-reveal='hidden']", (els) => els.length);
     expect(hidden).toBe(0);
-    await expect(page.getByRole("heading", { name: "Shop by brand" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Featured Products" })).toBeVisible();
     expect(await page.locator("[data-reveal='shown']").count()).toBeGreaterThan(0);
   });
 
@@ -538,20 +452,6 @@ test.describe("motion", () => {
     await ctx.close();
   });
 
-  test("brand cards: real brands with counts, each searching that brand", async ({ page }) => {
-    await page.goto("/");
-    const brands = page.locator("section[aria-labelledby=brands]");
-    await expect(brands.getByRole("heading", { name: "Shop by brand" })).toBeVisible();
-    const volt = brands.getByRole("link", { name: "Volt, 3 products" });
-    await expect(volt).toHaveAttribute("href", "/search?q=Volt");
-    await expect(brands.getByRole("link", { name: /^Atlas, 2 products/ })).toBeVisible();
-    // each brand is listed once (no duplicated marquee copy)
-    await expect(brands.getByRole("link", { name: /^Volt,/ })).toHaveCount(1);
-    await volt.focus(); // focus pauses the moving marquee, the same way a keyboard shopper reaches it
-    await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/search\?q=Volt/);
-    await expect(page.locator("main article", { hasText: "Volt 20W Fast Charger" })).toBeVisible();
-  });
 });
 
 const WIDTHS = [1440, 1280, 768, 390, 360];

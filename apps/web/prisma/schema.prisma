@@ -267,3 +267,20 @@ model Banner {
 
   @@index([active, sortOrder])
 }
+
+/// A product hand-picked by staff for the homepage Hot Deals panel. Only the selection, order and schedule live here:
+/// price, sale price, stock and availability always come from the ERP snapshot when the homepage is built.
+model HotDeal {
+  id        String    @id @default(cuid())
+  /// ERP product id. One entry per product.
+  erpItemId String    @unique
+  sortOrder Int       @default(0)
+  startsAt  DateTime  @default(now())
+  endsAt    DateTime?
+  active    Boolean   @default(true)
+  updatedBy String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([active, sortOrder])
+}

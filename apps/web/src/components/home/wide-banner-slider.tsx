@@ -63,7 +63,7 @@ export function WideBannerSlider({ slides }: { slides: WideSlide[] }) {
             className={`absolute inset-0 transition-opacity duration-700 motion-reduce:transition-none ${active ? "opacity-100" : "pointer-events-none opacity-0"}`}
           >
             {s.href ? (
-              <Link href={s.href} tabIndex={active ? undefined : -1} className="block h-full w-full">
+              <Link href={s.href} tabIndex={active ? undefined : -1} className="relative block h-full w-full">
                 {picture}
               </Link>
             ) : (
@@ -79,7 +79,7 @@ export function WideBannerSlider({ slides }: { slides: WideSlide[] }) {
             type="button"
             aria-label="Previous banner"
             onClick={() => go(index - 1)}
-            className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-md transition-opacity hover:bg-white md:flex md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+            className="absolute left-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-on-brand shadow-md transition-opacity hover:bg-white md:flex md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
           >
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
@@ -87,7 +87,7 @@ export function WideBannerSlider({ slides }: { slides: WideSlide[] }) {
             type="button"
             aria-label="Next banner"
             onClick={() => go(index + 1)}
-            className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-md transition-opacity hover:bg-white md:flex md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
+            className="absolute right-3 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-on-brand shadow-md transition-opacity hover:bg-white md:flex md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100"
           >
             <ChevronRight className="h-5 w-5" aria-hidden />
           </button>

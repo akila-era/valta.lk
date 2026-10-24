@@ -270,7 +270,7 @@ export function CartView() {
           ))}
           <div className="flex items-baseline justify-between border-t border-border pt-3 text-base">
             <dt className="font-semibold">{total != null ? "Total" : "Total before delivery"}</dt>
-            <dd className="text-xl font-extrabold tabular-nums text-brand-600" data-testid="total">{formatLkr(total ?? subtotal)}</dd>
+            <dd className="font-display text-2xl font-bold tracking-[-0.02em] tabular-nums text-ink" data-testid="total">{formatLkr(total ?? subtotal)}</dd>
           </div>
         </dl>
         <p className="mt-3 text-xs text-muted">Payment is cash on delivery. Prices and stock are confirmed again when you place your order.</p>
@@ -284,7 +284,7 @@ export function CartView() {
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1">
               <span className="block text-xs text-muted">{total != null ? "Total" : "Total before delivery"}</span>
-              <span className="text-lg font-extrabold tabular-nums text-brand-600">{formatLkr(total ?? subtotal)}</span>
+              <span className="font-display text-lg font-bold tracking-[-0.02em] tabular-nums text-ink">{formatLkr(total ?? subtotal)}</span>
             </p>
             <Link href="/checkout" className={`btn-primary shrink-0 ${blocked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={blocked} aria-label="Checkout" tabIndex={blocked ? -1 : undefined}>
               Checkout

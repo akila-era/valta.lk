@@ -124,7 +124,7 @@ export function OrderTracker({ initialRef = "" }: { initialRef?: string }) {
                   const done = i <= stepIndex;
                   return (
                     <li key={s.status} className="flex items-center gap-3" aria-current={i === stepIndex ? "step" : undefined}>
-                      <span className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs ${done ? "border-brand-500 bg-brand-500 text-ink" : "border-border text-muted"}`}>
+                      <span className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs ${done ? "border-brand-500 bg-brand-500 text-on-brand" : "border-border text-muted"}`}>
                         {done ? <Check className="h-4 w-4" aria-hidden /> : i + 1}
                       </span>
                       <span className={done ? "font-semibold" : "text-muted"}>{s.label}</span>

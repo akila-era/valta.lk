@@ -20,7 +20,7 @@ export function VideoShowcase({ title, videos }: { title: string; videos: VideoC
           const on = playing === v.id;
           return (
             <li key={v.id}>
-              <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-ink">
+              <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-surface">
                 {on ? (
                   <iframe
                     src={`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`}
@@ -40,7 +40,7 @@ export function VideoShowcase({ title, videos }: { title: string; videos: VideoC
                       className="h-full w-full object-cover transition-transform duration-500 motion-reduce:transition-none motion-reduce:group-hover:scale-100 group-hover:scale-[1.03]"
                     />
                     <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500 text-ink shadow-lg transition-transform motion-reduce:transition-none motion-reduce:group-hover:scale-100 group-hover:scale-110 group-focus-visible:scale-110">
+                    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-lg transition-transform motion-reduce:transition-none motion-reduce:group-hover:scale-100 group-hover:scale-110 group-focus-visible:scale-110">
                       <Play className="ml-0.5 h-6 w-6 fill-current" aria-hidden />
                     </span>
                   </button>

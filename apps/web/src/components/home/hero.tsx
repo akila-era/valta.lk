@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Headset, PackageSearch, Truck, Wallet } from "lucide-react";
+import { ArrowRight, Headset, PackageSearch, Truck, Wallet, Zap } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { HeroSlides } from "./hero-slides";
@@ -11,36 +11,44 @@ interface HeroProps {
   deliveryCharge: number | null;
 }
 
-/** Full-width campaign. The photograph slides; the headline and actions stay as HTML on the left. */
+/**
+ * Full-bleed light campaign. The studio photographs slide behind; the headline and actions stay as HTML on the left,
+ * over a warm fade so the text keeps its contrast. Hero and service strip together fill the first screen below the
+ * header (see --hdr-h in HeaderShell), so the strip is visible without scrolling.
+ */
 export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroProps) {
   return (
-    <>
-      <section aria-labelledby="hero-title" className="bg-bg">
-        <div className="container-wide py-4 sm:py-5">
-          <div className="overflow-hidden rounded-[1.5rem] bg-[#f7f1ea] sm:rounded-[1.75rem] md:relative md:h-[clamp(21rem,36vw,27rem)]">
-            <div className="relative aspect-[16/9] md:absolute md:inset-0 md:aspect-auto">
-              <HeroSlides />
-            </div>
-            <div className="pointer-events-none relative z-10 flex flex-col justify-center px-5 py-6 sm:px-8 md:absolute md:inset-y-0 md:left-0 md:w-[46%] md:bg-gradient-to-r md:from-white/70 md:via-white/30 md:to-transparent md:pb-20 md:pl-16 md:pr-4 md:pt-6 lg:pl-20">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-600 sm:text-xs">Latest technology</p>
-              <h1 id="hero-title" className="mt-2 max-w-[11ch] text-[2rem] font-black leading-[0.98] tracking-[-0.04em] text-ink sm:text-4xl lg:text-[2.9rem]">
-                Technology that <span className="text-brand-500">moves</span> you.
-              </h1>
-              <p className="mt-3 max-w-md text-sm leading-6 text-ink/70 sm:mt-4 sm:text-base sm:leading-7">
-                Discover smartphones, everyday tech and accessories at VALTA.LK.
-              </p>
-              <div className="pointer-events-auto mt-5 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
-                <Link href="/products" className="btn-primary rounded-full px-4 shadow-[0_8px_20px_-10px_rgb(255_92_0/0.7)] sm:btn-lg sm:px-7">
-                  Shop now <ArrowRight className="h-4 w-4" aria-hidden />
+    <div className="flex min-h-[calc(100svh-var(--hdr-h,8rem))] flex-col md:h-[calc(100svh-var(--hdr-h,10.5rem))] md:min-h-[34rem]">
+      <section aria-labelledby="hero-title" className="relative flex flex-1 flex-col overflow-hidden bg-[#f6efe7] text-ink md:block">
+        <div className="relative min-h-[13rem] flex-1 md:absolute md:inset-0">
+          <HeroSlides />
+          {/* Fades the photograph into the warm background: leftwards on wide screens, downwards on phones. */}
+          <span aria-hidden className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-t from-[#f6efe7] via-transparent to-transparent md:bg-gradient-to-r md:from-[#f6efe7] md:from-10% md:via-[#f6efe7]/70 md:via-35% md:to-transparent md:to-60%" />
+        </div>
+        {/* A soft orange bloom behind the copy ties the text side to the orange fabric in the photographs. */}
+        <span aria-hidden className="pointer-events-none absolute -left-32 top-[12%] hidden h-96 w-96 animate-glow rounded-full bg-brand-500/15 blur-3xl md:block" />
+        <div className="pointer-events-none relative z-10 md:absolute md:inset-0">
+          <div className="container-wide flex h-full flex-col justify-center pb-10 pt-2 md:pb-16 md:pt-6">
+            <p className="inline-flex w-fit animate-fade-up items-center gap-2 rounded-full bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-on-brand shadow-glow">
+              <Zap className="h-3.5 w-3.5 fill-current" aria-hidden /> Latest technology
+            </p>
+            <h1 id="hero-title" className="mt-4 max-w-[11ch] animate-fade-up [--d:90ms] font-display text-[2.2rem] font-extrabold leading-[0.96] tracking-[-0.028em] sm:text-[2.8rem] lg:text-[4rem]">
+              Technology that <span className="text-brand-500">moves</span> you.
+            </h1>
+            <p className="mt-4 max-w-md animate-fade-up text-sm leading-6 text-ink/75 [--d:180ms] sm:text-lg sm:leading-7">
+              Discover smartphones, everyday tech and accessories at VALTA.LK.
+            </p>
+            <div className="pointer-events-auto mt-5 flex animate-fade-up flex-wrap items-center gap-2 [--d:270ms] sm:gap-3">
+              <Link href="/products" className="btn-primary shine px-5 sm:px-6">
+                Shop now <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+              {phonesHref && (
+                <Link href={phonesHref} className="btn-outline bg-white/80 px-5 sm:px-6">
+                  Explore latest phones
                 </Link>
-                {phonesHref && (
-                  <Link href={phonesHref} className="btn-outline rounded-full bg-white px-4 sm:btn-lg sm:px-7">
-                    Explore latest phones
-                  </Link>
-                )}
-              </div>
+              )}
               {accessoriesHref && (
-                <Link href={accessoriesHref} className="pointer-events-auto group mt-3 inline-flex min-h-10 w-fit items-center gap-1.5 rounded-sm text-sm font-semibold text-ink underline-offset-4 hover:underline">
+                <Link href={accessoriesHref} className="group inline-flex min-h-11 items-center gap-1.5 rounded-sm px-2 text-sm font-semibold text-ink underline-offset-4 hover:underline">
                   Explore accessories <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
                 </Link>
               )}
@@ -49,7 +57,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
         </div>
       </section>
       <ServiceBar cod={cod} deliveryCharge={deliveryCharge} />
-    </>
+    </div>
   );
 }
 
@@ -62,23 +70,23 @@ function ServiceBar({ cod, deliveryCharge }: { cod: boolean; deliveryCharge: num
   ].filter(Boolean) as { icon: typeof Truck; title: string; text: string; href?: string }[];
 
   return (
-    <section aria-label="Shopping with VALTA.LK" className="border-y border-border bg-bg">
-      <ul className="container-page grid grid-cols-1 gap-y-4 py-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-0 lg:divide-x lg:divide-border">
+    <section aria-label="Shopping with VALTA.LK" className="container-page shrink-0 py-3">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl border border-border bg-surface px-4 py-2.5 sm:px-5 lg:grid-cols-4 lg:gap-y-0 lg:divide-x lg:divide-border">
         {items.map(({ icon: I, title, text, href }) => {
           const body = (
             <>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface text-ink">
-                <I className="h-5 w-5" strokeWidth={1.6} aria-hidden />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bg text-brand-500 shadow-card">
+                <I className="h-4 w-4" strokeWidth={1.75} aria-hidden />
               </span>
               <span>
-                <span className="block text-base font-semibold text-ink">{title}</span>
-                {text && <span className="block text-sm text-muted">{text}</span>}
+                <span className="block text-xs font-semibold leading-tight text-ink sm:text-[13px]">{title}</span>
+                {text && <span className="hidden text-[11px] text-muted sm:block">{text}</span>}
               </span>
             </>
           );
           return (
-            <li key={title} className="flex lg:justify-center lg:px-6 lg:first:justify-start lg:first:pl-0 lg:last:justify-end lg:last:pr-0">
-              {href ? <Link href={href} className="flex items-center gap-4 hover:text-brand-600">{body}</Link> : <div className="flex items-center gap-4">{body}</div>}
+            <li key={title} className="flex lg:justify-center lg:px-6 lg:first:justify-start lg:first:pl-2 lg:last:justify-end lg:last:pr-2">
+              {href ? <Link href={href} className="flex items-center gap-3 hover:text-brand-600 sm:gap-4">{body}</Link> : <div className="flex items-center gap-3 sm:gap-4">{body}</div>}
             </li>
           );
         })}

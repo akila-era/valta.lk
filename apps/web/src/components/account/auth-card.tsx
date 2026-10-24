@@ -16,7 +16,7 @@ export function AuthCard({ title, intro, children, footer }: { title: string; in
 export function AccountsUnavailableNotice() {
   return (
     <AuthCard title="Accounts are unavailable" intro="Customer accounts are not available right now. You can still shop and check out as a guest.">
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Link href="/products" className="btn-primary">Continue shopping</Link>
         <Link href="/track-order" className="btn-secondary">Track an order</Link>
       </div>
