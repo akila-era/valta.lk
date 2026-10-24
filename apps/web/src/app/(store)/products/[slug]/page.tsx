@@ -175,7 +175,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
             </ul>
           )}
           {c?.shortDescription && <p className="mt-4 max-w-prose text-[15px] leading-7 text-muted">{c.shortDescription}</p>}
-          <div className="mt-6 rounded-2xl border border-border bg-bg p-5 shadow-card sm:p-6">
+          <div className="relative mt-6 rounded-panel bg-white/90 p-5 shadow-float ring-1 ring-ink/[0.06] backdrop-blur before:pointer-events-none before:absolute before:right-0 before:top-0 before:-z-10 before:h-40 before:w-40 before:rounded-full before:bg-brand-500/15 before:blur-3xl before:content-[''] sm:p-6">
             <PurchasePanel
               offerNames={offerNames}
               deliveryCharge={settings?.deliveryCharge}

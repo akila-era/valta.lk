@@ -8,6 +8,7 @@ import { effectivePrice, quantityCap, variantChoiceRequired } from "@/lib/erp/pr
 import { cartActions } from "@/store/cart";
 import { MAX_LINE_QTY } from "@/lib/utils/cart-math";
 import { formatLkr } from "@/lib/utils/money";
+import { Icon3D } from "@/components/ui/icon-3d";
 import { Price } from "./price";
 import { useVariantChoice } from "./variant-choice";
 import { WishlistButton } from "./wishlist-button";
@@ -28,10 +29,8 @@ export interface PanelProduct {
 /** One delivery / payment fact under the buy buttons. Only facts the store really offers are passed in. */
 function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-3 rounded-xl border border-border bg-bg p-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700">
-        <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-      </span>
+    <li className="group flex items-start gap-3 rounded-2xl bg-surface/70 p-3 ring-1 ring-ink/[0.05] transition-colors duration-200 hover:bg-brand-50">
+      <Icon3D icon={Icon} tone="glass" size="sm" />
       <span className="min-w-0">
         <span className="block font-semibold leading-5 text-ink">{title}</span>
         <span className="block text-xs leading-5 text-muted">{children}</span>

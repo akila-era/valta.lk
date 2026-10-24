@@ -66,21 +66,29 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
     <div className="lg:sticky lg:top-36 lg:self-start">
       <div className={many ? "lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-3" : undefined}>
         <div
-          className="media-spot relative mx-auto aspect-square w-full touch-pan-y overflow-hidden rounded-2xl border border-border lg:order-2 lg:h-[min(36rem,calc(100svh-16rem))] lg:w-auto lg:max-w-full"
+          className="group/stage relative mx-auto aspect-square w-full touch-pan-y overflow-hidden rounded-panel bg-[linear-gradient(150deg,#faf9f7,#eeebe6)] shadow-soft ring-1 ring-ink/[0.05] lg:order-2 lg:h-[min(36rem,calc(100svh-16rem))] lg:w-auto lg:max-w-full"
           tabIndex={many ? 0 : undefined}
           role={many ? "group" : undefined}
           aria-label={many ? `${alt}. Image ${index + 1} of ${images.length}. Use the arrow keys to change image.` : undefined}
           onKeyDown={arrowKeys}
           {...swipe}
         >
-          <ProductImage
-            src={broken[index] ? undefined : images[index]}
-            alt={label}
-            sizes="(min-width:1024px) 45vw, 100vw"
-            priority
-            padding="p-6 sm:p-10"
-            onError={() => setBroken((current) => ({ ...current, [index]: true }))}
-          />
+          {/* 3D product stage: dot grid, tilted orange orbit, white spotlight disc and a floor shadow. */}
+          <span aria-hidden className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.07)_1px,transparent_1.3px)] [background-size:16px_16px] [mask-image:linear-gradient(200deg,transparent_45%,#000)]" />
+          <span aria-hidden className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full border-[14px] border-brand-500/10" />
+          <span aria-hidden className="pointer-events-none absolute left-1/2 top-[47%] aspect-square h-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_24px_60px_-24px_rgb(27_23_20/0.3),inset_0_-10px_24px_rgb(27_23_20/0.04)]" />
+          <span aria-hidden className="pointer-events-none absolute left-1/2 top-[52%] aspect-square w-[86%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-500/35 [transform:perspective(700px)_rotateX(74deg)]" />
+          <span aria-hidden className="pointer-events-none absolute bottom-[11%] left-1/2 h-5 w-[34%] -translate-x-1/2 rounded-[50%] bg-ink/25 blur-lg transition-[width,opacity] duration-500 group-hover/stage:w-[28%] group-hover/stage:opacity-70" />
+          <span className="absolute inset-0 mix-blend-multiply transition-transform duration-500 ease-out group-hover/stage:-translate-y-2 group-hover/stage:scale-[1.03] motion-reduce:transition-none">
+            <ProductImage
+              src={broken[index] ? undefined : images[index]}
+              alt={label}
+              sizes="(min-width:1024px) 45vw, 100vw"
+              priority
+              padding="p-10 sm:p-16"
+              onError={() => setBroken((current) => ({ ...current, [index]: true }))}
+            />
+          </span>
           {canZoom && (
             <button type="button" className={`${roundButton} absolute right-3 top-3`} aria-label="View image larger" onClick={() => setZoomed(true)}>
               <Maximize2 className="h-4 w-4" aria-hidden />
