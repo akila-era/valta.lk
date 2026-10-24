@@ -200,7 +200,7 @@
 @utility word-rise { animation: word-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(120ms + var(--i, 0) * 110ms); }
 /* The lifestyle panel opens from an inset card to full size with scroll (--p from ScrollExpand, 1 without JS). */
 .scroll-expand { clip-path: inset(calc((1 - var(--p, 1)) * 7%) calc((1 - var(--p, 1)) * 9%) round 2.125rem); }
-.scroll-expand img { scale: calc(1 + (1 - var(--p, 1)) * 0.18); }
+.scroll-expand img, .scroll-expand video { scale: calc(1 + (1 - var(--p, 1)) * 0.18); }
 .marquee:hover .animate-marquee, .marquee:focus-within .animate-marquee { animation-play-state: paused; }
 
 @keyframes shimmer { to { background-position: -200% 0; } }

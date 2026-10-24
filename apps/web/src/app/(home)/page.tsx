@@ -7,6 +7,7 @@ import { VideoShowcase } from "@/components/home/video-showcase";
 import { PromoBanners, WideBanner } from "@/components/home/sections";
 import { Faq, WhyChoose } from "@/components/home/more-sections";
 import { Accent, Chapter } from "@/components/home/story/chapter";
+import { BrandFilm } from "@/components/home/story/brand-film";
 import { ChapterRail } from "@/components/home/story/chapter-rail";
 import { MarqueeBand } from "@/components/home/story/marquee-band";
 import { ScrollExpand } from "@/components/home/story/scroll-expand";
@@ -94,6 +95,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </>
           ),
           content: <TabbedShowcase data={data} tab={tab ?? "new"} />,
+        },
+        {
+          id: "story-brand",
+          label: "Brand",
+          statement: (
+            <>
+              This is <Accent>VALTA</Accent>.
+            </>
+          ),
+          aside: "The tech you love, presented with care. Our story in ten seconds.",
+          content: (
+            <ScrollExpand className="scroll-expand rounded-[1.75rem] lg:rounded-feature">
+              <BrandFilm />
+            </ScrollExpand>
+          ),
         },
         {
           id: "story-why",
