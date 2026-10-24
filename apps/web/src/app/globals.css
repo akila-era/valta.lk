@@ -4,6 +4,7 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
 
   /* VALTA.LK storefront: light and neon orange. White and warm light-neutral canvas, deep charcoal text; the footer
      uses the night colours. "on-brand" is the dark text used on orange fills (5.8:1 on brand-500).
@@ -142,6 +143,11 @@
 @utility type-meta { @apply text-sm leading-5 text-muted; }
 @utility type-caption { @apply text-xs leading-4 text-muted; }
 @utility section-space { @apply mt-6 sm:mt-8; }
+/* Story typography: a huge, light sans statement with one accent word in the italic serif. */
+@utility statement { @apply font-sans text-[clamp(2.6rem,1.6rem+4.4vw,6.25rem)] font-light leading-[0.98] tracking-[-0.045em] text-ink; }
+@utility accent-serif { @apply font-serif font-normal italic tracking-[-0.02em]; }
+/* Chapter kicker: "03 / CATEGORIES" in small spaced capitals. */
+@utility kicker { @apply text-label font-semibold uppercase tracking-[0.22em] text-ink/70; }
 /* Product image well: a soft spotlight so products (dark ones included) stand out on the dark theme. */
 @utility media-spot { background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--color-media) 75%); }
 @utility media-square { @apply relative aspect-square overflow-hidden media-spot; }
@@ -195,6 +201,10 @@
 /* A small vertical bob; staggered with --d it ripples along a row of icons like a wave. */
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @utility animate-bob { animation: bob 3.2s ease-in-out infinite; animation-delay: var(--d, 0ms); }
+
+/* The hero's scroll cue: an arrow dropping inside its capsule and fading out. */
+@keyframes cue { 0% { opacity: 0; transform: translateY(-4px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateY(10px); } }
+@utility animate-cue { animation: cue 1.8s ease-in-out infinite; }
 
 @keyframes settle { from { transform: scale(1.08); } to { transform: scale(1); } }
 @utility animate-settle { animation: settle 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }

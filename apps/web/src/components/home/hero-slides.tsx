@@ -37,7 +37,7 @@ function useReducedMotion() {
   );
 }
 
-/** Four warm studio campaign photographs. Copy stays in the hero; only the picture moves. */
+/** Four warm studio campaign photographs for the homepage's lifestyle chapter; only the picture moves. */
 export function HeroSlides() {
   const n = SLIDES.length;
   const [i, setI] = useState(0);
@@ -108,9 +108,8 @@ export function HeroSlides() {
         ))}
       </div>
 
-      {/* Dots (and pause, since the slides move on their own): top-left of the photo band on phones (the glass card
-          overlaps its bottom), bottom-left under the copy from md; round arrows bottom-right. */}
-      <div className="absolute left-3 top-[calc(var(--hdr-sticky,7rem)+0.75rem)] z-20 flex items-center gap-1 rounded-full bg-white/70 px-1 backdrop-blur-sm md:bottom-12 md:left-4 md:top-auto md:bg-transparent md:px-0 md:backdrop-blur-none lg:left-6">
+      {/* Dots (and pause, since the slides move on their own) bottom-left on a glass pill; round arrows bottom-right. */}
+      <div className="absolute bottom-3 left-3 z-20 flex items-center gap-1 rounded-full bg-white/75 px-1 backdrop-blur-sm md:bottom-6 md:left-6">
         {SLIDES.map((slide, idx) => (
           <button
             key={slide.src}
@@ -132,7 +131,7 @@ export function HeroSlides() {
           {paused ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
         </button>
       </div>
-      <div className="absolute bottom-3 right-3 z-20 hidden gap-2 sm:flex md:bottom-12 md:right-6">
+      <div className="absolute bottom-3 right-3 z-20 hidden gap-2 sm:flex md:bottom-6 md:right-6">
         <button type="button" onClick={() => go(i - 1)} aria-label="Previous slide" className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/85 text-ink shadow-card backdrop-blur-sm transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand">
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>

@@ -154,12 +154,13 @@ async function scrollThrough(page: import("@playwright/test").Page) {
 }
 
 test.describe("hero", () => {
-  test("four photographs slide under one heading, with both shopping actions", async ({ page }) => {
+  test("one heading with both shopping actions; four photographs slide in the lifestyle chapter", async ({ page }) => {
     await page.goto("/");
     const hero = page.locator("section[aria-labelledby=hero-title]");
-    await expect(hero.getByRole("button", { name: "Go to slide 4" })).toBeVisible();
-    await hero.getByRole("button", { name: "Go to slide 2" }).click();
-    await expect(hero.getByRole("img", { name: /charging case/i })).toBeVisible();
+    const lifestyle = page.locator("#story-lifestyle");
+    await expect(lifestyle.getByRole("button", { name: "Go to slide 4" })).toBeVisible();
+    await lifestyle.getByRole("button", { name: "Go to slide 2" }).click();
+    await expect(lifestyle.getByRole("img", { name: /gaming setup/i })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(hero.getByRole("link", { name: "Shop now" })).toHaveAttribute("href", "/products");
     await expect(hero.getByRole("link", { name: "Explore latest phones" })).toHaveAttribute("href", "/categories/mobile-phones");
@@ -178,10 +179,10 @@ test.describe("hero", () => {
     await expect(page.getByTestId("wishlist-count")).toHaveCount(0); // the badge is hidden when the wishlist is empty
   });
 
-  test("uses the supplied photograph with real HTML text and only verifiable facts", async ({ page }) => {
+  test("uses the supplied photographs with real HTML text and only verifiable facts", async ({ page }) => {
     await page.goto("/");
     const hero = page.locator("section[aria-labelledby=hero-title]");
-    const img = hero.getByRole("img", { name: /smartphones, earbuds, a watch and headphones/i });
+    const img = page.locator("#story-lifestyle").getByRole("img", { name: /laptops and ultrabooks/i });
     await expect(img).toBeVisible();
     // the photo really loaded (not a broken image)
     expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);

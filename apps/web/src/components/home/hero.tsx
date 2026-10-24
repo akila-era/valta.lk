@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Headset, PackageSearch, Truck, Wallet, Zap } from "lucide-react";
+import { ArrowDown, ArrowRight, Headset, PackageSearch, Truck, Wallet } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { Icon3D } from "@/components/ui/icon-3d";
 import { HeroDepth } from "./hero-depth";
-import { HeroSlides } from "./hero-slides";
+import { Accent } from "./story/chapter";
+import { StoryStage } from "./story/story-stage";
 
 interface HeroProps {
   phonesHref?: string;
@@ -13,85 +14,48 @@ interface HeroProps {
   deliveryCharge: number | null;
 }
 
-/** Depth offsets for the hero layers, driven by --mx / --my from HeroDepth (0 on touch and with reduced motion). */
-const DEPTH = {
-  decor: "[transform:translate3d(calc(var(--mx,0)*10px),calc(var(--my,0)*8px),0)]",
-  card: "[transform:perspective(1200px)_rotateY(calc(var(--mx,0)*3deg))_rotateX(calc(var(--my,0)*-3deg))]",
-  chipNear: "[transform:translate3d(calc(var(--mx,0)*26px),calc(var(--my,0)*20px),0)]",
-  chipFar: "[transform:translate3d(calc(var(--mx,0)*18px),calc(var(--my,0)*14px),0)]",
-};
-
 /**
- * Full-bleed light campaign built as 3D depth layers: the studio photographs (moving against the cursor), a tilted
- * orange orbit and dot grid (2D/3D decoration), a frosted glass card with the real HTML copy (it tilts toward the
- * cursor), and two floating glass chips with live ERP facts. Hero and service strip together fill the first screen
- * below the header (see --hdr-h in HeaderShell), so the strip is visible without scrolling.
+ * Chapter 01 of the homepage story: a large light statement with a serif accent word, the product on a 3D stage in the
+ * middle (it turns and rises as the page scrolls, and follows the cursor), and a short serif note with live ERP facts.
+ * Hero and service strip together fill the first screen below the header (see --hdr-h in HeaderShell).
  */
 export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroProps) {
+  const facts = ["Prices in LKR", cod && "Cash on Delivery", deliveryCharge != null && `Delivery ${formatLkr(deliveryCharge)}`].filter(
+    Boolean,
+  ) as string[];
+
   return (
-    // Pulled up under the sticky header (by --hdr-sticky) so a new visitor sees header and hero as one scene: the header
-    // is a thin glass layer over the photo until the page scrolls. Together they still fill exactly the first screen.
-    <div className="-mt-[var(--hdr-sticky,7rem)] flex min-h-[calc(100svh-var(--hdr-h,8rem)+var(--hdr-sticky,7rem))] flex-col md:h-[calc(100svh-var(--hdr-h,9rem)+var(--hdr-sticky,7rem))] md:min-h-[40rem]">
-      <HeroDepth aria-labelledby="hero-title" className="relative isolate flex flex-1 flex-col justify-end overflow-hidden bg-[#f6efe7] text-ink md:justify-center">
-        {/* A soft white fade behind the see-through header keeps the logo, search and links readable on any photo. */}
-        <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-[7] h-[calc(var(--hdr-sticky,7rem)+3rem)] bg-gradient-to-b from-white/75 via-white/30 to-transparent" />
-        {/* Phones: the photo is a full-width band and the glass card overlaps its lower edge. md+: it fills the hero. */}
-        <div className="absolute inset-x-0 top-0 h-[62%] md:inset-0 md:h-auto">
-          <HeroSlides />
-          {/* A light fade only where the copy sits: the photograph still runs the full width. */}
-          <span aria-hidden className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-t from-[#f6efe7] from-0% via-transparent via-35% to-transparent md:bg-gradient-to-r md:from-[#f6efe7]/80 md:from-0% md:via-[#f6efe7]/25 md:via-40% md:to-transparent md:to-60%" />
-        </div>
+    // Pulled up under the sticky header (by --hdr-sticky) so header and hero read as one scene until the page scrolls.
+    <div
+      id="story-intro"
+      className="-mt-[var(--hdr-sticky,7rem)] flex min-h-[calc(100svh-var(--hdr-h,8rem)+var(--hdr-sticky,7rem))] flex-col md:min-h-[calc(100svh-var(--hdr-h,9rem)+var(--hdr-sticky,7rem))]"
+    >
+      <HeroDepth
+        aria-labelledby="hero-title"
+        className="relative isolate flex flex-1 flex-col overflow-hidden bg-[radial-gradient(ellipse_at_55%_55%,#fbf4ec,#f6efe7_45%,#efe5da)] text-ink"
+      >
+        {/* 2D decoration: a dot grid fading from the top left and a soft orange bloom. */}
+        <span aria-hidden className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.08)_1px,transparent_1.3px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_at_25%_20%,#000,transparent_65%)]" />
+        <span aria-hidden className="pointer-events-none absolute -left-24 top-[22%] h-80 w-80 animate-glow rounded-full bg-brand-500/10 blur-3xl" />
 
-        {/* 2D/3D decoration: a dot grid and a tilted orange orbit with a travelling dot. */}
-        <div aria-hidden className={`pointer-events-none absolute inset-0 z-[6] ${DEPTH.decor}`}>
-          <span className="absolute left-0 top-0 h-2/3 w-1/2 [background-image:radial-gradient(rgb(23_23_23/0.09)_1px,transparent_1.3px)] [background-size:18px_18px] [mask-image:radial-gradient(ellipse_at_top_left,#000,transparent_70%)]" />
-          <span className="absolute bottom-[8%] right-[6%] hidden aspect-square w-[min(46vw,40rem)] [perspective:900px] md:block">
-            <span className="absolute inset-0 rounded-full border-2 border-brand-500/45 [transform:rotateX(74deg)] [transform-style:preserve-3d]">
-              <span className="absolute inset-0 animate-[spin_16s_linear_infinite] rounded-full">
-                <span className="absolute left-1/2 top-0 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500 shadow-[0_0_18px_4px_rgb(255_92_0/0.55)]" />
-              </span>
-            </span>
-            <span className="absolute inset-[9%] rounded-full border border-dashed border-ink/15 [transform:rotateX(74deg)]" />
-          </span>
-          <span className="absolute -left-24 top-[18%] h-80 w-80 animate-glow rounded-full bg-brand-500/15 blur-3xl" />
-        </div>
-
-        {/* Front layer: floating glass chips with facts from live ERP settings only. */}
-        {cod && (
-          <div aria-hidden className={`pointer-events-none absolute right-[7%] top-[calc(var(--hdr-sticky,7rem)+3rem)] z-[8] hidden lg:block ${DEPTH.chipNear}`}>
-            <div className="flex animate-float items-center gap-3 rounded-2xl border border-white/70 bg-white/65 px-4 py-3 shadow-[0_18px_40px_-14px_rgb(60_30_10/0.35)] backdrop-blur-xl [--dur:7s]">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 text-on-brand shadow-[0_8px_18px_-6px_rgb(255_92_0/0.6)]"><Wallet className="h-5 w-5" /></span>
-              <span><span className="block text-sm font-bold">Cash on Delivery</span><span className="block text-xs text-ink/70">Pay when it arrives</span></span>
-            </div>
-          </div>
-        )}
-        {deliveryCharge != null && (
-          <div aria-hidden className={`pointer-events-none absolute bottom-[16%] right-[30%] z-[8] hidden xl:block ${DEPTH.chipFar}`}>
-            <div className="flex animate-float items-center gap-3 rounded-2xl border border-white/70 bg-white/65 px-4 py-3 shadow-[0_18px_40px_-14px_rgb(60_30_10/0.35)] backdrop-blur-xl [--d:1.2s] [--dur:8s]">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink text-bg"><Truck className="h-5 w-5" /></span>
-              <span><span className="block text-sm font-bold">Delivery {formatLkr(deliveryCharge)}</span><span className="block text-xs text-ink/70">Shown before you order</span></span>
-            </div>
-          </div>
-        )}
-
-        {/* The copy on a frosted glass card that tilts toward the cursor. */}
-        <div className="pointer-events-none relative z-10 container-wide pb-14 pt-[calc(var(--hdr-sticky,7rem)+11rem)] md:pb-12 md:pt-[calc(var(--hdr-sticky,7rem)+1.5rem)]">
-          <div className={`pointer-events-auto w-full max-w-xl rounded-[1.75rem] border border-white/70 bg-white/70 p-5 shadow-[0_30px_80px_-30px_rgb(60_30_10/0.45)] backdrop-blur-xl transition-transform duration-200 ease-out sm:p-7 lg:rounded-feature lg:p-9 ${DEPTH.card}`}>
-            <p className="inline-flex w-fit animate-fade-up items-center gap-2 rounded-full bg-brand-500 px-3.5 py-1.5 text-xs font-bold text-on-brand shadow-[0_8px_18px_-6px_rgb(255_92_0/0.6)]">
-              <Zap className="h-3.5 w-3.5 fill-current" aria-hidden /> Latest technology
+        <div className="container-page relative z-10 grid flex-1 items-center gap-x-8 gap-y-4 pb-12 pt-[calc(var(--hdr-sticky,7rem)+1.25rem)] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,0.65fr)] lg:pb-16 lg:pt-[calc(var(--hdr-sticky,7rem)+2rem)]">
+          {/* Left: kicker, statement, copy and actions. */}
+          <div>
+            <p className="kicker animate-fade-up">
+              <span className="text-brand-600">01</span> / VALTA.LK
             </p>
-            <h1 id="hero-title" className="mt-4 max-w-[11ch] animate-fade-up [--d:90ms] font-display text-[2.3rem] font-extrabold leading-[0.95] tracking-[-0.035em] sm:text-[3rem] lg:text-[4.25rem]">
-              Technology that <span className="text-brand-hover">moves</span> you.
+            <h1 id="hero-title" className="statement mt-4 max-w-[11ch] animate-fade-up text-[clamp(2.8rem,1.4rem+5vw,6.5rem)] [--d:90ms]">
+              Technology that <Accent>moves</Accent> you.
             </h1>
-            <p className="mt-4 max-w-md animate-fade-up text-sm leading-6 text-ink/80 [--d:180ms] sm:text-lg sm:leading-7">
+            <p className="mt-5 max-w-md animate-fade-up text-base leading-7 text-ink/75 [--d:180ms] sm:text-lg">
               Discover smartphones, everyday tech and accessories at VALTA.LK.
             </p>
-            <div className="mt-5 flex animate-fade-up flex-wrap items-center gap-2 [--d:270ms] sm:mt-6 sm:gap-3">
-              <Link href="/products" className="btn-primary px-5 shadow-[0_10px_24px_-8px_rgb(255_92_0/0.65)] sm:px-6">
+            <div className="mt-6 flex animate-fade-up flex-wrap items-center gap-2 [--d:270ms] sm:gap-3">
+              <Link href="/products" className="btn-primary px-6 shadow-[0_10px_24px_-8px_rgb(255_92_0/0.65)]">
                 Shop now <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               {phonesHref && (
-                <Link href={phonesHref} className="btn-outline bg-white/80 px-5 sm:px-6">
+                <Link href={phonesHref} className="btn-outline bg-white/70 px-6 backdrop-blur-sm">
                   Explore latest phones
                 </Link>
               )}
@@ -102,8 +66,36 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
               )}
             </div>
           </div>
+
+          {/* Centre: the product on its 3D stage (the 3D model slot). */}
+          <div className="animate-scale-in [--d:120ms]">
+            <StoryStage src="/images/home/valta-category-smartphones.webp" alt="" />
+          </div>
+
+          {/* Right: a serif note and facts from live ERP settings only. */}
+          <div className="hidden animate-fade-up [--d:360ms] lg:block lg:justify-self-end">
+            <p className="max-w-[14ch] font-serif text-[1.75rem] italic leading-[1.15] text-ink/85">Chosen with care, delivered to your door.</p>
+            <ul className="mt-5 space-y-2.5 border-t border-ink/15 pt-4">
+              {facts.map((f) => (
+                <li key={f} className="flex items-center gap-2 text-label font-semibold uppercase tracking-[0.18em] text-ink/70">
+                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
+        {/* Scroll cue to the next chapter. */}
+        <a
+          href="#story-lifestyle"
+          className="absolute bottom-11 left-1/2 z-10 hidden -translate-x-1/2 flex-col items-center gap-2 rounded-full p-1 text-label font-semibold uppercase tracking-[0.22em] text-ink/60 transition-colors hover:text-ink lg:flex"
+        >
+          Scroll
+          <span aria-hidden className="flex h-9 w-6 justify-center rounded-full border border-ink/25 pt-1.5">
+            <ArrowDown className="h-3 w-3 animate-cue" />
+          </span>
+        </a>
         {/* 2D accent: an orange line fading out along the bottom edge. */}
         <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[9] h-[3px] bg-[linear-gradient(90deg,#ff5c00,#ff9b52_35%,transparent_78%)]" />
       </HeroDepth>
