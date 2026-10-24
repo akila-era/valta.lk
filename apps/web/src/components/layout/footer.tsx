@@ -107,9 +107,13 @@ export async function Footer() {
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark relative mt-12 bg-night text-white">
+    <footer className="on-dark relative mt-12 overflow-hidden bg-night text-white">
       <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-500 via-brand-400 to-brand-500" />
-      <div className="container-page grid grid-cols-2 gap-x-6 gap-y-8 py-9 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-10">
+      {/* Depth behind the content: an orange glow, a fading dot grid and a tilted orbit ring. */}
+      <span aria-hidden className="pointer-events-none absolute -left-40 -top-48 h-[28rem] w-[28rem] rounded-full bg-brand-500/15 blur-[90px]" />
+      <span aria-hidden className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1.3px)] [background-size:18px_18px] [mask-image:linear-gradient(200deg,#000,transparent_55%)]" />
+      <span aria-hidden className="pointer-events-none absolute -right-32 bottom-10 hidden aspect-square w-[34rem] rounded-full border border-brand-500/25 [transform:perspective(900px)_rotateX(72deg)] lg:block" />
+      <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-8 py-9 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-10">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
           <p className="text-3xl font-extrabold tracking-tight">VALTA<span className="text-brand-500">.LK</span></p>
           <p className="mt-4 max-w-xs text-[15px] leading-7 text-white/75">{siteConfig.description}</p>

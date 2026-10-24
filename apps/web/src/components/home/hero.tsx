@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Headset, PackageSearch, Truck, Wallet, Zap } from "lucide-react";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
+import { Icon3D } from "@/components/ui/icon-3d";
 import { HeroDepth } from "./hero-depth";
 import { HeroSlides } from "./hero-slides";
 
@@ -116,23 +117,23 @@ function ServiceBar({ cod, deliveryCharge }: { cod: boolean; deliveryCharge: num
   ].filter(Boolean) as { icon: typeof Truck; title: string; text: string; href?: string }[];
 
   return (
-    <section aria-label="Shopping with VALTA.LK" className="container-page shrink-0 py-3">
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-2xl border border-border bg-surface px-4 py-2.5 sm:px-5 lg:grid-cols-4 lg:gap-y-0 lg:divide-x lg:divide-border">
+    // A frosted glass strip that overlaps the hero's lower edge (3D layering); each fact has a 3D glass icon tile.
+    <section aria-label="Shopping with VALTA.LK" className="container-page relative z-20 -mt-5 shrink-0 pb-3 md:-mt-7">
+      <ul className="grid grid-cols-2 gap-2 rounded-2xl bg-white/80 p-2 shadow-float ring-1 ring-ink/[0.06] backdrop-blur-xl sm:gap-3 sm:p-3 lg:grid-cols-4">
         {items.map(({ icon: I, title, text, href }) => {
           const body = (
             <>
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-bg text-brand-500 shadow-card">
-                <I className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-              </span>
-              <span>
-                <span className="block text-xs font-semibold leading-tight text-ink sm:text-[13px]">{title}</span>
-                {text && <span className="hidden text-[11px] text-muted sm:block">{text}</span>}
+              <Icon3D icon={I} tone="glass" size="sm" />
+              <span className="min-w-0">
+                <span className="block text-xs font-bold leading-tight text-ink sm:text-[13px]">{title}</span>
+                {text && <span className="hidden truncate text-xs text-muted sm:block">{text}</span>}
               </span>
             </>
           );
+          const tile = "group flex h-full items-center gap-3 rounded-xl px-2.5 py-2 transition-colors duration-200 sm:gap-3.5 sm:px-3";
           return (
-            <li key={title} className="flex lg:justify-center lg:px-6 lg:first:justify-start lg:first:pl-2 lg:last:justify-end lg:last:pr-2">
-              {href ? <Link href={href} className="flex items-center gap-3 hover:text-brand-600 sm:gap-4">{body}</Link> : <div className="flex items-center gap-3 sm:gap-4">{body}</div>}
+            <li key={title}>
+              {href ? <Link href={href} className={`${tile} hover:bg-brand-50`}>{body}</Link> : <div className={tile}>{body}</div>}
             </li>
           );
         })}

@@ -112,9 +112,13 @@ function DealSpotlight({ product }: { product: HomeData["offers"][number] }) {
   const href = `/products/${product.slug}`;
   return (
     <article className="group/card grid h-full grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] overflow-hidden rounded-2xl bg-bg text-ink">
-      <Link href={href} tabIndex={-1} aria-hidden className="media-spot relative block min-h-36 overflow-hidden">
-        <span className="absolute inset-0 transition-transform duration-500 ease-out group-hover/card:scale-105">
-          <ProductImage src={product.images[0]} alt="" sizes="(min-width:640px) 40vw, 40vw" padding="p-3 sm:p-6" />
+      <Link href={href} tabIndex={-1} aria-hidden className="relative block min-h-44 overflow-hidden bg-[linear-gradient(145deg,#f8f7f4,#eeece8)] sm:min-h-56">
+        {/* 3D stage: dot grid, white spotlight disc and a floor shadow; the product lifts and tilts on hover. */}
+        <span className="absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.07)_1px,transparent_1.3px)] [background-size:14px_14px] [mask-image:linear-gradient(200deg,transparent_50%,#000)]" />
+        <span className="absolute left-1/2 top-[46%] aspect-square h-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_16px_40px_-14px_rgb(27_23_20/0.22)] transition-transform duration-500 group-hover/card:scale-105" />
+        <span className="absolute bottom-[10%] left-1/2 h-3.5 w-[34%] -translate-x-1/2 rounded-[50%] bg-ink/25 blur-md transition-[width,opacity] duration-500 group-hover/card:w-[26%] group-hover/card:opacity-60" />
+        <span className="absolute inset-0 mix-blend-multiply transition-transform duration-500 ease-out group-hover/card:-translate-y-2 group-hover/card:-rotate-2 group-hover/card:scale-[1.04] motion-reduce:transition-none">
+          <ProductImage src={product.images[0]} alt="" sizes="(min-width:640px) 40vw, 40vw" padding="p-6 sm:p-9" />
         </span>
         {pct ? <span className="absolute left-3 top-3 rounded-full bg-brand-500 px-2.5 py-1 text-xs font-bold text-on-brand">-{pct}%</span> : null}
       </Link>

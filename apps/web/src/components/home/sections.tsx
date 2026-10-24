@@ -26,12 +26,9 @@ export function SectionHeading({ id, title, eyebrow, href, linkLabel = "View all
   );
 }
 
-function bannerPhoto(banner: ResolvedBanner): string {
-  if (banner.custom && banner.image) return banner.image;
-  const label = `${banner.eyebrow ?? ""} ${banner.headline}`;
-  if (/phone|mobile/i.test(label)) return "/images/home/valta-hero-cinematic.webp";
-  if (/audio|accessor|gadget|headphone/i.test(label)) return "/images/home/valta-banner-audio.webp";
-  return categoryVisual(label) ?? banner.image ?? "/images/home/valta-hero-cinematic.webp";
+/** The light studio object for a banner without a staff picture: matching category art, else the category's photo. */
+function bannerObject(banner: ResolvedBanner): string | undefined {
+  return categoryVisual(`${banner.eyebrow ?? ""} ${banner.headline}`) ?? banner.image;
 }
 
 /** Staff-chosen full-width pictures (each optionally a link) that rotate. Sits between "Shop by budget" and "Why shop with VALTA.LK". */
@@ -48,21 +45,45 @@ export function PromoBanners({ banners }: { banners: ResolvedBanner[] }) {
   if (!banners.length) return null;
   return (
     <section aria-label="Featured collections" className={`section-space grid gap-3 sm:gap-4 ${banners.length === 2 ? "lg:grid-cols-[1.35fr_1fr]" : banners.length > 2 ? "lg:grid-cols-2" : ""}`}>
-      {banners.map((b) => (
-        <article key={b.href + b.headline + b.ctaLabel} className="grid overflow-hidden rounded-2xl border border-border bg-surface md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
-          <div className="flex flex-col justify-center p-5 sm:p-7">
-            {b.eyebrow && <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-brand-600">{b.eyebrow}</p>}
-            <h2 className="mt-2 max-w-xs text-xl font-bold leading-tight tracking-[-0.015em] text-ink sm:text-2xl">{b.headline}</h2>
-            {b.text && <p className="type-meta mt-2 max-w-xs">{b.text}</p>}
-            <Link href={b.href} className="btn-primary mt-5 w-fit">
-              {b.ctaLabel} <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </div>
-          <div className="relative min-h-40 bg-surface sm:min-h-52 md:min-h-full">
-            <Image src={bannerPhoto(b)} alt="" fill unoptimized={b.custom} sizes="(min-width:1024px) 36vw, 100vw" className="object-cover" loading="lazy" />
-          </div>
-        </article>
-      ))}
+      {banners.map((b, i) => {
+        const object = b.custom ? undefined : bannerObject(b);
+        return (
+          <article
+            key={b.href + b.headline + b.ctaLabel}
+            className="group relative grid overflow-hidden rounded-panel shadow-soft ring-1 ring-ink/[0.05] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift motion-reduce:hover:translate-y-0 md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]"
+            style={{ background: i % 2 ? "linear-gradient(145deg,#f6f6f2,#e8e8e0)" : "linear-gradient(145deg,#fff4ec,#f7dfcd)" }}
+          >
+            {/* 2D: dot grid and an orange ring behind the stage. */}
+            <span aria-hidden className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.07)_1px,transparent_1.3px)] [background-size:16px_16px] [mask-image:linear-gradient(120deg,transparent_40%,#000)]" />
+            <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full border-[14px] border-brand-500/15 transition-transform duration-500 group-hover:scale-110" />
+            <div className="relative z-10 flex flex-col justify-center p-6 sm:p-8">
+              {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
+              <h2 className="mt-2 max-w-xs font-display text-2xl font-bold leading-tight tracking-[-0.025em] text-ink sm:text-[1.75rem]">{b.headline}</h2>
+              {b.text && <p className="mt-2 max-w-xs text-sm leading-6 text-ink/75">{b.text}</p>}
+              <Link href={b.href} className="btn-primary mt-6 w-fit shadow-[0_10px_24px_-8px_rgb(255_92_0/0.6)]">
+                {b.ctaLabel} <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+            {b.custom && b.image ? (
+              // Staff pictures are shown exactly as uploaded.
+              <div className="relative min-h-44 sm:min-h-56 md:min-h-full">
+                <Image src={b.image} alt="" fill unoptimized sizes="(min-width:1024px) 36vw, 100vw" className="object-cover" loading="lazy" />
+              </div>
+            ) : (
+              // 3D: the studio object floats over a white disc and a floor shadow, and lifts on hover.
+              <div aria-hidden className="relative min-h-48 sm:min-h-56 md:min-h-64">
+                <span className="absolute left-1/2 top-1/2 aspect-square h-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/80 shadow-[0_20px_50px_-20px_rgb(27_23_20/0.25)]" />
+                <span className="absolute bottom-[13%] left-1/2 h-4 w-[38%] -translate-x-1/2 rounded-[50%] bg-ink/25 blur-md transition-[width,opacity] duration-500 group-hover:w-[30%] group-hover:opacity-60" />
+                {object ? (
+                  <span className="absolute left-1/2 top-1/2 aspect-square h-[78%] -translate-x-1/2 -translate-y-1/2 mix-blend-multiply transition-transform duration-500 ease-out [mask-image:radial-gradient(closest-side,#000_66%,transparent)] group-hover:-translate-y-[calc(50%+0.5rem)] group-hover:scale-105 motion-reduce:transition-none">
+                    <Image src={object} alt="" fill sizes="(min-width:1024px) 22vw, 60vw" className="object-cover [filter:brightness(1.08)_contrast(1.04)]" />
+                  </span>
+                ) : null}
+              </div>
+            )}
+          </article>
+        );
+      })}
     </section>
   );
 }
