@@ -77,6 +77,8 @@ POSTGRES_PASSWORD=<a long random password>
 HX_API_BASE=http://mock-erp:4010/api/v1/store-api
 HX_STORE_CREDENTIAL=hxs_test.testsecret
 SITE_URL=https://<demo host>            # or http://<server ip>:8090
+MOCK_PUBLIC_ORIGIN=https://<demo host>/demo-erp   # where browsers load the fake products' images from (see "Product images" below)
+ERP_IMAGE_HOSTS=<demo host>             # the image host above, so next/image accepts it
 COOKIE_SECURE=false                     # only while the demo is served over plain http; remove once HTTPS is in front
 ADMIN_EMAILS=<your email>               # optional: register this account on the site to open /admin
 WEB_PORT=8090
@@ -90,6 +92,22 @@ docker compose up -d db
 docker compose run --rm web npx prisma migrate deploy   # website tables only (includes StorefrontEvent)
 docker compose --profile demo up -d
 ```
+
+Product images: the fake ERP lives on the Docker network, which browsers cannot reach, so its image URLs must be public.
+`MOCK_PUBLIC_ORIGIN` makes it return `<origin>/uploads/<id>.svg`, and the host's nginx forwards only that path to the
+container (published on **127.0.0.1:4010 only**, never to the internet). In the demo host's `server { ... }` block (inside the
+HTTPS one), add:
+
+```nginx
+  # Demo only: product images of the fake ERP. Nothing else of the mock (its API, /__control) is exposed.
+  location ~ ^/demo-erp/uploads/[A-Za-z0-9]+\.svg$ {
+    rewrite ^/demo-erp(/uploads/.*)$ $1 break;
+    proxy_pass http://127.0.0.1:4010;
+    proxy_set_header Host $host;
+  }
+```
+
+then `nginx -t && systemctl reload nginx`.
 
 Check: `http://<server>:8090/` shows the fake products; `/products/<any>` → add to cart → checkout places a test order.
 

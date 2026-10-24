@@ -64,9 +64,15 @@ services:
     working_dir: /app/apps/web
     environment:
       MOCK_ERP_PORT: "4010"
+      # Public address that serves this ERP's /uploads (product images), e.g. https://<demo host>/demo-erp. Browsers
+      # cannot reach the Docker-internal name, so without it product photos are broken (see docs/DEPLOYMENT.md).
+      MOCK_PUBLIC_ORIGIN: ${MOCK_PUBLIC_ORIGIN:-}
     command: ["npx", "tsx", "tests/mock-erp/server.ts"]
     expose:
       - "4010"
+    # Loopback only (never 0.0.0.0): the host's nginx forwards just /demo-erp/uploads/ to it.
+    ports:
+      - "127.0.0.1:4010:4010"
 
 volumes:
   db-data:
