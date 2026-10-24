@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CatalogueView, type RawParams } from "@/components/products/catalogue-view";
 import { Breadcrumbs } from "@/components/ui/chrome";
+import { PageIntro } from "@/components/ui/page-intro";
 
 export const metadata: Metadata = {
   title: "All products",
@@ -12,7 +13,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <Breadcrumbs items={[{ href: "/", label: "Home" }, { label: "All products" }]} />
-      <h1 className="page-title mb-6">All products</h1>
+      <PageIntro section="Shop" label="Catalogue" title="All products" />
       <CatalogueView basePath="/products" params={await searchParams} />
     </>
   );

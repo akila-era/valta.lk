@@ -28,8 +28,10 @@ DATABASE_URL=postgresql://<user>:<password>@localhost:5432/hexalyte_valta_test n
 DATABASE_URL=<…/hexalyte_valta_test> PORT=3101 REDIS_URL=redis://localhost:6379/5 KEYCLOAK_AUTH_ENABLED=false npx tsx src/server.ts
 
 # seed/refresh the test shop, test catalogue and the VALTA store; writes HX_API_BASE and a fresh
-# HX_STORE_CREDENTIAL into apps/web/.env.local (the credential is never printed; re-running rotates it)
-DATABASE_URL=<…/hexalyte_valta_test> VALTA_ERP_OWNER_PASSWORD='ValtaTest#2026' npx tsx E:/valta-lk/tools/erp-local/bootstrap.ts
+# HX_STORE_CREDENTIAL into apps/web/.env.local (the credential is never printed; re-running rotates it).
+# <repo> is this repository's folder, e.g. E:/volta.lk/valta.lk. VALTA_ENV must point at its apps/web/.env.local:
+# without it the script writes to its built-in default E:/valta-lk/apps/web/.env.local, an older checkout location.
+DATABASE_URL=<…/hexalyte_valta_test> VALTA_ERP_OWNER_PASSWORD='ValtaTest#2026' VALTA_ENV=<repo>/apps/web/.env.local npx tsx <repo>/tools/erp-local/bootstrap.ts
 
 # VALTA site (restart it after the credential changes)
 npm run dev

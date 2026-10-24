@@ -4,6 +4,7 @@ import { CatalogueView, type RawParams } from "@/components/products/catalogue-v
 import { Breadcrumbs } from "@/components/ui/chrome";
 import { ErpUnavailable } from "@/components/ui/states";
 import { listProducts } from "@/lib/erp/catalogue";
+import { PageIntro } from "@/components/ui/page-intro";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<RawParams> };
 
@@ -44,8 +45,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           ...(sub ? [{ label: sub.name }] : []),
         ]}
       />
-      <h1 className="page-title">{category.name}</h1>
-      <p className="type-meta mb-6 mt-2">{category.count} {category.count === 1 ? "product" : "products"} in this category.</p>
+      <PageIntro section="Shop" label="Category" title={category.name} intro={`${category.count} ${category.count === 1 ? "product" : "products"} in this category.`} />
       <CatalogueView basePath={`/categories/${slug}`} params={query} fixedCategory={slug} />
     </>
   );

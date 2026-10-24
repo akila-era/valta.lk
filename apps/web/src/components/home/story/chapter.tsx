@@ -25,7 +25,7 @@ export function Chapter({
   children: ReactNode;
 }) {
   const kicker = (
-    <p className="kicker">
+    <p className="kicker animate-slide-in-left">
       <span className="text-brand-600">{chapterNumber(n)}</span> / {label}
     </p>
   );

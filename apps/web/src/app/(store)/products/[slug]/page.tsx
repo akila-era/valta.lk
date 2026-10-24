@@ -155,13 +155,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <Gallery images={product.images} alt={title} alts={c?.gallery.length ? c.gallery.map((g) => g.alt) : undefined} captions={c?.gallery.length ? c.gallery.map((g) => g.caption) : undefined} />
         <div>
           {(product.brand || product.category) && (
-            <p className="flex flex-wrap items-center gap-x-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+            <p className="kicker flex flex-wrap items-center gap-x-2">
               {product.brand && <span className="text-brand-600">{product.brand}</span>}
               {product.brand && product.category && <span aria-hidden className="h-1 w-1 rounded-full bg-border" />}
               {product.category && <Link href={`/categories/${product.category.slug}`} className="hover:text-ink">{product.category.name}</Link>}
             </p>
           )}
-          <h1 className="mt-2 font-display text-[1.75rem] font-bold leading-[1.1] tracking-[-0.025em] text-ink sm:text-[2.25rem]">{title}</h1>
+          <h1 className="statement mt-3 text-[clamp(2rem,1.5rem+1.8vw,3rem)] leading-[1.04]">{title}</h1>
           {(showModel || c?.subtitle) && (
             <p className="mt-2 text-base text-muted">
               {c?.subtitle}

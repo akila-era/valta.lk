@@ -289,3 +289,118 @@ describe("what customers can see", () => {
     expect(canSeeOrderDetails(await row(), { tokens: ["second"] })).toBe(true);
   });
 });
+
+describe("scheduled refresh of cached ERP statuses", () => {
+  const REFS = ["VLK-261020-AAAAAAAAA2", "VLK-261020-AAAAAAAAA3", "VLK-261020-AAAAAAAAA4", "VLK-261020-AAAAAAAAA5"];
+  const hourAgo = () => new Date(Date.now() - 60 * 60_000);
+  const orderReads = async () => (await control({}) as unknown as { requests: string[] }).requests.filter((r) => r.startsWith("GET /orders/"));
+  const placeStale = async (refs: string[]) => {
+    const { placeOrder } = await import("@/lib/checkout/place-order");
+    for (const ref of refs) await placeOrder(input(ref), ctx());
+    await db.webOrder.updateMany({ where: { externalRef: { in: refs } }, data: { erpStatusAt: hourAgo() } });
+    await control({ reset: false });
+  };
+
+  it("re-reads stale in-progress orders, records status and COD collection, and skips finished or fresh ones", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    const [delivered, dispatched, cancelled, fresh] = REFS;
+    await placeStale(REFS);
+    await db.webOrder.update({ where: { externalRef: cancelled }, data: { erpStatus: "CANCELLED" } });
+    await db.webOrder.update({ where: { externalRef: fresh }, data: { erpStatusAt: new Date() } });
+    await control({ setOrderStatus: { ref: delivered, status: "DELIVERED", paymentStatus: "COD_COLLECTED" } });
+    await control({ setOrderStatus: { ref: dispatched, status: "DISPATCHED", trackingNumber: "TRK-1", carrierName: "Pronto" } });
+    const readsBefore = (await orderReads()).length;
+
+    const r = await refreshOrderStatuses(db);
+    expect(r).toMatchObject({ due: 2, refreshed: 2, changed: 2, failed: 0, busy: 0, stoppedBy: null });
+    expect(await row(delivered)).toMatchObject({ erpStatus: "DELIVERED", erpPaymentStatus: "COD_COLLECTED", lockedUntil: null });
+    expect(await row(dispatched)).toMatchObject({ erpStatus: "DISPATCHED", trackingNumber: "TRK-1", carrierName: "Pronto", lockedUntil: null });
+    expect((await row(dispatched)).erpStatusAt!.getTime()).toBeGreaterThan(Date.now() - 10_000);
+    const reads = (await orderReads()).slice(readsBefore);
+    expect(reads.sort()).toEqual([`GET /orders/${delivered}`, `GET /orders/${dispatched}`].sort()); // never the cancelled or fresh one
+
+    // nothing is due straight after: the delivered order is finished and the dispatched one was just refreshed
+    expect(await refreshOrderStatuses(db)).toMatchObject({ due: 0, refreshed: 0 });
+  });
+
+  it("keeps an order whose cached status is still empty (never refreshed) in the queue", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    await placeStale([REFS[0]]);
+    await db.webOrder.update({ where: { externalRef: REFS[0] }, data: { erpStatus: null, erpPaymentStatus: null, erpStatusAt: null } });
+    expect(await refreshOrderStatuses(db)).toMatchObject({ due: 1, refreshed: 1 });
+    expect(await row(REFS[0])).toMatchObject({ erpStatus: "PLACED", erpPaymentStatus: "COD_PENDING" });
+  });
+
+  it("never reads pending or failed orders: those belong to the sync queue", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    await placeStale(REFS.slice(0, 2));
+    await db.webOrder.update({ where: { externalRef: REFS[0] }, data: { syncStatus: "PENDING" } });
+    await db.webOrder.update({ where: { externalRef: REFS[1] }, data: { syncStatus: "FAILED" } });
+    expect(await refreshOrderStatuses(db)).toMatchObject({ due: 0 });
+  });
+
+  it("two overlapping scheduler calls read each order once (lease), and a held lease is respected", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    await placeStale(REFS);
+    await db.webOrder.update({ where: { externalRef: REFS[3] }, data: { lockedUntil: new Date(Date.now() + 60_000) } });
+    await control({ delayMs: 150 });
+    const before = (await orderReads()).length;
+    const [a, b] = await Promise.all([refreshOrderStatuses(db), refreshOrderStatuses(db)]);
+    await control({ delayMs: 0 });
+    const reads = (await orderReads()).slice(before);
+    expect(reads).toHaveLength(3);
+    expect(new Set(reads).size).toBe(3);
+    expect(reads).not.toContain(`GET /orders/${REFS[3]}`);
+    expect(a.refreshed + b.refreshed).toBe(3);
+  });
+
+  it("an ERP failure keeps the previous cached status and releases the lease", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    await placeStale([REFS[0]]);
+    const before = await row(REFS[0]);
+    await control({ setOrderStatus: { ref: REFS[0], status: "CONFIRMED" } });
+    await control({ delayMs: 400 });
+    const r = await refreshOrderStatuses(db, { timeoutMs: 100 });
+    await control({ delayMs: 0 });
+    expect(r).toMatchObject({ due: 1, refreshed: 0, failed: 1 });
+    const after = await row(REFS[0]);
+    expect(after).toMatchObject({ erpStatus: "PLACED", lockedUntil: null });
+    expect(after.erpStatusAt).toEqual(before.erpStatusAt);
+  });
+
+  it("stops the batch when the ERP rate-limits, without retrying", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    await placeStale(REFS.slice(0, 3));
+    await control({ throttleOrderReads: 1 });
+    const before = (await orderReads()).length;
+    const r = await refreshOrderStatuses(db);
+    expect(r).toMatchObject({ due: 3, refreshed: 0, failed: 1, stoppedBy: "rate-limit" });
+    expect((await orderReads()).length - before).toBe(1);
+    expect(await db.webOrder.count({ where: { lockedUntil: { not: null } } })).toBe(0);
+  });
+
+  it("stops starting new reads once the time budget is spent", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    await placeStale(REFS.slice(0, 3));
+    let t = Date.now();
+    const clock = () => new Date((t += 6_000)); // each clock read moves time on by 6 s
+    const r = await refreshOrderStatuses(db, { budgetMs: 20_000, now: clock });
+    expect(r.stoppedBy).toBe("budget");
+    expect(r.refreshed).toBeLessThan(3);
+  });
+
+  it("reads at most 20 orders per call, oldest cached status first", async () => {
+    const { refreshOrderStatuses } = await import("@/lib/orders/web-orders");
+    const base = { currency: "LKR", subtotal: 100, deliveryCharge: 0, total: 100, customerName: "Test", customerPhone: "+94770000000", payload: {}, items: [], syncStatus: "SYNCED" as const, erpStatus: "PLACED" };
+    await db.webOrder.createMany({
+      data: Array.from({ length: 25 }, (_, i) => ({ ...base, externalRef: `VLK-261020-BBBBBBBB${"23456789ABCDEFGHJKMNPQRST"[i]}2`, erpStatusAt: new Date(Date.now() - (i + 1) * 60 * 60_000) })),
+    });
+    const before = (await orderReads()).length;
+    const r = await refreshOrderStatuses(db, { limit: 50 });
+    expect(r.due).toBe(20);
+    const reads = (await orderReads()).slice(before);
+    expect(reads).toHaveLength(20); // unknown to the mock ERP, so each read fails; the cap is what matters here
+    expect(reads).toContain(`GET /orders/VLK-261020-BBBBBBBBT2`); // the oldest (25 h) is first in line
+    expect(reads).not.toContain(`GET /orders/VLK-261020-BBBBBBBB22`); // the newest (1 h) waits for a later run
+  });
+});

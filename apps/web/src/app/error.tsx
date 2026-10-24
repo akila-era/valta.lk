@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { Icon3D } from "@/components/ui/icon-3d";
+import { accentize } from "@/components/ui/page-intro";
 
 export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
@@ -12,7 +13,8 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
       <span className="group animate-float [--dur:6s]">
         <Icon3D icon={AlertTriangle} size="lg" />
       </span>
-      <h1 className="mt-6 text-3xl font-bold tracking-[-0.02em]">Something went wrong</h1>
+      <p className="kicker mt-8"><span className="text-brand-600">Error</span> / VALTA.LK</p>
+      <h1 className="statement mt-3 text-[clamp(2.25rem,1.6rem+2.4vw,3.75rem)]">{accentize("Something went wrong", "wrong")}</h1>
       <p className="mt-3 text-muted">An unexpected error occurred. Please try again.</p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
         <button type="button" className="btn-primary shadow-[0_10px_24px_-8px_rgb(255_92_0/0.6)]" onClick={reset}>Try again</button>

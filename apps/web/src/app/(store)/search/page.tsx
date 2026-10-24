@@ -3,6 +3,7 @@ import { SearchBox } from "@/components/layout/search-box";
 import { CatalogueView, type RawParams } from "@/components/products/catalogue-view";
 import { Breadcrumbs } from "@/components/ui/chrome";
 import { EmptyState } from "@/components/ui/states";
+import { PageIntro } from "@/components/ui/page-intro";
 
 export const metadata: Metadata = { title: "Search", robots: { index: false, follow: true }, alternates: { canonical: "/search" } };
 
@@ -12,7 +13,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   return (
     <>
       <Breadcrumbs items={[{ href: "/", label: "Home" }, { label: "Search" }]} />
-      <h1 className="page-title mb-6">{q ? `Search results for “${q.slice(0, 100)}”` : "Search"}</h1>
+      <PageIntro section="Shop" label="Search" title={q ? `Search results for “${q.slice(0, 100)}”` : "Search"} accent={q ? `“${q.slice(0, 100)}”` : undefined} />
       <div className="mb-8 max-w-2xl">
         <SearchBox size="lg" autoFocus initialQuery={q?.slice(0, 100) ?? ""} />
       </div>

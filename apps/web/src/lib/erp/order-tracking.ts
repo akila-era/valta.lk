@@ -5,8 +5,9 @@ import { erpRequest } from "./client";
 import { endpoints } from "./endpoints";
 import { erpOrderSchema, TERMINAL_STATUSES, type ErpOrder, type ErpProduct, type OrderStatus } from "./types";
 
-export async function getOrder(ref: string): Promise<ErpOrder> {
-  return erpRequest(endpoints.order(ref), erpOrderSchema, { maxAttempts: 2 });
+/** `opts` lets background jobs use a shorter timeout and a single attempt; pages keep the defaults. */
+export async function getOrder(ref: string, opts: { timeoutMs?: number; maxAttempts?: number } = {}): Promise<ErpOrder> {
+  return erpRequest(endpoints.order(ref), erpOrderSchema, { maxAttempts: opts.maxAttempts ?? 2, ...(opts.timeoutMs ? { timeoutMs: opts.timeoutMs } : {}) });
 }
 
 export async function cancelOrder(ref: string): Promise<void> {

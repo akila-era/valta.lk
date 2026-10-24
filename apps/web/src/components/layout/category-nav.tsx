@@ -26,20 +26,20 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
   };
   const dealsActive = pathname === "/products" && params.get("sale") === "1";
   const item = (active: boolean) =>
-    `relative flex h-12 items-center whitespace-nowrap px-1 text-sm font-medium transition-colors text-ink/75 hover:text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:bg-brand-500 after:transition-transform after:duration-300 ${
+    `relative flex h-8 items-center whitespace-nowrap px-1 text-[12px] font-medium transition-colors text-ink/75 hover:text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:bg-brand-500 after:transition-transform after:duration-300 ${
       active ? "text-brand-600! after:scale-x-100" : "after:scale-x-0 hover:after:scale-x-100"
     }`;
 
   return (
     <nav aria-label="Categories" className="hidden border-t border-border md:block">
-      <div className="container-wide flex flex-wrap items-center gap-x-7 gap-y-1 py-1">
+      <div className="container-wide flex flex-wrap items-center gap-x-4 gap-y-0.5 py-px">
         <button
           type="button"
           aria-haspopup="dialog"
           onClick={() => setOpenedAt(pathname)}
-          className="my-1 inline-flex min-h-9 items-center gap-2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-on-brand transition-colors hover:bg-brand-400 hover:shadow-glow"
+          className="my-0.5 inline-flex min-h-7 items-center gap-1.5 rounded-full bg-brand-500 px-3 text-[11.5px] font-semibold text-on-brand transition-colors hover:bg-brand-400 hover:shadow-glow"
         >
-          <Menu className="h-4 w-4" aria-hidden /> All Categories <ChevronDown className="h-4 w-4" aria-hidden />
+          <Menu className="h-3.5 w-3.5" aria-hidden /> All Categories <ChevronDown className="h-3.5 w-3.5" aria-hidden />
         </button>
         <CategoryDrawer open={open} onClose={close} categories={categories} hasDeals={showDeals} />
         <ul className="contents">
@@ -49,7 +49,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
             return (
               <li key={c.slug}>
                 <Link href={`/categories/${c.slug}`} aria-current={active ? "page" : undefined} className={item(active)}>
-                  {Icon ? <Icon className="mr-1.5 h-4 w-4" strokeWidth={1.75} aria-hidden /> : null}
+                  {Icon ? <Icon className="mr-1 h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> : null}
                   {c.name}
                 </Link>
               </li>
@@ -60,13 +60,13 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
           <Link
             href="/products?sale=1"
             aria-current={dealsActive ? "page" : undefined}
-            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 text-sm font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
+            className={`inline-flex min-h-8 shrink-0 items-center gap-1 text-[12px] font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
           >
-            <Flame className="h-4 w-4 animate-flicker fill-brand-500/30" strokeWidth={2} aria-hidden /> Deals
+            <Flame className="h-3.5 w-3.5 animate-flicker fill-brand-500/30" strokeWidth={2} aria-hidden /> Deals
           </Link>
         )}
-        <Link href="/#products" className="inline-flex min-h-9 shrink-0 items-center gap-1.5 text-sm font-medium text-ink/75 hover:text-ink">
-          <Star className="h-4 w-4" strokeWidth={1.75} aria-hidden /> New Arrivals
+        <Link href="/#products" className="inline-flex min-h-8 shrink-0 items-center gap-1 text-[12px] font-medium text-ink/75 hover:text-ink">
+          <Star className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> New Arrivals
         </Link>
       </div>
     </nav>

@@ -21,25 +21,29 @@ If `HX_API_BASE` / `HX_STORE_CREDENTIAL` are missing or malformed the site rende
 | --- | --- |
 | `HOME_BANNERS` | JSON array of up to 4 promo banners: `{variant: "dark"\|"light", eyebrow?, headline, text?, ctaLabel, href, categorySlug?}`. `href` must be an internal path. A banner whose category does not exist in the ERP catalogue is hidden. When unset, two neutral banners are derived from real categories (phones; gadgets/accessories) with no discount or offer wording. |
 | `SITE_SOCIAL_FACEBOOK`, `SITE_SOCIAL_INSTAGRAM`, `SITE_SOCIAL_TIKTOK`, `SITE_SOCIAL_YOUTUBE` | `https://` profile URLs shown in the footer. Hidden when unset. |
+| `HOME_VIDEOS` | JSON array of up to 4 YouTube videos: `{id: "<11-character video id>", title, channel?, thumbnail?}`. `thumbnail` may be an internal path or an `i.ytimg.com` URL. The player (youtube-nocookie.com) loads only after the visitor presses play. Hidden when unset or invalid. |
+| `HOME_VIDEOS_TITLE` | Heading above those videos (default "Watch and learn"). |
 
 ## Header and service bar text (optional, owner-supplied)
 
-These are business claims, so the site shows them only when the owner sets them. When blank, the site shows facts from live ERP settings (cash on delivery, delivery charge) instead.
+Business claims appear only when the owner sets them. Everything else in the header and the service bar under the hero comes from live ERP settings or fixed site links.
 
 | Variable | Description |
 | --- | --- |
-| `SITE_ANNOUNCEMENT` | Top-bar tagline next to the location pin. |
-| `SITE_HIGHLIGHTS` | Up to 2 top-bar claims separated by `\|`, e.g. `Islandwide Delivery\|Secure Payments`. "Customer Support" is always added. |
-| `SITE_SERVICE_BAR` | Up to 4 items under the hero, `Title:Subtitle\|...`. Icons follow the mockup order: truck, shield, card, headset. Do not list payment methods checkout does not offer (checkout is COD only). |
-| `SITE_CONTACT_PHONE`, `SITE_CONTACT_WHATSAPP` | Top-bar phone and WhatsApp (opens wa.me). |
-| `SITE_CONTACT_ADDRESS` | When set, the top bar shows "Store Locator" (links to the contact page). |
+| `SITE_ANNOUNCEMENT` | Shown first in the slim announcement bar above the header, before the ERP facts (delivery charge, cash on delivery), the phone number and "Track order". |
+| `SITE_CONTACT_PHONE` | Announcement bar, footer, contact page, and the "Customer Support" item of the service bar. |
+| `SITE_CONTACT_ADDRESS` | Footer and contact page. |
+| `SITE_HIGHLIGHTS`, `SITE_CONTACT_WHATSAPP` | Read into the site settings (`lib/site-config.ts`) but **not displayed anywhere at the moment**. |
+
+The service bar under the hero is not configurable (`SITE_SERVICE_BAR` is not read by the code). It always shows the ERP delivery charge, "Cash on Delivery" when the ERP allows COD, "Track Your Order", and "Customer Support".
 
 ## Customer accounts
 
 | Variable | Description |
 | --- | --- |
 | `DATABASE_URL` | PostgreSQL connection for the **website's own** database (customer accounts, sessions, reset tokens, order links). Use a dedicated database such as `valta_web`, never the ERP database. When blank, accounts are hidden and guest checkout keeps working. |
-| `ADMIN_EMAILS` | Comma-separated emails of signed-in customer accounts allowed to open `/admin/orders` (orders list, filters, ERP sync status/errors, retry). Empty = nobody is admin. Requires `DATABASE_URL`. |
+| `ADMIN_EMAILS` | Comma-separated emails of signed-in customer accounts allowed into the whole admin console (`/admin`: dashboard, orders and sync retry, products and content, marketing, reports, ERP settings). Empty = nobody is admin. Requires `DATABASE_URL`. |
+| `SETTINGS_ENCRYPTION_KEY` | 32+ random characters. Needed to save an ERP connection from Admin > ERP Settings (the credential is stored AES-256-GCM encrypted). Without a saved connection the site uses `HX_API_BASE` / `HX_STORE_CREDENTIAL`. Losing or changing the key means re-entering the credential. |
 | `ORDER_SYNC_SECRET` | At least 16 characters. Bearer secret for `POST /api/internal/sync-orders`, which a scheduler calls every minute to send orders that could not reach the ERP. Unset = the endpoint returns 404. Example: `curl -X POST -H "Authorization: Bearer $ORDER_SYNC_SECRET" https://<site>/api/internal/sync-orders`. |
 | `ORDER_SYNC_BACKOFF_MS` | Test-only override of the retry backoff (default 1m, 5m, 15m, 1h, 3h, 6h; orders still unsent after 24h are marked "Needs attention"). Never set in production. |
 
@@ -53,5 +57,15 @@ npx prisma migrate deploy   # applies prisma/migrations (website tables only)
 npx prisma generate         # regenerates src/generated/prisma (also needed after a fresh clone)
 ```
 
+For local development without PostgreSQL, `npm run dev-db` starts an embedded database (PGlite) on port 5498 (`DEV_DB_PORT` to change it), stored in `apps/web/.dev-db`, and applies the migrations itself. Point `DATABASE_URL` at it. Development only.
+
 Password reset emails: no email provider is configured. In development the reset link is printed to the server console; in production nothing is sent until a provider is wired into `src/lib/auth/mailer.ts`.
-| `SETTINGS_ENCRYPTION_KEY` | optional | 32+ random characters. Needed to save an ERP connection from Admin > ERP Settings (the credential is stored AES-256-GCM encrypted). Without a saved connection the site uses HX_API_BASE / HX_STORE_CREDENTIAL. Losing or changing the key means re-entering the credential. |
+
+## Operational and test switches
+
+| Variable | Description |
+| --- | --- |
+| `COOKIE_SECURE` | `true` / `false` forces the `Secure` flag on session and order-access cookies. Default: secure in production only. |
+| `DEMO_READ_ONLY` | `true` makes the site a browse-only demo: `src/proxy.ts` refuses every non-GET request (checkout, sign-in, admin changes, order sync) with 403. |
+| `NEXT_DIST_DIR` | Build output folder (default `.next`). The Playwright config sets `.next-e2e` so E2E builds never overwrite a running dev server's files. |
+| `DEV_DB_PORT` | Port for `npm run dev-db` (default 5498). |

@@ -11,6 +11,7 @@ import { getDb } from "@/lib/db";
 import type { PublicOrder } from "@/lib/erp/order-tracking";
 import { loadOrderView } from "@/lib/orders/public";
 import { formatLkr } from "@/lib/utils/money";
+import { PageIntro } from "@/components/ui/page-intro";
 
 export const metadata: Metadata = { title: "My account", robots: { index: false } };
 
@@ -68,8 +69,8 @@ export default async function AccountPage() {
 
   return (
     <div>
-      <h1 className="page-title">My account</h1>
-      <div className="mt-6 grid items-start gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
+      <PageIntro section="Account" label="Overview" title="My account" />
+      <div className="grid items-start gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
         <nav aria-label="Account" className="min-w-0">
           <ul className="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
             {NAV.map((item) => (

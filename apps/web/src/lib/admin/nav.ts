@@ -1,5 +1,5 @@
 import {
-  Award, Banknote, BarChart3, Boxes, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon,
+  Award, Banknote, BarChart3, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon,
   Inbox, KeyRound, LayoutDashboard, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw,
   RotateCcw, Scale, ScrollText, Settings, Settings2, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
 } from "lucide-react";
@@ -92,6 +92,7 @@ export const NAV: NavGroup[] = [
     id: "reports", label: "Reports & Analytics", icon: BarChart3,
     items: [
       { label: "Sales Reports", href: "/admin/reports" },
+      { label: "Conversion Analytics", href: "/admin/reports/conversion" },
       { label: "Order Reports", href: "/admin/reports/orders" },
       { label: "Product Reports", href: "/admin/reports/products" },
       { label: "Payment Reports", href: "/admin/reports/payments" },
@@ -122,7 +123,7 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
   Shipments: Truck, "Delivery Tracking": MapPin, "Delivery Partners": Handshake,
   "ERP Overview": Gauge, "Product Sync": Package, "Inventory Sync": Boxes, "Order Sync": ShoppingBag, "Failed Sync Jobs": TriangleAlert, "Integration Logs": ScrollText, "Connection Settings": Plug,
   "Homepage Content": House, "Promotional Banners": ImageIcon, "Promotions & Discounts": Percent,
-  "Sales Reports": TrendingUp, "Order Reports": ClipboardList, "Product Reports": PackageSearch, "Payment Reports": Wallet, "ERP Sync Reports": RefreshCw,
+  "Sales Reports": TrendingUp, "Conversion Analytics": Funnel,"Order Reports": ClipboardList, "Product Reports": PackageSearch, "Payment Reports": Wallet, "ERP Sync Reports": RefreshCw,
   "Admin Users": UserCog, "Roles & Permissions": KeyRound, "Audit Logs": ScrollText, "General Settings": Settings, "Payment Settings": CreditCard, "Shipping Settings": Truck, "ERP Settings": Plug,
 };
 export const iconFor = (label: string): LucideIcon => ITEM_ICONS[label] ?? Package;

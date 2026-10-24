@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { OrderTracker } from "@/components/orders/order-tracker";
+import { PageIntro } from "@/components/ui/page-intro";
 
 export const metadata: Metadata = {
   title: "Track your order",
@@ -11,8 +12,7 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
   const { ref } = await searchParams;
   return (
     <>
-      <h1 className="page-title mb-2">Track your order</h1>
-      <p className="mb-6 max-w-2xl text-sm text-muted">Enter the reference from your confirmation. This page shows the order status the store has on record. It does not show another customer’s delivery details.</p>
+      <PageIntro section="Orders" label="Tracking" title="Track your order" intro="Enter the reference from your confirmation. This page shows the order status the store has on record. It does not show another customer’s delivery details." />
       <OrderTracker initialRef={ref?.slice(0, 40)} />
     </>
   );

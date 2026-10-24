@@ -28,7 +28,7 @@ export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
       </Reveal>
       <ul className="relative grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-[repeat(auto-fit,minmax(14rem,1fr))]">
         {reasons.map(({ icon: I, title, text }, i) => (
-          <Reveal as="li" key={title} delay={i * 80} className="h-full">
+          <Reveal as="li" key={title} delay={i * 100} className="h-full">
             <div className="group relative flex h-full flex-col overflow-hidden rounded-card bg-white/90 p-5 shadow-soft ring-1 ring-ink/[0.05] backdrop-blur transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift motion-reduce:hover:translate-y-0 sm:p-6">
               <span aria-hidden className="pointer-events-none absolute right-4 top-2 font-display text-[4.5rem] font-black leading-none text-transparent [-webkit-text-stroke:1.5px_rgb(255_92_0/0.16)] transition-transform duration-500 group-hover:-translate-y-1">0{i + 1}</span>
               <Icon3D icon={I} size="lg" />

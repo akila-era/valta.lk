@@ -33,11 +33,12 @@ Then: `npm ci && npm run build && npm run start`, and run the smoke journey belo
 
 ## Rollback
 
-Redeploy the previous build artifact and restore the previous environment values. The website database only holds accounts; migrations are additive. Roll back the app first; only roll back the schema with an approved plan. Test orders live in the staging ERP and are cancelled there.
+Redeploy the previous build artifact and restore the previous environment values. The website database holds accounts, website order records, product content, marketing content and settings (see ARCHITECTURE.md). Most migrations only add tables, columns or indexes, but not all: `20261022090000_product_content_v2` drops two `ProductContent` columns after copying their data, and `20261022153000_accessory_variant_key` replaces a unique index. Back up the database before `prisma migrate deploy`. Roll back the app first; only roll back the schema with an approved plan. Test orders live in the staging ERP and are cancelled there.
 
 ## Known limitations and blockers
 
-- **Never run against a live ERP.** The contract is implemented from the ERP docs but only tested against a mock. See [ERP_INTEGRATION.md](ERP_INTEGRATION.md).
+- **Never run against a staging or production ERP.** The contract is implemented from the ERP docs, tested automatically against a mock and by hand against the real ERP code on a local disposable database. See [ERP_INTEGRATION.md](ERP_INTEGRATION.md).
+- Cached ERP order statuses on `WebOrder` refresh only when an order is viewed, so admin reports (especially "COD collected") can lag behind the ERP. See ARCHITECTURE.md.
 - Rate limiting is per-instance memory; use a shared store for multiple instances.
 - Catalogue snapshot is held in process memory (refreshed every 60 s); with many instances each keeps its own copy.
 - Order tracking polls every 30 s only while the tab is visible and stops at `DELIVERED`/`CANCELLED`.

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
 import { getCheckoutAvailability } from "@/lib/erp/settings";
+import { PageIntro } from "@/components/ui/page-intro";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export default async function CheckoutPage() {
   const [a, customer] = await Promise.all([getCheckoutAvailability({ fresh: true }), getCurrentCustomer()]);
   return (
     <>
-      <h1 className="page-title mb-6">Checkout</h1>
+      <PageIntro section="Your bag" label="Checkout" title="Checkout" />
       {a.enabled && a.settings ? (
         <>
           {!customer && accountsEnabled() && (

@@ -68,6 +68,8 @@ const state = {
   failNextOrder: null as null | "500" | "timeout-after-create" | "in-progress",
   /** While true, every order POST answers 503 (an ERP outage). */
   orderOutage: false,
+  /** Answer the next N `GET /orders/{ref}` requests with 429, as the ERP does when the website exceeds its rate limit. */
+  throttleOrderReads: 0,
   /** Queue of definitive rejections, consumed one per order POST. */
   rejectOrders: [] as { status: number; code: string }[],
   orderPosts: 0,
@@ -132,7 +134,7 @@ const server = http.createServer(async (req, res) => {
       // A reset is a change in the ERP too: bump timestamps so the website's incremental catalogue sync picks it up.
       state.items = initialItems().map((i) => ({ ...i, updatedAt: new Date().toISOString() })); state.removed = []; state.orders.clear(); state.reservations.clear();
       state.failNextOrder = null; state.orderOutage = false; state.rejectOrders = []; state.orderPosts = 0; state.ordersWithoutIdempotencyKey = 0; state.requests = [];
-      state.delayMs = 0; state.storeActive = true; state.settings = defaultSettings();
+      state.delayMs = 0; state.storeActive = true; state.settings = defaultSettings(); state.throttleOrderReads = 0;
     }
     if (body.settings) Object.assign(state.settings, body.settings);
     if (body.storeActive !== undefined) state.storeActive = body.storeActive;
@@ -143,6 +145,7 @@ const server = http.createServer(async (req, res) => {
     if (body.failNextOrder !== undefined) state.failNextOrder = body.failNextOrder;
     if (body.orderOutage !== undefined) state.orderOutage = body.orderOutage;
     if (body.rejectOrders !== undefined) state.rejectOrders = body.rejectOrders;
+    if (body.throttleOrderReads !== undefined) state.throttleOrderReads = body.throttleOrderReads;
     if (body.setOrderStatus) {
       const o = state.orders.get(body.setOrderStatus.ref);
       if (o) {
@@ -279,6 +282,10 @@ const server = http.createServer(async (req, res) => {
   const om = path.match(/^\/orders\/([^/]+)(\/cancel)?$/);
   if (om) {
     const o = state.orders.get(decodeURIComponent(om[1]));
+    if (req.method === "GET" && !om[2] && state.throttleOrderReads > 0) {
+      state.throttleOrderReads--;
+      return send(res, 429, { success: false, message: "RATE_LIMITED", code: "RATE_LIMITED" }, { "Retry-After": "30" });
+    }
     if (!o) return err(res, 404, "NOT_FOUND");
     if (req.method === "GET" && !om[2]) return ok(res, wireOrder(o));
     if (req.method === "POST" && om[2]) {

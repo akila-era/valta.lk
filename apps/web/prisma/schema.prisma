@@ -284,3 +284,37 @@ model HotDeal {
 
   @@index([active, sortOrder])
 }
+
+/// What a storefront funnel event records. ORDER_PLACED is only a marker that links a visit to a WebOrder reference.
+enum StorefrontEventType {
+  PRODUCT_VIEW
+  PRODUCT_CLICK
+  ADD_TO_CART
+  CHECKOUT_START
+  ORDER_PLACED
+}
+
+/// Anonymous storefront funnel event: product views, product clicks, adds to cart, checkout starts and order-placed
+/// markers. Behaviour signals only, never a sale: order counts and money always come from WebOrder (and the ERP status
+/// cached there). No customer id, IP address, contact or payment details are stored; `visitId` is a random id the
+/// browser keeps for one tab (sessionStorage). Product ids are ERP ids; nothing about the product itself is copied.
+/// Kept for 13 months.
+model StorefrontEvent {
+  id          String              @id @default(cuid())
+  type        StorefrontEventType
+  visitId     String              @db.VarChar(64)
+  erpItemId   String?             @db.VarChar(64)
+  variantKey  String?             @db.VarChar(128)
+  /// Where a product click happened, e.g. "home-arrivals", "listing", "search", "related".
+  placement   String?             @db.VarChar(32)
+  quantity    Int?
+  /// ORDER_PLACED only (enforced by a CHECK constraint). Unique, so an order is recorded at most once however often
+  /// the browser reports it.
+  externalRef String?             @unique @db.VarChar(32)
+  createdAt   DateTime            @default(now())
+
+  @@index([type, createdAt])
+  @@index([erpItemId, type, createdAt])
+  @@index([visitId])
+  @@index([createdAt])
+}

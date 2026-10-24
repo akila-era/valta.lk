@@ -51,8 +51,9 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
         />
 
         <div className="container-page relative z-10 flex flex-1 items-start pb-[calc(37.5vw+0.5rem)] pt-[calc(var(--hdr-sticky,7rem)+1.25rem)] md:items-center md:pb-16 md:pt-[calc(var(--hdr-sticky,7rem)+2rem)]">
-          {/* Kicker, statement, copy, actions and live facts, on the calm left side of the film. */}
-          <div className="max-w-xl">
+          {/* Kicker, statement, copy, actions and live facts, on the calm left side of the film. It drifts up and fades as
+              the hero scrolls away (hero-exit, scroll-driven CSS). */}
+          <div className="hero-exit max-w-xl">
             <p className="kicker animate-fade-up">
               <span className="text-brand-600">01</span> / VALTA.LK
             </p>
@@ -63,7 +64,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
                   {i > 0 && " "}
                   <span className="-mb-[0.12em] inline-block overflow-y-clip pb-[0.12em] align-top">
                     <span className="inline-block word-rise" style={{ "--i": i } as React.CSSProperties}>
-                      {w === "moves" ? <Accent>moves</Accent> : w}
+                      {w === "moves" ? <span className="underline-draw"><Accent>moves</Accent></span> : w}
                     </span>
                   </span>
                 </Fragment>
@@ -73,7 +74,7 @@ export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroP
               Discover smartphones, everyday tech and accessories at VALTA.LK.
             </p>
             <div className="mt-5 flex animate-fade-up flex-wrap items-center gap-2 [--d:270ms] sm:gap-3">
-              <Link href="/products" className="btn-primary px-6 shadow-[0_10px_24px_-8px_rgb(255_92_0/0.65)]">
+              <Link href="/products" className="btn-primary animate-cta-glow px-6">
                 Shop now <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               {phonesHref && (

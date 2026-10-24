@@ -2,6 +2,8 @@
 
 Status: plan only. No image has been generated, downloaded or replaced. Audit date: 2026-10-24, against the working tree on `main` (uncommitted redesign).
 
+> **Out of date since the audit (noted 2026-10-24, measurements not re-taken):** the hero no longer shows photographs; it plays the brand film (`public/videos/valta-brand-intro.webm`, MP4 fallback, poster `public/images/home/valta-brand-intro-poster.webp`). `hero-slides.tsx` now feeds the homepage "Everyday tech" chapter and uses `valta-hero-laptops.webp`, `valta-hero-gaming.webp`, `valta-hero-mobile.webp` and `valta-hero-accessories.webp`, not the four files listed as hero-1 to hero-4 below. Re-measure before acting on section 2.
+
 ## 1. How images are served today
 
 - Homepage art lives in `apps/web/public/images/home/` and is rendered with `next/image` (`fill` + `sizes`), so Next resizes and re-encodes on request.

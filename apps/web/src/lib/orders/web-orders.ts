@@ -1,8 +1,9 @@
 import "server-only";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { PrismaClient, WebOrder } from "@/generated/prisma/client";
 import { Prisma } from "@/generated/prisma/client";
 import { ErpError } from "../erp/errors";
+import { getOrder } from "../erp/order-tracking";
 import { createOrder } from "../erp/orders";
 import type { CreateOrderRequest, ErpOrder } from "../erp/types";
 
@@ -267,6 +268,107 @@ export async function retryOrderNow(db: PrismaClient, externalRef: string): Prom
     return row ? { kind: "synced", order: null } : { kind: "missing" };
   }
   return syncOrder(db, externalRef, { force: true });
+}
+
+/* ------------------------------------------------------------------ cached ERP status refresh */
+
+/** In the ERP, an order is finished once cancelled, or delivered with the cash recorded as collected. */
+const FINISHED_STATUSES = ["CANCELLED"];
+
+/**
+ * True when the cached ERP status of a synced order may still change and is older than `minAgeMs`, so a scheduled
+ * refresh should ask the ERP again. Mirrors the database filter in `refreshOrderStatuses`.
+ */
+export function needsStatusRefresh(
+  row: Pick<WebOrder, "syncStatus" | "erpStatus" | "erpPaymentStatus" | "erpStatusAt">,
+  now: Date,
+  minAgeMs: number,
+): boolean {
+  if (row.syncStatus !== "SYNCED") return false;
+  if (row.erpStatus && FINISHED_STATUSES.includes(row.erpStatus)) return false;
+  if (row.erpStatus === "DELIVERED" && row.erpPaymentStatus === "COD_COLLECTED") return false;
+  return !row.erpStatusAt || now.getTime() - row.erpStatusAt.getTime() >= minAgeMs;
+}
+
+export interface StatusRefreshResult {
+  due: number;
+  refreshed: number;
+  changed: number;
+  failed: number;
+  busy: number;
+  /** Why the batch ended early: the time budget ran out or the ERP asked us to slow down. */
+  stoppedBy: "budget" | "rate-limit" | null;
+}
+
+/**
+ * Re-reads the ERP status of up to `limit` in-progress orders whose cached status is the oldest (never-refreshed first),
+ * so admin reports such as "COD collected" do not depend on someone opening each order. Read-only towards the ERP.
+ *
+ * Safety: one ERP attempt per order with a short timeout; requests are sequential; the batch stops when `budgetMs` is
+ * spent or the ERP returns 429. Each order is claimed with the same `lockedUntil` lease the sync queue uses (only on
+ * SYNCED rows, which the sync queue never claims), so two overlapping scheduler calls never read the same order.
+ * An ERP failure keeps the previous cached status. Never throws for a single order.
+ */
+export async function refreshOrderStatuses(
+  db: PrismaClient,
+  opts: { limit?: number; minAgeMs?: number; budgetMs?: number; timeoutMs?: number; now?: () => Date } = {},
+): Promise<StatusRefreshResult> {
+  const limit = Math.min(Math.max(opts.limit ?? 20, 1), 20);
+  const minAgeMs = opts.minAgeMs ?? 10 * 60_000;
+  const budgetMs = opts.budgetMs ?? 20_000;
+  const clock = opts.now ?? (() => new Date());
+  const started = clock().getTime();
+  const now = clock();
+
+  const due = await db.webOrder.findMany({
+    where: {
+      syncStatus: "SYNCED",
+      AND: [
+        { OR: [{ erpStatus: null }, { erpStatus: { notIn: FINISHED_STATUSES } }] },
+        // "not (delivered and collected)", written out so NULL columns are kept (SQL NOT over NULL would drop them)
+        { OR: [{ erpStatus: null }, { erpStatus: { not: "DELIVERED" } }, { erpPaymentStatus: null }, { erpPaymentStatus: { not: "COD_COLLECTED" } }] },
+        { OR: [{ erpStatusAt: null }, { erpStatusAt: { lte: new Date(now.getTime() - minAgeMs) } }] },
+        { OR: [{ lockedUntil: null }, { lockedUntil: { lt: now } }] },
+      ],
+    },
+    orderBy: [{ erpStatusAt: { sort: "asc", nulls: "first" } }, { createdAt: "asc" }],
+    take: limit,
+    select: { externalRef: true, erpStatus: true, erpPaymentStatus: true },
+  });
+
+  const out: StatusRefreshResult = { due: due.length, refreshed: 0, changed: 0, failed: 0, busy: 0, stoppedBy: null };
+  for (const row of due) {
+    if (clock().getTime() - started >= budgetMs) {
+      out.stoppedBy = "budget";
+      break;
+    }
+    const at = clock();
+    const claim = await db.webOrder.updateMany({
+      where: { externalRef: row.externalRef, syncStatus: "SYNCED", OR: [{ lockedUntil: null }, { lockedUntil: { lt: at } }] },
+      data: { lockedUntil: new Date(at.getTime() + LOCK_MS) },
+    });
+    if (claim.count === 0) {
+      out.busy++;
+      continue;
+    }
+    try {
+      const o = await getOrder(row.externalRef, { maxAttempts: 1, timeoutMs: opts.timeoutMs ?? 5000 });
+      await db.webOrder.update({
+        where: { externalRef: row.externalRef },
+        data: { erpStatus: o.status, erpPaymentStatus: o.paymentStatus ?? null, erpStatusAt: clock(), trackingNumber: o.trackingNumber ?? null, carrierName: o.carrierName ?? null, lockedUntil: null },
+      });
+      out.refreshed++;
+      if (o.status !== row.erpStatus || (o.paymentStatus ?? null) !== row.erpPaymentStatus) out.changed++;
+    } catch (e) {
+      out.failed++;
+      await db.webOrder.updateMany({ where: { externalRef: row.externalRef, syncStatus: "SYNCED" }, data: { lockedUntil: null } }).catch(() => undefined);
+      if (e instanceof ErpError && e.kind === "RATE_LIMITED") {
+        out.stoppedBy = "rate-limit";
+        break;
+      }
+    }
+  }
+  return out;
 }
 
 /** Cheap, bounded "retry on view": when a customer looks at a pending order and it is due, try once. Never throws. */

@@ -52,7 +52,7 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
     <>
       {/* Slim announcement bar: the owner's SITE_ANNOUNCEMENT plus facts from live ERP settings only. It scrolls away. */}
       <div className={`border-b border-border bg-surface text-muted ${siteConfig.announcement ? "" : "hidden sm:block"}`}>
-        <div className="container-wide flex h-8 items-center justify-between gap-6 text-xs">
+        <div className="container-wide flex h-7 items-center justify-between gap-6 text-[11.5px]">
           <ul className="flex min-w-0 items-center gap-3 divide-x divide-border [&>li+li]:pl-3">
             {siteConfig.announcement ? <li className="truncate font-medium text-ink">{siteConfig.announcement}</li> : null}
             {settings ? (
@@ -75,9 +75,9 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
         </div>
       </div>
       <HeaderShell overlay={overlay}>
-        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
+        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2 py-2 md:grid md:h-14 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="text-[1.5rem] text-ink md:text-[1.9rem]" />
+          <Wordmark className="text-[1.35rem] text-ink md:text-[1.65rem]" />
           <div className="order-last w-full md:order-none">
             <SearchBox size="lg" />
           </div>

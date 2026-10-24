@@ -134,12 +134,12 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-11 rounded-full border-border bg-surface/90 pl-12 pr-28 text-[15px] focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
+          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-10 rounded-full border-border bg-surface/90 py-1.5 pl-10 pr-24 text-sm focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
         />
-        {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
+        {size === "lg" && <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute bottom-1 right-1 top-1 flex w-14 items-center justify-center rounded-full bg-brand-500 text-on-brand transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
-            <Search className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+          <button type="submit" className="absolute bottom-1 right-1 top-1 flex w-11 items-center justify-center rounded-full bg-brand-500 text-on-brand transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
+            <Search className="h-4 w-4" strokeWidth={2.5} aria-hidden />
           </button>
         ) : (
           <button type="submit" className="absolute left-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink" aria-label="Search">
@@ -151,12 +151,12 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
             type="button"
             onClick={clear}
             aria-label="Clear search"
-            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-16" : "right-1"}`}
+            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[3.25rem]" : "right-1"}`}
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
         )}
-        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[4.5rem]" : "right-10"}`} aria-hidden />}
+        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[3.75rem]" : "right-10"}`} aria-hidden />}
       </form>
 
       {visible && (

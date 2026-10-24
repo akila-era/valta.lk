@@ -136,6 +136,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         cod={data.checkout.cod}
         deliveryCharge={data.checkout.deliveryCharge}
       />
+      {/* Scroll progress: a thin orange line along the top of the screen (scroll-driven CSS, hidden where unsupported). */}
+      <div aria-hidden className="scroll-progress pointer-events-none fixed inset-x-0 top-0 z-[70] h-[3px] bg-[linear-gradient(90deg,#ff5c00,#ff9b52)]" />
       <ChapterRail chapters={rail} />
       <div className="pb-6 sm:pb-10">
         {chapters.map((c, i) => (

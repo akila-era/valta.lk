@@ -6,7 +6,9 @@ The client follows the authoritative ERP documents found at
 `C:\Users\Akila\CascadeProjects\windsurf-project\docs\` (ERP repo, branch `feature/ecommerce-cod-launch`):
 `API_INTEGRATION_GUIDE.md`, `openapi.yaml`, `ERP_API_GAP_ANALYSIS.md`, `WEBSITE_QUICKSTART.md`, `STORE_ORDER_API.md`.
 
-**It has not been run against a live ERP.** All automated tests use `apps/web/tests/mock-erp/server.ts`, a mock written from those documents (envelope, decimal strings, strict request bodies, replay semantics). A passing suite shows the client matches the documents as the mock reads them, not that the running ERP behaves identically.
+**It has not been run against a staging or production ERP.** All automated tests use `apps/web/tests/mock-erp/server.ts`, a mock written from those documents (envelope, decimal strings, strict request bodies, replay semantics). A passing suite shows the client matches the documents as the mock reads them, not that a deployed ERP behaves identically. The site has additionally been run by hand against the real ERP code on a local, disposable database; see "Verification status" below.
+
+Those ERP documents are on the ERP developer's machine and are not part of this repository, so they cannot be re-checked from here.
 
 ## Contract mapping
 
@@ -18,7 +20,7 @@ The client follows the authoritative ERP documents found at
 | Live price/stock for cart lines | `GET /catalogue/products/{id}` (the availability feed is a bulk cursor feed, not per item) | `availability.ts` |
 | Reservations | `POST /reservations`, `POST /reservations/{ref}/release` | `reservations.ts` |
 | Order | `POST /orders` (`Idempotency-Key` = `externalRef`) | `orders.ts` |
-| Status/tracking | `GET /orders/{ref}` (`trackingNumber`, `carrierName`) | `order-tracking.ts` |
+| Status/tracking | `GET /orders/{ref}` (`trackingNumber`, `carrierName`); read when an order is viewed, cached on `WebOrder` (see ARCHITECTURE.md) | `order-tracking.ts` |
 | Cancel | `POST /orders/{ref}/cancel` | `order-tracking.ts` |
 
 Auth: `Authorization: Bearer hxs_<keyId>.<secret>`, server-side only.

@@ -12,6 +12,7 @@ import type { CreateOrderRequest } from "@/lib/erp/types";
 import { accessTokensFor } from "@/lib/orders/access-cookie";
 import { canSeeOrderDetails, loadOrderView } from "@/lib/orders/public";
 import { isValidOrderRef } from "@/lib/utils/order-ref";
+import { accentize } from "@/components/ui/page-intro";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -49,9 +50,10 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="rounded-2xl border border-border bg-surface px-6 py-8 text-center">
+      <div className="relative overflow-hidden rounded-panel bg-[linear-gradient(150deg,#fff4ec,#ffffff_55%,#f6f4f0)] px-6 py-10 text-center shadow-soft ring-1 ring-brand-500/10">
         {pending ? <Clock className="mx-auto h-12 w-12 text-warn" aria-hidden /> : <CheckCircle2 className="mx-auto h-12 w-12 text-success" aria-hidden />}
-        <h1 className="page-title mt-4">{pending ? "Thank you, we have your order" : "Thank you, your order is placed"}</h1>
+        <p className="kicker mt-4"><span className="text-brand-600">Orders</span> / Confirmation</p>
+        <h1 className="statement mx-auto mt-3 max-w-[16ch] text-[clamp(2rem,1.5rem+2vw,3.25rem)]">{accentize(pending ? "Thank you, we have your order" : "Thank you, your order is placed", "Thank you")}</h1>
         <p className="mt-2 text-sm text-muted">Your order reference</p>
         <p className="mt-1 text-xl font-bold tracking-wider" data-testid="order-ref">{order.ref}</p>
         <p className="mt-2 text-sm text-muted">Keep this reference to track your order.</p>

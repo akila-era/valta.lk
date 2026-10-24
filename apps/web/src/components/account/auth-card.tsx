@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { UserRound } from "lucide-react";
 import { Icon3D } from "@/components/ui/icon-3d";
+import { accentize } from "@/components/ui/page-intro";
 
 /** Sign-in style pages (sign in, register, password reset): a glass card raised over a tilted orange orbit, with a 3D icon tile above the title. */
 export function AuthCard({ title, intro, children, footer }: { title: string; intro?: string; children: React.ReactNode; footer?: React.ReactNode }) {
@@ -10,7 +11,8 @@ export function AuthCard({ title, intro, children, footer }: { title: string; in
       <span aria-hidden className="pointer-events-none absolute -right-16 top-0 -z-10 h-64 w-64 rounded-full bg-brand-500/15 blur-3xl" />
       <div className="group card relative bg-white/90 p-6 shadow-float backdrop-blur sm:p-8">
         <Icon3D icon={UserRound} size="lg" className="mb-5" />
-        <h1 className="page-title">{title}</h1>
+        <p className="kicker"><span className="text-brand-600">Account</span> / VALTA.LK</p>
+        <h1 className="statement mt-2 text-[clamp(2rem,1.6rem+1.6vw,2.75rem)]">{accentize(title)}</h1>
         {intro && <p className="mt-2 text-sm text-muted">{intro}</p>}
         <div className="mt-6">{children}</div>
       </div>
