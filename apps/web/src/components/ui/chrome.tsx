@@ -14,10 +14,10 @@ export function ArrowLink({ href, children, className = "" }: { href: string; ch
 
 export function SectionHeader({ id, title, eyebrow, action, children, center = false }: { id?: string; title: string; eyebrow?: string; action?: { href: string; label: string }; children?: ReactNode; center?: boolean }) {
   return (
-    <div className={`mb-3 flex flex-wrap items-end gap-3 ${center ? "justify-center text-center" : "justify-between"}`}>
-      {/* An orange side bar marks the section start; the small label sits above the title. */}
-      <div className={`min-w-0 ${center ? "" : "border-l-[3px] border-brand-500 pl-3"}`}>
-        {eyebrow ? <p className="mb-0.5 text-label font-bold uppercase tracking-[0.12em] text-brand-600">{eyebrow}</p> : null}
+    <div className={`mb-4 flex flex-wrap items-end gap-x-6 gap-y-3 sm:mb-6 ${center ? "justify-center text-center" : "justify-between"}`}>
+      {/* The small label (with its neon signal dot) sits above the title; a short description may follow. */}
+      <div className="min-w-0">
+        {eyebrow ? <p className="eyebrow mb-1.5">{eyebrow}</p> : null}
         <h2 id={id} className="section-title">{title}</h2>
         {children ? <div className={`mt-1 max-w-2xl text-sm text-muted ${center ? "mx-auto" : ""}`}>{children}</div> : null}
       </div>

@@ -417,7 +417,7 @@ test.describe("more homepage sections", () => {
   });
 
   test("product showcase: grid columns follow the breakpoint and never overflow", async ({ browser }) => {
-    for (const [w, cols] of [[1700, 6], [1300, 6], [1100, 5], [820, 3], [390, 2]] as const) {
+    for (const [w, cols] of [[1700, 6], [1300, 5], [1100, 4], [820, 3], [390, 2]] as const) {
       const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" });
       const page = await ctx.newPage();
       await page.goto("/");

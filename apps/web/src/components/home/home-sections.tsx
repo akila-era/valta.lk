@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronRight, Flame } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Flame } from "lucide-react";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { CompactProductCard } from "@/components/products/compact-product-card";
 import { ProductImage } from "@/components/products/product-card";
@@ -27,50 +27,68 @@ const CATEGORY_LINE: { test: RegExp; line: string }[] = [
   { test: /gam|console/i, line: "Consoles & controllers" },
 ];
 
+/** Warm tile tints, cycled across the category cards (the third carries the brand orange). */
+const TILE_TINTS = [
+  "linear-gradient(145deg,#f8f6f2,#ece8e1)",
+  "linear-gradient(145deg,#f5f6f6,#e6e8ea)",
+  "linear-gradient(145deg,#fff4ec,#f7dfcd)",
+  "linear-gradient(145deg,#f6f6f2,#e8e8e0)",
+];
+
 /**
  * "Shop by Category": one card per real ERP category (name, link and count come from the catalogue), with a studio
  * photograph for known kinds of category, the ERP's own photo otherwise, or a line icon as the last resort.
+ * 2D (dotted grid, orange ring) meets 3D (the product floats over a floor shadow and lifts on hover). Phones get a
+ * swipeable row; from 640px the cards form a centred grid, up to six per row.
  */
 export function CategoryTiles({ categories }: { categories: HomeData["categories"] }) {
   if (!categories.length) return null;
   const shown = categories.slice(0, MAX_CATEGORY_CARDS);
   return (
     <section aria-labelledby="cats" className="section-space">
-      <SectionHeader id="cats" eyebrow="Top categories" title="Shop by Category" action={{ href: "/products", label: "View all categories" }} />
-      {/* Desktop: one row across the full width, a column per real category (up to eight). */}
+      <SectionHeader id="cats" eyebrow="Top categories" title="Shop by Category" action={{ href: "/products", label: "View all categories" }}>
+        <p>Find the right upgrade in a tap.</p>
+      </SectionHeader>
       <ul
-        className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 lg:grid-cols-[repeat(var(--cat-cols),minmax(0,1fr))]"
-        style={{ "--cat-cols": Math.min(shown.length, 8) } as React.CSSProperties}
+        className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-3 px-3 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-[repeat(var(--cat-cols),minmax(0,1fr))] [&::-webkit-scrollbar]:hidden"
+        style={{ "--cat-cols": Math.min(shown.length, 6) } as React.CSSProperties}
       >
         {shown.map((c, i) => {
           const Icon = categoryIcon(c.name);
           const art = categoryVisual(c.name) ?? c.image;
-          const line = CATEGORY_LINE.find((k) => k.test.test(c.name))?.line ?? `${c.count} ${c.count === 1 ? "product" : "products"}`;
+          const line = CATEGORY_LINE.find((k) => k.test.test(c.name))?.line ?? "Shop the range";
+          const count = `${c.count} ${c.count === 1 ? "product" : "products"}`;
           return (
-            <Reveal as="li" key={c.slug} delay={Math.min(i, 7) * 50}>
+            <Reveal as="li" key={c.slug} delay={Math.min(i, 7) * 50} className="w-[44%] shrink-0 snap-start sm:w-auto">
               <Link
                 href={`/categories/${c.slug}`}
-                aria-label={`${c.name}, ${c.count} ${c.count === 1 ? "product" : "products"}`}
-                className="group flex h-full flex-col rounded-xl border border-border bg-surface p-1.5 transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:border-brand-500/40 hover:bg-bg hover:shadow-lift focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 motion-reduce:hover:translate-y-0"
+                aria-label={`${c.name}, ${count}`}
+                className="group relative flex h-full min-h-[12.5rem] flex-col overflow-hidden rounded-[1.375rem] p-4 ring-1 ring-inset ring-ink/[0.05] transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-lift sm:min-h-[13.5rem] lg:min-h-[15.5rem] lg:rounded-panel lg:p-5 motion-reduce:hover:translate-y-0"
+                style={{ background: TILE_TINTS[i % TILE_TINTS.length] }}
               >
-                <span className="relative flex h-20 w-full justify-center overflow-hidden rounded-lg bg-[#efece8] sm:h-28 lg:h-40">
+                {/* 2D: dotted grid fading in from the lower right, and an orange ring outline. */}
+                <span aria-hidden className="absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.08)_1px,transparent_1.3px)] [background-size:14px_14px] [mask-image:linear-gradient(150deg,transparent_45%,#000)]" />
+                <span aria-hidden className="absolute -right-7 -top-7 h-24 w-24 rounded-full border-[10px] border-brand-500/15 transition-transform duration-500 group-hover:scale-110 lg:h-28 lg:w-28" />
+                <span className="relative z-10 min-w-0 pr-2">
+                  <span className="block text-[15px] font-bold leading-tight tracking-[-0.03em] text-ink sm:text-[17px] lg:text-lg">{c.name}</span>
+                  <span className="mt-1 block text-xs leading-4 text-ink/70">{line}</span>
+                </span>
+                {/* 3D: the studio photo floats above a floor shadow; multiply blends its warm backdrop into the tile. */}
+                <span aria-hidden className="absolute bottom-1 right-0 aspect-square h-[64%] max-h-44">
+                  <span className="absolute bottom-[9%] left-1/2 h-[9%] w-[62%] -translate-x-1/2 rounded-[50%] bg-ink/30 blur-md transition-[width,opacity] duration-500 group-hover:w-[50%] group-hover:opacity-60" />
                   {art ? (
-                    // The square studio photo fades out at its sides into the card tint, so no hard photo edge shows.
-                    <span className="relative aspect-square h-full [mask-image:radial-gradient(ellipse_at_center,#000_75%,transparent_100%)]">
-                      <Image src={art} alt="" fill sizes="(min-width:1024px) 160px, 112px" className="object-cover transition-transform duration-500 group-hover:scale-[1.06] motion-reduce:transition-none" />
+                    <span className="absolute inset-0 mix-blend-multiply transition-transform duration-500 ease-out [mask-image:radial-gradient(closest-side,#000_70%,transparent)] group-hover:-translate-y-2 group-hover:-rotate-3 group-hover:scale-[1.06] motion-reduce:transition-none">
+                      <Image src={art} alt="" fill sizes="(min-width:1024px) 180px, 140px" className="object-cover [filter:brightness(1.07)_contrast(1.04)]" />
                     </span>
                   ) : (
-                    <Icon className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-ink" strokeWidth={1.2} aria-hidden />
+                    <Icon className="absolute left-1/2 top-[42%] h-12 w-12 -translate-x-1/2 -translate-y-1/2 text-ink/80 transition-transform duration-500 group-hover:-translate-y-[60%]" strokeWidth={1.2} />
                   )}
                 </span>
-                <span className="flex flex-1 items-center justify-between gap-1 px-1.5 pb-1 pt-2">
-                  <span className="min-w-0">
-                    <span className="block truncate text-xs font-semibold text-ink sm:text-sm">{c.name}</span>
-                    <span className="hidden truncate text-xs text-muted sm:block">{line}</span>
+                <span className="relative z-10 mt-auto flex items-center gap-2">
+                  <span aria-hidden className="flex h-9 w-9 items-center justify-center rounded-full bg-white/85 text-ink shadow-soft ring-1 ring-ink/[0.06] transition-colors duration-200 group-hover:bg-brand-500 group-hover:text-on-brand">
+                    <ArrowUpRight className="h-4 w-4" />
                   </span>
-                  <span aria-hidden className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg text-ink shadow-card transition-colors duration-200 group-hover:bg-brand-500 sm:flex group-hover:text-on-brand">
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </span>
+                  <span className="hidden text-xs font-semibold text-ink/70 sm:inline">{count}</span>
                 </span>
               </Link>
             </Reveal>
@@ -187,13 +205,17 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
   const active = tabs.find((t) => t.id === tab) ?? tabs[0];
   const blurb = TAB_BLURB[active.id] ?? `Available now in ${active.label}.`;
   return (
-    <section id="products" aria-labelledby="featured" className="section-space scroll-mt-40">
+    // A warm "stage" panel: white product cards stand out on it, and the 2D dot grid echoes the cards' own pattern.
+    <section id="products" aria-labelledby="featured" className="section-space relative scroll-mt-40 overflow-hidden rounded-[1.75rem] bg-[linear-gradient(180deg,#faf9f7,#f3f1ed)] px-3 py-5 ring-1 ring-inset ring-ink/[0.04] sm:px-5 sm:py-7 lg:rounded-feature lg:px-7 lg:py-9">
+      <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-500/10 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-40 [background-image:radial-gradient(rgb(23_23_23/0.06)_1px,transparent_1.3px)] [background-size:16px_16px] [mask-image:linear-gradient(180deg,#000,transparent)]" />
+      <div className="relative">
       <SectionHeader id="featured" eyebrow="Collections" title="Featured Products">
         <p aria-live="polite">{blurb}</p>
       </SectionHeader>
       {tabs.length > 1 && (
-        <nav aria-label="Product collections" className="mb-3 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <ul className="flex w-max gap-1 rounded-full border border-border bg-surface p-1">
+        <nav aria-label="Product collections" className="-mx-3 mb-4 overflow-x-auto px-3 pb-1 [scrollbar-width:none] sm:mx-0 sm:mb-6 sm:px-0 [&::-webkit-scrollbar]:hidden">
+          <ul className="flex w-max gap-2">
             {tabs.map((t) => {
               const on = t.id === active.id;
               return (
@@ -202,7 +224,11 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
                     href={t.href}
                     scroll={false}
                     aria-current={on ? "true" : undefined}
-                    className={`inline-flex min-h-9 items-center whitespace-nowrap rounded-full px-4 text-[13px] font-semibold transition-colors duration-200 ${on ? "bg-ink text-bg shadow-card" : "text-muted hover:text-ink"}`}
+                    className={`inline-flex min-h-10 items-center whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold transition-[background-color,border-color,color,box-shadow] duration-200 ${
+                      on
+                        ? "border-brand-500 bg-brand-500 text-on-brand shadow-[0_8px_18px_-8px_rgb(255_92_0/0.7)]"
+                        : "border-border bg-bg text-ink/75 hover:border-ink/30 hover:text-ink"
+                    }`}
                   >
                     {t.label}
                   </Link>
@@ -213,11 +239,11 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
         </nav>
       )}
       {active.products.length ? (
-        // 2 columns on phones, 3 on tablets, 5 on laptops, 6 on wide screens. Extra items are hidden per breakpoint so
-        // the last row is never left short: 6 on phones, 9 on tablets, 10 on laptops, one row of 6 on wide screens.
+        // 2 columns on phones, 3 on tablets, 4 on laptops, 5 on desktops, 6 on wide screens. Extra items are hidden per
+        // breakpoint so the last row is never left short: 6, 9, 8, 10 and one row of 6.
         <ul
           aria-label={`${active.label} products`}
-          className="grid grid-cols-2 gap-2 sm:gap-2.5 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 max-md:[&>li:nth-child(n+7)]:hidden md:max-lg:[&>li:nth-child(n+10)]:hidden xl:[&>li:nth-child(n+7)]:hidden"
+          className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 max-md:[&>li:nth-child(n+7)]:hidden md:max-lg:[&>li:nth-child(n+10)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden 2xl:[&>li:nth-child(n+7)]:hidden"
         >
           {active.products.slice(0, 10).map((p, i) => (
             <Reveal as="li" key={p.id} delay={(i % 6) * 50}>
@@ -230,10 +256,11 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
           Products will appear here as soon as they are available.
         </EmptyState>
       )}
-      <div className="mt-4 text-center">
-        <Link href={active.all} className="btn-outline min-h-10">
+      <div className="mt-6 text-center">
+        <Link href={active.all} className="btn-outline min-h-11">
           View all <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
         </Link>
+      </div>
       </div>
     </section>
   );
