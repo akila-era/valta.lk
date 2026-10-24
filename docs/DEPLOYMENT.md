@@ -58,3 +58,45 @@ Redeploy the previous build artifact and restore the previous environment values
 ## Product content migration
 
 `prisma migrate deploy` also applies `20261021090000_product_content` and `20261022090000_product_content_v2` (product content documents and uploaded images). Existing rows from the first version become live content automatically. Back up the website database first.
+
+## Demo deployment (fake catalogue)
+
+A temporary demo that runs the mock ERP (`apps/web/tests/mock-erp`, 15 fake products) next to the site. Test orders
+work but live only in the mock's memory: they disappear whenever the `mock-erp` container restarts. Not for real customers.
+
+On the server, in the repository folder:
+
+```bash
+git fetch origin && git checkout phase2/home-cards && git pull
+```
+
+Create `.env` next to `docker-compose.yml` (never commit it):
+
+```bash
+POSTGRES_PASSWORD=<a long random password>
+HX_API_BASE=http://mock-erp:4010/api/v1/store-api
+HX_STORE_CREDENTIAL=hxs_test.testsecret
+SITE_URL=https://<demo host>            # or http://<server ip>:8090
+COOKIE_SECURE=false                     # only while the demo is served over plain http; remove once HTTPS is in front
+ADMIN_EMAILS=<your email>               # optional: register this account on the site to open /admin
+WEB_PORT=8090
+```
+
+Build, create the database tables, start:
+
+```bash
+docker compose build web
+docker compose up -d db
+docker compose run --rm web npx prisma migrate deploy   # website tables only (includes StorefrontEvent)
+docker compose --profile demo up -d
+```
+
+Check: `http://<server>:8090/` shows the fake products; `/products/<any>` → add to cart → checkout places a test order.
+
+Updating the demo later: `git pull && docker compose build web && docker compose run --rm web npx prisma migrate deploy && docker compose --profile demo up -d`.
+
+### Ending the demo
+
+1. In `.env`, set the real `HX_API_BASE` / `HX_STORE_CREDENTIAL` (staging first) and remove `COOKIE_SECURE=false` once HTTPS is in place.
+2. `docker compose --profile demo down` to remove the containers, then `docker compose build web && docker compose up -d` (without `--profile demo`, the mock ERP no longer runs; the image must be rebuilt because `HX_API_BASE` is read at build time for image hosts).
+3. Test accounts and test orders remain in the website database (`WebOrder`, `Customer`). Clear them with an approved plan, or start from a fresh database volume (`docker compose down -v` deletes **all** website data).

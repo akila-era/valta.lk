@@ -52,5 +52,21 @@ services:
     command:
       - 'while true; do sleep 60; curl -fsS -o /dev/null -X POST -H "Authorization: Bearer $$ORDER_SYNC_SECRET" http://web:3000/api/internal/sync-orders || echo "order sync failed"; done'
 
+  # DEMO ONLY: the mock HEXALYTE ERP from apps/web/tests (15 fake products, orders kept in memory and lost on restart).
+  # Start it with `docker compose --profile demo up -d` and point the site at it in .env:
+  #   HX_API_BASE=http://mock-erp:4010/api/v1/store-api   HX_STORE_CREDENTIAL=hxs_test.testsecret
+  # It has no published port: its /__control test endpoint must never be reachable from the internet.
+  # Remove the profile and set the real ERP values to end the demo (see docs/DEPLOYMENT.md).
+  mock-erp:
+    profiles: ["demo"]
+    image: valta/web:latest
+    restart: unless-stopped
+    working_dir: /app/apps/web
+    environment:
+      MOCK_ERP_PORT: "4010"
+    command: ["npx", "tsx", "tests/mock-erp/server.ts"]
+    expose:
+      - "4010"
+
 volumes:
   db-data:
