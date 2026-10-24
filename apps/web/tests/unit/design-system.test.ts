@@ -62,4 +62,14 @@ describe("design system tokens", () => {
     expect(rule("input")).toContain("border-border-strong");
     expect(rule("btn")).toContain("min-h-11");
   });
+
+  it("gives the admin console the storefront brand and on-brand text while keeping its status colours", () => {
+    const start = css.indexOf("\n.admin-theme {");
+    const admin = css.slice(start, css.indexOf("\n}", start));
+    expect(admin).not.toMatch(/--color-(brand-\d+|on-brand|ink|muted|surface|border):/);
+    expect(css).not.toMatch(/\.admin-theme [^{]*\{\s*color:\s*#fff/);
+    for (const name of ["danger", "danger-bg", "success", "success-bg", "warn", "warn-bg", "info", "info-bg"]) {
+      expect(admin).toContain(`--color-${name}: ${token(name)};`);
+    }
+  });
 });

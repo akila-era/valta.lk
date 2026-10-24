@@ -230,17 +230,14 @@
   .rich blockquote { border-left: 3px solid var(--color-border); padding-left: 1rem; color: var(--color-muted); }
 }
 
-/* Admin console: clean white SaaS theme with brand blue #2563EB (decided by the owner). Scoped to .admin-theme so the
-   storefront keeps its own orange palette; admin components keep using brand-* tokens, which resolve to blue here. */
+/* Admin console: clean white SaaS theme on the same brand orange, ink, surfaces and borders as the storefront (the
+   @theme tokens), with dark on-brand text on orange fills. Scoped to .admin-theme: status colours are pinned here,
+   cards are flatter, and the storefront's pill buttons, display headings and neon glow stay out of the console. */
 .admin-theme {
   --color-bg: #ffffff;
-  --color-ink: #141518;
-  --color-muted: #686d76;
   --color-dark: #101113;
   --color-night: #101113;
   --color-night-2: #191b1f;
-  --color-media: #f5f6f8;
-  --color-on-brand: #ffffff;
   --color-danger: #b42318;
   --color-danger-strong: #8f1c14;
   --color-danger-bg: #fef3f2;
@@ -256,20 +253,11 @@
   background: var(--color-bg);
   color: var(--color-ink);
   min-height: 100vh;
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #2563eb;
-  --color-brand-600: #1d4ed8;
-  --color-brand-700: #1e40af;
-  --color-surface: #f6f8fb;
-  --color-border: #e4e8ef;
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
 }
 .admin-theme .card { box-shadow: var(--shadow-card); }
-/* The storefront's pill buttons, display headings and neon glow stay out of the admin console. */
 .admin-theme { --shadow-glow: none; }
 .admin-theme :is(.btn, .btn-primary, .btn-secondary, .btn-outline, .btn-ghost, .btn-text, .btn-dark, .btn-danger) { border-radius: 0.5rem; }
 .admin-theme :is(.card) { border-radius: 0.75rem; }
 .admin-theme :is(h1, h2, h3) { font-family: var(--font-sans); }
-.admin-theme .btn-primary, .admin-theme .bg-brand-500 { color: #fff; }
 .admin-theme :is(.media-spot, .media-square) { background: var(--color-media); }

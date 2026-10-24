@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 /* Dashboard building blocks (server components, no client JS). */
 
 const TONES = {
-  orange: { box: "bg-brand-50 text-brand-700", stroke: "#2563eb", glow: "from-brand-500/10" },
+  orange: { box: "bg-brand-50 text-brand-700", stroke: "#ff5c00", glow: "from-brand-500/10" },
   green: { box: "bg-success-bg text-success", stroke: "#067647", glow: "from-success/10" },
   blue: { box: "bg-sky-50 text-sky-700", stroke: "#0ea5e9", glow: "from-ink/5" },
   purple: { box: "bg-violet-50 text-violet-700", stroke: "#7c3aed", glow: "from-brand-500/10" },
@@ -93,7 +93,7 @@ export function RangeTabs({ ranges, current, href }: { ranges: readonly number[]
   return (
     <nav aria-label="Date range" className="flex max-w-full flex-wrap rounded-lg border border-border bg-bg p-0.5 text-sm">
       {ranges.map((r) => (
-        <Link key={r} href={href(r)} aria-current={r === current ? "true" : undefined} className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors motion-reduce:transition-none sm:px-4 ${r === current ? "bg-brand-500 text-white" : "text-muted hover:text-ink"}`}>
+        <Link key={r} href={href(r)} aria-current={r === current ? "true" : undefined} className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors motion-reduce:transition-none sm:px-4 ${r === current ? "bg-brand-500 text-on-brand" : "text-muted hover:text-ink"}`}>
           Last {r} days
         </Link>
       ))}
@@ -106,7 +106,7 @@ export interface AttentionItem { label: string; count: number; href: string; ton
 /** Actionable signals first: what needs a person today, each linking to the list that fixes it. */
 export function Attention({ items }: { items: AttentionItem[] }) {
   const open = items.filter((i) => i.count > 0);
-  const TONE = { red: "bg-danger-bg text-danger", amber: "bg-warn-bg text-warn", blue: "bg-brand-50 text-brand-700" } as const;
+  const TONE = { red: "bg-danger-bg text-danger", amber: "bg-warn-bg text-warn", blue: "bg-info-bg text-info" } as const;
   return (
     <section aria-label="Needs attention" className="card mb-5 flex flex-wrap items-center gap-x-5 gap-y-2.5 px-4 py-3 sm:px-5">
       <h2 className="text-sm font-semibold">Needs attention</h2>

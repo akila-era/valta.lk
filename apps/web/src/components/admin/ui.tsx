@@ -180,7 +180,7 @@ export function Pager({ page, pageCount, href, total, pageSize, defaultSize = DE
   if (!full && pageCount <= 1) return null;
   const from = full && total ? (page - 1) * pageSize + 1 : 0;
   const to = full ? Math.min(total, page * pageSize) : 0;
-  const step = "inline-flex h-9 items-center rounded-lg bg-brand-50 px-3 font-semibold text-brand-700 hover:bg-brand-500 hover:text-white";
+  const step = "inline-flex h-9 items-center rounded-lg bg-brand-50 px-3 font-semibold text-brand-700 hover:bg-brand-500 hover:text-on-brand";
   return (
     <div className="card mt-5 flex flex-wrap items-center justify-between gap-4 px-4 py-3 text-sm">
       {full ? (
@@ -250,7 +250,7 @@ export function BarChart({ data, format, label }: { data: { label: string; value
   );
 }
 
-export const SLICE_COLORS = ["#2563eb", "#60a5fa", "#16a34a", "#f59e0b", "#7c3aed", "#94a3b8"];
+export const SLICE_COLORS = ["#ff5c00", "#60a5fa", "#16a34a", "#f59e0b", "#7c3aed", "#94a3b8"];
 
 export function Donut({ slices, centre, label }: { slices: { label: string; value: number }[]; centre: { big: string; small: string }; label: string }) {
   const total = slices.reduce((a, s) => a + s.value, 0);

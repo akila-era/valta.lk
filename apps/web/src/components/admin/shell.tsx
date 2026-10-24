@@ -24,7 +24,7 @@ const subscribe = (cb: () => void) => {
 function Badge({ n, tone }: { n: number; tone: "new" | "pending" | "failed" }) {
   if (!n) return null;
   return (
-    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${tone === "failed" ? "bg-danger text-white" : "bg-brand-500 text-white"}`} aria-label={`${n} ${tone}`}>
+    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${tone === "failed" ? "bg-danger text-white" : "bg-brand-500 text-on-brand"}`} aria-label={`${n} ${tone}`}>
       {n}
     </span>
   );
@@ -283,7 +283,7 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
           <Notifications badges={badges} />
           <details ref={account} className="relative">
             <summary className="flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg px-1 hover:bg-surface" aria-label={`Account menu for ${user.name}`}>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white" aria-hidden>{user.name.charAt(0).toUpperCase()}</span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-on-brand" aria-hidden>{user.name.charAt(0).toUpperCase()}</span>
               <span className="hidden text-left leading-tight sm:block">
                 <span className="block text-sm font-semibold">{user.name}</span>
                 <span className="block text-xs text-muted">Administrator</span>
