@@ -89,7 +89,7 @@ const qty = (stock: number) => Math.min(stock, 20);
 const wireItem = (i: Item) => ({
   id: i.id, externalId: null, sku: i.sku, name: i.name, description: `${i.name} by ${i.brand}.`, brand: i.brand,
   category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: null, warrantyNote: null,
-  images: [{ url: `/uploads/${i.id}.svg`, relative: true }] : [{ url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
+  images: i.sku === "SKU-6" || i.sku === "SKU-7" ? [] : [{ url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
   salePrice: i.salePrice, discountActive: i.discountActive, discountEndsAt: null, hasVariants: i.variants.length > 0,
   variants: i.variants.map((v) => ({ key: v.key, sku: v.sku, storage: v.storage, color: v.color, colorHex: null, price: v.price, salePrice: null, discountActive: false, availability: avail(v.stock), purchasableQuantity: qty(v.stock) })),
   availability: i.variants.length ? avail(i.variants.reduce((a, v) => a + v.stock, 0)) : avail(i.stock),
