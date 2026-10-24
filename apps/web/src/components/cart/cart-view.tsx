@@ -172,7 +172,7 @@ export function CartView() {
             const max = d?.maxQuantity ?? null;
             return (
               <li key={key} className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-3 p-4 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-center" data-testid="cart-line">
-                <Link href={`/products/${l.slug}`} className="relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-xl bg-surface sm:h-[5.5rem] sm:w-[5.5rem]" aria-label={`View ${l.name}`}>
+                <Link href={`/products/${l.slug}`} className="thumb-stage relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-2xl sm:h-[5.5rem] sm:w-[5.5rem]" aria-label={`View ${l.name}`}>
                   {l.image ? <Image src={l.image} alt="" fill sizes="88px" className="object-contain p-2" /> : <Smartphone className="m-auto h-full w-8 text-muted" aria-hidden />}
                 </Link>
                 <div className="min-w-0">

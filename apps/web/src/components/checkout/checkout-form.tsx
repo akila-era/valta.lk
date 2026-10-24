@@ -380,7 +380,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         <ul className="mt-4 space-y-3 text-sm">
           {lines.map((l) => (
             <li key={lineKey(l)} className="flex items-center gap-3">
-              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-surface">
+              <span className="thumb-stage relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
                 {l.image ? <Image src={l.image} alt="" fill sizes="56px" className="object-contain p-1" /> : <Smartphone className="m-auto h-full w-6 text-muted" aria-hidden />}
               </span>
               <span className="min-w-0 flex-1">

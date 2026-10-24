@@ -28,7 +28,7 @@ export function WishlistView() {
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((i) => (
         <li key={i.productId} className="card flex items-center gap-4 p-3">
-          <Link href={`/products/${i.slug}`} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface">
+          <Link href={`/products/${i.slug}`} className="thumb-stage relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl">
             {i.image ? <Image src={i.image} alt="" fill sizes="80px" className="object-contain p-2" /> : <Smartphone className="m-auto h-full w-8 text-muted" aria-hidden />}
           </Link>
           <div className="min-w-0 flex-1">

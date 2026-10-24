@@ -102,7 +102,8 @@
 @utility container-page { @apply mx-auto w-full max-w-[106.25rem] px-4 sm:px-6 lg:px-10 2xl:px-12; }
 /* Full-width bands (header): edge to edge with comfortable side padding, capped only on very wide screens. */
 @utility container-wide { @apply mx-auto w-full max-w-[120rem] px-3 sm:px-4 lg:px-6; }
-@utility card { @apply rounded-card border border-border bg-bg; }
+/* Elevated card: a hairline edge plus a soft contact shadow and a long ambient one, so panels float above the page. */
+@utility card { @apply rounded-card border border-border bg-bg shadow-[0_1px_2px_rgb(26_23_20/0.04),0_18px_40px_-24px_rgb(27_23_20/0.22)]; }
 /* Pill buttons. Primary is the neon signal with dark on-brand text (>= 5:1 at rest and on hover); it deepens on hover. */
 @utility btn {
   @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-pill px-6 text-sm font-semibold tracking-[-0.005em]
@@ -144,6 +145,13 @@
 /* Product image well: a soft spotlight so products (dark ones included) stand out on the dark theme. */
 @utility media-spot { background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--color-media) 75%); }
 @utility media-square { @apply relative aspect-square overflow-hidden media-spot; }
+/* Small 3D product stage for thumbnails (cart, checkout, wishlist): a white spotlight disc on a warm gradient, an
+   inner edge and a contact shadow; white-background photos blend into the stage. */
+@utility thumb-stage {
+  background: radial-gradient(circle at 50% 46%, #ffffff 0 50%, transparent 51%), linear-gradient(145deg, #f8f7f4, #ebe8e3);
+  box-shadow: inset 0 0 0 1px rgb(23 23 23 / 0.05), 0 8px 18px -12px rgb(27 23 20 / 0.35);
+  & img { mix-blend-mode: multiply; }
+}
 
 @keyframes pop {
   0% { transform: scale(0.6); }
