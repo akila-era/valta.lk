@@ -87,6 +87,9 @@ export function CategoryMenu({ open, onClose, categories, hasDeals, opener }: {
             <Link href="/products" onClick={onClose} className="flex items-center justify-between rounded-control px-2 py-2 text-[13px] font-bold text-brand-600 hover:bg-brand-50">
               View all products <ChevronRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
+            <Link href="/brands" onClick={onClose} className="flex items-center justify-between rounded-control px-2 py-2 text-[13px] font-bold text-brand-600 hover:bg-brand-50">
+              Shop by brand <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
           </li>
         </ul>
         {current ? (

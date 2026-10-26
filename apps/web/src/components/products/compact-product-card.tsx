@@ -9,6 +9,8 @@ import { WishlistButton } from "./wishlist-button";
 interface CompactProductCardProps {
   product: ErpProduct;
   priority?: boolean;
+  /** List layout: photo on the left, details and actions on the right. */
+  row?: boolean;
 }
 
 /**
@@ -16,7 +18,7 @@ interface CompactProductCardProps {
  * through only when the ERP has a real reduction) and an always-visible Add to cart. Variant products link to the
  * product page instead of guessing a variant. Only facts from the ERP are shown: no invented feature badges.
  */
-export function CompactProductCard({ product, priority }: CompactProductCardProps) {
+export function CompactProductCard({ product, priority, row = false }: CompactProductCardProps) {
   const title = product.content?.displayTitle || product.name;
   const current = effectivePrice(product);
   const pct = discountPercent(product);
@@ -26,7 +28,7 @@ export function CompactProductCard({ product, priority }: CompactProductCardProp
   const label = product.brand || product.category?.name;
 
   return (
-    <article className="group/card relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-bg text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift">
+    <article className={`group/card relative flex h-full overflow-hidden rounded-card ${row ? "flex-row" : "flex-col"} border border-border bg-bg text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift`}>
       <div className="pointer-events-none absolute left-2.5 top-2.5 z-10 flex flex-col items-start gap-1">
         {pct ? <span className="rounded-sm bg-brand-500 px-1.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span> : null}
         {fresh ? <span className="rounded-sm bg-ink px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wider text-white">New</span> : null}
@@ -38,13 +40,13 @@ export function CompactProductCard({ product, priority }: CompactProductCardProp
         />
       </div>
 
-      <Link href={href} tabIndex={-1} aria-hidden className="relative block aspect-square w-full overflow-hidden bg-bg">
+      <Link href={href} tabIndex={-1} aria-hidden className={`relative block aspect-square shrink-0 overflow-hidden bg-bg ${row ? "w-32 sm:w-44" : "w-full"}`}>
         <span className="absolute inset-0 transition-transform duration-500 ease-out group-hover/card:scale-[1.04] motion-reduce:transition-none">
           <ProductImage src={product.images[0]} alt={title} sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" priority={priority} contain padding="p-5 sm:p-6" />
         </span>
       </Link>
 
-      <div className="flex flex-1 flex-col border-t border-border/70 p-3 sm:p-4">
+      <div className={`flex min-w-0 flex-1 flex-col p-3 sm:p-4 ${row ? "border-l border-border/70" : "border-t border-border/70"}`}>
         {label ? <p className="mb-1 truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</p> : null}
         <h3 className="line-clamp-2 min-h-10 text-[13.5px] font-semibold leading-5 text-ink sm:text-sm">
           <Link href={href} className="hover:text-brand-600">
@@ -70,7 +72,7 @@ export function CompactProductCard({ product, priority }: CompactProductCardProp
             </span>
           )}
         </p>
-        <div className="mt-3">
+        <div className={row ? "mt-3 sm:max-w-56" : "mt-3"}>
           {product.available && !product.hasVariants ? (
             <AddToCartButton
               outline

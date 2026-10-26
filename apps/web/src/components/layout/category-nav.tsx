@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
-import { Cable, ChevronDown, Flame, Headphones, Menu, Smartphone, Star, Tablet, Watch, type LucideIcon } from "lucide-react";
+import { BadgeCheck, Cable, ChevronDown, Flame, Headphones, Menu, Smartphone, Star, Tablet, Watch, type LucideIcon } from "lucide-react";
 import type { DrawerCategory } from "./category-drawer";
 import { CategoryMenu } from "./category-menu";
 
@@ -68,6 +68,13 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
             <Flame className="h-3.5 w-3.5 fill-brand-500/30" strokeWidth={2} aria-hidden /> Deals
           </Link>
         )}
+        <Link
+          href="/brands"
+          aria-current={pathname === "/brands" ? "page" : undefined}
+          className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 text-[13px] font-semibold ${pathname === "/brands" ? "text-brand-600" : "text-ink/80 hover:text-brand-600"}`}
+        >
+          <BadgeCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> Brands
+        </Link>
         <Link href="/#new-arrivals" className="inline-flex min-h-10 shrink-0 items-center gap-1.5 text-[13px] font-semibold text-ink/80 hover:text-brand-600">
           <Star className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> New Arrivals
         </Link>

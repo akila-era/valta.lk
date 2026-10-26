@@ -12,6 +12,7 @@ import { WishlistLink } from "./wishlist-link";
 import { CategoryNav } from "./category-nav";
 import { HeaderShell } from "./header-shell";
 import { MobileMenu } from "./mobile-menu";
+import { MobileSearch } from "./mobile-search";
 import { SearchBox } from "./search-box";
 
 async function loadNavData() {
@@ -40,13 +41,22 @@ export async function Header() {
     getSettings().catch(() => null),
   ]);
   const cod = settings?.paymentMethods.COD === true;
+  const announcement = siteConfig.announcement || `Welcome to ${siteConfig.name}`;
   return (
     <>
       {/* Neon orange top bar: a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
       <div role="region" aria-label="Store information" className="bg-brand-500 text-on-brand [&_:focus-visible]:outline-ink">
         <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
           <ul className="flex min-w-0 items-center gap-4 divide-ink/20 sm:divide-x [&>li+li]:pl-4">
-            <li className="min-w-[10rem] truncate font-bold uppercase tracking-[0.08em]">{siteConfig.announcement || `Welcome to ${siteConfig.name}`}</li>
+            <li className="marquee min-w-0 flex-1 overflow-hidden font-bold uppercase tracking-[0.08em] md:min-w-[10rem] md:flex-none">
+              {/* Phones: the line scrolls so all of it can be read (a second copy makes the loop seamless; reduced motion
+                  stops it). From md up it fits and stays still. */}
+              <span className="flex w-max animate-marquee gap-16 whitespace-nowrap [--marquee-dur:16s] md:hidden">
+                <span>{announcement}</span>
+                <span aria-hidden>{announcement}</span>
+              </span>
+              <span className="hidden truncate md:block">{announcement}</span>
+            </li>
             {settings ? (
               <li className="hidden shrink-0 items-center gap-1.5 sm:flex">
                 <Truck className="h-3.5 w-3.5" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
@@ -74,7 +84,8 @@ export async function Header() {
         <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-3 py-3 md:grid md:h-[4.5rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
           <Wordmark className="text-[1.75rem] leading-none text-ink sm:text-[2rem] lg:text-[2.25rem]" />
-          <div className="order-last w-full md:order-none md:mx-auto md:max-w-3xl">
+          {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
+          <div className="hidden md:mx-auto md:block md:w-full md:max-w-3xl">
             <SearchBox size="lg" />
           </div>
           <div className="ml-auto flex items-center gap-1 md:ml-0 lg:gap-2">
@@ -86,6 +97,7 @@ export async function Header() {
               </span>
             </Link>
             {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
+            <MobileSearch />
             {accounts ? <AccountMenu customer={customer ? { name: customer.name } : null} enabled /> : null}
             <WishlistLink />
             <CartLink />
@@ -95,6 +107,9 @@ export async function Header() {
           <CategoryNav categories={categories} showDeals={hasDeals} />
         </Suspense>
       </HeaderShell>
+      <div className="border-b border-border bg-bg px-3 py-2.5 md:hidden">
+        <SearchBox size="lg" />
+      </div>
     </>
   );
 }

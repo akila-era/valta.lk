@@ -2,10 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Plus, Smartphone, Trash2, X } from "lucide-react";
+import { Heart, Smartphone, Trash2 } from "lucide-react";
 import { formatLkr } from "@/lib/utils/money";
 import { useWishlist, wishlistActions } from "@/store/wishlist";
-import { AddToCartButton } from "./add-to-cart-button";
 import { SuggestedProducts } from "./suggested-products";
 
 export function WishlistView() {
@@ -57,14 +56,17 @@ export function WishlistView() {
                 aria-hidden
                 className="absolute inset-2 rounded-full bg-white shadow-inner"
               />
+              {/* The photo repeats the title link, so it is skipped by the keyboard and screen readers. */}
               <Link
                 href={`/products/${i.slug}`}
+                tabIndex={-1}
+                aria-hidden
                 className="relative flex h-full w-full items-center justify-center transition-transform group-hover:scale-105"
               >
                 {i.image ? (
                   <Image
                     src={i.image}
-                    alt={i.name}
+                    alt=""
                     fill
                     sizes="(min-width: 1280px) 240px, (min-width: 768px) 30vw, 50vw"
                     className="object-contain p-2 filter drop-shadow-sm"

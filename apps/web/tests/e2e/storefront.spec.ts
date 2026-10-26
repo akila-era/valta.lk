@@ -59,9 +59,13 @@ test.describe("browse", () => {
   test("catalogue sorting and pagination", async ({ page }) => {
     await page.goto("/products?sort=price-asc");
     await expect(page.locator("article").first()).toContainText("Glide Tempered Glass");
-    await page.getByRole("link", { name: "Next" }).click();
-    await expect(page).toHaveURL(/page=2/);
-    await expect(page.getByText("Page 2 of 2")).toBeVisible();
+    // 15 products fit on one page (page size 15): every product is listed and no pager is shown
+    await expect(page.locator("main article")).toHaveCount(15);
+    await expect(page.getByRole("navigation", { name: "Pagination" })).toHaveCount(0);
+    // a page past the end is sent to the last page, keeping the sort
+    await page.goto("/products?sort=price-asc&page=2");
+    await expect(page).toHaveURL(/\/products\?sort=price-asc$/);
+    await expect(page.locator("main article").first()).toContainText("Glide Tempered Glass");
   });
 
   test("variants and unavailable products", async ({ page }) => {

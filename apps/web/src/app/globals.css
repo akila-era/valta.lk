@@ -80,8 +80,8 @@
 }
 
 @layer base {
-  /* Anchor jumps land below the sticky header (logo row + category row on md+, logo + search rows on phones). */
-  html { scroll-behavior: smooth; scroll-padding-top: 8.5rem; }
+  /* Anchor jumps land below the sticky header (logo row + category row on md+, the slim logo row on phones). */
+  html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
   @media (min-width: 48rem) { html { scroll-padding-top: 10rem; } }
   body {
     background: var(--color-bg);
@@ -183,7 +183,7 @@
 @utility animate-drift { animation: drift 14s ease-in-out infinite; }
 @utility animate-spin-slow { animation: spin-slow 60s linear infinite; }
 @utility animate-draw { stroke-dasharray: 260; stroke-dashoffset: 260; animation: draw 1s ease-out 0.9s forwards; }
-@utility animate-marquee { animation: marquee 40s linear infinite; }
+@utility animate-marquee { animation: marquee var(--marquee-dur, 40s) linear infinite; }
 
 /* Scroll reveal: content is visible by default; the Reveal component hides below-the-fold blocks only after hydration. */
 [data-reveal] { transition: opacity 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: var(--d, 0ms); }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Package, ShieldCheck, User } from "lucide-react";
+import { Package } from "lucide-react";
 import { AccountsUnavailableNotice } from "@/components/account/auth-card";
 import { ProfileForm } from "@/components/account/profile-form";
 import { SignOutButton } from "@/components/account/sign-out-button";

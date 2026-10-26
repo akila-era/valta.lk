@@ -66,7 +66,10 @@ describe("design system tokens", () => {
   it("gives the admin console the storefront brand and on-brand text while keeping its status colours", () => {
     const start = css.indexOf("\n.admin-theme {");
     const admin = css.slice(start, css.indexOf("\n}", start));
-    expect(admin).not.toMatch(/--color-(brand-\d+|on-brand|ink|muted|surface|border):/);
+    expect(admin).not.toMatch(/--color-(brand-\d+|on-brand|ink|muted):/);
+    // the storefront's orange-tinted surface and warm hairlines stay out of the console: it keeps neutral greys
+    expect(admin).toContain("--color-surface: #f5f6f7;");
+    expect(admin).toContain("--color-border: #e6e8eb;");
     expect(css).not.toMatch(/\.admin-theme [^{]*\{\s*color:\s*#fff/);
     for (const name of ["danger", "danger-bg", "success", "success-bg", "warn", "warn-bg", "info", "info-bg"]) {
       expect(admin).toContain(`--color-${name}: ${token(name)};`);

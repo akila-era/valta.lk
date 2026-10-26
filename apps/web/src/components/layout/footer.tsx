@@ -138,6 +138,7 @@ export async function Footer() {
           <span className={accentBar} aria-hidden />
           <ul className="mt-4 space-y-0.5">
             <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />All products</Link></li>
+            <li><Link className={rowLink} href="/brands"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />Shop by brand</Link></li>
             {categories.slice(0, 7).map((c) => (
               <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />{c.name}</Link></li>
             ))}

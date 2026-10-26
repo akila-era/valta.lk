@@ -42,10 +42,22 @@ export function ProductImage({
 export function ProductGrid({
   products,
   columns = 5,
+  layout = "grid",
 }: {
   products: ErpProduct[];
   columns?: 3 | 4 | 5;
+  /** "list": one product per row, photo on the left (the catalogue's List view). */
+  layout?: "grid" | "list";
 }) {
+  if (layout === "list") {
+    return (
+      <div className="grid gap-3">
+        {products.map((p, i) => (
+          <CompactProductCard key={p.id} product={p} priority={i < 3} row />
+        ))}
+      </div>
+    );
+  }
   const colClasses =
     columns === 5
       ? "grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"

@@ -281,39 +281,49 @@ export function collectionLine(name: string, count: number): string {
 }
 
 /**
- * "Shop by Brand": one tile per catalogue brand on a light orange band, centred so a short list never leaves empty
- * cells. Staff-uploaded logos show in grey and turn to colour on hover; brands without a logo show their name.
+ * Brand tiles: the staff-uploaded logo (Admin, Brands), or an orange monogram badge until one is uploaded, then the
+ * name and the product count. Each opens that brand's products. A short last row stays centred.
  */
+export function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
+  return (
+    <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
+      {brands.map((b) => {
+        const count = `${b.count} ${b.count === 1 ? "product" : "products"}`;
+        return (
+          <li key={b.name} className="w-[calc((100%-1.5rem)/3)] sm:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)]">
+            <Link
+              href={`/products?brand=${encodeURIComponent(b.name)}`}
+              aria-label={`${b.name}, ${count}`}
+              className="group relative flex h-32 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-card border border-brand-100 bg-bg px-2 text-center transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-brand-500 hover:shadow-neon-lift motion-reduce:hover:translate-y-0 sm:h-36"
+            >
+              {b.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={b.logo} alt="" loading="lazy" className="h-11 max-w-[75%] object-contain transition-transform duration-300 group-hover:scale-105 sm:h-12" />
+              ) : (
+                <span aria-hidden className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-500 font-display text-xl font-extrabold text-on-brand shadow-neon transition-transform duration-300 group-hover:scale-110 sm:h-12 sm:w-12">
+                  {b.name.trim().charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className="max-w-full truncate text-[13px] font-bold uppercase tracking-[0.06em] text-ink transition-colors group-hover:text-brand-600 sm:text-sm">{b.name}</span>
+              <span className="text-[11px] font-medium text-muted transition-colors group-hover:text-brand-700">{count}</span>
+              <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.8)] transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** "Shop by Brand" on the homepage: up to 12 brands on a light orange band, then a link to every brand. */
 export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
   if (!brands.length) return null;
   return (
     <section aria-labelledby="brands" className="mt-12 bg-gradient-to-b from-brand-50 to-bg py-10 sm:mt-16 sm:py-14">
       <div className="container-page">
         <SectionHead id="brands" eyebrow={`Brands at ${siteConfig.name}`} title="Shop by Brand">The brands in our catalogue, all in one place.</SectionHead>
-        <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
-          {brands.slice(0, 24).map((b) => {
-            const count = `${b.count} ${b.count === 1 ? "product" : "products"}`;
-            return (
-              <li key={b.name} className="w-[calc((100%-1.5rem)/3)] sm:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)]">
-                <Link
-                  href={`/products?brand=${encodeURIComponent(b.name)}`}
-                  aria-label={`${b.name}, ${count}`}
-                  className="group relative flex h-24 flex-col items-center justify-center overflow-hidden rounded-card border border-brand-100 bg-bg px-3 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-brand-500 hover:shadow-neon-lift motion-reduce:hover:translate-y-0 sm:h-28"
-                >
-                  {b.logo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={b.logo} alt="" loading="lazy" className="max-h-9 max-w-[70%] object-contain opacity-70 grayscale transition-[filter,opacity] duration-300 group-hover:opacity-100 group-hover:grayscale-0 sm:max-h-11" />
-                  ) : (
-                    <span className="truncate font-display text-base font-extrabold uppercase tracking-[0.08em] text-ink/70 transition-colors group-hover:text-brand-600 sm:text-xl">{b.name}</span>
-                  )}
-                  <span className="mt-1 text-[11px] font-medium text-muted transition-colors group-hover:text-brand-700">{count}</span>
-                  <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.8)] transition-transform duration-300 group-hover:scale-x-100" />
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-        <ViewAll href="/products" label="View all products" />
+        <BrandGrid brands={brands.slice(0, 12)} />
+        <ViewAll href="/brands" label="View all brands" />
       </div>
     </section>
   );

@@ -18,6 +18,8 @@ export interface RawParams {
   sale?: string;
   sub?: string;
   brand?: string;
+  /** "list" shows one product per row; anything else is the grid. */
+  view?: string;
 }
 
 const SORTS: { value: SortKey; label: string }[] = [
@@ -156,6 +158,9 @@ export async function CatalogueView({
       <FilterPanel active={filtered}>
         <form action={basePath} method="get" className="space-y-3">
           {query.q && <input type="hidden" name="q" value={query.q} />}
+          {/* Applying filters keeps the chosen order and layout. */}
+          {query.sort !== "newest" && <input type="hidden" name="sort" value={query.sort} />}
+          {params.view === "list" && <input type="hidden" name="view" value="list" />}
           {query.onSale && <input type="hidden" name="sale" value="1" />}
           {query.sub && <input type="hidden" name="sub" value={query.sub} />}
           {!fixedCategory && query.category && <input type="hidden" name="category" value={query.category} />}
@@ -328,23 +333,24 @@ export async function CatalogueView({
               </ul>
             </nav>
 
-            {/* View Mode icons matching reference */}
-            <div className="hidden items-center gap-1 rounded-full border border-border/80 bg-surface/80 p-1 sm:flex">
-              <button
-                type="button"
-                aria-label="Grid view"
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon"
-              >
-                <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
-              </button>
-              <button
-                type="button"
-                aria-label="List view"
-                className="flex h-7 w-7 items-center justify-center rounded-full text-muted transition-colors hover:text-ink"
-              >
-                <List className="h-3.5 w-3.5" aria-hidden />
-              </button>
-            </div>
+            {/* Grid / list layout, kept in the URL (?view=list) so it survives sorting, filters and paging. */}
+            <nav aria-label="Layout" className="hidden items-center gap-1 rounded-full border border-border/80 bg-surface/80 p-1 sm:flex">
+              {([["grid", "Grid view", LayoutGrid], ["list", "List view", List]] as const).map(([v, label, Icon]) => {
+                const on = (params.view === "list" ? "list" : "grid") === v;
+                return (
+                  <Link
+                    key={v}
+                    href={href(basePath, params, { view: v === "list" ? "list" : "" })}
+                    aria-label={label}
+                    aria-current={on ? "true" : undefined}
+                    scroll={false}
+                    className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${on ? "bg-brand-500 text-on-brand shadow-neon" : "text-muted hover:text-brand-600"}`}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         </div>
 
@@ -391,7 +397,7 @@ export async function CatalogueView({
           <>
             {/* Names the results so the card titles (h3) never follow the page h1 directly. */}
             <h2 className="sr-only">Products</h2>
-            <ProductGrid products={result.items} columns={5} />
+            <ProductGrid products={result.items} columns={5} layout={params.view === "list" ? "list" : "grid"} />
           </>
         )}
 

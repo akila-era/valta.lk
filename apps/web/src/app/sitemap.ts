@@ -4,7 +4,7 @@ import { siteConfig } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
 
-const STATIC = ["", "/products", "/track-order", "/about", "/contact", "/privacy-policy", "/terms", "/shipping-policy", "/returns-policy"];
+const STATIC = ["", "/products", "/brands", "/track-order", "/about", "/contact", "/privacy-policy", "/terms", "/shipping-policy", "/returns-policy"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = STATIC.map((p) => ({ url: `${siteConfig.url}${p}` }));
