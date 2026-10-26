@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "About us", alternates: { canonical: 
 
 export default function AboutPage() {
   return (
-    <PolicyPage title="About VALTA.LK" intro="VALTA.LK is a Sri Lankan online store for mobile phones, electronics and accessories.">
+    <PolicyPage title="About VOLTA.LK" intro="VOLTA.LK is a Sri Lankan online store for mobile phones, electronics and accessories.">
       <section>
         <h2>How ordering works</h2>
         <p>Choose your products, enter your delivery details and place your order. Payment is by cash on delivery. Prices and stock availability come directly from our inventory system and are confirmed again when you place your order.</p>

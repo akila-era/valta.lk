@@ -16,7 +16,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <AuthCard
       title="Sign in"
       intro="Welcome back. Sign in to see your orders and check out faster."
-      footer={<>New to VALTA.LK? <Link href={`/account/register${next ? `?next=${encodeURIComponent(safeNext(next))}` : ""}`} className="font-semibold text-brand-600 hover:underline">Create an account</Link></>}
+      footer={<>New to VOLTA.LK? <Link href={`/account/register${next ? `?next=${encodeURIComponent(safeNext(next))}` : ""}`} className="font-semibold text-brand-600 hover:underline">Create an account</Link></>}
     >
       <AuthForm mode="login" next={next} />
     </AuthCard>

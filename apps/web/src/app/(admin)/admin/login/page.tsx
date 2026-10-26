@@ -13,7 +13,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
   if (!accountsEnabled()) return <AccountsUnavailableNotice />;
   if ((await requireAdmin()).kind === "ok") redirect(next?.startsWith("/admin/") ? next : "/admin/orders");
   return (
-    <AuthCard title="Admin sign in" intro="For VALTA.LK store staff only.">
+    <AuthCard title="Admin sign in" intro="For VOLTA.LK store staff only.">
       <AuthForm mode="admin" next={next} />
     </AuthCard>
   );

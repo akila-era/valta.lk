@@ -76,7 +76,7 @@ test("re-submitting the same order reference creates no second ERP order", async
   const item = products.items[0];
   const total = item.price + 450;
   const payload = { ...body("VLK-261020-ABCDEFGHJK"), lines: [{ productId: item.id, variantKey: "", quantity: 1 }], expectedTotal: total };
-  const origin = { headers: { Origin: new URL(process.env.VALTA_URL ?? "http://localhost:3000").origin } };
+  const origin = { headers: { Origin: new URL(process.env.VOLTA_URL ?? "http://localhost:3000").origin } };
   const a = await request.post("/api/store/orders", { data: payload, ...origin });
   const b = await request.post("/api/store/orders", { data: payload, ...origin });
   expect([a.status(), b.status()]).toEqual([201, 201]);

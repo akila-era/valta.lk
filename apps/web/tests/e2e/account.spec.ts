@@ -42,16 +42,16 @@ test.describe("customer accounts", () => {
     await expect(page.locator("header").getByRole("button", { name: /signed in as Kasun Perera/ })).toBeVisible();
 
     // session cookie is httpOnly + SameSite=Lax and not readable by page scripts
-    const cookie = (await context.cookies()).find((c) => c.name === "valta_session")!;
+    const cookie = (await context.cookies()).find((c) => c.name === "volta_session")!;
     expect(cookie.httpOnly).toBe(true);
     expect(cookie.sameSite).toBe("Lax");
-    expect(await page.evaluate(() => document.cookie)).not.toContain("valta_session");
+    expect(await page.evaluate(() => document.cookie)).not.toContain("volta_session");
 
     await page.locator("header").getByRole("button", { name: /signed in as/ }).click();
     await page.locator("header").getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL("http://localhost:3100/");
     await expect(page.locator("header").getByRole("button", { name: /sign in or register/ })).toBeVisible();
-    expect((await context.cookies()).find((c) => c.name === "valta_session")).toBeUndefined();
+    expect((await context.cookies()).find((c) => c.name === "volta_session")).toBeUndefined();
 
     // signed-out users are sent to sign in, then back to where they were going
     await page.goto("/account");

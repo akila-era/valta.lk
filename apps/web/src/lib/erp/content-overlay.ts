@@ -15,9 +15,9 @@ const TTL_MS = 15_000;
 export const mediaUrl = (id: string) => `/api/media/${id}`;
 
 const g = globalThis as unknown as {
-  __valtaContent?: { at: number; map: Map<string, ContentDoc> };
-  __valtaContentLoad?: Promise<Map<string, ContentDoc>>;
-  __valtaOverlay?: { src: Map<string, ErpProduct>; at: number; out: Map<string, ErpProduct> };
+  __voltaContent?: { at: number; map: Map<string, ContentDoc> };
+  __voltaContentLoad?: Promise<Map<string, ContentDoc>>;
+  __voltaOverlay?: { src: Map<string, ErpProduct>; at: number; out: Map<string, ErpProduct> };
 };
 
 async function load(): Promise<Map<string, ContentDoc>> {
@@ -28,23 +28,23 @@ async function load(): Promise<Map<string, ContentDoc>> {
 }
 
 async function content(): Promise<{ at: number; map: Map<string, ContentDoc> }> {
-  const cur = g.__valtaContent;
+  const cur = g.__voltaContent;
   if (cur && Date.now() - cur.at < TTL_MS) return cur;
-  g.__valtaContentLoad ??= load().finally(() => {
-    g.__valtaContentLoad = undefined;
+  g.__voltaContentLoad ??= load().finally(() => {
+    g.__voltaContentLoad = undefined;
   });
   try {
-    g.__valtaContent = { at: Date.now(), map: await g.__valtaContentLoad };
+    g.__voltaContent = { at: Date.now(), map: await g.__voltaContentLoad };
   } catch {
-    g.__valtaContent = { at: Date.now(), map: cur?.map ?? new Map() };
+    g.__voltaContent = { at: Date.now(), map: cur?.map ?? new Map() };
   }
-  return g.__valtaContent;
+  return g.__voltaContent;
 }
 
 /** Called after staff publish or unpublish, so the storefront changes at once instead of after the TTL. */
 export function invalidateContent() {
-  g.__valtaContent = undefined;
-  g.__valtaOverlay = undefined;
+  g.__voltaContent = undefined;
+  g.__voltaOverlay = undefined;
 }
 
 /** Applies one content document to one ERP product. Never changes name, sku, price, stock or availability. */
@@ -62,11 +62,11 @@ export function applyContent(p: ErpProduct, c: ContentDoc | null | undefined): E
 /** The ERP products with published website content applied (memoised per ERP snapshot and content version). */
 export async function withContent(products: Map<string, ErpProduct>): Promise<Map<string, ErpProduct>> {
   const c = await content();
-  const memo = g.__valtaOverlay;
+  const memo = g.__voltaOverlay;
   if (memo && memo.src === products && memo.at === c.at) return memo.out;
   if (c.map.size === 0) return products;
   const out = new Map<string, ErpProduct>();
   for (const [id, p] of products) out.set(id, applyContent(p, c.map.get(id)));
-  g.__valtaOverlay = { src: products, at: c.at, out };
+  g.__voltaOverlay = { src: products, at: c.at, out };
   return out;
 }

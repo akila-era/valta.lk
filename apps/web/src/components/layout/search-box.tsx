@@ -135,11 +135,11 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-full border-border bg-surface/90 py-2.5 pl-11 pr-24 text-[15px] focus:border-brand-500 focus:bg-bg" : "pl-11 pr-16"}`}
+          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-control border-2 border-brand-500 bg-bg py-2.5 pl-11 pr-28 text-[15px] focus:border-brand-hover" : "pl-11 pr-16"}`}
         />
         {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute bottom-1.5 right-1.5 top-1.5 flex w-12 items-center justify-center rounded-full bg-brand-500 text-on-brand transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
+          <button type="submit" className="absolute inset-y-0 right-0 flex w-14 items-center justify-center rounded-r-control bg-brand-500 text-on-brand transition-colors hover:bg-brand-hover" aria-label="Search">
             <Search className="h-[18px] w-[18px]" strokeWidth={2.5} aria-hidden />
           </button>
         ) : (
@@ -152,16 +152,16 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
             type="button"
             onClick={clear}
             aria-label="Clear search"
-            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[3.25rem]" : "right-1"}`}
+            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[3.75rem]" : "right-1"}`}
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
         )}
-        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[3.75rem]" : "right-10"}`} aria-hidden />}
+        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[4.25rem]" : "right-10"}`} aria-hidden />}
       </form>
 
       {visible && (
-        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-bg py-1 text-ink shadow-overlay">
+        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-card border border-border bg-bg py-1 text-ink shadow-overlay">
           {items.length === 0 && !loading && <li role="presentation" className="px-4 py-3 text-sm text-muted">No matching products</li>}
           {items.map((s, i) => (
             <li key={s.id} role="option" id={`${listId}-opt-${i}`} aria-selected={active === i}>

@@ -1,155 +1,73 @@
 import type { Metadata } from "next";
-import { Fragment, type ReactNode } from "react";
-import { Hero } from "@/components/home/hero";
-import { HeroSlides } from "@/components/home/hero-slides";
-import { BestDeals, CategoryTiles, TabbedShowcase } from "@/components/home/home-sections";
+import { Faq } from "@/components/home/more-sections";
+import { WideBanner } from "@/components/home/sections";
+import { BrandWall, CategoryGrid, HomeHero, ProductSection, PromoTiles, ServiceStrip, collectionLine } from "@/components/home/storefront";
 import { VideoShowcase } from "@/components/home/video-showcase";
-import { PromoBanners, WideBanner } from "@/components/home/sections";
-import { Faq, WhyChoose } from "@/components/home/more-sections";
-import { Accent, Chapter } from "@/components/home/story/chapter";
-import { ChapterRail } from "@/components/home/story/chapter-rail";
-import { MarqueeBand } from "@/components/home/story/marquee-band";
-import { ScrollExpand } from "@/components/home/story/scroll-expand";
 import { ErpUnavailable } from "@/components/ui/states";
 import { getHomeData } from "@/lib/home-data";
 
 export const metadata: Metadata = {
-  title: { absolute: "VALTA.LK | Mobile phones, electronics & accessories in Sri Lanka" },
-  description: "Discover mobile phones, electronics and everyday essentials at VALTA.LK. Prices in LKR, cash on delivery.",
+  title: { absolute: "VOLTA.LK | Mobile phones, electronics & accessories in Sri Lanka" },
+  description: "Discover mobile phones, electronics and everyday essentials at VOLTA.LK. Prices in LKR, cash on delivery.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "VALTA.LK | Technology that moves you",
-    description: "Discover mobile phones, electronics and everyday essentials at VALTA.LK.",
+    title: "VOLTA.LK | Technology that moves you",
+    description: "Discover mobile phones, electronics and everyday essentials at VOLTA.LK.",
     url: "/",
     type: "website",
   },
 };
 
-interface StoryChapter {
-  id: string;
-  label: string;
-  statement?: ReactNode;
-  aside?: ReactNode;
-  content: ReactNode;
-}
-
 /**
- * The homepage as a scroll story: the hero is chapter 01, then the shopping chapters (categories, deals, arrivals) with
- * compact headers so products come first, then the brand chapters with large statements, and a fixed chapter rail on
- * wide screens. Chapters without content (no deals today) are left out and the numbering follows.
+ * The homepage as a retail storefront: banner and category tiles, the service strip, categories, staff offers, hot
+ * deals, one collection per larger category (with staff wide banners between them), new arrivals, brands, videos and
+ * the FAQ. Every section comes from live data and is left out when it has nothing to show.
  */
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const [{ tab }, data] = await Promise.all([searchParams, getHomeData()]);
-  const accessories = data.categories.find((c) => /accessor/i.test(c.name));
-
-  const lifestyle: StoryChapter = {
-    id: "story-lifestyle",
-    label: "Everyday tech",
-    statement: (
-      <>
-        Made for <Accent>every day</Accent>.
-      </>
-    ),
-    aside: "Laptops for work, phones for everything, and the accessories that keep them going.",
-    content: (
-      <ScrollExpand className="scroll-expand relative h-[clamp(18rem,62svh,44rem)] overflow-hidden rounded-[1.75rem] lg:rounded-feature">
-        <HeroSlides />
-      </ScrollExpand>
-    ),
-  };
-
-  const chapters: StoryChapter[] = data.catalogueOk
-    ? [
-        {
-          id: "story-categories",
-          label: "Categories",
-          content: <CategoryTiles categories={data.categories} />,
-        },
-        ...(data.hotDeals.some((p) => p.available)
-          ? [
-              {
-                id: "story-deals",
-                label: "Deals",
-                content: <BestDeals products={data.hotDeals} curated={data.hotDealsCurated} />,
-              },
-            ]
-          : []),
-        {
-          id: "story-arrivals",
-          label: "Arrivals",
-          content: <TabbedShowcase data={data} tab={tab ?? "new"} />,
-        },
-        lifestyle,
-        {
-          id: "story-why",
-          label: "Why VALTA",
-          statement: (
-            <>
-              Shopping, <Accent>simplified</Accent>.
-            </>
-          ),
-          content: (
-            <>
-              <WhyChoose checkout={data.checkout} />
-              {data.banners.length > 0 && <PromoBanners banners={data.banners} />}
-              <WideBanner banners={data.wideBanners} />
-              <VideoShowcase title={data.videos.title} videos={data.videos.items} />
-            </>
-          ),
-        },
-        {
-          id: "story-help",
-          label: "Help",
-          statement: (
-            <>
-              Here to <Accent>help</Accent>.
-            </>
-          ),
-          content: <Faq checkout={data.checkout} />,
-        },
-      ]
-    : [
-        {
-          id: "story-help",
-          label: "Help",
-          statement: (
-            <>
-              Here to <Accent>help</Accent>.
-            </>
-          ),
-          content: (
-            <>
-              <ErpUnavailable retryHref="/" />
-              <Faq checkout={data.checkout} />
-            </>
-          ),
-        },
-      ];
-
-  const rail = [{ id: "story-intro", label: "Intro" }, ...chapters.map(({ id, label }) => ({ id, label }))];
+export default async function HomePage() {
+  const data = await getHomeData();
+  const [firstRail, ...otherRails] = data.rails;
+  const deals = data.hotDeals.filter((p) => p.available);
 
   return (
-    <>
-      <Hero
-        phonesHref={data.phonesSlug ? `/categories/${data.phonesSlug}` : undefined}
-        accessoriesHref={accessories ? `/categories/${accessories.slug}` : undefined}
-        cod={data.checkout.cod}
-        deliveryCharge={data.checkout.deliveryCharge}
-      />
-      {/* Scroll progress: a thin orange line along the top of the screen (scroll-driven CSS, hidden where unsupported). */}
-      <div aria-hidden className="scroll-progress pointer-events-none fixed inset-x-0 top-0 z-[70] h-[3px] bg-[linear-gradient(90deg,#ff5c00,#ff9b52)]" />
-      <ChapterRail chapters={rail} />
-      <div className="pb-6 sm:pb-10">
-        {chapters.map((c, i) => (
-          <Fragment key={c.id}>
-            <Chapter id={c.id} n={i + 2} label={c.label} statement={c.statement} aside={c.aside}>
-              {c.content}
-            </Chapter>
-            {/* A band of the real category names drifting between the shopping chapters and the brand story. */}
-            {c.id === "story-arrivals" && <MarqueeBand words={data.categories.map((cat) => cat.name)} />}
-          </Fragment>
-        ))}
+    <div className="pb-4">
+      <HomeHero categories={data.categories} />
+      <ServiceStrip checkout={data.checkout} />
+      {data.catalogueOk ? (
+        <>
+          <CategoryGrid categories={data.categories} />
+          {data.staffBanners ? <PromoTiles banners={data.banners.slice(0, 4)} /> : null}
+          <ProductSection
+            id="deals"
+            eyebrow="Price drops"
+            title="Hot Deals"
+            text={data.hotDealsCurated ? "Picked by the VOLTA team. Prices and stock are live from our catalogue." : "Current price reductions in our catalogue."}
+            href="/products?sale=1"
+            products={deals}
+            priority
+          />
+          {firstRail ? (
+            <ProductSection id={`c-${firstRail.slug}`} eyebrow={`${firstRail.name} collection`} title={firstRail.name} text={collectionLine(firstRail.name, firstRail.count)} href={`/categories/${firstRail.slug}`} products={firstRail.products} tinted />
+          ) : null}
+          <div className="container-page">
+            <WideBanner banners={data.wideBanners} />
+          </div>
+          {otherRails.map((r, i) => (
+            <ProductSection key={r.slug} id={`c-${r.slug}`} eyebrow={`${r.name} collection`} title={r.name} text={collectionLine(r.name, r.count)} href={`/categories/${r.slug}`} products={r.products} tinted={i % 2 === 1} />
+          ))}
+          <ProductSection id="new-arrivals" eyebrow="Just in" title="New Arrivals" text="The latest products added to our catalogue." href="/products" products={data.newArrivals} tinted={otherRails.length % 2 === 1} />
+          <BrandWall brands={data.brands} />
+          <div className="container-page">
+            <VideoShowcase title={data.videos.title} videos={data.videos.items} />
+          </div>
+        </>
+      ) : (
+        <div className="container-page mt-12">
+          <ErpUnavailable retryHref="/" />
+        </div>
+      )}
+      <div className="container-page mt-12 sm:mt-16">
+        <Faq checkout={data.checkout} />
       </div>
-    </>
+    </div>
   );
 }

@@ -14,7 +14,7 @@ export async function cancelOrder(ref: string): Promise<void> {
   await erpRequest(endpoints.cancelOrder(ref), z.unknown(), {
     method: "POST",
     idempotencyKey: `cancel-${ref}`,
-    body: { reason: "Cancelled by customer on VALTA.LK" },
+    body: { reason: "Cancelled by customer on VOLTA.LK" },
   });
 }
 

@@ -1,19 +1,19 @@
 {
-  "name": "valta-lk",
+  "name": "volta-lk",
   "private": true,
   "workspaces": [
     "apps/web"
   ],
   "scripts": {
-    "dev": "npm run dev -w @valta/web",
-    "build": "npm run build -w @valta/web",
-    "start": "npm run start -w @valta/web",
-    "lint": "npm run lint -w @valta/web",
-    "typecheck": "npm run typecheck -w @valta/web",
-    "test": "npm run test -w @valta/web",
-    "mock-erp": "npm run mock-erp -w @valta/web",
-    "e2e": "npm run e2e -w @valta/web",
-    "dev-db": "npm run dev-db -w @valta/web"
+    "dev": "npm run dev -w @volta/web",
+    "build": "npm run build -w @volta/web",
+    "start": "npm run start -w @volta/web",
+    "lint": "npm run lint -w @volta/web",
+    "typecheck": "npm run typecheck -w @volta/web",
+    "test": "npm run test -w @volta/web",
+    "mock-erp": "npm run mock-erp -w @volta/web",
+    "e2e": "npm run e2e -w @volta/web",
+    "dev-db": "npm run dev-db -w @volta/web"
   },
   "overrides": {
     "pglite-prisma-adapter": {

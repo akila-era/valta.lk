@@ -114,7 +114,7 @@ describe("catalogue", () => {
     await control({ removeItem: id(7) });
     await control({ setPrice: { id: id(6), price: 1700 } });
     // force a refresh while keeping the watermark
-    (globalThis as unknown as { __valtaCatalogue: { syncedAt: number } }).__valtaCatalogue.syncedAt = 0;
+    (globalThis as unknown as { __voltaCatalogue: { syncedAt: number } }).__voltaCatalogue.syncedAt = 0;
     const res = await listProducts({ pageSize: 48 });
     expect(res.total).toBe(14);
     expect(await getProductBySlug(`glide-tempered-glass-${id(7)}`)).toBeNull();

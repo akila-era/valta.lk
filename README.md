@@ -1,4 +1,4 @@
-# VALTA.LK
+# VOLTA.LK
 
 Sri Lankan online store (mobile phones, electronics, accessories). Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Zod. **Cash on delivery only.** HEXALYTE ERP is the source of truth for catalogue, prices, stock, reservations and orders.
 

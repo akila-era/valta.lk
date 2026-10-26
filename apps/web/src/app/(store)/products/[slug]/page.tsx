@@ -23,7 +23,6 @@ import type { PricedLine } from "@/lib/promotions/evaluate";
 import { getSettings } from "@/lib/erp/settings";
 import type { ErpProduct } from "@/lib/erp/types";
 import { siteConfig } from "@/lib/site-config";
-import { accentize } from "@/components/ui/page-intro";
 import { formatLkr } from "@/lib/utils/money";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ preview?: string }> };
@@ -54,7 +53,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!product) return { title: "Page not found", robots: { index: false } };
   const c = product.content;
   const title = c?.seo.title || c?.displayTitle || product.name;
-  const description = (c?.seo.description || c?.shortDescription || product.description || `${product.name} at VALTA.LK`).slice(0, 160);
+  const description = (c?.seo.description || c?.shortDescription || product.description || `${product.name} at VOLTA.LK`).slice(0, 160);
   const image = c?.seo.ogImageId ? mediaUrl(c.seo.ogImageId) : product.images[0];
   return {
     title,
@@ -67,12 +66,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 const FEATURE_ICON: Record<string, LucideIcon> = { zap: Zap, shield: ShieldCheck, battery: Battery, wifi: Wifi, cpu: Cpu, camera: Camera, smartphone: Smartphone, headphones: Headphones };
 
-/** A detail card in the homepage story style: kicker, light heading with one serif accent word, soft glass surface. */
+/** A detail card: kicker, bold heading, on a plain bordered panel. */
 const Section = ({ id, title, kicker, children, className = "" }: { id: string; title: string; kicker: string; children: React.ReactNode; className?: string }) => (
-  <section aria-labelledby={id} className={`relative min-w-0 scroll-mt-40 overflow-hidden rounded-panel bg-white/90 p-6 shadow-float ring-1 ring-ink/[0.06] backdrop-blur sm:p-8 ${className}`}>
-    <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-brand-500/10 blur-3xl" />
+  <section aria-labelledby={id} className={`relative min-w-0 scroll-mt-40 overflow-hidden rounded-panel border border-border bg-bg p-6 sm:p-8 ${className}`}>
     <p className="kicker relative"><span className="text-brand-600">Details</span> / {kicker}</p>
-    <h2 id={id} className="statement relative mt-2 text-[clamp(1.75rem,1.3rem+1.4vw,2.5rem)]">{accentize(title)}</h2>
+    <h2 id={id} className="statement relative mt-1 text-xl sm:text-2xl">{title}</h2>
     <div className="relative mt-6">{children}</div>
   </section>
 );
@@ -143,9 +141,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
         </div>
       )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      {/* Pill Breadcrumbs */}
+      {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="mb-6 w-fit">
-        <ol className="flex flex-wrap items-center gap-1.5 rounded-full border border-border/80 bg-white px-4 py-1.5 text-xs text-muted shadow-soft">
+        <ol className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
           <li>
             <Link href="/" className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
               Home
@@ -200,7 +198,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
               {product.category && <Link href={`/categories/${product.category.slug}`} className="hover:text-ink">{product.category.name}</Link>}
             </p>
           )}
-          <h1 className="statement mt-3 text-[clamp(2rem,1.5rem+1.8vw,3rem)] leading-[1.04]">{title}</h1>
+          <h1 className="statement mt-2 text-[clamp(1.5rem,1.2rem+1vw,2.125rem)] leading-tight">{title}</h1>
           {(showModel || c?.subtitle) && (
             <p className="mt-2 text-base text-muted">
               {c?.subtitle}
@@ -332,7 +330,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           <div className="mb-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-2 sm:mb-8">
             <div>
               <p className="kicker"><span className="text-brand-600">More</span> / To explore</p>
-              <h2 id="related" className="statement mt-2 text-[clamp(1.9rem,1.3rem+2vw,3.25rem)]">{accentize("Related products")}</h2>
+              <h2 id="related" className="statement mt-1 text-title-section">Related products</h2>
             </div>
             <p className="max-w-sm text-sm leading-6 text-muted">{chosen.length ? "Handpicked additions for this item." : product.category ? `Other popular items in ${product.category.name}.` : null}</p>
           </div>

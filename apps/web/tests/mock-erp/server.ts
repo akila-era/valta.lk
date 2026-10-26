@@ -174,7 +174,7 @@ const server = http.createServer(async (req, res) => {
   if (state.delayMs) await new Promise((r) => setTimeout(r, state.delayMs));
   if (!state.storeActive || req.headers.authorization !== `Bearer ${CREDENTIAL}`) return err(res, 401, "INVALID_CREDENTIALS");
 
-  if (req.method === "GET" && path === "/ping") return ok(res, { connection: { id: "c1", displayName: "VALTA.LK", status: "ACTIVE" }, serverTime: new Date().toISOString() });
+  if (req.method === "GET" && path === "/ping") return ok(res, { connection: { id: "c1", displayName: "VOLTA.LK", status: "ACTIVE" }, serverTime: new Date().toISOString() });
   if (req.method === "GET" && path === "/settings") return ok(res, { ...state.settings, generatedAt: new Date().toISOString() });
 
   if (req.method === "GET" && path === "/catalogue/products") {

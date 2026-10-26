@@ -11,6 +11,7 @@ import { socialLinks } from "@/lib/home-config";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { BackToTop } from "./back-to-top";
+import { Wordmark } from "./wordmark";
 
 const support: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/track-order", label: "Track your order", icon: PackageSearch },
@@ -44,7 +45,7 @@ function PaymentBadge({ id }: { id: string }) {
   const name = PAYMENT_NAMES[id];
   const hasLogo = fs.existsSync(path.join(process.cwd(), "public", "payments", `${id}.svg`));
   return (
-    <li className="flex h-9 min-w-[3.5rem] items-center justify-center rounded-md bg-white px-3">
+    <li className="flex h-8 min-w-[3.5rem] items-center justify-center rounded-sm bg-white px-3">
       {hasLogo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/payments/${id}.svg`} alt={name} width={48} height={24} className="h-6 w-auto max-w-[3.5rem] object-contain" loading="lazy" />
@@ -55,22 +56,21 @@ function PaymentBadge({ id }: { id: string }) {
   );
 }
 
-const colHead = "text-sm font-semibold text-white";
-const accentBar = "mt-2 block h-[3px] w-8 rounded-full bg-brand-500";
-const rowLink = "group flex items-center gap-3 rounded-lg py-1.5 pr-1 sm:pr-2 text-sm text-white/80 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+const colHead = "text-sm font-bold uppercase tracking-[0.1em] text-white";
+const accentBar = "mt-2.5 block h-0.5 w-8 bg-brand-500";
+const rowLink = "group inline-flex min-h-8 items-center gap-2 rounded-sm text-sm text-white/70 transition-colors hover:text-brand-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 function LinkList({ items, label }: { items: typeof support; label: string }) {
   return (
     <nav aria-label={label}>
       <h2 className={colHead}>{label}</h2>
       <span className={accentBar} aria-hidden />
-      <ul className="mt-4">
+      <ul className="mt-4 space-y-0.5">
         {items.map(({ href, label: l, icon: Icon }) => (
           <li key={href}>
             <Link href={href} className={rowLink}>
-              <Icon className="h-5 w-5 shrink-0 text-white/60 transition-colors group-hover:text-brand-500" strokeWidth={1.5} aria-hidden />
-              <span className="flex-1">{l}</span>
-              <ChevronRight className="hidden h-4 w-4 shrink-0 text-white/40 transition-transform group-hover:translate-x-0.5 group-hover:text-white/80 sm:block" aria-hidden />
+              <Icon className="h-4 w-4 shrink-0 text-white/40 transition-colors group-hover:text-brand-400" strokeWidth={1.75} aria-hidden />
+              {l}
             </Link>
           </li>
         ))}
@@ -82,8 +82,8 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
 function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-4">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500/15 text-brand-500"><Icon className="h-5 w-5" aria-hidden /></span>
-      <span className="min-w-0 text-[15px]">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-brand-500"><Icon className="h-[18px] w-[18px]" aria-hidden /></span>
+      <span className="min-w-0 text-sm">
         <span className="block text-xs text-white/60">{label}</span>
         <span className="block break-words font-semibold text-white">{children}</span>
       </span>
@@ -107,33 +107,28 @@ export async function Footer() {
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark relative mt-12 overflow-hidden bg-night text-white">
-      <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand-500 via-brand-400 to-brand-500" />
-      {/* Depth behind the content: an orange glow, a fading dot grid and a tilted orbit ring. */}
-      <span aria-hidden className="pointer-events-none absolute -left-40 -top-48 h-[28rem] w-[28rem] rounded-full bg-brand-500/15 blur-[90px]" />
-      <span aria-hidden className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(255_255_255/0.07)_1px,transparent_1.3px)] [background-size:18px_18px] [mask-image:linear-gradient(200deg,#000,transparent_55%)]" />
-      <span aria-hidden className="pointer-events-none absolute -right-32 bottom-10 hidden aspect-square w-[34rem] rounded-full border border-brand-500/25 [transform:perspective(900px)_rotateX(72deg)] lg:block" />
-      <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-8 py-9 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-10">
+    <footer className="on-dark relative mt-16 border-t-[3px] border-brand-500 bg-night text-white">
+      <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.3fr_0.9fr_1.1fr_0.9fr_1.4fr] lg:gap-y-0 lg:py-14">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
-          <p className="text-3xl font-extrabold tracking-tight">VALTA<span className="text-brand-500">.LK</span></p>
-          <p className="mt-4 max-w-xs text-[15px] leading-7 text-white/75">{siteConfig.description}</p>
+          <Wordmark className="text-[2.1rem] leading-none text-white" />
+          <p className="mt-4 max-w-xs text-sm leading-6 text-white/70">{siteConfig.description}</p>
           {social.length > 0 && (
             <ul className="mt-6 flex flex-wrap gap-3" aria-label="Social media">
               {social.map((s) => {
                 const Icon = SOCIAL_ICON[s.label] ?? Share2;
                 return (
                   <li key={s.label}>
-                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-brand-500 hover:text-on-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                      <Icon className="h-[22px] w-[22px]" aria-hidden />
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                      <Icon className="h-5 w-5" aria-hidden />
                     </a>
                   </li>
                 );
               })}
             </ul>
           )}
-          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-3 border-t border-white/10 pt-5 sm:mt-7 sm:pt-6">
+          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2.5 border-t border-white/10 pt-5">
             {trust.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-2 text-sm text-white/80"><Icon className="h-5 w-5 shrink-0 text-brand-500" strokeWidth={1.5} aria-hidden />{text}</li>
+              <li key={text} className="flex items-center gap-2 text-[13px] text-white/75"><Icon className="h-4 w-4 shrink-0 text-brand-500" strokeWidth={1.75} aria-hidden />{text}</li>
             ))}
           </ul>
         </div>
@@ -141,10 +136,10 @@ export async function Footer() {
         <nav aria-label="Shop categories">
           <h2 className={colHead}>Shop</h2>
           <span className={accentBar} aria-hidden />
-          <ul className="mt-4">
-            <li><Link className={rowLink} href="/products"><span className="flex-1">All products</span><ChevronRight className="hidden h-4 w-4 text-white/40 sm:block" aria-hidden /></Link></li>
+          <ul className="mt-4 space-y-0.5">
+            <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-white/40 group-hover:text-brand-400" aria-hidden />All products</Link></li>
             {categories.slice(0, 7).map((c) => (
-              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><span className="flex-1">{c.name}</span><ChevronRight className="hidden h-4 w-4 text-white/40 sm:block" aria-hidden /></Link></li>
+              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-white/40 group-hover:text-brand-400" aria-hidden />{c.name}</Link></li>
             ))}
           </ul>
         </nav>
@@ -164,25 +159,25 @@ export async function Footer() {
                 {siteConfig.hours.map((h) => <span key={h} className="block text-sm font-normal text-white/85">{h}</span>)}
               </ContactRow>
             )}
-            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-5 w-5 text-white/60" strokeWidth={1.5} aria-hidden /><span className="flex-1">Contact details</span><ChevronRight className="hidden h-4 w-4 text-white/40 sm:block" aria-hidden /></Link></li>}
+            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-white/40" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
           </ul>
         </div>
       </div>
 
-      <div className="relative border-t border-white/10">
+      <div className="relative border-t border-white/10 bg-black/25">
         <div className="container-page flex flex-col gap-5 py-5">
           {(cod || siteConfig.paymentMethods.length > 0) && (
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-white/10 pb-5 text-sm text-white/75">
               <span className="font-medium text-white">We accept</span>
               <ul className="flex flex-wrap items-center gap-2" aria-label="Accepted payment methods">
-                {cod && <li className="inline-flex h-9 items-center gap-1.5 rounded-md bg-white px-3 text-xs font-bold text-on-brand"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
+                {cod && <li className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-white px-3 text-xs font-bold text-on-brand"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
                 {siteConfig.paymentMethods.map((id) => <PaymentBadge key={id} id={id} />)}
               </ul>
             </div>
           )}
           <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
             <div className="text-sm text-white/80">
-              <p>© {new Date().getFullYear()} VALTA.LK. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} VOLTA.LK. All rights reserved.</p>
               <p className="mt-1 text-xs text-white/55">Prices and availability are subject to change without notice.</p>
             </div>
             <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/75 md:ml-auto md:mr-2">

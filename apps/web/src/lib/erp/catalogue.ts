@@ -22,7 +22,7 @@ interface Snapshot {
   watermark?: string; // data.generatedAt of the last sync, used as updatedSince
 }
 
-const g = globalThis as unknown as { __valtaCatalogue?: Snapshot; __valtaCatalogueSync?: Promise<Snapshot> };
+const g = globalThis as unknown as { __voltaCatalogue?: Snapshot; __voltaCatalogueSync?: Promise<Snapshot> };
 
 const erpOrigin = async () => {
   const env = await getActiveErpEnv();
@@ -51,18 +51,18 @@ async function fetchAll(updatedSince?: string) {
 
 async function fullSync(): Promise<Snapshot> {
   const { items, watermark } = await fetchAll();
-  return (g.__valtaCatalogue = { products: new Map(items.map((p) => [p.id, p])), syncedAt: Date.now(), watermark });
+  return (g.__voltaCatalogue = { products: new Map(items.map((p) => [p.id, p])), syncedAt: Date.now(), watermark });
 }
 
 async function sync(): Promise<Snapshot> {
-  const prev = g.__valtaCatalogue;
+  const prev = g.__voltaCatalogue;
   if (!prev?.watermark) return fullSync();
   const { items, removed, truncated, watermark } = await fetchAll(prev.watermark);
   if (truncated) return fullSync(); // the ERP could not list every removal: reload everything
   const products = new Map(prev.products);
   removed.forEach((id) => products.delete(id));
   items.forEach((p) => products.set(p.id, p));
-  return (g.__valtaCatalogue = { products, syncedAt: Date.now(), watermark: watermark ?? prev.watermark });
+  return (g.__voltaCatalogue = { products, syncedAt: Date.now(), watermark: watermark ?? prev.watermark });
 }
 
 /** ERP catalogue with the website's own images/descriptions layered on top (see content-overlay.ts). */
@@ -73,13 +73,13 @@ export async function getSnapshot(): Promise<Snapshot> {
 
 /** Cached catalogue, refreshed at most once per TTL. A stale copy is only used if a refresh fails after a prior success. */
 export async function getErpSnapshot(): Promise<Snapshot> {
-  const cur = g.__valtaCatalogue;
+  const cur = g.__voltaCatalogue;
   if (cur && Date.now() - cur.syncedAt < TTL_MS) return cur;
-  g.__valtaCatalogueSync ??= sync().finally(() => {
-    g.__valtaCatalogueSync = undefined;
+  g.__voltaCatalogueSync ??= sync().finally(() => {
+    g.__voltaCatalogueSync = undefined;
   });
   try {
-    return await g.__valtaCatalogueSync;
+    return await g.__voltaCatalogueSync;
   } catch (e) {
     if (cur) return cur;
     throw e;
@@ -87,8 +87,8 @@ export async function getErpSnapshot(): Promise<Snapshot> {
 }
 
 export function resetCatalogueCache() {
-  g.__valtaCatalogue = undefined;
-  g.__valtaCatalogueSync = undefined;
+  g.__voltaCatalogue = undefined;
+  g.__voltaCatalogueSync = undefined;
 }
 
 /** Live (uncached) single product. Returns null when the ERP no longer lists it. */

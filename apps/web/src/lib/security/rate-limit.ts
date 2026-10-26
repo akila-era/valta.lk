@@ -5,8 +5,8 @@ interface Bucket {
   resetAt: number;
 }
 
-const g = globalThis as unknown as { __valtaRate?: Map<string, Bucket> };
-const buckets = (g.__valtaRate ??= new Map());
+const g = globalThis as unknown as { __voltaRate?: Map<string, Bucket> };
+const buckets = (g.__voltaRate ??= new Map());
 
 /**
  * Fixed-window in-memory limiter. Adequate for a single instance; use a shared store (e.g. Redis)

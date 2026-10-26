@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Privacy policy", alternates: { canon
 
 export default function PrivacyPage() {
   return (
-    <PolicyPage title="Privacy policy" intro="What we collect when you order from VALTA.LK and how it is used.">
+    <PolicyPage title="Privacy policy" intro="What we collect when you order from VOLTA.LK and how it is used.">
       <section>
         <h2>Information we collect</h2>
         <p>When you place an order we collect your name, phone number, optional email address and delivery address. Your shopping cart is kept only in your browser.</p>

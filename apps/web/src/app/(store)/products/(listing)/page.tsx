@@ -13,12 +13,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     <>
       <StoreHeroBanner
         breadcrumbs={[{ href: "/", label: "Home" }, { label: "All products" }]}
-        section="SHOP"
-        label="CATALOGUE"
         title="All Products"
         intro="Explore our complete catalogue of mobile phones, electronics and tech accessories."
-        categoryName="accessories"
-        tagline="Curated Tech Collection"
       />
       <CatalogueView basePath="/products" params={await searchParams} />
     </>

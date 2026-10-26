@@ -1,17 +1,17 @@
-name: valta
+name: volta
 
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: valta_web
-      POSTGRES_USER: valta
+      POSTGRES_DB: volta_web
+      POSTGRES_USER: volta
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U valta -d valta_web"]
+      test: ["CMD-SHELL", "pg_isready -U volta -d volta_web"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -22,11 +22,11 @@ services:
       args:
         ERP_IMAGE_HOSTS: ${ERP_IMAGE_HOSTS:-}
         HX_API_BASE: ${HX_API_BASE:-}
-    image: valta/web:latest
+    image: volta/web:latest
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://valta:${POSTGRES_PASSWORD}@db:5432/valta_web
+      DATABASE_URL: postgresql://volta:${POSTGRES_PASSWORD}@db:5432/volta_web
     depends_on:
       db:
         condition: service_healthy
@@ -59,7 +59,7 @@ services:
   # Remove the profile and set the real ERP values to end the demo (see docs/DEPLOYMENT.md).
   mock-erp:
     profiles: ["demo"]
-    image: valta/web:latest
+    image: volta/web:latest
     restart: unless-stopped
     working_dir: /app/apps/web
     environment:

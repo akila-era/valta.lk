@@ -421,7 +421,7 @@ test.describe("rich text and optional content", () => {
     await signInAsAdmin(page);
     await resetContent(page);
     const html =
-      '<h2>Title</h2><p>Visit <a href="https://valta.lk/help" onclick="x()">help</a> or <a href="javascript:alert(1)">bad</a>. <b>Bold</b> <i>it</i></p><ol><li>One</li><li>Two</li></ol><img src=x onerror="window.__x=1"><iframe src="https://evil.test"></iframe><script>window.__y=1</script>';
+      '<h2>Title</h2><p>Visit <a href="https://volta.lk/help" onclick="x()">help</a> or <a href="javascript:alert(1)">bad</a>. <b>Bold</b> <i>it</i></p><ol><li>One</li><li>Two</li></ol><img src=x onerror="window.__x=1"><iframe src="https://evil.test"></iframe><script>window.__y=1</script>';
     expect((await save(page, await version(page), { descriptionHtml: html })).status()).toBe(200);
     await publishAction(page, "publish");
     const anon = await visitor(browser);
@@ -433,7 +433,7 @@ test.describe("rich text and optional content", () => {
     await expect(rich.locator("em")).toHaveText("it");
     await expect(rich.locator("ol li")).toHaveText(["One", "Two"]);
     const link = rich.getByRole("link", { name: "help" });
-    await expect(link).toHaveAttribute("href", "https://valta.lk/help");
+    await expect(link).toHaveAttribute("href", "https://volta.lk/help");
     await expect(link).toHaveAttribute("rel", /noopener/);
     await expect(rich.getByRole("link", { name: "bad" })).toHaveCount(0);
     await expect(rich.locator("img, iframe, script, [onclick], [onerror]")).toHaveCount(0);

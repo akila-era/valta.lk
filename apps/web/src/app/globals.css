@@ -4,22 +4,21 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
 
-  /* VALTA.LK storefront: light and neon orange. White and warm light-neutral canvas, deep charcoal text; the footer
-     uses the night colours. "on-brand" is the dark text used on orange fills (5.8:1 on brand-500).
+  /* VOLTA.LK storefront: a clean, professional retail look in white and orange. White canvas, cool light-grey surfaces,
+     deep charcoal text; the top bar and footer use the night colours. "on-brand" is the dark text used on orange fills (5.8:1 on brand-500).
      muted passes 4.5:1 on bg, surface and brand-50 alike, because text-muted is used on all three.
      border is for decorative separators; border-strong (>= 3:1 on bg and surface) outlines form controls. */
   --color-bg: #ffffff;
-  --color-surface: #f8f7f5;
-  --color-border: #ece9e6;
-  --color-border-strong: #8a857f;
+  --color-surface: #f5f6f7;
+  --color-border: #e6e8eb;
+  --color-border-strong: #868b92;
   --color-ink: #171717;
   --color-muted: #6b6b6b;
   --color-dark: #101113;
   --color-night: #101113;
   --color-night-2: #191b1f;
-  --color-media: #f8f7f5;
+  --color-media: #ffffff;
   --color-on-brand: #171717;
 
   /* Brand: neon orange #FF5C00 is for fills with dark text; brand-600/700 are the text-safe oranges on white (>= 4.5:1).
@@ -49,20 +48,21 @@
   --color-navy-800: #242424;
   --color-navy-700: #333333;
 
-  --shadow-card: 0 1px 2px rgb(23 23 23 / 0.04), 0 8px 24px -12px rgb(23 23 23 / 0.16);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.06);
   --shadow-raised: 0 8px 24px -16px rgb(23 23 23 / 0.35);
-  /* Neutral warm shadows: soft for resting cards, float for raised panels, lift for hover. */
-  --shadow-soft: 0 2px 8px rgb(26 23 20 / 0.04);
-  --shadow-float: 0 12px 34px rgb(27 23 20 / 0.065);
-  --shadow-lift: 0 22px 52px -18px rgb(27 23 20 / 0.12), 0 2px 6px -2px rgb(23 23 23 / 0.06);
+  /* Restrained neutral shadows: soft for resting cards, float for raised panels, lift for hover. */
+  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-float: 0 8px 24px -8px rgb(16 24 40 / 0.12);
+  --shadow-lift: 0 12px 28px -12px rgb(16 24 40 / 0.22);
   --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
-  --shadow-glow: 0 10px 28px -10px rgb(255 92 0 / 0.65);
+  --shadow-glow: 0 6px 16px -8px rgb(255 92 0 / 0.55);
 
-  /* Named radii (Tailwind's rounded-sm..4xl defaults stay as they are): controls, cards, panels, feature blocks, pills */
-  --radius-control: 10px;
-  --radius-card: 18px;
-  --radius-panel: 27px;
-  --radius-feature: 34px;
+  /* Named radii (Tailwind's rounded-sm..4xl defaults stay as they are): controls, cards, panels, feature blocks, pills.
+     Kept small for a crisp retail look. */
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-panel: 14px;
+  --radius-feature: 16px;
   --radius-pill: 9999px;
 
   /* Heading scale (fluid between phone and desktop) and the smallest UI label size (11px floor). */
@@ -103,17 +103,17 @@
 @utility container-page { @apply mx-auto w-full max-w-[106.25rem] px-4 sm:px-6 lg:px-10 2xl:px-12; }
 /* Full-width bands (header): edge to edge with comfortable side padding, capped only on very wide screens. */
 @utility container-wide { @apply mx-auto w-full max-w-[120rem] px-3 sm:px-4 lg:px-6; }
-/* Elevated card: a hairline edge plus a soft contact shadow and a long ambient one, so panels float above the page. */
-@utility card { @apply rounded-card border border-border bg-bg shadow-[0_1px_2px_rgb(26_23_20/0.04),0_18px_40px_-24px_rgb(27_23_20/0.22)]; }
-/* Pill buttons. Primary is the neon signal with dark on-brand text (>= 5:1 at rest and on hover); it deepens on hover. */
+/* Card: a hairline edge and a faint contact shadow. */
+@utility card { @apply rounded-card border border-border bg-bg shadow-card; }
+/* Buttons. Primary is the orange fill with dark on-brand text (>= 5:1 at rest and on hover); it deepens on hover. */
 @utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-pill px-6 text-sm font-semibold tracking-[-0.005em]
+  @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-control px-5 text-sm font-semibold
     transition-[background-color,color,border-color,box-shadow,transform] duration-200 active:scale-[0.98]
     disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
 }
 @utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-brand-hover; }
-@utility btn-secondary { @apply btn border border-ink/15 bg-bg text-ink hover:border-ink; }
-@utility btn-outline { @apply btn border border-ink/15 bg-bg text-ink hover:border-ink hover:bg-ink hover:text-bg; }
+@utility btn-secondary { @apply btn border border-border-strong/50 bg-bg text-ink hover:border-ink; }
+@utility btn-outline { @apply btn border border-border-strong/50 bg-bg text-ink hover:border-ink hover:bg-ink hover:text-bg; }
 @utility btn-ghost { @apply btn text-ink hover:bg-surface; }
 @utility btn-text { @apply btn text-ink hover:bg-surface; }
 @utility btn-dark { @apply btn bg-ink text-bg hover:bg-ink/85; }
@@ -128,11 +128,8 @@
 @utility check { @apply h-4 w-4 shrink-0 accent-brand-600 disabled:cursor-not-allowed; }
 @utility label { @apply mb-1.5 block text-sm font-medium text-ink; }
 @utility field-error { @apply mt-1.5 text-sm text-danger; }
-/* Mono label with a neon signal dot, used above section and hero titles. */
-@utility eyebrow {
-  @apply inline-flex items-center gap-2 font-mono text-label font-medium uppercase tracking-[0.2em] text-brand-600
-    before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-brand-500 before:content-[''];
-}
+/* Small uppercase label above section and hero titles. */
+@utility eyebrow { @apply inline-flex items-center text-xs font-bold uppercase tracking-[0.14em] text-brand-600; }
 @utility badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
 @utility section-title { @apply font-display text-title-section font-bold tracking-title text-ink; }
 @utility page-title { @apply font-display text-title-page font-bold tracking-title text-ink; }
@@ -143,20 +140,17 @@
 @utility type-meta { @apply text-sm leading-5 text-muted; }
 @utility type-caption { @apply text-xs leading-4 text-muted; }
 @utility section-space { @apply mt-6 sm:mt-8; }
-/* Story typography: a huge, light sans statement with one accent word in the italic serif. */
-@utility statement { @apply font-sans text-[clamp(2.6rem,1.6rem+4.4vw,6.25rem)] font-light leading-[0.98] tracking-[-0.045em] text-ink; }
-@utility accent-serif { @apply font-serif font-normal italic tracking-[-0.02em]; }
-/* Chapter kicker: "03 / CATEGORIES" in small spaced capitals. */
-@utility kicker { @apply text-label font-semibold uppercase tracking-[0.22em] text-ink/70; }
-/* Product image well: a soft spotlight so products (dark ones included) stand out on the dark theme. */
-@utility media-spot { background: radial-gradient(circle at 50% 40%, #ffffff 0%, var(--color-media) 75%); }
+/* Large headings (page and product titles): bold display type, sized by the caller. */
+@utility statement { @apply font-display font-bold leading-[1.15] tracking-title text-ink; }
+/* Kicker above a page title: "Shop / Catalogue" in small capitals. */
+@utility kicker { @apply text-xs font-semibold uppercase tracking-[0.12em] text-muted; }
+/* Product image well: plain white so product photos sit cleanly. */
+@utility media-spot { background: var(--color-media); }
 @utility media-square { @apply relative aspect-square overflow-hidden media-spot; }
-/* Small 3D product stage for thumbnails (cart, checkout, wishlist): a white spotlight disc on a warm gradient, an
-   inner edge and a contact shadow; white-background photos blend into the stage. */
+/* Thumbnail well (cart, checkout, wishlist): white with a hairline edge. */
 @utility thumb-stage {
-  background: radial-gradient(circle at 50% 46%, #ffffff 0 50%, transparent 51%), linear-gradient(145deg, #f8f7f4, #ebe8e3);
-  box-shadow: inset 0 0 0 1px rgb(23 23 23 / 0.05), 0 8px 18px -12px rgb(27 23 20 / 0.35);
-  & img { mix-blend-mode: multiply; }
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--color-border);
 }
 
 @keyframes pop {
@@ -188,20 +182,10 @@
 @utility animate-marquee { animation: marquee 40s linear infinite; }
 
 /* Scroll reveal: content is visible by default; the Reveal component hides below-the-fold blocks only after hydration. */
-[data-reveal] { transition: opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: var(--d, 0ms); }
-/* Blocks rise, grow back to full size and come into focus; cards in a row follow one another (Reveal delay). */
-[data-reveal="hidden"] { opacity: 0; transform: translateY(34px) scale(0.97); filter: blur(4px); }
-[data-reveal="shown"] { opacity: 1; transform: none; filter: none; }
-/* Story statements wipe up from under their baseline as their chapter header is revealed. */
-[data-reveal] .statement-wipe { transition: clip-path 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s, transform 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s; }
-[data-reveal="hidden"] .statement-wipe { clip-path: inset(0 0 100% 0); transform: translateY(0.35em); }
-[data-reveal="shown"] .statement-wipe { clip-path: inset(0 0 -0.2em 0); transform: none; }
-/* Hero headline: each word rises out of its own mask, one after another (--i is the word's index). */
-@keyframes word-rise { from { transform: translateY(105%); } to { transform: none; } }
-@utility word-rise { animation: word-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(120ms + var(--i, 0) * 110ms); }
-/* The lifestyle panel opens from an inset card to full size with scroll (--p from ScrollExpand, 1 without JS). */
-.scroll-expand { clip-path: inset(calc((1 - var(--p, 1)) * 7%) calc((1 - var(--p, 1)) * 9%) round 2.125rem); }
-.scroll-expand img { scale: calc(1 + (1 - var(--p, 1)) * 0.18); }
+[data-reveal] { transition: opacity 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: var(--d, 0ms); }
+/* Blocks rise gently into place; cards in a row follow one another (Reveal delay). */
+[data-reveal="hidden"] { opacity: 0; transform: translateY(16px); }
+[data-reveal="shown"] { opacity: 1; transform: none; }
 .marquee:hover .animate-marquee, .marquee:focus-within .animate-marquee { animation-play-state: paused; }
 
 @keyframes shimmer { to { background-position: -200% 0; } }
@@ -297,107 +281,3 @@
 .admin-theme :is(.card) { border-radius: 0.75rem; }
 .admin-theme :is(h1, h2, h3) { font-family: var(--font-sans); }
 .admin-theme :is(.media-spot, .media-square) { background: var(--color-media); }
-
-/* ---------- Landing motion (all off with reduced motion) ---------- */
-
-/* Hero intro: fills exactly the full screen on desktop so chapter 2 starts off-screen */
-.hero-intro {
-  margin-top: calc(-1 * var(--hdr-sticky, 7rem));
-}
-@media (min-width: 48rem) {
-  .hero-intro {
-    min-height: calc(100vh - (var(--hdr-h, 9rem) - var(--hdr-sticky, 7rem)) + 2.5rem);
-    padding-bottom: 1.5rem;
-  }
-}
-
-.hero-content {
-  padding-top: calc(var(--hdr-sticky, 7rem) + 1.25rem);
-}
-@media (min-width: 48rem) {
-  .hero-content {
-    padding-top: calc(var(--hdr-sticky, 7rem) + 2rem);
-  }
-}
-
-/* Staggered entrance: children slide up and fade in one after another. Apply to a parent container. */
-@keyframes stagger-in { from { opacity: 0; transform: translateY(28px) scale(0.96); } to { opacity: 1; transform: none; } }
-@utility animate-stagger-in {
-  & > * { animation: stagger-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-  & > *:nth-child(1) { animation-delay: 0ms; }
-  & > *:nth-child(2) { animation-delay: 80ms; }
-  & > *:nth-child(3) { animation-delay: 160ms; }
-  & > *:nth-child(4) { animation-delay: 240ms; }
-  & > *:nth-child(5) { animation-delay: 320ms; }
-  & > *:nth-child(6) { animation-delay: 400ms; }
-  & > *:nth-child(n+7) { animation-delay: 480ms; }
-}
-
-/* Subtle pulsing glow behind CTA buttons on the landing page. */
-@keyframes cta-glow { 0%, 100% { box-shadow: 0 10px 24px -8px rgb(255 92 0 / 0.55); } 50% { box-shadow: 0 14px 32px -6px rgb(255 92 0 / 0.75); } }
-@utility animate-cta-glow { animation: cta-glow 2.8s ease-in-out infinite; }
-
-/* Slide-in from the left for chapter kickers. */
-@keyframes slide-in-left { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
-@utility animate-slide-in-left { animation: slide-in-left 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
-
-/* Scale and blur entrance for cards on scroll. */
-@keyframes zoom-blur-in { from { opacity: 0; transform: scale(0.88); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
-@utility animate-zoom-blur-in { animation: zoom-blur-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
-
-/* Hero accent word: an orange underline draws itself once the headline words have risen. */
-@keyframes underline-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.underline-draw { position: relative; }
-.underline-draw::after {
-  content: ""; position: absolute; left: 0.04em; right: 0.08em; bottom: 0.04em; height: 0.06em; border-radius: 9999px;
-  background: var(--color-brand-500); transform-origin: left; animation: underline-draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.95s both;
-}
-
-/* Homepage scroll progress (a thin orange line at the top that fills as the page scrolls) and the hero copy drifting
-   up and fading as it leaves the screen. Scroll-driven, so no JavaScript; browsers without scroll timelines skip both. */
-@keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes hero-exit { to { opacity: 0.15; transform: translateY(-48px); } }
-.scroll-progress { display: none; }
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .scroll-progress { display: block; transform-origin: left; animation: grow-x linear both; animation-timeline: scroll(root); }
-    /* Driven by the page scroll, not view(): the hero clips its overflow, which would make it the (non-scrolling) timeline. */
-    .hero-exit { animation: hero-exit linear both; animation-timeline: scroll(root); animation-range: 0 70vh; }
-  }
-}
-
-/* ---------- First-visit intro (components/layout/site-intro.tsx) ---------- */
-/* Dark splash: the wordmark rises into focus, an orange line draws under it, then the screen fades away (1.7 s total).
-   Hidden unless the inline script set data-show (homepage loads/refreshes, first page of a visit); CSS dismisses it. */
-.site-intro { display: none; }
-.site-intro[data-show] {
-  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; overflow: hidden;
-  background: radial-gradient(ellipse at 50% 48%, #1c1410 0%, #0b0b0b 62%);
-  animation: intro-out 0.55s cubic-bezier(0.4, 0, 0.2, 1) 1.15s forwards;
-}
-@media (prefers-reduced-motion: reduce) { .site-intro[data-show] { display: none; } }
-.site-intro-stage { position: relative; display: grid; justify-items: center; }
-.site-intro-mark {
-  position: relative; color: #fff; font-size: clamp(2.6rem, 1.8rem + 3.4vw, 4.4rem); line-height: 1;
-  animation: intro-mark 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.site-intro-line {
-  margin-top: 1.1rem; height: 2px; width: 3.75rem; border-radius: 9999px; background: var(--color-brand-500);
-  box-shadow: 0 0 12px 1px rgb(255 92 0 / 0.6); transform-origin: center;
-  animation: intro-line 0.8s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both;
-}
-.site-intro-ring {
-  position: absolute; left: 50%; top: 42%; width: 15rem; aspect-ratio: 1; border-radius: 9999px;
-  border: 1px solid rgb(255 92 0 / 0.45); translate: -50% -50%;
-  animation: intro-ring 1.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
-.site-intro-glow {
-  position: absolute; left: 50%; top: 42%; width: 22rem; aspect-ratio: 1; border-radius: 9999px; translate: -50% -50%;
-  background: radial-gradient(circle, rgb(255 92 0 / 0.22), transparent 65%); filter: blur(10px);
-  animation: intro-glow 1.5s ease-out both;
-}
-@keyframes intro-mark { from { opacity: 0; transform: translateY(14px) scale(0.94); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
-@keyframes intro-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes intro-ring { from { opacity: 0; transform: perspective(700px) rotateX(74deg) rotateZ(-40deg) scale(0.7); } to { opacity: 1; transform: perspective(700px) rotateX(74deg) rotateZ(20deg) scale(1); } }
-@keyframes intro-glow { from { opacity: 0; } 50% { opacity: 1; } to { opacity: 0.7; } }
-@keyframes intro-out { to { opacity: 0; visibility: hidden; } }

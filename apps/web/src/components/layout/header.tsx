@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Headset, Truck, Wallet } from "lucide-react";
+import { Headset, Phone, Truck, Wallet } from "lucide-react";
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
@@ -32,8 +32,7 @@ import { Wordmark } from "./wordmark";
 
 export { Wordmark };
 
-/** `overlay` (homepage): at the top of the page the sticky header is a thin glass layer over the hero photo. */
-export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
+export async function Header() {
   const accounts = accountsEnabled();
   const [{ categories, hasDeals }, customer, settings] = await Promise.all([
     loadNavData(),
@@ -43,11 +42,11 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
   const cod = settings?.paymentMethods.COD === true;
   return (
     <>
-      {/* Slim announcement bar: the owner's SITE_ANNOUNCEMENT plus facts from live ERP settings only. It scrolls away. */}
-      <div role="region" aria-label="Store information" className={`border-b border-border bg-surface text-muted ${siteConfig.announcement ? "" : "hidden sm:block"}`}>
-        <div className="container-wide flex h-7 items-center justify-between gap-6 text-[11.5px]">
-          <ul className="flex min-w-0 items-center gap-3 divide-x divide-border [&>li+li]:pl-3">
-            {siteConfig.announcement ? <li className="truncate font-medium text-ink">{siteConfig.announcement}</li> : null}
+      {/* Dark top bar: a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
+      <div role="region" aria-label="Store information" className="on-dark bg-night text-white/80">
+        <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
+          <ul className="flex min-w-0 items-center gap-4 divide-x divide-white/15 [&>li+li]:pl-4">
+            <li className="truncate font-semibold uppercase tracking-[0.08em] text-white">{siteConfig.announcement || `Welcome to ${siteConfig.name}`}</li>
             {settings ? (
               <li className="hidden shrink-0 items-center gap-1.5 sm:flex">
                 <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
@@ -59,29 +58,37 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
               </li>
             ) : null}
           </ul>
-          <nav aria-label="Help" className="hidden shrink-0 items-center gap-3 divide-x divide-border md:flex [&>*+*]:pl-3">
-            {siteConfig.phone ? <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="rounded-sm hover:text-ink">{siteConfig.phone}</a> : null}
-            <Link href="/track-order" className="rounded-sm hover:text-ink">Track order</Link>
-            <Link href="/contact" className="rounded-sm hover:text-ink">Help</Link>
-            <Link href="/about" className="rounded-sm hover:text-ink">About Us</Link>
+          <nav aria-label="Help" className="hidden shrink-0 items-center gap-4 divide-x divide-white/15 md:flex [&>*+*]:pl-4">
+            {siteConfig.phone ? (
+              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 rounded-sm hover:text-white">
+                <Phone className="h-3.5 w-3.5" aria-hidden /> {siteConfig.phone}
+              </a>
+            ) : null}
+            <Link href="/track-order" className="rounded-sm hover:text-white">Track order</Link>
+            <Link href="/contact" className="rounded-sm hover:text-white">Help</Link>
+            <Link href="/about" className="rounded-sm hover:text-white">About Us</Link>
           </nav>
         </div>
       </div>
-      <HeaderShell overlay={overlay}>
-        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2 py-3 md:grid md:h-[4.75rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0">
+      <HeaderShell>
+        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-3 py-3 md:grid md:h-[5.25rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="text-[1.95rem] leading-none text-ink sm:text-[2.35rem] md:text-[2.75rem] lg:text-[3rem]" />
-          <div className="order-last w-full md:order-none">
+          <Wordmark className="text-[1.85rem] leading-none text-ink sm:text-[2.2rem] lg:text-[2.5rem]" />
+          <div className="order-last w-full md:order-none md:mx-auto md:max-w-3xl">
             <SearchBox size="lg" />
           </div>
-          <div className="ml-auto flex items-center md:ml-0 md:divide-x md:divide-border">
-            <Link href="/contact" className="hidden items-center gap-2 px-3 text-[15px] font-medium hover:text-brand-600 lg:inline-flex">
-              <Headset className="h-[22px] w-[22px]" strokeWidth={1.5} aria-hidden /> Support
+          <div className="ml-auto flex items-center gap-1 md:ml-0 lg:gap-2">
+            <Link href="/contact" className="hidden items-center gap-2.5 px-3 hover:text-brand-600 xl:inline-flex">
+              <Headset className="h-7 w-7 text-brand-500" strokeWidth={1.5} aria-hidden />
+              <span className="leading-tight">
+                <span className="block text-[11px] text-muted">Need help?</span>
+                <span className="block text-sm font-semibold">Support</span>
+              </span>
             </Link>
-            {/* Track order lives in the announcement bar, so the main row only adds the account menu when accounts exist. */}
+            {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
             {accounts ? <AccountMenu customer={customer ? { name: customer.name } : null} enabled /> : null}
             <WishlistLink />
-            <div className="md:pl-5"><CartLink /></div>
+            <CartLink />
           </div>
         </div>
         <Suspense fallback={null}>

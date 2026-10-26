@@ -1,22 +1,22 @@
 /**
- * Bootstraps a DISPOSABLE local HEXALYTE ERP (database `hexalyte_valta_test`, backend on :3101) for VALTA.LK integration testing:
+ * Bootstraps a DISPOSABLE local HEXALYTE ERP (database `hexalyte_volta_test`, backend on :3101) for VOLTA.LK integration testing:
  * a test shop with an owner, a small test catalogue, and a registered + configured store (COD on, orders on, reservations on).
  *
  * The store credential is written straight into apps/web/.env.local and never printed.
  *
  * Run from the ERP backend folder (so its Prisma client and env resolve):
- *   DATABASE_URL=<hexalyte_valta_test url> npx tsx E:/valta-lk/tools/erp-local/bootstrap.ts
+ *   DATABASE_URL=<hexalyte_volta_test url> npx tsx E:/volta-lk/tools/erp-local/bootstrap.ts
  */
 import fs from "node:fs";
 import { createRequire } from "node:module";
 
 const ERP = process.env.ERP_DIR ?? "C:/Users/Akila/CascadeProjects/windsurf-project/apps/backend";
 const API = process.env.ERP_API ?? "http://127.0.0.1:3101/api/v1";
-const ENV_LOCAL = process.env.VALTA_ENV ?? "E:/valta-lk/apps/web/.env.local";
+const ENV_LOCAL = process.env.VOLTA_ENV ?? "E:/volta-lk/apps/web/.env.local";
 const erpRequire = createRequire(`${ERP}/package.json`);
 
-if (!/hexalyte_valta_test(\?|$)/.test(process.env.DATABASE_URL ?? "")) {
-  console.error("Refusing to run: DATABASE_URL must point at the hexalyte_valta_test database");
+if (!/hexalyte_volta_test(\?|$)/.test(process.env.DATABASE_URL ?? "")) {
+  console.error("Refusing to run: DATABASE_URL must point at the hexalyte_volta_test database");
   process.exit(1);
 }
 
@@ -27,15 +27,15 @@ async function main() {
   const { prisma } = erpRequire("./src/config/database.ts") as Json;
   const { applyAction } = erpRequire("./src/modules/ecommerce/ecommerce-approval.service.ts") as Json;
 
-  const stamp = "valta";
-  const PW = process.env.VALTA_ERP_OWNER_PASSWORD ?? `Valta#${Math.random().toString(36).slice(2, 10)}Aa1`;
+  const stamp = "volta";
+  const PW = process.env.VOLTA_ERP_OWNER_PASSWORD ?? `Volta#${Math.random().toString(36).slice(2, 10)}Aa1`;
   const hash = bcrypt.hashSync(PW, 10);
 
   // ── tenant, branch, owner, platform admin (idempotent on slug) ───────────────────
-  let tenant = await prisma.tenant.findUnique({ where: { slug: "valta-test-shop" } });
+  let tenant = await prisma.tenant.findUnique({ where: { slug: "volta-test-shop" } });
   const fresh = !tenant;
   if (!tenant) {
-    tenant = await prisma.tenant.create({ data: { name: "VALTA Test Shop", slug: "valta-test-shop", ownerEmail: "owner@valta.test", ownerName: "Valta Owner", status: "ACTIVE" } });
+    tenant = await prisma.tenant.create({ data: { name: "VOLTA Test Shop", slug: "volta-test-shop", ownerEmail: "owner@volta.test", ownerName: "Volta Owner", status: "ACTIVE" } });
   }
   let branch = await prisma.branch.findFirst({ where: { tenantId: tenant.id } });
   if (!branch) branch = await prisma.branch.create({ data: { tenantId: tenant.id, name: "Main", isHeadquarters: true, address: "1 Test Road", city: "Colombo", state: "Western", phone: "0110000000" } as Json });
@@ -46,16 +46,16 @@ async function main() {
     await prisma.userBranch.create({ data: { userId: created.id, branchId: branch.id } }).catch(() => undefined);
     return created;
   };
-  const owner = await upsertUser("owner@valta.test", "Valta Owner", "OWNER");
-  let admin = await prisma.user.findFirst({ where: { email: "super@valta.test" } });
+  const owner = await upsertUser("owner@volta.test", "Volta Owner", "OWNER");
+  let admin = await prisma.user.findFirst({ where: { email: "super@volta.test" } });
   if (!admin) {
-    const pt = await prisma.tenant.create({ data: { name: "VALTA platform", slug: "valta-platform", ownerEmail: "super@valta.test", ownerName: "Platform", status: "ACTIVE" } });
-    admin = await prisma.user.create({ data: { tenantId: pt.id, email: "super@valta.test", name: "Platform admin", password: hash, role: "PLATFORM_ADMIN", platformAdminRole: "SUPER_ADMIN" } as Json });
+    const pt = await prisma.tenant.create({ data: { name: "VOLTA platform", slug: "volta-platform", ownerEmail: "super@volta.test", ownerName: "Platform", status: "ACTIVE" } });
+    admin = await prisma.user.create({ data: { tenantId: pt.id, email: "super@volta.test", name: "Platform admin", password: hash, role: "PLATFORM_ADMIN", platformAdminRole: "SUPER_ADMIN" } as Json });
   }
 
   // E-Commerce approval (what the platform Super Admin does), then the customer-credit feature COD dispatch needs.
   const actor = { userId: admin.id, email: admin.email, ip: "127.0.0.1" };
-  await applyAction({ tenantId: tenant.id, action: "approve", actor, websiteProjectRef: "VALTA-LK-LOCAL" }).catch((e: Error) => console.log("approve:", e.message.slice(0, 80)));
+  await applyAction({ tenantId: tenant.id, action: "approve", actor, websiteProjectRef: "VOLTA-LK-LOCAL" }).catch((e: Error) => console.log("approve:", e.message.slice(0, 80)));
   await applyAction({ tenantId: tenant.id, action: "enable", actor }).catch((e: Error) => console.log("enable:", e.message.slice(0, 80)));
   const hasFeature = await prisma.tenantFeature.findFirst({ where: { tenantId: tenant.id, feature: "CUSTOMER_CREDIT" } });
   if (!hasFeature) await prisma.tenantFeature.create({ data: { tenantId: tenant.id, feature: "CUSTOMER_CREDIT", enabled: true } as Json });
@@ -106,19 +106,19 @@ async function main() {
     try { json = JSON.parse(text); } catch { /* */ }
     return { status: res.status, json, text };
   };
-  const login = await call("POST", "/auth/login", { email: "owner@valta.test", password: PW });
+  const login = await call("POST", "/auth/login", { email: "owner@volta.test", password: PW });
   const token: string | undefined = login.json?.data?.accessToken ?? login.json?.data?.token ?? login.json?.accessToken;
-  if (!token) throw new Error(`owner login failed (${login.status}). If the owner already existed with another password, set VALTA_ERP_OWNER_PASSWORD.`);
+  if (!token) throw new Error(`owner login failed (${login.status}). If the owner already existed with another password, set VOLTA_ERP_OWNER_PASSWORD.`);
 
   const pickCredential = (d: Json): string => {
     const c = d?.credential;
     return typeof c === "string" ? c : typeof c?.secret === "string" ? c.secret : typeof c?.credential === "string" ? c.credential : "";
   };
   const stores = await call("GET", "/ecommerce/stores", undefined, token);
-  let store = (stores.json?.data ?? []).find?.((s: Json) => s.displayName === "VALTA.LK");
+  let store = (stores.json?.data ?? []).find?.((s: Json) => s.displayName === "VOLTA.LK");
   let credential = "";
   if (!store) {
-    const reg = await call("POST", "/ecommerce/stores", { displayName: "VALTA.LK", website: "https://valta.lk" }, token);
+    const reg = await call("POST", "/ecommerce/stores", { displayName: "VOLTA.LK", website: "https://volta.lk" }, token);
     if (reg.status >= 300) throw new Error(`register store failed ${reg.status}: ${reg.text.slice(0, 160)}`);
     store = reg.json?.data?.connection ?? reg.json?.data;
     credential = pickCredential(reg.json?.data);
@@ -149,7 +149,7 @@ async function main() {
     if (pub.status < 300) published++; else console.log(`publish ${p.sku}: ${pub.status} ${pub.text.slice(0, 120)}`);
   }
 
-  // ── hand the credential to VALTA (written, never printed) ──
+  // ── hand the credential to VOLTA (written, never printed) ──
   const lines = fs.existsSync(ENV_LOCAL) ? fs.readFileSync(ENV_LOCAL, "utf8").split(/\r?\n/) : [];
   const setVar = (k: string, v: string) => {
     const i = lines.findIndex((l) => l.startsWith(`${k}=`));
@@ -159,7 +159,7 @@ async function main() {
   setVar("HX_STORE_CREDENTIAL", credential);
   fs.writeFileSync(ENV_LOCAL, lines.filter((l, i, a) => l !== "" || i < a.length - 1).join("\n") + "\n");
 
-  console.log(JSON.stringify({ freshTenant: fresh, store: store.displayName, productsSeeded: catalogue.length, published, credentialWrittenTo: ENV_LOCAL, ownerLogin: "owner@valta.test", ownerPasswordSetBy: process.env.VALTA_ERP_OWNER_PASSWORD ? "env" : "generated (not shown)" }, null, 2));
+  console.log(JSON.stringify({ freshTenant: fresh, store: store.displayName, productsSeeded: catalogue.length, published, credentialWrittenTo: ENV_LOCAL, ownerLogin: "owner@volta.test", ownerPasswordSetBy: process.env.VOLTA_ERP_OWNER_PASSWORD ? "env" : "generated (not shown)" }, null, 2));
   await prisma.$disconnect();
   process.exit(0);
 }

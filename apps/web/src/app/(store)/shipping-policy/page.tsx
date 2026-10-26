@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Shipping policy", alternates: { cano
 
 export default function ShippingPage() {
   return (
-    <PolicyPage title="Shipping policy" intro="How delivery works for VALTA.LK orders.">
+    <PolicyPage title="Shipping policy" intro="How delivery works for VOLTA.LK orders.">
       <section>
         <h2>Delivery charge</h2>
         <p>The delivery charge is shown at checkout before you place your order.</p>

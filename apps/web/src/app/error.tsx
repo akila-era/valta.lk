@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { Icon3D } from "@/components/ui/icon-3d";
-import { accentize } from "@/components/ui/page-intro";
 
 export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
@@ -17,11 +16,11 @@ export default function ErrorPage({ reset }: { error: Error & { digest?: string 
 
       <div className="mt-8 inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-white px-3.5 py-1 text-xs font-semibold text-brand-600 shadow-soft">
         <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-        ERROR / VALTA.LK
+        ERROR / VOLTA.LK
       </div>
 
-      <h1 className="statement mt-4 text-[clamp(2.25rem,1.6rem+2.4vw,3.75rem)] text-ink">
-        {accentize("Something went wrong", "wrong")}
+      <h1 className="statement mt-3 text-title-page text-ink">
+        Something went wrong
       </h1>
 
       <p className="mt-3 max-w-md text-sm leading-6 text-muted">

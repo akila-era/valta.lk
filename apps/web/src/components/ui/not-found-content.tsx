@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { accentize } from "@/components/ui/page-intro";
 
 /** Layered text shadows extrude the numerals in orange: a 2D glyph turned into a 3D block. */
 const EXTRUDE =
@@ -23,7 +22,7 @@ export function NotFoundContent() {
         <span className="text-brand-600">Error</span> / 404
       </p>
 
-      <h1 className="statement mt-3 text-[clamp(2.25rem,1.6rem+2.4vw,3.75rem)] text-ink">{accentize("Page not found", "not found")}</h1>
+      <h1 className="statement mt-3 text-title-page text-ink">Page not found</h1>
 
       <p className="mt-3 max-w-md text-sm leading-6 text-muted">The product or page you are looking for does not exist or may have been relocated.</p>
 

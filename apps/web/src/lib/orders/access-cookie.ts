@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
  * Remembers, in the placing browser only, a random token per recent order. The server stores just its hash, so the
  * cookie is what lets that browser (and nobody who merely knows the order reference) see the delivery details.
  */
-const NAME = "valta_orders";
+const NAME = "volta_orders";
 const MAX = 6;
 const DAYS = 14;
 

@@ -11,7 +11,7 @@ export interface WishItem {
   price: number;
 }
 
-const KEY = "valta.wishlist.v1";
+const KEY = "volta.wishlist.v1";
 const EMPTY: WishItem[] = [];
 const MAX = 100;
 

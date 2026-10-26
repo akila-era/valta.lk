@@ -25,7 +25,7 @@ interface Props {
 const MENU_LINKS = [
   { href: "/", label: "Home" },
   { href: "/products", label: "All Products" },
-  { href: "/#products", label: "New Arrivals" },
+  { href: "/#new-arrivals", label: "New Arrivals" },
   { href: "/track-order", label: "Track Order" },
   { href: "/wishlist", label: "Wishlist" },
   { href: "/cart", label: "Cart" },
@@ -37,7 +37,7 @@ const MENU_LINKS = [
 
 /**
  * Off-canvas navigation drawer (left side): search, an "All categories" tab with expandable sub-categories,
- * and a "Menu" tab with site pages. Fully styled to match VALTA.LK's warm, modern orange aesthetic.
+ * and a "Menu" tab with site pages. Fully styled to match VOLTA.LK's warm, modern orange aesthetic.
  */
 export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories" }: Props) {
   const router = useRouter();
@@ -110,7 +110,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label="Browse VALTA.LK"
+        aria-label="Browse VOLTA.LK"
         className="absolute inset-y-0 left-0 flex w-[90%] max-w-[22.5rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col rounded-r-3xl border-r border-border bg-bg text-ink shadow-[0_20px_60px_-15px_rgba(27,23,20,0.35)]"
       >
         {/* Header with Wordmark and circular close button */}

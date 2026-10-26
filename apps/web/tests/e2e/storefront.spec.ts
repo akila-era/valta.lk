@@ -36,9 +36,9 @@ async function fillCheckout(page: Page) {
 test.describe("browse", () => {
   test("homepage, search, category and product pages", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology that moves you.");
-    await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Special offers" })).toBeVisible(); // Orbit Pro has a real sale price
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("VOLTA.LK");
+    await expect(page.getByRole("heading", { name: "New Arrivals" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Hot Deals" })).toBeVisible(); // Orbit Pro has a real sale price
 
     await page.getByRole("combobox", { name: "Search products" }).fill("earbuds");
     await page.keyboard.press("Enter");
@@ -233,11 +233,11 @@ test.describe("responsive @mobile", () => {
   test("mobile menu opens, navigates and closes", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Open menu" }).click();
-    const menu = page.getByRole("dialog", { name: "Browse VALTA.LK" });
+    const menu = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
     await expect(menu).toBeVisible();
     await menu.getByRole("link", { name: "Audio" }).click();
     await expect(page).toHaveURL(/categories\/audio/);
-    await expect(page.getByRole("dialog", { name: "Browse VALTA.LK" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Browse VOLTA.LK" })).toHaveCount(0);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);
   });

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ChevronRight, UserRound } from "lucide-react";
 import { Icon3D } from "@/components/ui/icon-3d";
-import { accentize } from "@/components/ui/page-intro";
 
 /** Sign-in style pages (sign in, register, password reset): a clean white card with warm accents, ambient orange glow, and pill breadcrumbs. */
 export function AuthCard({
@@ -17,7 +16,7 @@ export function AuthCard({
 }) {
   return (
     <div className="mx-auto w-full max-w-md py-4 sm:py-8">
-      {/* Pill Breadcrumbs */}
+      {/* Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="mb-6 flex justify-center">
         <ol className="flex items-center gap-1.5 rounded-full border border-border/80 bg-white px-3.5 py-1.5 text-xs text-muted shadow-soft">
           <li>
@@ -55,10 +54,10 @@ export function AuthCard({
             <Icon3D icon={UserRound} size="lg" />
           </div>
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600">
-            ACCOUNT / VALTA.LK
+            ACCOUNT / VOLTA.LK
           </p>
-          <h1 className="statement mt-2 text-[clamp(1.75rem,1.5rem+1.2vw,2.5rem)] leading-tight text-ink">
-            {accentize(title)}
+          <h1 className="statement mt-2 text-2xl leading-tight text-ink">
+            {title}
           </h1>
           {intro && <p className="mt-2 text-sm leading-6 text-muted">{intro}</p>}
           <div className="mt-6">{children}</div>

@@ -13,7 +13,7 @@ import { lineKey } from "@/lib/utils/cart-math";
 import { customerSchema, deliverySchema, DISTRICTS } from "@/lib/validation/checkout";
 import { cartActions, useCart } from "@/store/cart";
 
-const REF_KEY = "valta.checkout.ref";
+const REF_KEY = "volta.checkout.ref";
 
 function getRef(): string {
   try {

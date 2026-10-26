@@ -84,7 +84,7 @@ export interface HomeData {
   banners: ResolvedBanner[];
   /** True when the banners were created by staff in the admin (not derived from categories). */
   staffBanners: boolean;
-  /** Full-width pictures staff placed between "Shop by budget" and "Why shop with VALTA.LK"; they rotate when there are several. */
+  /** Full-width pictures staff placed between the homepage collections; they rotate when there are several. */
   wideBanners: WideBanner[];
   /** Further products beyond the ones already shown in "New Arrivals": same catalogue, next in line. */
   more: ErpProduct[];
@@ -147,8 +147,8 @@ export async function getHomeData(): Promise<HomeData> {
         ? wideBanners
         : [
             {
-              image: "/images/home/valta-banner-laptop.webp",
-              alt: "Discover premium laptops and tech accessories at VALTA.LK",
+              image: "/images/home/volta-banner-laptop.webp",
+              alt: "Discover premium laptops and tech accessories at VOLTA.LK",
               href: "/products",
             },
           ],

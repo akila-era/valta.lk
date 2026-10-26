@@ -11,7 +11,7 @@ import { lineKey } from "@/lib/utils/cart-math";
 import { formatLkr } from "@/lib/utils/money";
 import { cartActions, useCart } from "@/store/cart";
 
-const DISMISS = "valta.accessories.dismissed";
+const DISMISS = "volta.accessories.dismissed";
 
 function readDismissed(): string[] {
   try {

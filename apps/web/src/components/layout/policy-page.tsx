@@ -1,13 +1,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { accentize } from "@/components/ui/page-intro";
 
 /** Text pages (about, contact, policies): a warm light header band with the title, then the content on a white card. */
 export function PolicyPage({
   title,
   intro,
-  eyebrow = "VALTA.LK / INFORMATION",
+  eyebrow = "VOLTA.LK / INFORMATION",
   children,
 }: {
   title: string;
@@ -58,8 +57,8 @@ export function PolicyPage({
           <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600">
             {eyebrow}
           </p>
-          <h1 className="statement mt-2.5 text-[clamp(2.25rem,1.5rem+2.4vw,3.5rem)] leading-tight text-ink">
-            {accentize(title)}
+          <h1 className="statement mt-2 text-title-page leading-tight text-ink">
+            {title}
           </h1>
           {intro && (
             <p className="mt-3 text-[15px] leading-7 text-muted">

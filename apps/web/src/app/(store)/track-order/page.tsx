@@ -4,7 +4,7 @@ import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
 
 export const metadata: Metadata = {
   title: "Track your order",
-  description: "Check the status of your VALTA.LK order.",
+  description: "Check the status of your VOLTA.LK order.",
   alternates: { canonical: "/track-order" },
 };
 
@@ -14,12 +14,8 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
     <>
       <StoreHeroBanner
         breadcrumbs={[{ href: "/", label: "Home" }, { label: "Track order" }]}
-        section="ORDERS"
-        label="TRACKING"
         title="Track Your Order"
         intro="Enter your order reference code to track live delivery status and carrier information."
-        categoryName="accessories"
-        tagline="Live Delivery Tracking"
       />
       <div className="mx-auto max-w-2xl">
         <OrderTracker initialRef={ref?.slice(0, 40)} />

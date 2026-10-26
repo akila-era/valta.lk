@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { getDb } from "../db";
 import { customerForSession, type PublicCustomer } from "./accounts";
 
-export const SESSION_COOKIE = "valta_session";
+export const SESSION_COOKIE = "volta_session";
 
 export function sessionCookieOptions(expires: Date) {
   return {

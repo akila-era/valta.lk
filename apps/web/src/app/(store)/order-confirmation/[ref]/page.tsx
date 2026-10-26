@@ -12,7 +12,6 @@ import type { CreateOrderRequest } from "@/lib/erp/types";
 import { accessTokensFor } from "@/lib/orders/access-cookie";
 import { canSeeOrderDetails, loadOrderView } from "@/lib/orders/public";
 import { isValidOrderRef } from "@/lib/utils/order-ref";
-import { accentize } from "@/components/ui/page-intro";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -65,8 +64,8 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
             <CheckCircle2 className="mx-auto h-12 w-12 text-success" aria-hidden />
           )}
           <p className="kicker mt-4"><span className="text-brand-600">Orders</span> / Confirmation</p>
-          <h1 className="statement mx-auto mt-2 max-w-[16ch] text-[clamp(2rem,1.5rem+2vw,3rem)]">
-            {accentize(pending ? "Thank you, we have your order" : "Thank you, your order is placed", "Thank you")}
+          <h1 className="statement mx-auto mt-2 max-w-[20ch] text-title-page">
+            {pending ? "Thank you, we have your order" : "Thank you, your order is placed"}
           </h1>
           <p className="mt-3 text-xs uppercase tracking-wider font-bold text-muted">Your order reference</p>
           <p className="mt-1 font-mono text-2xl font-black tracking-widest text-brand-600" data-testid="order-ref">

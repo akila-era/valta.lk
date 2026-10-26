@@ -32,7 +32,7 @@ export function Divider() {
 
 export function Breadcrumbs({ items }: { items: { href?: string; label: string }[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="mb-6 w-fit max-w-full rounded-2xl bg-white/75 px-4 py-2 text-sm text-muted shadow-soft ring-1 ring-ink/[0.06] backdrop-blur">
+    <nav aria-label="Breadcrumb" className="mb-6 w-fit max-w-full text-[13px] text-muted">
       <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
         {items.map((item, i) => {
           const last = i === items.length - 1;

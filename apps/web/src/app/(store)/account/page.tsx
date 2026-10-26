@@ -77,14 +77,11 @@ export default async function AccountPage() {
           { label: "Home", href: "/" },
           { label: "Account" },
         ]}
-        section="CUSTOMER"
-        label="ACCOUNT"
         intro={
           orders.length > 0
             ? `${orders.length} ${orders.length === 1 ? "order" : "orders"} linked to this account. Manage profile and track deliveries.`
             : "Manage your account profile, view previous order receipts, and track your recent shipments."
         }
-        tagline="Personal Overview"
       />
 
       <div className="grid items-start gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]">

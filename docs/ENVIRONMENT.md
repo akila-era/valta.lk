@@ -41,7 +41,7 @@ The service bar under the hero is not configurable (`SITE_SERVICE_BAR` is not re
 
 | Variable | Description |
 | --- | --- |
-| `DATABASE_URL` | PostgreSQL connection for the **website's own** database (customer accounts, sessions, reset tokens, order links). Use a dedicated database such as `valta_web`, never the ERP database. When blank, accounts are hidden and guest checkout keeps working. |
+| `DATABASE_URL` | PostgreSQL connection for the **website's own** database (customer accounts, sessions, reset tokens, order links). Use a dedicated database such as `volta_web`, never the ERP database. When blank, accounts are hidden and guest checkout keeps working. |
 | `ADMIN_EMAILS` | Comma-separated emails of signed-in customer accounts allowed into the whole admin console (`/admin`: dashboard, orders and sync retry, products and content, marketing, reports, ERP settings). Empty = nobody is admin. Requires `DATABASE_URL`. |
 | `SETTINGS_ENCRYPTION_KEY` | 32+ random characters. Needed to save an ERP connection from Admin > ERP Settings (the credential is stored AES-256-GCM encrypted). Without a saved connection the site uses `HX_API_BASE` / `HX_STORE_CREDENTIAL`. Losing or changing the key means re-entering the credential. |
 | `ORDER_SYNC_SECRET` | At least 16 characters. Bearer secret for `POST /api/internal/sync-orders`, which a scheduler calls every minute to send orders that could not reach the ERP. Unset = the endpoint returns 404. Example: `curl -X POST -H "Authorization: Bearer $ORDER_SYNC_SECRET" https://<site>/api/internal/sync-orders`. |
@@ -50,7 +50,7 @@ The service bar under the hero is not configurable (`SITE_SERVICE_BAR` is not re
 Set up a new database:
 
 ```bash
-# 1. create an empty database (once), e.g. in psql:  CREATE DATABASE valta_web;
+# 1. create an empty database (once), e.g. in psql:  CREATE DATABASE volta_web;
 # 2. put DATABASE_URL in apps/web/.env.local
 cd apps/web
 npx prisma migrate deploy   # applies prisma/migrations (website tables only)

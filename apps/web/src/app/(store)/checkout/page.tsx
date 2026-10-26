@@ -27,12 +27,8 @@ export default async function CheckoutPage() {
           { href: "/cart", label: "Cart" },
           { label: "Checkout" },
         ]}
-        section="YOUR ORDER"
-        label="CHECKOUT"
         title="Secure Checkout"
         intro="Enter your delivery details and place your order with Cash on Delivery."
-        categoryName="accessories"
-        tagline="Cash on Delivery"
       />
       {a.enabled && a.settings ? (
         <>

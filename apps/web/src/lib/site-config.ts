@@ -1,6 +1,6 @@
 /** Business details come from environment configuration; blank values are hidden rather than invented. */
 export const siteConfig = {
-  name: "VALTA.LK",
+  name: "VOLTA.LK",
   description: "Mobile phones, electronics and accessories in Sri Lanka.",
   url: (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/+$/, ""),
   phone: process.env.SITE_CONTACT_PHONE?.trim() || "",

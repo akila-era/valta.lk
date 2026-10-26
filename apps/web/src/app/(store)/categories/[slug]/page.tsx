@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const c = await findCategory(slug);
     if (!c) return { title: "Category not found", robots: { index: false } };
-    return { title: c.name, description: `Shop ${c.name} at VALTA.LK.`, alternates: { canonical: `/categories/${slug}` } };
+    return { title: c.name, description: `Shop ${c.name} at VOLTA.LK.`, alternates: { canonical: `/categories/${slug}` } };
   } catch {
     return { title: "Category" };
   }
@@ -44,11 +44,8 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           sub ? { href: `/categories/${slug}`, label: category.name } : { label: category.name },
           ...(sub ? [{ label: sub.name }] : []),
         ]}
-        section="SHOP"
-        label="CATEGORY"
         title={category.name}
         intro={`${category.count} ${category.count === 1 ? "product" : "products"} in this category.`}
-        categoryName={category.name}
       />
       <CatalogueView basePath={`/categories/${slug}`} params={query} fixedCategory={slug} />
     </>

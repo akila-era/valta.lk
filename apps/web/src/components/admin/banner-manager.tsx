@@ -55,7 +55,7 @@ export function BannerManager({ rows, max, shown }: { rows: BannerRow[]; max: nu
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">
-          <b>Promo cards</b>: the first {shown} active ones show on the homepage, in order; with none active the automatic category cards stay. <b>Wide banner</b>: full-width pictures between &quot;Shop by budget&quot; and &quot;Why shop with VALTA.LK&quot;; with several active, they slide automatically (up to 5, in order).
+          <b>Promo cards</b>: the first {shown} active ones show on the homepage as a row of offer tiles under &quot;Shop by Category&quot;, in order; with none active the row is left out. <b>Wide banner</b>: full-width pictures after the first product collection on the homepage; with several active, they slide automatically (up to 5, in order).
         </p>
         {editing === null && (
           <button type="button" className="btn-primary" disabled={rows.length >= max} onClick={() => { setError(null); setEditing("new"); }}>
