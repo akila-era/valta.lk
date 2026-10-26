@@ -116,7 +116,7 @@ export function HeroBanner({ slides }: { slides: HeroSlide[] }) {
                 aria-current={idx === i ? "true" : undefined}
                 className="group/dot flex h-8 min-w-6 items-center justify-center"
               >
-                <span aria-hidden className={`block h-1.5 rounded-full transition-all duration-300 ${idx === i ? "w-7 bg-brand-500" : "w-1.5 bg-ink/30 group-hover/dot:bg-ink/60"}`} />
+                <span aria-hidden className={`block h-1.5 rounded-full transition-all duration-300 ${idx === i ? "w-7 bg-brand-500 shadow-[0_0_8px_rgb(255_92_0/0.8)]" : "w-1.5 bg-ink/30 group-hover/dot:bg-ink/60"}`} />
               </button>
             ))}
             <button

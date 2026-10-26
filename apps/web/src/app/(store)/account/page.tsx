@@ -87,7 +87,7 @@ export default async function AccountPage() {
       <div className="grid items-start gap-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
         {/* Navigation Sidebar */}
         <nav aria-label="Account" className="min-w-0">
-          <div className="rounded-2xl border border-border/80 bg-white p-2.5 shadow-soft">
+          <div className="rounded-panel border border-border bg-bg p-2.5">
             <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
               {NAV.map((item) => (
                 <li key={item.href} className="shrink-0 lg:shrink">
@@ -111,10 +111,10 @@ export default async function AccountPage() {
         {/* Content Area */}
         <div className="min-w-0 space-y-8">
           {/* User Info Card */}
-          <section className="rounded-3xl border border-border/80 bg-white p-6 shadow-soft sm:p-8" aria-labelledby="account-name">
+          <section className="rounded-panel border border-border bg-bg p-6 sm:p-8" aria-labelledby="account-name">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+                <p className="eyebrow">
                   Signed In Customer
                 </p>
                 <h2 id="account-name" className="mt-1 text-2xl font-bold tracking-tight text-ink">
@@ -132,7 +132,7 @@ export default async function AccountPage() {
               </div>
 
               <div className="w-full sm:w-auto">
-                <SignOutButton className="btn-secondary rounded-full px-5 py-2 text-xs font-semibold shadow-soft hover:shadow-lift" />
+                <SignOutButton className="btn-secondary min-h-10 px-4 text-[13px]" />
               </div>
             </div>
           </section>
@@ -145,14 +145,14 @@ export default async function AccountPage() {
                   My Orders
                 </h2>
                 <p className="mt-0.5 text-xs text-muted">
-                  Real-time status synced with our warehouse management system.
+                  Order statuses come from our live order system.
                 </p>
               </div>
             </div>
 
             {orders.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 rounded-3xl border border-border/80 bg-white p-10 text-center shadow-soft">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 shadow-soft">
+              <div className="flex flex-col items-center gap-3 rounded-panel border border-border bg-bg p-10 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon">
                   <Package className="h-6 w-6" aria-hidden />
                 </div>
                 <p className="font-display text-base font-bold text-ink">No orders yet</p>
@@ -160,10 +160,10 @@ export default async function AccountPage() {
                   Orders you place while signed in will appear here. Guest orders can still be checked with the order reference.
                 </p>
                 <div className="mt-2 flex flex-wrap justify-center gap-2.5">
-                  <Link href="/products" className="btn-primary rounded-full px-5 py-2 text-xs font-semibold shadow-soft hover:shadow-lift">
+                  <Link href="/products" className="btn-primary min-h-10 px-4 text-[13px]">
                     Start shopping
                   </Link>
-                  <Link href="/track-order" className="btn-secondary rounded-full px-5 py-2 text-xs font-semibold shadow-soft hover:shadow-lift">
+                  <Link href="/track-order" className="btn-secondary min-h-10 px-4 text-[13px]">
                     Track an order
                   </Link>
                 </div>
@@ -171,11 +171,11 @@ export default async function AccountPage() {
             ) : (
               <ul className="space-y-3">
                 {orders.map(({ ref, order }) => (
-                  <li key={ref} className="rounded-2xl border border-border/80 bg-white p-5 shadow-soft transition-all hover:shadow-lift">
+                  <li key={ref} className="rounded-card border border-border bg-bg p-5 transition-[border-color,box-shadow] hover:border-brand-500 hover:shadow-neon-lift">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm font-bold tracking-wider text-ink">
+                          <span className="text-sm font-bold tracking-wider text-ink">
                             {ref}
                           </span>
                           {order && (
@@ -219,7 +219,7 @@ export default async function AccountPage() {
                       <div className="flex shrink-0 items-center">
                         <Link
                           href={`/track-order?ref=${ref}`}
-                          className="btn-secondary rounded-full px-4 py-1.5 text-xs font-semibold shadow-soft hover:shadow-lift"
+                          className="btn-secondary min-h-9 px-3.5 text-xs"
                         >
                           Track Order
                         </Link>
@@ -232,7 +232,7 @@ export default async function AccountPage() {
           </section>
 
           {/* Profile Section */}
-          <section id="profile" className="rounded-3xl border border-border/80 bg-white p-6 shadow-soft sm:p-8" aria-labelledby="profile-title">
+          <section id="profile" className="rounded-panel border border-border bg-bg p-6 sm:p-8" aria-labelledby="profile-title">
             <h2 id="profile-title" className="font-display text-lg font-bold text-ink">
               Profile Details
             </h2>

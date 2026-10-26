@@ -54,7 +54,7 @@ export function ProfileForm({ name, phone }: { name: string; phone: string | nul
         {!errors.phone && <p id="p-phone-hint" className="mt-1.5 text-xs text-muted">e.g. 0771234567. Leave blank if you prefer not to save one.</p>}
         {errors.phone && <p id="p-phone-error" className="field-error" role="alert">{errors.phone}</p>}
       </div>
-      <button type="submit" disabled={busy} className="btn-primary rounded-full px-6 py-2.5 text-xs font-semibold shadow-soft hover:shadow-lift transition-all">
+      <button type="submit" disabled={busy} className="btn-primary">
         {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} {busy ? "Saving…" : "Save details"}
       </button>
       {msg && <p role={msg.ok ? "status" : "alert"} className={`text-sm ${msg.ok ? "text-success" : "text-danger"}`}>{msg.text}</p>}

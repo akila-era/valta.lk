@@ -107,7 +107,7 @@ export async function Footer() {
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark relative mt-16 border-t-[3px] border-brand-500 bg-night text-white">
+    <footer className="on-dark relative mt-16 border-t-[3px] pb-16 md:pb-0 border-brand-500 bg-night text-white shadow-[0_-6px_24px_-6px_rgb(255_92_0/0.55)]">
       <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.3fr_0.9fr_1.1fr_0.9fr_1.4fr] lg:gap-y-0 lg:py-14">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
           <Wordmark className="text-[2.1rem] leading-none text-white" />

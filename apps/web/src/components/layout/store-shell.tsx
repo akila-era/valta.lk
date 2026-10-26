@@ -1,6 +1,8 @@
 import { ToastProvider } from "@/components/ui/toast";
+import { accountsEnabled } from "@/lib/auth/session";
 import { Footer } from "./footer";
 import { Header } from "./header";
+import { MobileTabBar } from "./mobile-tab-bar";
 
 /** Shared page chrome. `contained` pages get a centred container; the homepage lays out its own bands. */
 export function StoreShell({ children, contained = true }: { children: React.ReactNode; contained?: boolean }) {
@@ -21,6 +23,7 @@ export function StoreShell({ children, contained = true }: { children: React.Rea
         <main id="main">{children}</main>
       )}
       <Footer />
+      <MobileTabBar accounts={accountsEnabled()} />
     </ToastProvider>
   );
 }

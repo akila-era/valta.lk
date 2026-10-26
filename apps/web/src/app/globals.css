@@ -56,6 +56,9 @@
   --shadow-lift: 0 12px 28px -12px rgb(16 24 40 / 0.22);
   --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
   --shadow-glow: 0 6px 16px -8px rgb(255 92 0 / 0.55);
+  /* Neon orange: a soft orange halo for primary actions and hovered cards. */
+  --shadow-neon: 0 8px 22px -8px rgb(255 92 0 / 0.6), 0 0 0 1px rgb(255 92 0 / 0.12);
+  --shadow-neon-lift: 0 14px 34px -14px rgb(255 92 0 / 0.45), 0 0 0 1px rgb(255 92 0 / 0.35);
 
   /* Named radii (Tailwind's rounded-sm..4xl defaults stay as they are): controls, cards, panels, feature blocks, pills.
      Kept small for a crisp retail look. */
@@ -111,7 +114,7 @@
     transition-[background-color,color,border-color,box-shadow,transform] duration-200 active:scale-[0.98]
     disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
 }
-@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-brand-hover; }
+@utility btn-primary { @apply btn bg-brand-500 text-on-brand shadow-neon hover:bg-brand-hover hover:shadow-[0_10px_28px_-6px_rgb(255_92_0/0.75)]; }
 @utility btn-secondary { @apply btn border border-border-strong/50 bg-bg text-ink hover:border-ink; }
 @utility btn-outline { @apply btn border border-border-strong/50 bg-bg text-ink hover:border-ink hover:bg-ink hover:text-bg; }
 @utility btn-ghost { @apply btn text-ink hover:bg-surface; }
@@ -276,7 +279,7 @@
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
 }
 .admin-theme .card { box-shadow: var(--shadow-card); }
-.admin-theme { --shadow-glow: none; }
+.admin-theme { --shadow-glow: none; --shadow-neon: none; }
 .admin-theme :is(.btn, .btn-primary, .btn-secondary, .btn-outline, .btn-ghost, .btn-text, .btn-dark, .btn-danger) { border-radius: 0.5rem; }
 .admin-theme :is(.card) { border-radius: 0.75rem; }
 .admin-theme :is(h1, h2, h3) { font-family: var(--font-sans); }

@@ -30,8 +30,12 @@ export default async function HomePage() {
 
   return (
     <div className="pb-4">
-      <HomeHero categories={data.categories} />
-      <ServiceStrip checkout={data.checkout} />
+      {/* The first screen: banner and service strip fill exactly the space under the header (and above the phone tab
+          bar), so "Shop by Category" starts below the fold. Capped so very tall screens do not get a giant banner. */}
+      <div className="flex min-h-[min(calc(100svh-2.25rem-var(--hdr-sticky,7.5rem)-4.5rem),52rem)] flex-col pb-4 md:min-h-[min(calc(100svh-2.25rem-var(--hdr-sticky,7.25rem)),56rem)] md:pb-5">
+        <HomeHero categories={data.categories} />
+        <ServiceStrip checkout={data.checkout} />
+      </div>
       {data.catalogueOk ? (
         <>
           <CategoryGrid categories={data.categories} />

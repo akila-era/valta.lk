@@ -30,7 +30,7 @@ export function AddToCartButton({ line, label = "Add to cart", compact, outline 
       aria-label={done ? `${line.name} added to cart` : `${label}: ${line.name}`}
       className={
         outline
-          ? "btn min-h-10 w-full border border-brand-500 px-3 text-[13px] text-brand-700 hover:bg-brand-500 hover:text-on-brand disabled:cursor-default disabled:border-success disabled:bg-success disabled:text-white disabled:opacity-100"
+          ? "btn min-h-10 w-full border border-brand-500 px-3 text-[13px] text-brand-700 hover:bg-brand-500 hover:text-on-brand hover:shadow-neon disabled:cursor-default disabled:border-success disabled:bg-success disabled:text-white disabled:opacity-100"
           : `btn-primary w-full ${compact ? "min-h-10 px-3" : ""}`
       }
     >

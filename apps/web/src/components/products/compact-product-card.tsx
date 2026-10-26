@@ -26,7 +26,7 @@ export function CompactProductCard({ product, priority }: CompactProductCardProp
   const label = product.brand || product.category?.name;
 
   return (
-    <article className="group/card relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-bg text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500/50 hover:shadow-lift">
+    <article className="group/card relative flex h-full flex-col overflow-hidden rounded-card border border-border bg-bg text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift">
       <div className="pointer-events-none absolute left-2.5 top-2.5 z-10 flex flex-col items-start gap-1">
         {pct ? <span className="rounded-sm bg-brand-500 px-1.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span> : null}
         {fresh ? <span className="rounded-sm bg-ink px-1.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wider text-white">New</span> : null}
@@ -62,7 +62,7 @@ export function CompactProductCard({ product, priority }: CompactProductCardProp
         </p>
         <p className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-2.5">
           {product.hasVariants && <span className="text-xs font-medium text-muted">From</span>}
-          <span className="font-display text-base font-bold tabular-nums text-ink sm:text-[17px]">{formatLkr(current)}</span>
+          <span className="font-display text-base font-bold tabular-nums text-brand-600 sm:text-[17px]">{formatLkr(current)}</span>
           {current < product.price && (
             <span className="text-xs text-muted">
               <span className="sr-only">Regular price</span>

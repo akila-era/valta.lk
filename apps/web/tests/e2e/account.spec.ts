@@ -30,7 +30,7 @@ test.describe("customer accounts", () => {
     const btn = page.locator("header").getByRole("button", { name: /My account, sign in or register/ });
     await btn.click();
     await expect(page.locator("header").getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/account/login?next=%2F");
-    await expect(page.locator("header").getByRole("link", { name: "Create an account" })).toBeVisible();
+    await expect(page.locator("header").getByRole("link", { name: "Register" })).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(page.locator("header").getByRole("link", { name: "Sign in" })).toHaveCount(0);
   });

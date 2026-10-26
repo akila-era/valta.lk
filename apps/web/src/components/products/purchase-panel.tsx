@@ -195,7 +195,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>
       {showBar ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-white/95 p-3 shadow-overlay backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-16 z-40 border-t md:bottom-0 border-border/80 bg-white/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-[-0.02em] text-ink tabular-nums">{formatLkr(unit)}</p>
             <button type="button" className="btn-primary rounded-full px-5 py-2.5 text-xs font-semibold shrink-0 shadow-soft" disabled={!purchasable || added} aria-label={added ? `Added: ${product.name} is in your cart` : `Add to cart: ${product.name}`} onClick={add}>

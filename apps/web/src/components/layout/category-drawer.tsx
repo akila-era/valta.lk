@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronRight, Flame, Search, Truck, Wallet, X } from "lucide-react";
+import { ChevronRight, Flame, Search, X } from "lucide-react";
 import { categoryIcon } from "@/components/ui/category-icon";
 import { Wordmark } from "./wordmark";
 
@@ -36,8 +36,8 @@ const MENU_LINKS = [
 ];
 
 /**
- * Off-canvas navigation drawer (left side): search, an "All categories" tab with expandable sub-categories,
- * and a "Menu" tab with site pages. Fully styled to match VOLTA.LK's warm, modern orange aesthetic.
+ * Phone navigation drawer (left side): search, an "All categories" tab with expandable sub-categories, and a "Menu"
+ * tab with site pages, in the store's white and orange theme.
  */
 export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories" }: Props) {
   const router = useRouter();
@@ -87,9 +87,9 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
       aria-selected={tab === t}
       aria-controls={`${id}-${t}`}
       onClick={() => setTab(t)}
-      className={`flex-1 rounded-full py-1.5 text-xs font-bold uppercase tracking-wide transition-all duration-200 ${
+      className={`relative flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${
         tab === t
-          ? "bg-brand-500 text-on-brand shadow-[0_2px_8px_rgb(255_92_0/0.4)]"
+          ? "text-brand-600 after:absolute after:inset-x-6 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-brand-500 after:shadow-[0_0_8px_rgb(255_92_0/0.7)]"
           : "text-muted hover:text-ink"
       }`}
     >
@@ -111,16 +111,16 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
         role="dialog"
         aria-modal="true"
         aria-label="Browse VOLTA.LK"
-        className="absolute inset-y-0 left-0 flex w-[90%] max-w-[22.5rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col rounded-r-3xl border-r border-border bg-bg text-ink shadow-[0_20px_60px_-15px_rgba(27,23,20,0.35)]"
+        className="absolute inset-y-0 left-0 flex w-[86%] max-w-[20rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg text-ink shadow-[0_20px_60px_-15px_rgba(27,23,20,0.35)]"
       >
-        {/* Header with Wordmark and circular close button */}
-        <div className="flex items-center justify-between border-b border-border/70 px-5 py-3.5">
-          <Wordmark className="text-[1.4rem]" />
+        {/* Orange header band with the wordmark and the close button */}
+        <div className="flex items-center justify-between bg-brand-500 px-4 py-3 text-on-brand">
+          <Wordmark className="text-[1.4rem] [&_.text-brand-500]:text-white" />
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-surface text-ink transition-colors hover:bg-brand-500 hover:text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-control bg-white/90 text-ink transition-colors hover:bg-white focus-visible:outline-ink"
             data-autofocus
           >
             <X className="h-4.5 w-4.5" aria-hidden />
@@ -149,7 +149,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
               onChange={(e) => setTerm(e.target.value)}
               placeholder="Search products..."
               maxLength={100}
-              className="h-10 w-full rounded-full border border-border bg-surface pl-10 pr-10 text-[13.5px] outline-none transition-colors placeholder:text-muted focus:border-brand-500 focus:bg-bg focus-visible:ring-2 focus-visible:ring-brand-500/40"
+              className="h-10 w-full rounded-control border-2 border-brand-500 bg-bg pl-10 pr-10 text-[13.5px] outline-none transition-colors placeholder:text-muted focus-visible:ring-2 focus-visible:ring-brand-500/30"
             />
             {term ? (
               <button
@@ -164,7 +164,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
               <button
                 type="submit"
                 aria-label="Search"
-                className="absolute right-1 flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-on-brand transition-colors hover:bg-brand-600"
+                className="absolute right-1 flex h-8 w-8 items-center justify-center rounded-control bg-brand-500 text-on-brand transition-colors hover:bg-brand-hover"
               >
                 <Search className="h-3.5 w-3.5" aria-hidden />
               </button>
@@ -172,9 +172,9 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
           </div>
         </form>
 
-        {/* Segmented Pill Tabs */}
-        <div role="tablist" aria-label="Navigation" className="px-4 pb-2">
-          <div className="flex rounded-full border border-border/80 bg-surface p-1">
+        {/* Underlined tabs */}
+        <div role="tablist" aria-label="Navigation" className="mb-1 border-b border-border">
+          <div className="flex">
             {tabBtn("categories", "All Categories")}
             {tabBtn("menu", "Menu")}
           </div>
@@ -189,15 +189,15 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                   <Link
                     href="/products?sale=1"
                     onClick={onClose}
-                    className="group flex items-center justify-between rounded-xl bg-gradient-to-r from-brand-50 via-brand-100/40 to-surface p-2.5 text-[13.5px] font-bold text-brand-700 transition-all hover:shadow-soft"
+                    className="group flex items-center justify-between rounded-control bg-brand-50 p-2.5 text-[13.5px] font-bold text-brand-700 transition-colors hover:bg-brand-100"
                   >
                     <span className="flex items-center gap-2.5">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-on-brand shadow-[0_4px_10px_rgb(255_92_0/0.3)]">
-                        <Flame className="h-4 w-4 animate-flicker fill-brand-500/30" strokeWidth={2} aria-hidden />
+                      <span className="flex h-8 w-8 items-center justify-center rounded-control bg-brand-500 text-on-brand shadow-neon">
+                        <Flame className="h-4 w-4 fill-brand-500/30" strokeWidth={2} aria-hidden />
                       </span>
                       Hot Deals
                     </span>
-                    <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wider text-on-brand">
+                    <span className="rounded-sm bg-brand-500 px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wider text-on-brand">
                       Sale
                     </span>
                   </Link>
@@ -209,13 +209,13 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                 const subId = `${id}-sub-${c.slug}`;
                 return (
                   <li key={c.slug} className="group/item">
-                    <div className="flex items-center justify-between rounded-xl transition-colors hover:bg-surface">
+                    <div className="flex items-center justify-between rounded-control transition-colors hover:bg-brand-50">
                       <Link
                         href={`/categories/${c.slug}`}
                         onClick={onClose}
                         className="flex flex-1 items-center gap-3 px-2.5 py-2 text-[13.5px] font-medium text-ink transition-colors hover:text-brand-600"
                       >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/80 bg-surface text-muted transition-colors group-hover/item:border-brand-500/30 group-hover/item:bg-brand-50 group-hover/item:text-brand-600">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-border bg-bg text-muted transition-colors group-hover/item:border-brand-500/30 group-hover/item:bg-brand-50 group-hover/item:text-brand-600">
                           <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                         </span>
                         {c.name}
@@ -227,7 +227,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                           aria-expanded={isOpen}
                           aria-controls={subId}
                           aria-label={`${isOpen ? "Hide" : "Show"} ${c.name} sub-categories`}
-                          className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-brand-100/50 hover:text-brand-600"
+                          className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:bg-brand-100/50 hover:text-brand-600"
                         >
                           <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-90 text-brand-600" : ""}`} aria-hidden />
                         </button>
@@ -239,7 +239,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                           <Link
                             href={`/categories/${c.slug}`}
                             onClick={onClose}
-                            className="block rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink/80 transition-colors hover:bg-brand-50 hover:text-brand-600"
+                            className="block rounded-control px-2.5 py-1.5 text-xs font-semibold text-ink/80 transition-colors hover:bg-brand-50 hover:text-brand-600"
                           >
                             All {c.name}
                           </Link>
@@ -249,7 +249,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                             <Link
                               href={`/categories/${c.slug}?sub=${s.slug}`}
                               onClick={onClose}
-                              className="block rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-brand-50 hover:text-brand-600"
+                              className="block rounded-control px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-brand-50 hover:text-brand-600"
                             >
                               {s.name}
                             </Link>
@@ -269,7 +269,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                   <Link
                     href={l.href}
                     onClick={onClose}
-                    className="flex items-center justify-between rounded-xl px-3 py-2.5 text-[13.5px] font-medium text-ink transition-colors hover:bg-surface hover:text-brand-600"
+                    className="flex items-center justify-between rounded-control px-3 py-2.5 text-[13.5px] font-medium text-ink transition-colors hover:bg-brand-50 hover:text-brand-600"
                   >
                     {l.label}
                     <ChevronRight className="h-4 w-4 text-muted/50" />
@@ -280,17 +280,6 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
           )}
         </div>
 
-        {/* Footer info strip */}
-        <div className="mt-auto border-t border-border/80 bg-surface/60 p-3.5">
-          <div className="flex items-center justify-between text-[11px] font-medium text-muted">
-            <span className="flex items-center gap-1.5">
-              <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Islandwide Delivery
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Cash on Delivery
-            </span>
-          </div>
-        </div>
       </div>
     </div>,
     document.body,

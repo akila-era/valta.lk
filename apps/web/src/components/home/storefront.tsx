@@ -48,6 +48,7 @@ export function SectionHead({ id, eyebrow, title, children, href, linkLabel = "V
       <div className="min-w-0">
         {eyebrow ? <p className="eyebrow mb-1">{eyebrow}</p> : null}
         <h2 id={id} className="section-title">{title}</h2>
+        <span aria-hidden className="mt-2 block h-[3px] w-12 rounded-full bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.6)]" />
         {children ? <p className="mt-1 max-w-2xl text-sm text-muted">{children}</p> : null}
       </div>
       {href ? <ArrowLink href={href}>{linkLabel}</ArrowLink> : null}
@@ -59,7 +60,7 @@ export function SectionHead({ id, eyebrow, title, children, href, linkLabel = "V
 function SideTile({ category, tint }: { category: Category; tint: string }) {
   const art = categoryVisual(category.name) ?? category.image;
   return (
-    <Link href={`/categories/${category.slug}`} aria-label={`${category.name}, ${category.count} ${category.count === 1 ? "product" : "products"}`} className="group relative flex min-h-40 overflow-hidden rounded-panel p-5 sm:p-6" style={{ background: tint }}>
+    <Link href={`/categories/${category.slug}`} aria-label={`${category.name}, ${category.count} ${category.count === 1 ? "product" : "products"}`} className="group relative flex min-h-40 overflow-hidden rounded-panel p-5 ring-1 ring-brand-100 transition-shadow hover:shadow-neon-lift sm:p-6" style={{ background: tint }}>
       <span className="relative z-10 flex max-w-[60%] flex-col">
         <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-600">{category.count} {category.count === 1 ? "product" : "products"}</span>
         <span className="mt-1.5 font-display text-xl font-bold leading-tight text-ink sm:text-2xl">{category.name}</span>
@@ -80,15 +81,15 @@ export function HomeHero({ categories }: { categories: Category[] }) {
   const slides = heroSlides(categories);
   const side = categories.filter((c) => categoryVisual(c.name) ?? c.image).slice(0, 2);
   return (
-    <section aria-labelledby="home-title" className="container-page pt-4 sm:pt-6">
+    <section aria-labelledby="home-title" className="container-page flex flex-1 flex-col pt-4 sm:pt-5">
       <h1 id="home-title" className="sr-only">{siteConfig.name}: mobile phones, electronics and accessories in Sri Lanka</h1>
-      <div className={`grid grid-cols-1 gap-4 ${side.length ? "lg:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)]" : ""}`}>
-        <div className="h-[22rem] min-w-0 sm:h-[26rem] lg:h-[29rem]">
+      <div className={`grid flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] gap-4 ${side.length ? "sm:grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]" : ""}`}>
+        <div className="min-h-[18rem] min-w-0 sm:min-h-[22rem]">
           <HeroBanner slides={slides} />
         </div>
         {side.length ? (
           <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-2">
-            {side.map((c, i) => <SideTile key={c.slug} category={c} tint={i ? "linear-gradient(135deg,#f3f4f6,#e5e7eb)" : "linear-gradient(135deg,#fff3ea,#ffe2cc)"} />)}
+            {side.map((c, i) => <SideTile key={c.slug} category={c} tint={i ? "linear-gradient(135deg,#ffffff,#fff0e7)" : "linear-gradient(135deg,#fff3ea,#ffc9a3)"} />)}
           </div>
         ) : null}
       </div>
@@ -105,24 +106,24 @@ export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
     { icon: Headset, title: "Customer Support", text: "We are here to help", href: "/contact" },
   ];
   return (
-    <section aria-label={`Shopping with ${siteConfig.name}`} className="container-page mt-4 sm:mt-6">
-      <ul className="grid grid-cols-2 overflow-hidden rounded-panel border border-border bg-bg lg:grid-cols-4">
+    <section aria-label={`Shopping with ${siteConfig.name}`} className="container-page mt-4 sm:mt-5">
+      <ul className="grid grid-cols-2 overflow-hidden rounded-panel border border-brand-100 bg-gradient-to-r from-brand-50 via-bg to-brand-50 lg:grid-cols-4">
         {items.map(({ icon: I, title, text, href }, i) => {
           const body = (
             <>
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600"><I className="h-5 w-5" strokeWidth={1.75} aria-hidden /></span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon sm:h-11 sm:w-11"><I className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} aria-hidden /></span>
               <span className="min-w-0">
-                <span className="block text-sm font-bold text-ink">{title}</span>
-                <span className="block text-xs text-muted">{text}</span>
+                <span className="block text-[13px] font-bold leading-tight text-ink sm:text-sm">{title}</span>
+                <span className="hidden text-xs text-muted sm:block">{text}</span>
               </span>
             </>
           );
           return (
             <li key={title} className={`border-border ${i % 2 ? "border-l" : ""} ${i >= 2 ? "border-t lg:border-t-0" : ""} ${i === 2 ? "lg:border-l" : ""}`}>
               {href ? (
-                <Link href={href} className="flex h-full items-center gap-3 p-4 transition-colors hover:bg-surface sm:px-6">{body}</Link>
+                <Link href={href} className="flex h-full items-center gap-2.5 p-3 transition-colors hover:bg-brand-50 sm:gap-3 sm:p-4 sm:px-6">{body}</Link>
               ) : (
-                <div className="flex h-full items-center gap-3 p-4 sm:px-6">{body}</div>
+                <div className="flex h-full items-center gap-2.5 p-3 sm:gap-3 sm:p-4 sm:px-6">{body}</div>
               )}
             </li>
           );
@@ -150,8 +151,8 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
           const count = `${c.count} ${c.count === 1 ? "product" : "products"}`;
           return (
             <Reveal as="li" key={c.slug} delay={Math.min(i, 6) * 40}>
-              <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group flex h-full flex-col items-center rounded-card border border-border bg-bg p-4 text-center transition-[border-color,box-shadow] duration-200 hover:border-brand-500/50 hover:shadow-lift">
-                <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-surface">
+              <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group flex h-full flex-col items-center rounded-card border border-border bg-bg p-4 text-center transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift">
+                <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-brand-50 ring-2 ring-transparent transition-shadow group-hover:ring-brand-500">
                   {art ? (
                     <Image src={art} alt="" fill sizes="144px" className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" />
                   ) : (
@@ -238,7 +239,7 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
     </>
   );
   return tinted ? (
-    <section id={id} aria-labelledby={`${id}-title`} className="mt-12 scroll-mt-40 bg-surface py-10 sm:mt-16 sm:py-14">
+    <section id={id} aria-labelledby={`${id}-title`} className="mt-12 scroll-mt-40 bg-gradient-to-b from-brand-50 to-bg py-10 sm:mt-16 sm:py-14">
       <div className="container-page">{grid}</div>
     </section>
   ) : (
@@ -273,7 +274,7 @@ export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
             <Link
               href={`/search?q=${encodeURIComponent(b.name)}`}
               aria-label={`${b.name}, ${b.count} ${b.count === 1 ? "product" : "products"}`}
-              className="group flex h-20 items-center justify-center rounded-card border border-border bg-bg px-3 transition-[border-color,box-shadow] duration-200 hover:border-brand-500/50 hover:shadow-lift sm:h-24"
+              className="group flex h-20 items-center justify-center rounded-card border border-border bg-bg px-3 transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift sm:h-24"
             >
               {b.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element

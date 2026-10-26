@@ -103,14 +103,45 @@ test.describe("homepage", () => {
     await expect(nav.getByRole("link", { name: "Audio" })).toHaveAttribute("aria-current", "page");
   });
 
-  test("All Categories drawer: search, tabs, sub-categories and focus handling", async ({ page }) => {
+  test("All Categories dropdown: categories, sub-categories on hover, Escape and outside click", async ({ page }) => {
     await page.goto("/");
     const opener = page.locator("header").getByRole("button", { name: /All categories/i });
     await opener.click();
+    await expect(opener).toHaveAttribute("aria-expanded", "true");
+    const menu = page.getByRole("region", { name: "All categories" });
+    await expect(menu.getByRole("link", { name: "Hot Deals" })).toHaveAttribute("href", "/products?sale=1");
+    await expect(menu.getByRole("link", { name: "Audio" })).toHaveAttribute("href", "/categories/audio");
+    // sub-categories appear for the hovered category only where the ERP has them
+    await menu.getByRole("link", { name: "Audio" }).hover();
+    await menu.getByRole("link", { name: "Speakers" }).click();
+    await expect(page).toHaveURL(/\/categories\/audio\?sub=speakers/);
+    await expect(menu).toHaveCount(0);
+    await expect(page.locator("main article")).toHaveCount(2); // Echo Bluetooth Speaker + Echo Mini Speaker
+
+    // Escape closes and returns focus to the button
+    await opener.click();
+    await expect(menu).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(opener).toBeFocused();
+
+    // a click outside closes it
+    await opener.click();
+    await page.mouse.click(5, 600);
+    await expect(menu).toHaveCount(0);
+  });
+
+  test("phone menu drawer: search, tabs, sub-categories and focus handling", async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    const opener = page.locator("header").getByRole("button", { name: "Open menu" });
+    await opener.click();
     const drawer = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
     await expect(drawer).toBeVisible();
-    await expect(drawer.getByRole("button", { name: "Close" })).toBeFocused();
+    await expect(drawer.getByRole("button", { name: "Close menu" })).toBeFocused();
     await expect(drawer.getByRole("tab", { name: "All categories" })).toHaveAttribute("aria-selected", "true");
+    await expect(drawer.getByText(/islandwide/i)).toHaveCount(0); // no unverified claims
 
     // chevrons only where the ERP has sub-categories
     await expect(drawer.getByRole("button", { name: "Show Audio sub-categories" })).toBeVisible();
@@ -120,7 +151,6 @@ test.describe("homepage", () => {
     await drawer.getByRole("link", { name: "Speakers" }).click();
     await expect(page).toHaveURL(/\/categories\/audio\?sub=speakers/);
     await expect(drawer).toHaveCount(0);
-    await expect(page.locator("main article")).toHaveCount(2); // Echo Bluetooth Speaker + Echo Mini Speaker
 
     // Menu tab, Escape closes and returns focus to the opener
     await opener.click();
@@ -136,6 +166,7 @@ test.describe("homepage", () => {
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/search\?q=power%20bank/);
     await expect(page.locator("main article", { hasText: "Volt Power Bank 10000" })).toBeVisible();
+    await ctx.close();
   });
 
 });

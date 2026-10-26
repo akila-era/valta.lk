@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountsUnavailableNotice, AuthCard } from "@/components/account/auth-card";
 import { AuthForm } from "@/components/account/auth-form";
@@ -14,9 +13,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (await getCurrentCustomer()) redirect(safeNext(next));
   return (
     <AuthCard
+      tabs={{ active: "login", next: next ? safeNext(next) : undefined }}
       title="Sign in"
       intro="Welcome back. Sign in to see your orders and check out faster."
-      footer={<>New to VOLTA.LK? <Link href={`/account/register${next ? `?next=${encodeURIComponent(safeNext(next))}` : ""}`} className="font-semibold text-brand-600 hover:underline">Create an account</Link></>}
     >
       <AuthForm mode="login" next={next} />
     </AuthCard>

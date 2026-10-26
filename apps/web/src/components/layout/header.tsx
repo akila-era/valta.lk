@@ -42,38 +42,38 @@ export async function Header() {
   const cod = settings?.paymentMethods.COD === true;
   return (
     <>
-      {/* Dark top bar: a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
-      <div role="region" aria-label="Store information" className="on-dark bg-night text-white/80">
+      {/* Neon orange top bar: a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
+      <div role="region" aria-label="Store information" className="bg-brand-500 text-on-brand [&_:focus-visible]:outline-ink">
         <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
-          <ul className="flex min-w-0 items-center gap-4 divide-x divide-white/15 [&>li+li]:pl-4">
-            <li className="truncate font-semibold uppercase tracking-[0.08em] text-white">{siteConfig.announcement || `Welcome to ${siteConfig.name}`}</li>
+          <ul className="flex min-w-0 items-center gap-4 divide-ink/20 sm:divide-x [&>li+li]:pl-4">
+            <li className="min-w-[10rem] truncate font-bold uppercase tracking-[0.08em]">{siteConfig.announcement || `Welcome to ${siteConfig.name}`}</li>
             {settings ? (
               <li className="hidden shrink-0 items-center gap-1.5 sm:flex">
-                <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
+                <Truck className="h-3.5 w-3.5" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
               </li>
             ) : null}
             {cod ? (
-              <li className="hidden shrink-0 items-center gap-1.5 md:flex">
-                <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Cash on Delivery Available
+              <li className="hidden shrink-0 items-center gap-1.5 lg:flex">
+                <Wallet className="h-3.5 w-3.5" aria-hidden /> Cash on Delivery Available
               </li>
             ) : null}
           </ul>
-          <nav aria-label="Help" className="hidden shrink-0 items-center gap-4 divide-x divide-white/15 md:flex [&>*+*]:pl-4">
+          <nav aria-label="Help" className="hidden shrink-0 items-center gap-4 divide-x divide-ink/20 font-semibold md:flex [&>*+*]:pl-4">
             {siteConfig.phone ? (
-              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1.5 rounded-sm hover:text-white">
+              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="hidden items-center gap-1.5 rounded-sm hover:underline lg:inline-flex">
                 <Phone className="h-3.5 w-3.5" aria-hidden /> {siteConfig.phone}
               </a>
             ) : null}
-            <Link href="/track-order" className="rounded-sm hover:text-white">Track order</Link>
-            <Link href="/contact" className="rounded-sm hover:text-white">Help</Link>
-            <Link href="/about" className="rounded-sm hover:text-white">About Us</Link>
+            <Link href="/track-order" className="rounded-sm hover:underline">Track order</Link>
+            <Link href="/contact" className="rounded-sm hover:underline">Help</Link>
+            <Link href="/about" className="rounded-sm hover:underline">About Us</Link>
           </nav>
         </div>
       </div>
       <HeaderShell>
-        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-3 py-3 md:grid md:h-[5.25rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
+        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-3 py-3 md:grid md:h-[4.5rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="text-[1.85rem] leading-none text-ink sm:text-[2.2rem] lg:text-[2.5rem]" />
+          <Wordmark className="text-[1.75rem] leading-none text-ink sm:text-[2rem] lg:text-[2.25rem]" />
           <div className="order-last w-full md:order-none md:mx-auto md:max-w-3xl">
             <SearchBox size="lg" />
           </div>

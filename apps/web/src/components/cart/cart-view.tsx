@@ -282,7 +282,7 @@ export function CartView() {
         </Link>
       </aside>
       {dockSummary && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-16 z-40 border-t md:bottom-0 border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1">
               <span className="block text-xs text-muted">{total != null ? "Total" : "Total before delivery"}</span>
