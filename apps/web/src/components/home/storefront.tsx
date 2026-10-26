@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ArrowRight, Banknote, Headset, PackageSearch, Truck, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { CompactProductCard } from "@/components/products/compact-product-card";
-import { ArrowLink } from "@/components/ui/chrome";
 import { categoryIcon } from "@/components/ui/category-icon";
 import type { HomeData, ResolvedBanner } from "@/lib/home-data";
 import type { ErpProduct } from "@/lib/erp/types";
@@ -41,57 +40,46 @@ export function heroSlides(categories: Category[]): HeroSlide[] {
   return [opener, ...rest];
 }
 
-/** Section heading in the store style: a small orange label, a bold title with an accent bar, a line and a "View all" link. */
-export function SectionHead({ id, eyebrow, title, children, href, linkLabel = "View all" }: { id: string; eyebrow?: string; title: string; children?: ReactNode; href?: string; linkLabel?: string }) {
+/** Section heading, centred as on large brand stores: a small orange label, a bold title, an accent bar and a line. */
+export function SectionHead({ id, eyebrow, title, children }: { id: string; eyebrow?: string; title: string; children?: ReactNode }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-border pb-3 sm:mb-6">
-      <div className="min-w-0">
-        {eyebrow ? <p className="eyebrow mb-1">{eyebrow}</p> : null}
-        <h2 id={id} className="section-title">{title}</h2>
-        <span aria-hidden className="mt-2 block h-[3px] w-12 rounded-full bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.6)]" />
-        {children ? <p className="mt-1 max-w-2xl text-sm text-muted">{children}</p> : null}
-      </div>
-      {href ? <ArrowLink href={href}>{linkLabel}</ArrowLink> : null}
+    <div className="mb-7 text-center sm:mb-9">
+      {eyebrow ? <p className="eyebrow mb-1.5">{eyebrow}</p> : null}
+      <h2 id={id} className="font-display text-[clamp(1.6rem,1.15rem+1.5vw,2.4rem)] font-extrabold leading-tight tracking-title text-ink">{title}</h2>
+      <span aria-hidden className="mx-auto mt-3 block h-[3px] w-12 rounded-full bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.6)]" />
+      {children ? <p className="mx-auto mt-3 max-w-xl text-sm text-muted sm:text-[15px]">{children}</p> : null}
     </div>
   );
 }
 
-/** Side tiles next to the banner: two categories with studio art, so the hero row offers direct ways into the catalogue. */
-function SideTile({ category, tint }: { category: Category; tint: string }) {
-  const art = categoryVisual(category.name) ?? category.image;
+/** The section's "View all" action, a pill centred under its content. */
+export function ViewAll({ href, label = "View all" }: { href: string; label?: string }) {
   return (
-    <Link href={`/categories/${category.slug}`} aria-label={`${category.name}, ${category.count} ${category.count === 1 ? "product" : "products"}`} className="group relative flex min-h-40 overflow-hidden rounded-panel p-5 ring-1 ring-brand-100 transition-shadow hover:shadow-neon-lift sm:p-6" style={{ background: tint }}>
-      <span className="relative z-10 flex max-w-[60%] flex-col">
-        <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-600">{category.count} {category.count === 1 ? "product" : "products"}</span>
-        <span className="mt-1.5 font-display text-xl font-bold leading-tight text-ink sm:text-2xl">{category.name}</span>
-        <span className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-ink group-hover:text-brand-600">
-          Shop now <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-        </span>
-      </span>
-      {art ? (
-        <span aria-hidden className="absolute -bottom-2 -right-2 aspect-square h-[92%] mix-blend-multiply transition-transform duration-500 [mask-image:radial-gradient(closest-side,#000_62%,transparent)] group-hover:scale-105 motion-reduce:transition-none">
-          <Image src={art} alt="" fill sizes="(min-width:1024px) 220px, 45vw" className="object-contain" />
-        </span>
-      ) : null}
-    </Link>
+    <div className="mt-8 flex justify-center">
+      <Link href={href} className="btn group min-h-11 rounded-full border border-ink/15 bg-bg px-6 text-ink hover:border-brand-500 hover:text-brand-600 hover:shadow-neon">
+        {label} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+      </Link>
+    </div>
   );
 }
 
-export function HomeHero({ categories }: { categories: Category[] }) {
-  const slides = heroSlides(categories);
-  const side = categories.filter((c) => categoryVisual(c.name) ?? c.image).slice(0, 2);
+/**
+ * The banner row: one full-width slider with the staff banner pictures first (shown exactly as uploaded), then the
+ * studio photographs with captions for the kinds of category the catalogue has.
+ */
+export function HomeHero({ categories, banners }: { categories: Category[]; banners: HomeData["wideBanners"] }) {
+  const slides: HeroSlide[] = [
+    ...banners.map((b) => ({ kind: "image" as const, src: b.image, alt: b.alt, href: b.href || undefined })),
+    ...heroSlides(categories),
+  ];
   return (
-    <section aria-labelledby="home-title" className="container-page flex flex-1 flex-col pt-4 sm:pt-5">
+    <section aria-labelledby="home-title" className="flex flex-1 flex-col">
       <h1 id="home-title" className="sr-only">{siteConfig.name}: mobile phones, electronics and accessories in Sri Lanka</h1>
-      <div className={`grid flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] gap-4 ${side.length ? "sm:grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,2.15fr)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]" : ""}`}>
-        <div className="min-h-[18rem] min-w-0 sm:min-h-[22rem]">
-          <HeroBanner slides={slides} />
+      {/* The slider fills whatever height the first screen leaves (absolute, so the flex item's height is definite). */}
+      <div className="relative min-h-[20rem] min-w-0 flex-1 sm:min-h-[24rem]">
+        <div className="absolute inset-0">
+          <HeroBanner slides={slides} bleed />
         </div>
-        {side.length ? (
-          <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-2">
-            {side.map((c, i) => <SideTile key={c.slug} category={c} tint={i ? "linear-gradient(135deg,#ffffff,#fff0e7)" : "linear-gradient(135deg,#fff3ea,#ffc9a3)"} />)}
-          </div>
-        ) : null}
       </div>
     </section>
   );
@@ -106,8 +94,8 @@ export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
     { icon: Headset, title: "Customer Support", text: "We are here to help", href: "/contact" },
   ];
   return (
-    <section aria-label={`Shopping with ${siteConfig.name}`} className="container-page mt-4 sm:mt-5">
-      <ul className="grid grid-cols-2 overflow-hidden rounded-panel border border-brand-100 bg-gradient-to-r from-brand-50 via-bg to-brand-50 lg:grid-cols-4">
+    <section aria-label={`Shopping with ${siteConfig.name}`} className="border-b border-border bg-bg">
+      <ul className="container-page grid grid-cols-2 lg:grid-cols-4">
         {items.map(({ icon: I, title, text, href }, i) => {
           const body = (
             <>
@@ -139,32 +127,61 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
   const shown = categories.slice(0, 12);
   return (
     <section aria-labelledby="cats" className="container-page mt-12 sm:mt-16">
-      <SectionHead id="cats" eyebrow="Browse" title="Shop by Category" href="/products" linkLabel="View all products" />
-      {/* Up to six per row on wide screens; fewer categories stay centred instead of leaving a gap on the right. */}
-      <ul
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-[repeat(var(--cat-cols),minmax(0,13rem))] lg:justify-center"
-        style={{ "--cat-cols": Math.min(shown.length, 6) } as React.CSSProperties}
-      >
+      <SectionHead id="cats" eyebrow="Browse" title="Shop by Category">Find the right device or accessory in a tap.</SectionHead>
+      {/* Three per row on phones and tablets, six on wide screens; a short last row stays centred. */}
+      <ul className="flex flex-wrap justify-center gap-x-2 gap-y-5 sm:gap-x-4 lg:gap-x-6">
         {shown.map((c, i) => {
           const Icon = categoryIcon(c.name);
           const art = categoryVisual(c.name) ?? c.image;
           const count = `${c.count} ${c.count === 1 ? "product" : "products"}`;
           return (
-            <Reveal as="li" key={c.slug} delay={Math.min(i, 6) * 40}>
-              <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group flex h-full flex-col items-center rounded-card border border-border bg-bg p-4 text-center transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift">
-                <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-brand-50 ring-2 ring-transparent transition-shadow group-hover:ring-brand-500">
+            <Reveal as="li" key={c.slug} delay={Math.min(i, 6) * 40} className="w-[calc((100%-1rem)/3)] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-7.5rem)/6)] lg:max-w-52">
+              <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group relative flex h-full flex-col items-center p-2 text-center">
+                <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-brand-100 to-brand-50 ring-2 ring-transparent ring-offset-4 transition-[box-shadow] duration-300 group-hover:shadow-[0_14px_30px_-10px_rgb(255_92_0/0.7)] group-hover:ring-brand-500">
                   {art ? (
                     <Image src={art} alt="" fill sizes="144px" className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" />
                   ) : (
                     <Icon className="h-12 w-12 text-ink/70" strokeWidth={1.2} />
                   )}
                 </span>
-                <span className="text-sm font-bold text-ink group-hover:text-brand-600 sm:text-[15px]">{c.name}</span>
-                <span className="mt-0.5 text-xs text-muted">{count}</span>
+                <span className="text-[13px] font-bold leading-tight text-ink group-hover:text-brand-600 sm:text-[15px]">{c.name}</span>
+                <span className="mt-1.5 rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 ring-1 ring-brand-100 transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">{count}</span>
               </Link>
             </Reveal>
           );
         })}
+      </ul>
+      <ViewAll href="/products" label="View all products" />
+    </section>
+  );
+}
+
+/**
+ * Spotlight: the two largest categories that have studio art, as big side-by-side tiles with a centred title, a line
+ * and one action, the way large brand stores feature their key ranges.
+ */
+export function Spotlight({ categories }: { categories: Category[] }) {
+  const picks = [...categories].filter((c) => categoryVisual(c.name)).sort((a, b) => b.count - a.count).slice(0, 2);
+  if (picks.length < 2) return null;
+  return (
+    <section aria-label="Featured ranges" className="container-page mt-14 sm:mt-20">
+      <ul className="grid gap-4 md:grid-cols-2">
+        {picks.map((c, i) => (
+          <li key={c.slug}>
+            <Link
+              href={`/categories/${c.slug}`}
+              className={`group relative flex h-[19rem] flex-col items-center overflow-hidden rounded-panel px-6 pt-7 text-center sm:h-[26rem] sm:pt-9 ${i ? "bg-[linear-gradient(160deg,#fff4ec,#ffe0c8)]" : "bg-[linear-gradient(160deg,#f6f6f7,#e9eaec)]"}`}
+            >
+              <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-600">{c.count} {c.count === 1 ? "product" : "products"}</span>
+              <span className="mt-2 font-display text-2xl font-extrabold tracking-title text-ink sm:text-3xl">{c.name}</span>
+              <span className="mt-2 max-w-sm text-sm text-muted">{collectionLine(c.name, c.count)}</span>
+              <span className="btn-primary mt-5 min-h-10 rounded-full px-6 text-[13px]">Shop now</span>
+              <span aria-hidden className="absolute bottom-[-6%] left-1/2 aspect-square h-[58%] -translate-x-1/2 mix-blend-multiply transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-105 motion-reduce:transition-none">
+                <Image src={categoryVisual(c.name)!} alt="" fill sizes="(min-width:768px) 30vw, 70vw" className="object-contain [mask-image:radial-gradient(closest-side,#000_70%,transparent)]" />
+              </span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -211,7 +228,7 @@ export function PromoTiles({ banners }: { banners: ResolvedBanner[] }) {
   );
 }
 
-/** A product section: heading, then a grid of up to ten cards (two rows at every width: 2, 3, 4 or 5 per row). */
+/** A product section: heading, then up to ten cards in centred rows (two rows at every width: 2, 3, 4 or 5 per row). */
 export function ProductSection({ id, eyebrow, title, text, href, products, priority = false, tinted = false }: {
   id: string;
   eyebrow?: string;
@@ -225,17 +242,18 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
   if (!products.length) return null;
   const grid = (
     <>
-      <SectionHead id={`${id}-title`} eyebrow={eyebrow} title={title} href={href}>{text}</SectionHead>
+      <SectionHead id={`${id}-title`} eyebrow={eyebrow} title={title}>{text}</SectionHead>
       <ul
         aria-label={`${title} products`}
-        className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 max-md:[&>li:nth-child(n+5)]:hidden md:max-lg:[&>li:nth-child(n+7)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden"
+        className="flex flex-wrap justify-center gap-3 sm:gap-4 max-md:[&>li:nth-child(n+5)]:hidden md:max-lg:[&>li:nth-child(n+7)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden"
       >
         {products.slice(0, 10).map((p, i) => (
-          <Reveal as="li" key={p.id} delay={(i % 5) * 40}>
+          <Reveal as="li" key={p.id} delay={(i % 5) * 40} className="w-[calc((100%-0.75rem)/2)] sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-4rem)/5)]">
             <CompactProductCard product={p} priority={priority && i < 4} />
           </Reveal>
         ))}
       </ul>
+      <ViewAll href={href} />
     </>
   );
   return tinted ? (
@@ -262,30 +280,41 @@ export function collectionLine(name: string, count: number): string {
   return COLLECTION_LINE.find((k) => k.test.test(name))?.line ?? `${count} ${count === 1 ? "product" : "products"} in ${name}.`;
 }
 
-/** "Featured Brands": one tile per brand in the catalogue, with the staff-uploaded logo when there is one. */
+/**
+ * "Shop by Brand": one tile per catalogue brand on a light orange band, centred so a short list never leaves empty
+ * cells. Staff-uploaded logos show in grey and turn to colour on hover; brands without a logo show their name.
+ */
 export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
   if (!brands.length) return null;
   return (
-    <section aria-labelledby="brands" className="container-page mt-12 sm:mt-16">
-      <SectionHead id="brands" eyebrow={`Brands at ${siteConfig.name}`} title="Featured Brands" />
-      <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-6 xl:grid-cols-8">
-        {brands.slice(0, 24).map((b) => (
-          <li key={b.name}>
-            <Link
-              href={`/search?q=${encodeURIComponent(b.name)}`}
-              aria-label={`${b.name}, ${b.count} ${b.count === 1 ? "product" : "products"}`}
-              className="group flex h-20 items-center justify-center rounded-card border border-border bg-bg px-3 transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift sm:h-24"
-            >
-              {b.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={b.logo} alt="" loading="lazy" className="max-h-10 max-w-full object-contain grayscale transition-[filter] duration-300 group-hover:grayscale-0 sm:max-h-12" />
-              ) : (
-                <span className="truncate font-display text-base font-extrabold uppercase tracking-[0.04em] text-ink/70 group-hover:text-brand-600 sm:text-lg">{b.name}</span>
-              )}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <section aria-labelledby="brands" className="mt-12 bg-gradient-to-b from-brand-50 to-bg py-10 sm:mt-16 sm:py-14">
+      <div className="container-page">
+        <SectionHead id="brands" eyebrow={`Brands at ${siteConfig.name}`} title="Shop by Brand">The brands in our catalogue, all in one place.</SectionHead>
+        <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
+          {brands.slice(0, 24).map((b) => {
+            const count = `${b.count} ${b.count === 1 ? "product" : "products"}`;
+            return (
+              <li key={b.name} className="w-[calc((100%-1.5rem)/3)] sm:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)]">
+                <Link
+                  href={`/products?brand=${encodeURIComponent(b.name)}`}
+                  aria-label={`${b.name}, ${count}`}
+                  className="group relative flex h-24 flex-col items-center justify-center overflow-hidden rounded-card border border-brand-100 bg-bg px-3 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-brand-500 hover:shadow-neon-lift motion-reduce:hover:translate-y-0 sm:h-28"
+                >
+                  {b.logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.logo} alt="" loading="lazy" className="max-h-9 max-w-[70%] object-contain opacity-70 grayscale transition-[filter,opacity] duration-300 group-hover:opacity-100 group-hover:grayscale-0 sm:max-h-11" />
+                  ) : (
+                    <span className="truncate font-display text-base font-extrabold uppercase tracking-[0.08em] text-ink/70 transition-colors group-hover:text-brand-600 sm:text-xl">{b.name}</span>
+                  )}
+                  <span className="mt-1 text-[11px] font-medium text-muted transition-colors group-hover:text-brand-700">{count}</span>
+                  <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.8)] transition-transform duration-300 group-hover:scale-x-100" />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+        <ViewAll href="/products" label="View all products" />
+      </div>
     </section>
   );
 }

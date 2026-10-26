@@ -250,7 +250,7 @@ model BrandLogo {
 /// While at least one banner is active these replace the banners derived from categories or HOME_BANNERS.
 model Banner {
   id        String   @id @default(cuid())
-  /// CARDS = picture-and-button offer tiles; WIDE = one full-width picture between the homepage collections.
+  /// CARDS = picture-and-button offer tiles; WIDE = one full-width picture in the homepage banner slider.
   placement String   @default("CARDS")
   eyebrow   String?
   headline  String

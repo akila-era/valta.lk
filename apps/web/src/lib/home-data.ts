@@ -84,7 +84,7 @@ export interface HomeData {
   banners: ResolvedBanner[];
   /** True when the banners were created by staff in the admin (not derived from categories). */
   staffBanners: boolean;
-  /** Full-width pictures staff placed between the homepage collections; they rotate when there are several. */
+  /** Banner pictures uploaded by staff; they open the homepage banner slider, in order. */
   wideBanners: WideBanner[];
   /** Further products beyond the ones already shown in "New Arrivals": same catalogue, next in line. */
   more: ErpProduct[];
@@ -142,16 +142,7 @@ export async function getHomeData(): Promise<HomeData> {
     // Banners staff created in the admin win; with none active the category-derived / HOME_BANNERS ones remain.
     banners: staffBanners.length ? staffBanners : resolveBanners(categories),
     staffBanners: staffBanners.length > 0,
-    wideBanners:
-      wideBanners.length > 0
-        ? wideBanners
-        : [
-            {
-              image: "/images/home/volta-banner-laptop.webp",
-              alt: "Discover premium laptops and tech accessories at VOLTA.LK",
-              href: "/products",
-            },
-          ],
+    wideBanners,
     rails,
     budget: prices ? budgetBands(prices) : null,
     phonesSlug: categories.find((c) => /phone|mobile/i.test(c.name))?.slug,

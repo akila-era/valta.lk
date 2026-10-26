@@ -105,7 +105,7 @@ export default function ContactPage() {
         <div className="!mt-4">
           <Link
             href="/track-order"
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold !text-white !no-underline shadow-soft transition-all hover:bg-brand-500 hover:!text-on-brand hover:shadow-lift"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-xs font-semibold !text-on-brand !no-underline shadow-soft transition-all hover:bg-brand-500 hover:!text-on-brand hover:shadow-lift"
           >
             <Package className="h-4 w-4" />
             Track Order Status

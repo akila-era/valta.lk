@@ -316,8 +316,8 @@ export async function CatalogueView({
                         aria-current={on ? "page" : undefined}
                         className={`inline-flex min-h-8 items-center whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                           on
-                            ? "border border-border bg-white text-ink shadow-xs font-bold"
-                            : "text-muted hover:text-ink"
+                            ? "bg-brand-500 font-bold text-on-brand shadow-neon"
+                            : "text-muted hover:text-brand-600"
                         }`}
                       >
                         {s.label}
@@ -333,7 +333,7 @@ export async function CatalogueView({
               <button
                 type="button"
                 aria-label="Grid view"
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-white text-brand-600 shadow-xs"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon"
               >
                 <LayoutGrid className="h-3.5 w-3.5" aria-hidden />
               </button>

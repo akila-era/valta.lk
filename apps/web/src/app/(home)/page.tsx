@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Faq } from "@/components/home/more-sections";
-import { WideBanner } from "@/components/home/sections";
-import { BrandWall, CategoryGrid, HomeHero, ProductSection, PromoTiles, ServiceStrip, collectionLine } from "@/components/home/storefront";
+import { BrandWall, CategoryGrid, HomeHero, ProductSection, PromoTiles, ServiceStrip, Spotlight, collectionLine } from "@/components/home/storefront";
 import { VideoShowcase } from "@/components/home/video-showcase";
 import { ErpUnavailable } from "@/components/ui/states";
 import { getHomeData } from "@/lib/home-data";
@@ -19,9 +18,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * The homepage as a retail storefront: banner and category tiles, the service strip, categories, staff offers, hot
- * deals, one collection per larger category (with staff wide banners between them), new arrivals, brands, videos and
- * the FAQ. Every section comes from live data and is left out when it has nothing to show.
+ * The homepage as a retail storefront: the banner slider (staff banners first), the service strip, categories, brands,
+ * staff offers, hot deals, one collection per larger category, new arrivals, videos and the FAQ. Every section comes from live data and is left out when it has nothing to show.
  */
 export default async function HomePage() {
   const data = await getHomeData();
@@ -32,13 +30,15 @@ export default async function HomePage() {
     <div className="pb-4">
       {/* The first screen: banner and service strip fill exactly the space under the header (and above the phone tab
           bar), so "Shop by Category" starts below the fold. Capped so very tall screens do not get a giant banner. */}
-      <div className="flex min-h-[min(calc(100svh-2.25rem-var(--hdr-sticky,7.5rem)-4.5rem),52rem)] flex-col pb-4 md:min-h-[min(calc(100svh-2.25rem-var(--hdr-sticky,7.25rem)),56rem)] md:pb-5">
-        <HomeHero categories={data.categories} />
+      <div className="flex min-h-[min(calc(100svh-2.25rem-var(--hdr-sticky,7.5rem)-4.5rem),52rem)] flex-col md:min-h-[min(calc(100svh-2.25rem-var(--hdr-sticky,7.25rem)),56rem)]">
+        <HomeHero categories={data.categories} banners={data.wideBanners} />
         <ServiceStrip checkout={data.checkout} />
       </div>
       {data.catalogueOk ? (
         <>
           <CategoryGrid categories={data.categories} />
+          <Spotlight categories={data.categories} />
+          <BrandWall brands={data.brands} />
           {data.staffBanners ? <PromoTiles banners={data.banners.slice(0, 4)} /> : null}
           <ProductSection
             id="deals"
@@ -52,14 +52,10 @@ export default async function HomePage() {
           {firstRail ? (
             <ProductSection id={`c-${firstRail.slug}`} eyebrow={`${firstRail.name} collection`} title={firstRail.name} text={collectionLine(firstRail.name, firstRail.count)} href={`/categories/${firstRail.slug}`} products={firstRail.products} tinted />
           ) : null}
-          <div className="container-page">
-            <WideBanner banners={data.wideBanners} />
-          </div>
           {otherRails.map((r, i) => (
             <ProductSection key={r.slug} id={`c-${r.slug}`} eyebrow={`${r.name} collection`} title={r.name} text={collectionLine(r.name, r.count)} href={`/categories/${r.slug}`} products={r.products} tinted={i % 2 === 1} />
           ))}
           <ProductSection id="new-arrivals" eyebrow="Just in" title="New Arrivals" text="The latest products added to our catalogue." href="/products" products={data.newArrivals} tinted={otherRails.length % 2 === 1} />
-          <BrandWall brands={data.brands} />
           <div className="container-page">
             <VideoShowcase title={data.videos.title} videos={data.videos.items} />
           </div>

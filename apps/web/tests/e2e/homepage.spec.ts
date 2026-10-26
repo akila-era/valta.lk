@@ -194,8 +194,8 @@ test.describe("hero", () => {
     await expect(banner.getByRole("img", { name: /Smartphone and wireless earbuds/ })).toBeVisible();
     // only the visible slide can be reached
     await expect(banner.getByRole("link", { name: "Shop now" })).toHaveCount(0);
-    // the side tiles are real categories with their product counts
-    await expect(hero.getByRole("link", { name: "Accessories, 5 products" })).toHaveAttribute("href", "/categories/accessories");
+    // numbered markers show the position
+    await expect(banner.getByRole("button", { name: "Go to slide 2" })).toHaveText(/02/);
   });
 
   test("wishlist: heart on a card saves the product and the wishlist page lists it", async ({ page }) => {
@@ -292,11 +292,16 @@ test.describe("storefront sections", () => {
     await expect(page.getByText(/handpicked|best.?sellers?|top rated|customer reviews/i)).toHaveCount(0);
   });
 
-  test("featured brands: one tile per catalogue brand, searching for that brand", async ({ page }) => {
+  test("shop by brand: one grid cell per catalogue brand, opening that brand's products", async ({ page }) => {
     await page.goto("/");
     const brands = page.locator("section[aria-labelledby=brands]");
-    await expect(brands.getByRole("heading", { name: "Featured Brands" })).toBeVisible();
-    await expect(brands.getByRole("link", { name: /^Pulse, \d+ products?$/ })).toHaveAttribute("href", "/search?q=Pulse");
+    await expect(brands.getByRole("heading", { name: "Shop by Brand" })).toBeVisible();
+    const pulse = brands.getByRole("link", { name: /^Pulse, \d+ products?$/ });
+    await expect(pulse).toHaveAttribute("href", "/products?brand=Pulse");
+    await pulse.click();
+    await expect(page).toHaveURL(/\/products\?brand=Pulse$/);
+    await expect(page.locator("main article", { hasText: "Pulse Wireless Earbuds" })).toBeVisible();
+    await expect(page.locator("main article", { hasText: "Echo Mini Speaker" })).toHaveCount(0);
   });
 
   test("footer: real routes only, no invented contact or payment claims, and a working back-to-top", async ({ page }) => {

@@ -5,13 +5,13 @@
   --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* VOLTA.LK storefront: a clean, professional retail look in white and orange. White canvas, cool light-grey surfaces,
-     deep charcoal text; the top bar and footer use the night colours. "on-brand" is the dark text used on orange fills (5.8:1 on brand-500).
+  /* VOLTA.LK storefront: white and neon orange. White canvas, orange-tinted white surfaces and warm hairlines, deep
+     charcoal text, orange accents and soft orange glows. The admin console keeps neutral greys (see .admin-theme). "on-brand" is the dark text used on orange fills (5.8:1 on brand-500).
      muted passes 4.5:1 on bg, surface and brand-50 alike, because text-muted is used on all three.
      border is for decorative separators; border-strong (>= 3:1 on bg and surface) outlines form controls. */
   --color-bg: #ffffff;
-  --color-surface: #f5f6f7;
-  --color-border: #e6e8eb;
+  --color-surface: #fff7f2;
+  --color-border: #f3e2d6;
   --color-border-strong: #868b92;
   --color-ink: #171717;
   --color-muted: #6b6b6b;
@@ -48,10 +48,10 @@
   --color-navy-800: #242424;
   --color-navy-700: #333333;
 
-  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-card: 0 1px 2px rgb(255 92 0 / 0.06), 0 12px 30px -18px rgb(255 92 0 / 0.35);
   --shadow-raised: 0 8px 24px -16px rgb(23 23 23 / 0.35);
   /* Restrained neutral shadows: soft for resting cards, float for raised panels, lift for hover. */
-  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04);
+  --shadow-soft: 0 1px 2px rgb(255 92 0 / 0.05), 0 10px 26px -18px rgb(255 92 0 / 0.3);
   --shadow-float: 0 8px 24px -8px rgb(16 24 40 / 0.12);
   --shadow-lift: 0 12px 28px -12px rgb(16 24 40 / 0.22);
   --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
@@ -115,15 +115,16 @@
     disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
 }
 @utility btn-primary { @apply btn bg-brand-500 text-on-brand shadow-neon hover:bg-brand-hover hover:shadow-[0_10px_28px_-6px_rgb(255_92_0/0.75)]; }
-@utility btn-secondary { @apply btn border border-border-strong/50 bg-bg text-ink hover:border-ink; }
-@utility btn-outline { @apply btn border border-border-strong/50 bg-bg text-ink hover:border-ink hover:bg-ink hover:text-bg; }
-@utility btn-ghost { @apply btn text-ink hover:bg-surface; }
+@utility btn-secondary { @apply btn border border-brand-500/40 bg-bg text-ink hover:border-brand-500 hover:text-brand-700 hover:shadow-neon; }
+@utility btn-outline { @apply btn border border-brand-500/40 bg-bg text-ink hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand hover:shadow-neon; }
+@utility btn-ghost { @apply btn text-ink hover:bg-brand-50 hover:text-brand-700; }
 @utility btn-text { @apply btn text-ink hover:bg-surface; }
-@utility btn-dark { @apply btn bg-ink text-bg hover:bg-ink/85; }
+@utility btn-dark { @apply btn bg-brand-700 text-white shadow-neon hover:bg-brand-600; }
 @utility btn-danger { @apply btn bg-danger text-white hover:bg-danger-strong; }
 @utility btn-lg { @apply min-h-12 px-7 text-base; }
 @utility input {
   @apply min-h-11 w-full rounded-control border border-border-strong bg-bg px-3 text-sm text-ink placeholder:text-muted
+    transition-[border-color,box-shadow] focus:border-brand-500 focus:shadow-[0_0_0_3px_rgb(255_92_0/0.15)]
     aria-[invalid=true]:border-danger disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-70;
 }
 @utility select { @apply input; }
@@ -258,6 +259,9 @@
    cards are flatter, and the storefront's pill buttons, display headings and neon glow stay out of the console. */
 .admin-theme {
   --color-bg: #ffffff;
+  --color-surface: #f5f6f7;
+  --color-border: #e6e8eb;
+  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04);
   --color-dark: #101113;
   --color-night: #101113;
   --color-night-2: #191b1f;
@@ -282,5 +286,6 @@
 .admin-theme { --shadow-glow: none; --shadow-neon: none; }
 .admin-theme :is(.btn, .btn-primary, .btn-secondary, .btn-outline, .btn-ghost, .btn-text, .btn-dark, .btn-danger) { border-radius: 0.5rem; }
 .admin-theme :is(.card) { border-radius: 0.75rem; }
+.admin-theme .btn-dark { background: var(--color-ink); color: #fff; box-shadow: none; }
 .admin-theme :is(h1, h2, h3) { font-family: var(--font-sans); }
 .admin-theme :is(.media-spot, .media-square) { background: var(--color-media); }

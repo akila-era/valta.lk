@@ -56,9 +56,9 @@ function PaymentBadge({ id }: { id: string }) {
   );
 }
 
-const colHead = "text-sm font-bold uppercase tracking-[0.1em] text-white";
+const colHead = "text-sm font-bold uppercase tracking-[0.1em] text-ink";
 const accentBar = "mt-2.5 block h-0.5 w-8 bg-brand-500";
-const rowLink = "group inline-flex min-h-8 items-center gap-2 rounded-sm text-sm text-white/70 transition-colors hover:text-brand-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+const rowLink = "group inline-flex min-h-8 items-center gap-2 rounded-sm text-sm text-ink/75 transition-colors hover:text-brand-600";
 
 function LinkList({ items, label }: { items: typeof support; label: string }) {
   return (
@@ -69,7 +69,7 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
         {items.map(({ href, label: l, icon: Icon }) => (
           <li key={href}>
             <Link href={href} className={rowLink}>
-              <Icon className="h-4 w-4 shrink-0 text-white/40 transition-colors group-hover:text-brand-400" strokeWidth={1.75} aria-hidden />
+              <Icon className="h-4 w-4 shrink-0 text-brand-500/70 transition-colors group-hover:text-brand-600" strokeWidth={1.75} aria-hidden />
               {l}
             </Link>
           </li>
@@ -82,10 +82,10 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
 function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 text-brand-500"><Icon className="h-[18px] w-[18px]" aria-hidden /></span>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon"><Icon className="h-[18px] w-[18px]" aria-hidden /></span>
       <span className="min-w-0 text-sm">
-        <span className="block text-xs text-white/60">{label}</span>
-        <span className="block break-words font-semibold text-white">{children}</span>
+        <span className="block text-xs text-muted">{label}</span>
+        <span className="block break-words font-semibold text-ink">{children}</span>
       </span>
     </li>
   );
@@ -107,18 +107,18 @@ export async function Footer() {
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark relative mt-16 border-t-[3px] pb-16 md:pb-0 border-brand-500 bg-night text-white shadow-[0_-6px_24px_-6px_rgb(255_92_0/0.55)]">
+    <footer className="relative mt-16 border-t-[3px] border-brand-500 bg-gradient-to-b from-brand-50 via-bg to-bg pb-16 text-ink shadow-[0_-6px_24px_-8px_rgb(255_92_0/0.5)] md:pb-0">
       <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.3fr_0.9fr_1.1fr_0.9fr_1.4fr] lg:gap-y-0 lg:py-14">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
-          <Wordmark className="text-[2.1rem] leading-none text-white" />
-          <p className="mt-4 max-w-xs text-sm leading-6 text-white/70">{siteConfig.description}</p>
+          <Wordmark className="text-[2.1rem] leading-none text-ink" />
+          <p className="mt-4 max-w-xs text-sm leading-6 text-ink/70">{siteConfig.description}</p>
           {social.length > 0 && (
             <ul className="mt-6 flex flex-wrap gap-3" aria-label="Social media">
               {social.map((s) => {
                 const Icon = SOCIAL_ICON[s.label] ?? Share2;
                 return (
                   <li key={s.label}>
-                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-500/40 bg-bg text-brand-600 transition-colors hover:bg-brand-500 hover:text-on-brand hover:shadow-neon">
                       <Icon className="h-5 w-5" aria-hidden />
                     </a>
                   </li>
@@ -126,9 +126,9 @@ export async function Footer() {
               })}
             </ul>
           )}
-          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2.5 border-t border-white/10 pt-5">
+          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2.5 border-t border-brand-100 pt-5">
             {trust.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-2 text-[13px] text-white/75"><Icon className="h-4 w-4 shrink-0 text-brand-500" strokeWidth={1.75} aria-hidden />{text}</li>
+              <li key={text} className="flex items-center gap-2 text-[13px] text-ink/75"><Icon className="h-4 w-4 shrink-0 text-brand-500" strokeWidth={1.75} aria-hidden />{text}</li>
             ))}
           </ul>
         </div>
@@ -137,9 +137,9 @@ export async function Footer() {
           <h2 className={colHead}>Shop</h2>
           <span className={accentBar} aria-hidden />
           <ul className="mt-4 space-y-0.5">
-            <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-white/40 group-hover:text-brand-400" aria-hidden />All products</Link></li>
+            <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />All products</Link></li>
             {categories.slice(0, 7).map((c) => (
-              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-white/40 group-hover:text-brand-400" aria-hidden />{c.name}</Link></li>
+              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />{c.name}</Link></li>
             ))}
           </ul>
         </nav>
@@ -156,19 +156,19 @@ export async function Footer() {
             {siteConfig.address && <ContactRow icon={MapPin} label="Visit our store">{siteConfig.address}</ContactRow>}
             {siteConfig.hours.length > 0 && (
               <ContactRow icon={Clock} label="Business hours">
-                {siteConfig.hours.map((h) => <span key={h} className="block text-sm font-normal text-white/85">{h}</span>)}
+                {siteConfig.hours.map((h) => <span key={h} className="block text-sm font-normal text-ink/80">{h}</span>)}
               </ContactRow>
             )}
-            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-white/40" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
+            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-brand-500/70" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
           </ul>
         </div>
       </div>
 
-      <div className="relative border-t border-white/10 bg-black/25">
+      <div className="relative bg-brand-500 text-on-brand [&_:focus-visible]:outline-ink">
         <div className="container-page flex flex-col gap-5 py-5">
           {(cod || siteConfig.paymentMethods.length > 0) && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-white/10 pb-5 text-sm text-white/75">
-              <span className="font-medium text-white">We accept</span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-ink/15 pb-5 text-sm">
+              <span className="font-bold">We accept</span>
               <ul className="flex flex-wrap items-center gap-2" aria-label="Accepted payment methods">
                 {cod && <li className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-white px-3 text-xs font-bold text-on-brand"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
                 {siteConfig.paymentMethods.map((id) => <PaymentBadge key={id} id={id} />)}
@@ -176,13 +176,13 @@ export async function Footer() {
             </div>
           )}
           <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
-            <div className="text-sm text-white/80">
+            <div className="text-sm">
               <p>© {new Date().getFullYear()} VOLTA.LK. All rights reserved.</p>
-              <p className="mt-1 text-xs text-white/55">Prices and availability are subject to change without notice.</p>
+              <p className="mt-1 text-xs">Prices and availability are subject to change without notice.</p>
             </div>
-            <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/75 md:ml-auto md:mr-2">
-              <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:text-white hover:underline">Privacy policy</Link></li>
-              <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:text-white hover:underline">Terms & conditions</Link></li>
+            <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold md:ml-auto md:mr-2">
+              <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:underline">Privacy policy</Link></li>
+              <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:underline">Terms & conditions</Link></li>
             </ul>
             <BackToTop />
           </div>
