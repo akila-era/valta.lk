@@ -82,7 +82,7 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
         aria-modal={open ? true : undefined}
         className={`${
           open
-            ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain rounded-l-3xl bg-white p-5 shadow-2xl [scrollbar-width:thin]"
+            ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain rounded-l-panel border-l-[3px] border-brand-500 bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl [scrollbar-width:thin]"
             : "hidden"
         } lg:static lg:z-auto lg:block lg:max-h-[calc(100vh-8.5rem)] xl:max-h-[calc(100vh-9.5rem)] lg:w-full lg:overflow-y-auto lg:overscroll-contain lg:rounded-2xl lg:border lg:border-border/80 lg:bg-white lg:p-3.5 xl:p-4 lg:shadow-soft [scrollbar-width:thin]`}
       >
@@ -93,11 +93,11 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
           </div>
           <button
             type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-surface text-muted hover:text-ink"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700 hover:bg-brand-500 hover:text-on-brand"
             onClick={close}
             aria-label="Close filters"
           >
-            <X className="h-4 w-4" aria-hidden />
+            <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
         {children}

@@ -49,7 +49,7 @@ export function CompactProductCard({ product, priority, row = false }: CompactPr
       <div className={`flex min-w-0 flex-1 flex-col p-3 sm:p-4 ${row ? "border-l border-border/70" : "border-t border-border/70"}`}>
         {label ? <p className="mb-1 truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</p> : null}
         <h3 className="line-clamp-2 min-h-10 text-[13.5px] font-semibold leading-5 text-ink sm:text-sm">
-          <Link href={href} className="hover:text-brand-600">
+          <Link href={href} className="py-1 hover:text-brand-600">
             {title}
           </Link>
         </h3>

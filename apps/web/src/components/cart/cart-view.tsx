@@ -176,7 +176,7 @@ export function CartView() {
                   {l.image ? <Image src={l.image} alt="" fill sizes="88px" className="object-contain p-2" /> : <Smartphone className="m-auto h-full w-8 text-muted" aria-hidden />}
                 </Link>
                 <div className="min-w-0">
-                  <Link href={`/products/${l.slug}`} className="type-product font-bold hover:text-brand-600 hover:underline">{l.name}</Link>
+                  <Link href={`/products/${l.slug}`} className="type-product py-1 font-bold hover:text-brand-600 hover:underline">{l.name}</Link>
                   {l.variantLabel && <p className="text-xs font-semibold text-muted">{l.variantLabel}</p>}
                   {l.sku && <p className="text-xs text-muted/80">SKU: <span data-testid="line-sku">{l.sku}</span></p>}
                   <p className="mt-1 text-sm font-medium text-muted">{formatLkr(l.unitPrice)} each</p>
@@ -217,7 +217,7 @@ export function CartView() {
                     <span className="sr-only">Line total </span>
                     {formatLkr(multiplyMoney(l.unitPrice, l.quantity))}
                   </p>
-                  <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-danger" aria-label={`Remove ${l.name}`} onClick={() => cartActions.remove(key)}>
+                  <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-danger" aria-label={`Remove ${l.name}`} onClick={() => cartActions.remove(key)}>
                     <Trash2 className="h-4 w-4" aria-hidden />
                   </button>
                 </div>

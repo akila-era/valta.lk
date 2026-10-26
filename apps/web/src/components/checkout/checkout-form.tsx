@@ -233,15 +233,15 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
                   <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-on-brand" : done ? "border-brand-600 bg-brand-50 text-brand-700" : "border-border text-muted"}`}>
                     {done ? <Check className="h-4 w-4" aria-hidden /> : s.n}
                   </span>
-                  <span className={`min-w-0 text-xs sm:text-sm ${current ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
+                  <span className={`min-w-0 text-[11px] leading-tight [overflow-wrap:anywhere] xs:text-xs sm:text-sm ${current ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
                 </>
               );
               return (
                 <li key={s.n} className="min-w-0" aria-current={current ? "step" : undefined}>
                   {canGo ? (
-                    <button type="button" onClick={() => goTo(s.n)} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-1" aria-label={`Go to step ${s.n}: ${s.label}`}>{inner}</button>
+                    <button type="button" onClick={() => goTo(s.n)} className="flex min-h-11 w-full flex-col items-center gap-1 rounded-lg px-1 text-center xs:flex-row xs:gap-2 xs:text-left" aria-label={`Go to step ${s.n}: ${s.label}`}>{inner}</button>
                   ) : (
-                    <span className="flex min-h-11 w-full items-center gap-2 px-1"><span className="sr-only">Step {s.n}: {s.label}{current ? " (current)" : ""}</span>{inner}</span>
+                    <span className="flex min-h-11 w-full flex-col items-center gap-1 px-1 text-center xs:flex-row xs:gap-2 xs:text-left"><span className="sr-only">Step {s.n}: {s.label}{current ? " (current)" : ""}</span>{inner}</span>
                   )}
                 </li>
               );

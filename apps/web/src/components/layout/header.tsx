@@ -47,23 +47,23 @@ export async function Header() {
       {/* Neon orange top bar: a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
       <div role="region" aria-label="Store information" className="bg-brand-500 text-on-brand [&_:focus-visible]:outline-ink">
         <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
-          <ul className="flex min-w-0 items-center gap-4 divide-ink/20 sm:divide-x [&>li+li]:pl-4">
-            <li className="marquee min-w-0 flex-1 overflow-hidden font-bold uppercase tracking-[0.08em] md:min-w-[10rem] md:flex-none">
-              {/* Phones: the line scrolls so all of it can be read (a second copy makes the loop seamless; reduced motion
-                  stops it). From md up it fits and stays still. */}
-              <span className="flex w-max animate-marquee gap-16 whitespace-nowrap [--marquee-dur:16s] md:hidden">
+          <ul className="flex min-w-0 flex-1 items-center gap-4 divide-ink/20 sm:divide-x [&>li+li]:pl-4">
+            <li className="marquee min-w-0 flex-1 overflow-hidden font-bold uppercase tracking-[0.08em]">
+              {/* Up to laptops the line scrolls so all of it can be read next to the help links (a second copy makes the
+                  loop seamless; reduced motion stops it). On very wide screens it fits and stays still. */}
+              <span className="flex w-max animate-marquee gap-16 whitespace-nowrap [--marquee-dur:16s] 2xl:hidden">
                 <span>{announcement}</span>
                 <span aria-hidden>{announcement}</span>
               </span>
-              <span className="hidden truncate md:block">{announcement}</span>
+              <span className="hidden truncate 2xl:block">{announcement}</span>
             </li>
             {settings ? (
-              <li className="hidden shrink-0 items-center gap-1.5 sm:flex">
+              <li className="hidden shrink-0 items-center gap-1.5 sm:flex md:hidden lg:flex">
                 <Truck className="h-3.5 w-3.5" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
               </li>
             ) : null}
             {cod ? (
-              <li className="hidden shrink-0 items-center gap-1.5 lg:flex">
+              <li className="hidden shrink-0 items-center gap-1.5 xl:flex">
                 <Wallet className="h-3.5 w-3.5" aria-hidden /> Cash on Delivery Available
               </li>
             ) : null}
@@ -81,14 +81,14 @@ export async function Header() {
         </div>
       </div>
       <HeaderShell>
-        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-3 py-3 md:grid md:h-[4.5rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
+        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-[4.5rem] md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="text-[1.75rem] leading-none text-ink sm:text-[2rem] lg:text-[2.25rem]" />
+          <Wordmark className="shrink-0 text-[1.5rem] leading-none text-ink xs:text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
           <div className="hidden md:mx-auto md:block md:w-full md:max-w-3xl">
             <SearchBox size="lg" />
           </div>
-          <div className="ml-auto flex items-center gap-1 md:ml-0 lg:gap-2">
+          <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
             <Link href="/contact" className="hidden items-center gap-2.5 px-3 hover:text-brand-600 xl:inline-flex">
               <Headset className="h-7 w-7 text-brand-500" strokeWidth={1.5} aria-hidden />
               <span className="leading-tight">

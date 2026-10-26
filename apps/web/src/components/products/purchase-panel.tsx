@@ -185,12 +185,12 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       <ul className="grid gap-2 text-sm sm:grid-cols-2" aria-label="Delivery and payment">
         {deliveryCharge != null ? (
           <Assurance icon={Truck} title={`Delivery ${formatLkr(deliveryCharge)}`}>
-            <Link href="/shipping-policy" className="py-1 underline underline-offset-2 hover:text-ink">Shipping policy</Link>
+            <Link href="/shipping-policy" className="inline-block py-1 underline underline-offset-2 hover:text-ink">Shipping policy</Link>
           </Assurance>
         ) : null}
         {cod ? <Assurance icon={Wallet} title="Cash on delivery">Pay when your order arrives</Assurance> : null}
         <Assurance icon={RefreshCw} title="Returns">
-          <Link href="/returns-policy" className="py-1 underline underline-offset-2 hover:text-ink">Returns policy</Link>
+          <Link href="/returns-policy" className="inline-block py-1 underline underline-offset-2 hover:text-ink">Returns policy</Link>
         </Assurance>
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>

@@ -13,8 +13,10 @@ export function StoreShell({ children, contained = true }: { children: React.Rea
       </a>
       <Header />
       {contained ? (
-        // overflow-x-clip: full-bleed bands may extend past the container without ever causing a sideways scroll.
-        <div className="relative isolate overflow-x-clip">
+        // overflow-x-clip: full-bleed bands may extend past the container without ever causing a sideways scroll. No
+        // stacking context here, so phone drawers and dialogs inside the page (filters, confirmations) open above the
+        // sticky header and the tab bar.
+        <div className="relative overflow-x-clip">
           <main id="main" className="container-page py-8 sm:py-10">
             {children}
           </main>

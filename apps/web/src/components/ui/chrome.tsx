@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 /** "View all" style link: ink text with an arrow that slides on hover. */
 export function ArrowLink({ href, children, className = "" }: { href: string; children: ReactNode; className?: string }) {
   return (
-    <Link href={href} className={`group/al inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand-600 ${className}`}>
+    <Link href={href} className={`group/al inline-flex min-h-6 shrink-0 items-center gap-1 text-sm font-semibold text-brand-600 ${className}`}>
       <span className="underline decoration-transparent underline-offset-4 transition-colors group-hover/al:decoration-current">{children}</span>
       <ChevronRight aria-hidden className="h-4 w-4 transition-transform group-hover/al:translate-x-0.5" />
     </Link>

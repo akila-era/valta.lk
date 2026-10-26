@@ -195,7 +195,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
             <p className="kicker flex flex-wrap items-center gap-x-2">
               {product.brand && <span className="text-brand-600">{product.brand}</span>}
               {product.brand && product.category && <span aria-hidden className="h-1 w-1 rounded-full bg-border" />}
-              {product.category && <Link href={`/categories/${product.category.slug}`} className="hover:text-ink">{product.category.name}</Link>}
+              {product.category && <Link href={`/categories/${product.category.slug}`} className="py-1 hover:text-ink">{product.category.name}</Link>}
             </p>
           )}
           <h1 className="statement mt-2 text-[clamp(1.5rem,1.2rem+1vw,2.125rem)] leading-tight">{title}</h1>

@@ -19,7 +19,7 @@ interface StoreHeroBannerProps {
  */
 export function StoreHeroBanner({ breadcrumbs, title, intro }: StoreHeroBannerProps) {
   return (
-    <section className="relative -mt-8 mb-6 w-full py-6 sm:-mt-10 sm:mb-8 sm:py-8">
+    <section className="relative isolate -mt-8 mb-6 w-full py-6 sm:-mt-10 sm:mb-8 sm:py-8">
       {/* Full-bleed background behind the page container, flush under the header: edge to edge, no card. */}
       <div aria-hidden className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden bg-gradient-to-r from-brand-50 via-bg to-brand-100/70">
         <span className="absolute -right-24 -top-24 h-64 w-64 rounded-full border-[22px] border-brand-500/10" />
