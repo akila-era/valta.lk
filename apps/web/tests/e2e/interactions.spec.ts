@@ -239,7 +239,7 @@ test.describe("shop by brand", () => {
     await page.locator("header").getByRole("navigation", { name: "Categories" }).getByRole("link", { name: "Brands" }).click();
     await expect(page).toHaveURL(/\/brands$/);
     await expect(page.getByRole("heading", { name: "Shop by Brand", level: 1 })).toBeVisible();
-    await expect(page.locator("main").getByRole("link", { name: /, \d+ products?$/ })).toHaveCount(7); // every brand in the ERP data
+    await expect(page.locator("main").getByRole("link", { name: /, \d+ products?$/ })).toHaveCount(12); // every brand in the ERP data
     await page.getByRole("link", { name: /^Echo, / }).click();
     await expect(page).toHaveURL(/\/products\?brand=Echo$/);
     await expect(page.getByRole("heading", { name: "Echo", level: 1 })).toBeVisible();

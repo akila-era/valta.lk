@@ -125,8 +125,6 @@ export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
 export function CategoryGrid({ categories }: { categories: Category[] }) {
   if (!categories.length) return null;
   const tiles: CategoryTile[] = categories.slice(0, 12).map((c) => ({ slug: c.slug, name: c.name, count: c.count, art: categoryVisual(c.name) ?? c.image }));
-  // One more tile at the end: everything in the catalogue (the categories partition it, so their counts add up to it).
-  tiles.push({ slug: "all-products", name: "All Products", count: categories.reduce((n, c) => n + c.count, 0), href: "/products", all: true });
   return (
     <section aria-labelledby="cats" className="container-page mt-12 sm:mt-16">
       <SectionHead id="cats" eyebrow="Browse" title="Shop by Category">Find the right device or accessory in a tap.</SectionHead>

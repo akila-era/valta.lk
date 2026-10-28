@@ -243,9 +243,8 @@ test.describe("storefront sections", () => {
     const cats = page.locator("section[aria-labelledby=cats]");
     await expect(cats.getByRole("heading", { name: "Shop by Category" })).toBeVisible();
     await expect(cats.getByRole("link", { name: "View all products" })).toHaveAttribute("href", "/products");
-    await expect(cats.getByRole("link")).toHaveCount(7); // five categories + All Products + View all
-    await expect(cats.getByRole("link", { name: "All Products, 15 products" })).toHaveAttribute("href", "/products");
-    for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables"]) await expect(cats.getByRole("link", { name: new RegExp(`^${name}, `) })).toBeVisible();
+    await expect(cats.getByRole("link")).toHaveCount(7); // six categories + View all
+    for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables", "Smart Home"]) await expect(cats.getByRole("link", { name: new RegExp(`^${name}, `) })).toBeVisible();
     const audio = cats.getByRole("link", { name: "Audio, 4 products" });
     await expect(audio).toHaveAttribute("href", "/categories/audio");
     await expect(cats.getByRole("link", { name: "Tablets, 1 product" })).toHaveAttribute("href", "/categories/tablets");

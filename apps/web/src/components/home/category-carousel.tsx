@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { categoryIcon } from "@/components/ui/category-icon";
 
 export interface CategoryTile {
@@ -11,10 +11,6 @@ export interface CategoryTile {
   name: string;
   count: number;
   art?: string;
-  /** Where the tile goes; defaults to the category page. */
-  href?: string;
-  /** The "All Products" tile: a grid icon instead of category art. */
-  all?: boolean;
 }
 
 /**
@@ -74,11 +70,9 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
           return (
             // 2 and a bit tiles on phones (so it is clear the row moves), 3 on tablets, exactly 5 from laptops.
             <li key={c.slug} className="w-[calc((100%-var(--gap)*1.4)/2.4)] shrink-0 snap-start sm:w-[calc((100%-var(--gap)*2)/3)] lg:w-[calc((100%-var(--gap)*4)/5)]">
-              <Link href={c.href ?? `/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group relative flex h-full flex-col items-center p-2 text-center">
+              <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group relative flex h-full flex-col items-center p-2 text-center">
                 <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-surface ring-2 ring-transparent ring-offset-4 transition-[box-shadow] duration-300 group-hover:ring-brand-500">
-                  {c.all ? (
-                    <LayoutGrid className="h-12 w-12 text-brand-500" strokeWidth={1.3} />
-                  ) : c.art ? (
+                  {c.art ? (
                     <Image src={c.art} alt="" fill sizes="176px" className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" />
                   ) : (
                     <Icon className="h-12 w-12 text-ink/70" strokeWidth={1.2} />

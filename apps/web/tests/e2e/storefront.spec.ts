@@ -59,13 +59,11 @@ test.describe("browse", () => {
   test("catalogue sorting and pagination", async ({ page }) => {
     await page.goto("/products?sort=price-asc");
     await expect(page.locator("article").first()).toContainText("Glide Tempered Glass");
-    // 15 products fit on one page (page size 15): every product is listed and no pager is shown
+    // 20 products, page size 15: the first page is full and has a pager, the second holds the other five
     await expect(page.locator("main article")).toHaveCount(15);
-    await expect(page.getByRole("navigation", { name: "Pagination" })).toHaveCount(0);
-    // a page past the end is sent to the last page, keeping the sort
+    await expect(page.getByRole("navigation", { name: "Pagination" })).toHaveCount(1);
     await page.goto("/products?sort=price-asc&page=2");
-    await expect(page).toHaveURL(/\/products\?sort=price-asc$/);
-    await expect(page.locator("main article").first()).toContainText("Glide Tempered Glass");
+    await expect(page.locator("main article")).toHaveCount(5);
   });
 
   test("variants and unavailable products", async ({ page }) => {

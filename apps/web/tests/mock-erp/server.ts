@@ -50,6 +50,12 @@ const initialItems = (): Item[] => [
   mk(13, "Limited Case (sold out)", "Accessories", "Glide", 2500, { stock: 0 }),
   mk(14, "Volt Power Bank 10000", "Accessories", "Volt", 7900, { subCategory: "Power Banks" }),
   mk(15, "Echo Mini Speaker", "Audio", "Echo", 5900, { subCategory: "Speakers" }),
+  // Smart Home: a sixth category and five more brands (the homepage shows up to 12). Dated early so "new arrivals" stay as they were.
+  mk(16, "Zenith Smart Bulb", "Smart Home", "Zenith", 2900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(17, "Lumen Smart Plug", "Smart Home", "Lumen", 3400, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(18, "Kora Security Camera", "Smart Home", "Kora", 12900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(19, "Aero Air Purifier", "Smart Home", "Aero", 27900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(20, "Strata Door Sensor", "Smart Home", "Strata", 3900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
 ];
 
 const defaultSettings = () => ({
