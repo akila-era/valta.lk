@@ -1,17 +1,17 @@
-/** Dot sizes (as a share of the spinner's width) and colours, head of the trail first: pink fading to orange, and a little smaller. */
+/** Dot sizes (as a share of the spinner's width) and colours, head of the trail first: neon orange, then black, each a little smaller. */
 const DOTS = [
-  { d: 0.15, c: "#ff6ec7" },
-  { d: 0.145, c: "#ff7fb5" },
-  { d: 0.14, c: "#ff8d9c" },
-  { d: 0.13, c: "#ff9b83" },
-  { d: 0.12, c: "#ffa86b" },
-  { d: 0.11, c: "#ffb352" },
-  { d: 0.1, c: "#ffbc3d" },
-  { d: 0.09, c: "#ffc42e" },
+  { d: 0.16, c: "#ff5c00" },
+  { d: 0.15, c: "#ff5c00" },
+  { d: 0.14, c: "#ff5c00" },
+  { d: 0.13, c: "#ff5c00" },
+  { d: 0.12, c: "#111111" },
+  { d: 0.11, c: "#111111" },
+  { d: 0.1, c: "#111111" },
+  { d: 0.09, c: "#111111" },
 ];
 
 /**
- * Eight separate round dots in a ring, pink at the head of the trail fading to orange, spinning clockwise (decorative:
+ * Eight separate round dots in a ring, neon orange at the head of the trail, then black, spinning clockwise (decorative:
  * pair it with a labelled status region). Under reduced motion it stays as a still ring.
  */
 export function DotSpinner({ size = 56, className = "" }: { size?: number; className?: string }) {
