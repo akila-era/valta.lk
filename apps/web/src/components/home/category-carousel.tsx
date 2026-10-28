@@ -61,7 +61,8 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
     "absolute top-[34%] z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink shadow-card ring-1 ring-ink/10 transition-[background-color,color,opacity] hover:bg-brand-500 hover:text-on-brand disabled:cursor-default disabled:opacity-35 disabled:hover:bg-white disabled:hover:text-ink sm:h-11 sm:w-11";
 
   return (
-    <div className="relative">
+    // capped width on laptops and wider, so the five tiles sit close together instead of spreading across a huge screen
+    <div className="relative mx-auto lg:max-w-[62rem]">
       <ul
         ref={track}
         aria-label="Categories"
@@ -92,10 +93,10 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
       </ul>
       {!fits ? (
         <>
-          <button type="button" onClick={() => go(-1)} disabled={edge.start} aria-label="Previous categories" className={`${arrow} -left-2 lg:-left-5`}>
+          <button type="button" onClick={() => go(-1)} disabled={edge.start} aria-label="Previous categories" className={`${arrow} -left-2 lg:-left-14`}>
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
-          <button type="button" onClick={() => go(1)} disabled={edge.end} aria-label="Next categories" className={`${arrow} -right-2 lg:-right-5`}>
+          <button type="button" onClick={() => go(1)} disabled={edge.end} aria-label="Next categories" className={`${arrow} -right-2 lg:-right-14`}>
             <ChevronRight className="h-5 w-5" aria-hidden />
           </button>
         </>
