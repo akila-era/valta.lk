@@ -21,11 +21,11 @@ interface StoreHeroBannerProps {
  */
 export function StoreHeroBanner({ breadcrumbs, title, intro, children }: StoreHeroBannerProps) {
   return (
-    <section className="mb-6 w-full border-b border-border pb-5 sm:mb-8 sm:pb-6">
-      <h1 className="page-title mt-1 sm:mt-3">{title}</h1>
+    <section className="mb-4 w-full border-b border-border pb-3 sm:mb-5 sm:pb-4">
+      <h1 className="font-display text-[clamp(1.5rem,1.2rem+0.9vw,1.875rem)] font-bold leading-[1.12] tracking-title text-ink">{title}</h1>
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav aria-label="Breadcrumbs" className="mt-3 sm:mt-5">
-          <ol className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted sm:text-[15px]">
+        <nav aria-label="Breadcrumbs" className="mt-2">
+          <ol className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-muted sm:text-sm">
             {breadcrumbs.map((item, i) => {
               const isLast = i === breadcrumbs.length - 1;
               return (
@@ -50,7 +50,7 @@ export function StoreHeroBanner({ breadcrumbs, title, intro, children }: StoreHe
           </ol>
         </nav>
       )}
-      {intro && <div className="mt-3 max-w-2xl text-sm leading-6 text-muted sm:text-[15px]">{intro}</div>}
+      {intro && <div className="mt-2 max-w-2xl text-sm leading-6 text-muted">{intro}</div>}
       {children}
     </section>
   );

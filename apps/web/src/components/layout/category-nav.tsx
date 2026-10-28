@@ -26,7 +26,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
   };
   const dealsActive = pathname === "/products" && params.get("sale") === "1";
   const item = (active: boolean) =>
-    `relative flex h-10 items-center whitespace-nowrap px-0.5 text-[13px] font-semibold transition-colors text-ink/80 hover:text-brand-600 after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:origin-left after:bg-brand-500 after:transition-transform after:duration-300 ${
+    `relative flex h-9 items-center whitespace-nowrap px-0.5 text-[13px] font-semibold transition-colors text-ink/80 hover:text-brand-600 after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:origin-left after:bg-brand-500 after:transition-transform after:duration-300 ${
       active ? "text-brand-600! after:scale-x-100" : "after:scale-x-0 hover:after:scale-x-100"
     }`;
 
@@ -61,7 +61,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
           <Link
             href="/products?sale=1"
             aria-current={dealsActive ? "page" : undefined}
-            className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 text-[13px] font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
+            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 text-[13px] font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
           >
             <Flame className="h-3.5 w-3.5 fill-brand-500" strokeWidth={2} aria-hidden /> Deals
           </Link>
@@ -69,7 +69,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
         <Link
           href="/brands"
           aria-current={pathname === "/brands" ? "page" : undefined}
-          className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 text-[13px] font-semibold ${pathname === "/brands" ? "text-brand-600" : "text-ink/80 hover:text-brand-600"}`}
+          className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 text-[13px] font-semibold ${pathname === "/brands" ? "text-brand-600" : "text-ink/80 hover:text-brand-600"}`}
         >
           <BadgeCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden /> Brands
         </Link>

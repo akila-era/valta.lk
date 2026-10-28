@@ -19,7 +19,6 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
       <StoreHeroBanner
         breadcrumbs={[{ href: "/", label: "Home" }, { label: "Search" }]}
         title={q ? `Results for “${q.slice(0, 50)}”` : "Search Catalogue"}
-        intro={q ? `Browse products matching “${q}”.` : "Find mobile phones, headphones, chargers and accessories."}
       />
 
       <div className="mx-auto mb-8 max-w-2xl">

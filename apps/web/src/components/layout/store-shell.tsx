@@ -19,7 +19,7 @@ export function StoreShell({ children, contained = true }: { children: React.Rea
         // stacking context here, so phone drawers and dialogs inside the page (filters, confirmations) open above the
         // sticky header and the tab bar.
         <div className="relative overflow-x-clip">
-          <main id="main" className="container-page py-8 sm:py-10">
+          <main id="main" className="container-page py-5 sm:py-6">
             {children}
           </main>
         </div>

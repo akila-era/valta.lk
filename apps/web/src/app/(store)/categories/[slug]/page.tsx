@@ -47,7 +47,6 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           ...(sub ? [{ label: sub.name }] : []),
         ]}
         title={category.name}
-        intro={`${category.count} ${category.count === 1 ? "product" : "products"} in this category.`}
       >
         <CategoryTileRow
           label={`${category.name} sub-categories`}

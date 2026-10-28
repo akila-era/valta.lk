@@ -26,13 +26,11 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
         <StoreHeroBanner
           breadcrumbs={[{ href: "/", label: "Home" }, { href: "/brands", label: "Brands" }, { label: brand }]}
           title={brand}
-          intro={`Shop ${brand} products. Use the filters to narrow by category or price.`}
         />
       ) : (
         <StoreHeroBanner
           breadcrumbs={[{ href: "/", label: "Home" }, { label: "All products" }]}
           title="All Products"
-          intro="Explore our complete catalogue of mobile phones, electronics and tech accessories."
         >
           <CategoryTileRow label="Shop by category" items={categories.map((c) => ({ href: `/categories/${c.slug}`, name: c.name, count: c.count }))} />
         </StoreHeroBanner>
