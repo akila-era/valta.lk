@@ -1,17 +1,17 @@
-/** Dot sizes (as a share of the spinner's width) and colours, head of the trail first: neon orange, then black, each a little smaller. */
+/** Dot sizes (as a share of the spinner's width) and opacities, head of the trail first: all neon orange, each a little smaller and fainter. */
 const DOTS = [
-  { d: 0.16, c: "#ff5c00" },
-  { d: 0.15, c: "#ff5c00" },
-  { d: 0.14, c: "#ff5c00" },
-  { d: 0.13, c: "#ff5c00" },
-  { d: 0.12, c: "#111111" },
-  { d: 0.11, c: "#111111" },
-  { d: 0.1, c: "#111111" },
-  { d: 0.09, c: "#111111" },
+  { d: 0.16, o: 1 },
+  { d: 0.15, o: 1 },
+  { d: 0.14, o: 0.9 },
+  { d: 0.13, o: 0.8 },
+  { d: 0.12, o: 0.7 },
+  { d: 0.11, o: 0.6 },
+  { d: 0.1, o: 0.5 },
+  { d: 0.09, o: 0.4 },
 ];
 
 /**
- * Eight separate round dots in a ring, neon orange at the head of the trail, then black, spinning clockwise (decorative:
+ * Eight separate round dots in a ring, all neon orange, fading along the trail, spinning clockwise (decorative:
  * pair it with a labelled status region). Under reduced motion it stays as a still ring.
  */
 export function DotSpinner({ size = 56, className = "" }: { size?: number; className?: string }) {
@@ -29,7 +29,8 @@ export function DotSpinner({ size = 56, className = "" }: { size?: number; class
               height: d,
               marginLeft: -d / 2,
               marginTop: -d / 2,
-              background: dot.c,
+              background: "#ff5c00",
+              opacity: dot.o,
               // each dot sits on the ring, 45 degrees behind the previous one, so the eight close the circle
               transform: `rotate(${-i * 45}deg) translateY(${-r}px)`,
             }}
