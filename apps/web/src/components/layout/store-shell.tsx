@@ -4,6 +4,7 @@ import { siteConfig } from "@/lib/site-config";
 import { Footer } from "./footer";
 import { Header } from "./header";
 import { MobileTabBar } from "./mobile-tab-bar";
+import { NavigationLoader } from "./navigation-loader";
 import { ShellMain } from "./shell-main";
 import { WhatsAppButton } from "./whatsapp-button";
 
@@ -19,6 +20,7 @@ export function StoreShell({ children }: { children: React.ReactNode }) {
       <Footer />
       <MobileTabBar accounts={accountsEnabled()} />
       <WhatsAppButton number={siteConfig.whatsapp} />
+      <NavigationLoader />
     </ToastProvider>
   );
 }
