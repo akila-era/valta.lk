@@ -10,9 +10,9 @@ const SHOW_BEFORE_MS = 240;
 const GIVE_UP_MS = 12_000;
 
 /**
- * A light veil with just the dot spinner (no box, no text) over the page area while the visitor is moving to another page. It listens for
+ * The dot spinner (no box, no text, and no veil or blur: the page stays exactly as it is) over the page area while the visitor is moving to another page. It listens for
  * clicks on internal links, shows the spinner at once, lets it spin for a moment, then does the navigation itself and
- * keeps the veil until the new page has arrived (then the page transition plays). The header stays visible.
+ * keeps the spinner until the new page has arrived (then the page transition plays). The header stays visible.
  *
  * Skipped for: modified clicks (new tab), other targets, downloads, other sites, the admin and API, links to the page
  * you are already on (hash / filter links), `data-no-loader` links, and visitors who prefer reduced motion.
@@ -81,10 +81,10 @@ export function NavigationLoader() {
     <div
       aria-hidden={!on}
       style={{ top }}
-      className={`fixed inset-x-0 bottom-0 z-[45] flex items-center justify-center bg-white/70 backdrop-blur-[3px] transition-opacity duration-150 ${on ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+      className={`fixed inset-x-0 bottom-0 z-[45] flex items-center justify-center transition-opacity duration-150 ${on ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
     >
       {on ? <span className="sr-only" role="status">Loading page</span> : null}
-      <DotSpinner size={68} className={`transition-transform duration-300 ${on ? "scale-100" : "scale-75"}`} />
+      <DotSpinner size={68} className={`drop-shadow-[0_2px_6px_rgb(0_0_0/0.3)] transition-transform duration-300 ${on ? "scale-100" : "scale-75"}`} />
     </div>
   );
 }
