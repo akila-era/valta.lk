@@ -539,7 +539,9 @@ test.describe("ERP ownership", () => {
 
     await control({ setPrice: { id: ID, price: 1500 }, setStock: { id: ID, stock: 0 } }); // a real change in the ERP
     // the storefront re-reads the ERP catalogue about once a minute
-    await expect.poll(async () => { await p.goto(`/products/${SLUG}`); return p.getByText("LKR 1,500").count(); }, { timeout: 120_000, intervals: [5_000] }).toBeGreaterThan(0);
+    // wait for the stock change (unique to this product's panel); "LKR 1,500" alone also matches a related product card
+    await expect.poll(async () => { await p.goto(`/products/${SLUG}`); return p.getByText("Out of stock", { exact: true }).count(); }, { timeout: 120_000, intervals: [5_000] }).toBeGreaterThan(0);
+    await expect(p.getByRole("heading", { level: 1 }).locator("xpath=ancestor::*[.//*[contains(text(),'LKR 1,500')]][1]")).toHaveCount(1);
     await expect(p.getByRole("heading", { level: 1 })).toHaveText("Survives Sync");
     await expect(p.getByText("Still here")).toBeVisible();
     await expect(p.getByText("Kept feature")).toBeVisible();

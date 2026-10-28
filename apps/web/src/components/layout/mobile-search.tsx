@@ -10,7 +10,7 @@ import { SearchBox } from "./search-box";
  * stays one slim row); this opens the same search under the header from anywhere on the page. The close button,
  * Escape (once the suggestions are closed) or navigating closes it.
  */
-export function MobileSearch() {
+export function MobileSearch({ popular = [] }: { popular?: { label: string; href: string }[] }) {
   const pathname = usePathname();
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const open = openedAt === pathname;
@@ -41,8 +41,8 @@ export function MobileSearch() {
         {open ? <X className="h-6 w-6" aria-hidden /> : <Search className="h-6 w-6" strokeWidth={1.75} aria-hidden />}
       </button>
       {open && (
-        <div ref={panel} className="absolute inset-x-0 top-full z-50 border-b border-brand-100 bg-bg px-3 py-2.5 shadow-[0_12px_24px_-14px_rgb(255_92_0/0.45)]">
-          <SearchBox size="lg" label="Site search (header)" />
+        <div ref={panel} className="absolute inset-x-0 top-full z-50 border-b border-brand-100 bg-bg px-3 py-2.5">
+          <SearchBox size="lg" label="Site search (header)" popular={popular} />
         </div>
       )}
     </div>

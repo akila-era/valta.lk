@@ -69,7 +69,7 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
         {items.map(({ href, label: l, icon: Icon }) => (
           <li key={href}>
             <Link href={href} className={rowLink}>
-              <Icon className="h-4 w-4 shrink-0 text-brand-500/70 transition-colors group-hover:text-brand-600" strokeWidth={1.75} aria-hidden />
+              <Icon className="h-4 w-4 shrink-0 text-brand-500 transition-colors group-hover:text-brand-600" strokeWidth={1.75} aria-hidden />
               {l}
             </Link>
           </li>
@@ -98,16 +98,43 @@ export async function Footer() {
   ]);
   const social = socialLinks();
   const cod = Boolean(settings?.paymentMethods.COD);
-  // Only facts the store can stand behind: the checkout rules come from the live ERP settings.
-  const trust = [
-    ...(cod ? [{ icon: Banknote, text: "Cash on delivery" }] : []),
-    ...(settings ? [{ icon: Truck, text: `Delivery ${formatLkr(settings.deliveryCharge)}` }] : []),
-    { icon: PackageSearch, text: "Track online" },
-  ];
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
+  // Trust tiles on every page (as large stores show above the footer): only what the store really does.
+  const tiles: { icon: LucideIcon; title: string; text: string; href?: string }[] = [
+    ...(cod ? [{ icon: Banknote, title: "Cash on Delivery", text: "Pay when your order arrives" }] : []),
+    ...(settings ? [{ icon: Truck, title: `Delivery ${formatLkr(settings.deliveryCharge)}`, text: "Shown before you order", href: "/shipping-policy" }] : []),
+    { icon: PackageSearch, title: "Order Tracking", text: "Follow your order online", href: "/track-order" },
+    { icon: MessageSquare, title: "Dedicated Support", text: "We are here to help", href: "/contact" },
+  ];
 
   return (
-    <footer className="relative mt-16 border-t-[3px] border-brand-500 bg-gradient-to-b from-brand-50 via-bg to-bg pb-16 text-ink shadow-[0_-6px_24px_-8px_rgb(255_92_0/0.5)] md:pb-0">
+    <footer className="relative mt-16 border-t-[3px] border-brand-500 bg-bg pb-16 text-ink md:pb-0">
+      <div className="border-b border-brand-100 bg-bg">
+        <ul aria-label="Shopping with us" className="container-page grid grid-cols-2 gap-px lg:grid-cols-4">
+          {tiles.map(({ icon: Icon, title, text, href }) => {
+            const body = (
+              <>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">
+                  <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[13px] font-bold leading-tight text-ink sm:text-sm">{title}</span>
+                  <span className="hidden text-xs text-muted sm:block">{text}</span>
+                </span>
+              </>
+            );
+            return (
+              <li key={title}>
+                {href ? (
+                  <Link href={href} className="group flex h-full items-center gap-3 px-1 py-5 sm:px-3">{body}</Link>
+                ) : (
+                  <div className="group flex h-full items-center gap-3 px-1 py-5 sm:px-3">{body}</div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
       <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.3fr_0.9fr_1.1fr_0.9fr_1.4fr] lg:gap-y-0 lg:py-14">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
           <Wordmark className="text-[2.1rem] leading-none text-ink" />
@@ -118,7 +145,7 @@ export async function Footer() {
                 const Icon = SOCIAL_ICON[s.label] ?? Share2;
                 return (
                   <li key={s.label}>
-                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-500/40 bg-bg text-brand-600 transition-colors hover:bg-brand-500 hover:text-on-brand hover:shadow-neon">
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-500 bg-bg text-brand-600 transition-colors hover:bg-brand-500 hover:text-on-brand hover:shadow-neon">
                       <Icon className="h-5 w-5" aria-hidden />
                     </a>
                   </li>
@@ -126,21 +153,16 @@ export async function Footer() {
               })}
             </ul>
           )}
-          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2.5 border-t border-brand-100 pt-5">
-            {trust.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-2 text-[13px] text-ink/75"><Icon className="h-4 w-4 shrink-0 text-brand-500" strokeWidth={1.75} aria-hidden />{text}</li>
-            ))}
-          </ul>
         </div>
 
         <nav aria-label="Shop categories">
           <h2 className={colHead}>Shop</h2>
           <span className={accentBar} aria-hidden />
           <ul className="mt-4 space-y-0.5">
-            <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />All products</Link></li>
-            <li><Link className={rowLink} href="/brands"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />Shop by brand</Link></li>
+            <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500 group-hover:text-brand-600" aria-hidden />All products</Link></li>
+            <li><Link className={rowLink} href="/brands"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500 group-hover:text-brand-600" aria-hidden />Shop by brand</Link></li>
             {categories.slice(0, 7).map((c) => (
-              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-brand-500/70 group-hover:text-brand-600" aria-hidden />{c.name}</Link></li>
+              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-brand-500 group-hover:text-brand-600" aria-hidden />{c.name}</Link></li>
             ))}
           </ul>
         </nav>
@@ -160,16 +182,16 @@ export async function Footer() {
                 {siteConfig.hours.map((h) => <span key={h} className="block text-sm font-normal text-ink/80">{h}</span>)}
               </ContactRow>
             )}
-            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-brand-500/70" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
+            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-brand-500" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
           </ul>
         </div>
       </div>
 
-      <div className="relative bg-brand-500 text-on-brand [&_:focus-visible]:outline-ink">
+      <div className="on-dark relative border-t-[3px] border-brand-500 bg-ink text-white/80">
         <div className="container-page flex flex-col gap-5 py-5">
           {(cod || siteConfig.paymentMethods.length > 0) && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-ink/15 pb-5 text-sm">
-              <span className="font-bold">We accept</span>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-white/10 pb-5 text-sm">
+              <span className="font-bold text-white">We accept</span>
               <ul className="flex flex-wrap items-center gap-2" aria-label="Accepted payment methods">
                 {cod && <li className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-white px-3 text-xs font-bold text-on-brand"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
                 {siteConfig.paymentMethods.map((id) => <PaymentBadge key={id} id={id} />)}
@@ -182,8 +204,8 @@ export async function Footer() {
               <p className="mt-1 text-xs">Prices and availability are subject to change without notice.</p>
             </div>
             <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold md:ml-auto md:mr-2">
-              <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:underline">Privacy policy</Link></li>
-              <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:underline">Terms & conditions</Link></li>
+              <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:text-brand-500">Privacy policy</Link></li>
+              <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:text-brand-500">Terms & conditions</Link></li>
             </ul>
             <BackToTop />
           </div>

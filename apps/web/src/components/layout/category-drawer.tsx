@@ -90,7 +90,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
       onClick={() => setTab(t)}
       className={`relative flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${
         tab === t
-          ? "text-brand-600 after:absolute after:inset-x-6 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-brand-500 after:shadow-[0_0_8px_rgb(255_92_0/0.7)]"
+          ? "text-brand-600 after:absolute after:inset-x-6 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-brand-500"
           : "text-muted hover:text-ink"
       }`}
     >
@@ -150,7 +150,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
               onChange={(e) => setTerm(e.target.value)}
               placeholder="Search products..."
               maxLength={100}
-              className="h-10 w-full rounded-control border-2 border-brand-500 bg-bg pl-10 pr-10 text-[13.5px] outline-none transition-colors placeholder:text-muted focus-visible:ring-2 focus-visible:ring-brand-500/30"
+              className="h-10 w-full rounded-control border-2 border-brand-500 bg-bg pl-10 pr-10 text-[13.5px] outline-none transition-colors placeholder:text-muted focus-visible:ring-2 focus-visible:ring-brand-500"
             />
             {term ? (
               <button
@@ -194,7 +194,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                   >
                     <span className="flex items-center gap-2.5">
                       <span className="flex h-8 w-8 items-center justify-center rounded-control bg-brand-500 text-on-brand shadow-neon">
-                        <Flame className="h-4 w-4 fill-brand-500/30" strokeWidth={2} aria-hidden />
+                        <Flame className="h-4 w-4 fill-brand-500" strokeWidth={2} aria-hidden />
                       </span>
                       Hot Deals
                     </span>
@@ -216,7 +216,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                         onClick={onClose}
                         className="flex flex-1 items-center gap-3 px-2.5 py-2 text-[13.5px] font-medium text-ink transition-colors hover:text-brand-600"
                       >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-border bg-bg text-muted transition-colors group-hover/item:border-brand-500/30 group-hover/item:bg-brand-50 group-hover/item:text-brand-600">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-border bg-bg text-muted transition-colors group-hover/item:border-brand-500 group-hover/item:bg-brand-50 group-hover/item:text-brand-600">
                           <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                         </span>
                         {c.name}
@@ -235,7 +235,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                       )}
                     </div>
                     {isOpen && (
-                      <ul id={subId} className="my-1.5 ml-5 space-y-0.5 border-l-2 border-brand-500/25 py-1 pl-3">
+                      <ul id={subId} className="my-1.5 ml-5 space-y-0.5 border-l-2 border-brand-500 py-1 pl-3">
                         <li>
                           <Link
                             href={`/categories/${c.slug}`}

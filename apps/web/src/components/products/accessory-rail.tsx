@@ -152,7 +152,7 @@ export function AccessoryRail({
         {visible.map((item) => (
           <li
             key={`${item.sourceItemId}-${item.sourceVariantKey}-${item.productId}`}
-            className="flex gap-3 rounded-2xl border border-border/80 bg-warm-white/40 p-3.5 shadow-soft"
+            className="flex gap-3 rounded-2xl border border-border/80 bg-bg p-3.5 shadow-soft"
           >
             <Link
               href={`/products/${item.slug}`}

@@ -8,7 +8,7 @@ import { Notice } from "./notice";
 function StateStage({ children }: { children: ReactNode }) {
   return (
     <span className="relative mb-6 flex h-24 w-32 items-center justify-center">
-      <span aria-hidden className="absolute inset-x-0 top-1/2 aspect-square -translate-y-1/2 rounded-full border border-brand-500/35 [transform:perspective(500px)_rotateX(72deg)]" />
+      <span aria-hidden className="absolute inset-x-0 top-1/2 aspect-square -translate-y-1/2 rounded-full border border-brand-500 [transform:perspective(500px)_rotateX(72deg)]" />
       <span aria-hidden className="absolute bottom-1 left-1/2 h-3 w-14 -translate-x-1/2 rounded-[50%] bg-ink/20 blur-md" />
       <span className="animate-float [--dur:6s]">{children}</span>
     </span>
@@ -23,7 +23,7 @@ export function EmptyState({ title, children, action }: { title: string; childre
       <h2 className="relative text-lg font-semibold">{title}</h2>
       {children && <p className="relative mt-2 max-w-md text-sm text-muted">{children}</p>}
       {action && (
-        <Link href={action.href} className="btn-primary relative mt-6 shadow-[0_10px_24px_-8px_rgb(255_92_0/0.6)]">
+        <Link href={action.href} className="btn-primary relative mt-6">
           {action.label}
         </Link>
       )}

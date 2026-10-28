@@ -73,7 +73,7 @@ test.describe("homepage", () => {
   test("sold-out products cannot be added from a card", async ({ page }) => {
     await page.goto("/products?q=limited case");
     const card = page.locator("article", { hasText: "Limited Case" });
-    await expect(card.getByText("Out of stock")).toBeVisible();
+    await expect(card.getByText("Sold out", { exact: true })).toBeVisible();
     await expect(card.getByRole("button", { name: /add to cart/i })).toHaveCount(0);
   });
 
@@ -242,7 +242,7 @@ test.describe("storefront sections", () => {
     await expect(cats.getByRole("heading", { name: "Shop by Category" })).toBeVisible();
     await expect(cats.getByRole("link", { name: "View all products" })).toHaveAttribute("href", "/products");
     await expect(cats.getByRole("link")).toHaveCount(6); // five categories + View all
-    for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables"]) await expect(cats.getByText(name, { exact: true })).toBeVisible();
+    for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables"]) await expect(cats.getByRole("link", { name: new RegExp(`^${name}, `) })).toBeVisible();
     const audio = cats.getByRole("link", { name: "Audio, 4 products" });
     await expect(audio).toHaveAttribute("href", "/categories/audio");
     await expect(cats.getByRole("link", { name: "Tablets, 1 product" })).toHaveAttribute("href", "/categories/tablets");
@@ -263,21 +263,31 @@ test.describe("storefront sections", () => {
     await expect(page).toHaveURL(/\/categories\/audio/);
   });
 
-  test("category grid is centred, items are evenly sized and nothing overflows", async ({ browser }) => {
-    for (const w of [1440, 820, 390]) {
-      const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" });
-      const page = await ctx.newPage();
-      await page.goto("/");
-      await page.locator("section[aria-labelledby=cats] ul > li").first().waitFor();
-      const items = await page.locator("section[aria-labelledby=cats] ul > li").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().width));
-      expect(items.length).toBeGreaterThanOrEqual(4);
-      for (const iw of items.slice(1)) expect(Math.abs(iw - items[0])).toBeLessThan(2); // uniform
-      const first = await page.locator("section[aria-labelledby=cats] ul > li").first().boundingBox();
-      const last = await page.locator("section[aria-labelledby=cats] ul > li").last().boundingBox();
-      if (w >= 1024 && first && last) expect(Math.abs(first.x - (w - (last.x + last.width)))).toBeLessThan(w * 0.05); // one centred row
-      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
-      await ctx.close();
-    }
+  test("category row: moved by hand with arrows on both sides, each category once, nothing overflows", async ({ browser }) => {
+    // wide screens: the five categories fit, so the row is centred and has no arrows
+    const wide = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    let page = await wide.newPage();
+    await page.goto("/");
+    const cats = page.locator("section[aria-labelledby=cats]");
+    await expect(cats.getByRole("link", { name: /, \d+ products?$/ })).toHaveCount(5);
+    await expect(cats.getByRole("button", { name: /categories$/ })).toHaveCount(0);
+    const boxes = await cats.locator("ul > li").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ x: r.x, w: r.width, r: r.right })));
+    for (const b of boxes.slice(1)) expect(Math.abs(b.w - boxes[0].w)).toBeLessThan(2);
+    expect(Math.abs(boxes[0].x - (1440 - boxes[boxes.length - 1].r))).toBeLessThan(1440 * 0.05);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+    await wide.close();
+
+    // phones: the row scrolls; Next and Previous appear only when there is more that way
+    const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    page = await phone.newPage();
+    await page.goto("/");
+    const row = page.locator("section[aria-labelledby=cats]");
+    await expect(row.getByRole("button", { name: "Previous categories" })).toHaveCount(0);
+    await row.getByRole("button", { name: "Next categories" }).click();
+    await expect(row.getByRole("button", { name: "Previous categories" })).toBeVisible();
+    await expect.poll(() => row.locator("ul").first().evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+    await phone.close();
   });
 
   test("collections: one section per larger category, with its real products and a link to the category", async ({ page }) => {
@@ -410,10 +420,11 @@ test.describe("more homepage sections", () => {
     await expect(page.getByRole("link", { name: "Pulse Wireless Earbuds", exact: true })).toBeVisible();
   });
 
-  test("product card: left-aligned title, real price and an always-visible Add to cart", async ({ page }) => {
+  test("product card: centred title, stock pill, real price, and Add to cart shown on hover or keyboard focus", async ({ page }) => {
     await page.goto("/");
     const card = page.locator("#new-arrivals article", { hasText: "Pulse Wireless Earbuds" }).first();
-    expect(["left", "start"]).toContain(await card.locator("h3").evaluate((el) => getComputedStyle(el).textAlign)); // start = left in LTR
+    expect(await card.locator("h3").evaluate((el) => getComputedStyle(el.parentElement!).textAlign)).toBe("center");
+    await expect(card.getByText(/^(In stock|Only \d+ left)$/)).toBeVisible();
     await expect(card.getByText("LKR 14,900")).toBeVisible();
     const button = card.getByRole("button", { name: /^Add to cart:/ });
     await page.mouse.move(2, 2);
@@ -424,7 +435,7 @@ test.describe("more homepage sections", () => {
     // variant products get "Choose options" instead of Add to cart
     const phone = page.locator("#new-arrivals article", { hasText: "Nova X1 Smartphone" }).first();
     await expect(phone.getByRole("link", { name: "Choose options" })).toHaveAttribute("href", /\/products\/nova-x1-smartphone-/);
-    await expect(phone.getByText("From", { exact: true })).toBeVisible();
+    await expect(phone.getByText("From:", { exact: true })).toBeVisible();
   });
 
   test("product card Add to cart works by tap on touch screens", async ({ browser }) => {

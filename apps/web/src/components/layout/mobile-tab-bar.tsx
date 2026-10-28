@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart, PackageSearch, ShoppingCart, Store, User, type LucideIcon } from "lucide-react";
 import { useCart } from "@/store/cart";
+import { openCartFromClick } from "@/store/cart-drawer";
 import { useWishlist } from "@/store/wishlist";
 
 /**
- * Phone-only tab bar fixed to the bottom of the screen, as in shopping apps: Shop, Wishlist, Cart and My account (or
- * Track order when customer accounts are off). Counts come from the same stores as the header.
+ * Phone-only tab bar fixed to the bottom of the screen, as in shopping apps: Shop, Wishlist, Cart (opens the cart
+ * drawer) and My account (or Track order when customer accounts are off). Counts come from the same stores as the header.
  */
 export function MobileTabBar({ accounts }: { accounts: boolean }) {
   const pathname = usePathname();
@@ -31,11 +32,13 @@ export function MobileTabBar({ accounts }: { accounts: boolean }) {
             <li key={href}>
               <Link
                 href={href}
+                aria-haspopup={href === "/cart" ? "dialog" : undefined}
+                onClick={href === "/cart" ? (e) => openCartFromClick(e, pathname) : undefined}
                 aria-current={active ? "page" : undefined}
                 aria-label={badge ? `${label}, ${badge} item${badge === 1 ? "" : "s"}` : undefined}
                 className={`relative flex h-full flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors ${active ? "text-brand-600" : "text-ink/75 hover:text-brand-600"}`}
               >
-                {active ? <span aria-hidden className="absolute inset-x-6 top-0 h-[3px] rounded-b-full bg-brand-500 shadow-[0_0_8px_rgb(255_92_0/0.8)]" /> : null}
+                {active ? <span aria-hidden className="absolute inset-x-6 top-0 h-[3px] rounded-b-full bg-brand-500" /> : null}
                 <span className="relative">
                   <Icon className="h-[22px] w-[22px]" strokeWidth={1.7} aria-hidden />
                   {badge ? (

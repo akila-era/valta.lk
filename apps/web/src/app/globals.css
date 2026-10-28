@@ -5,42 +5,50 @@
   --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* VOLTA.LK storefront: white and neon orange. White canvas, orange-tinted white surfaces and warm hairlines, deep
-     charcoal text, orange accents and soft orange glows. The admin console keeps neutral greys (see .admin-theme). "on-brand" is the dark text used on orange fills (5.8:1 on brand-500).
+  /* VOLTA.LK storefront: neon orange, white and black only. White canvas, black text and black sections, neon orange
+     for fills, icons and lines; greys are tints of black for hairlines and muted text. The admin console keeps its
+     own neutral theme (see .admin-theme). "on-brand" is the black text used on orange fills (5.8:1 on brand-500).
      muted passes 4.5:1 on bg, surface and brand-50 alike, because text-muted is used on all three.
      border is for decorative separators; border-strong (>= 3:1 on bg and surface) outlines form controls. */
   --color-bg: #ffffff;
-  --color-surface: #fff7f2;
-  --color-border: #f3e2d6;
-  --color-border-strong: #868b92;
-  --color-ink: #171717;
-  --color-muted: #6b6b6b;
-  --color-dark: #101113;
-  --color-night: #101113;
-  --color-night-2: #191b1f;
+  --color-surface: #f5f5f5;
+  --color-border: #e5e5e5;
+  --color-border-strong: #868686;
+  --color-ink: #111111;
+  --color-muted: #616161;
+  --color-dark: #111111;
+  --color-night: #111111;
+  --color-night-2: #1c1c1c;
   --color-media: #ffffff;
-  --color-on-brand: #171717;
+  --color-on-brand: #111111;
 
-  /* Brand: neon orange #FF5C00 is for fills with dark text; brand-600/700 are the text-safe oranges on white (>= 4.5:1).
-     brand-50 is the soft orange surface; brand-hover is the pressed/hover fill (ink on it is 5:1). */
-  --color-brand-50: #fff0e7;
-  --color-brand-100: #ffe2d0;
-  --color-brand-400: #ff7a2e;
+  /* The storefront uses three colours only: neon orange #FF5C00, white and black (with black's grey tints for
+     hairlines, muted text and quiet fills). No light orange tints.
+     - brand-500 / brand-400 / brand-hover: the one neon orange, for fills (with black text), icons, lines and badges.
+       Orange fills turn black on hover (see btn-primary), so the hover never needs a second orange.
+     - brand-600 / brand-700: text that would be orange on white. Neon orange on white is only 3:1, too faint for
+       small text, so these are black; neon orange text is kept for black backgrounds (5.9:1).
+     - brand-50 / brand-100: quiet neutral fills and rings (no orange). */
+  --color-brand-50: #f5f5f5;
+  --color-brand-100: #e5e5e5;
+  --color-brand-400: #ff5c00;
   --color-brand-500: #ff5c00;
-  --color-brand-hover: #f04f00;
-  --color-brand-600: #c24100;
-  --color-brand-700: #9a3300;
+  --color-brand-hover: #ff5c00;
+  --color-brand-600: #111111;
+  --color-brand-700: #111111;
 
-  /* Status colors stay clearly distinct from the brand orange */
+  /* Status colours stay inside the white / neon orange / black palette: success and information are black on an
+     orange tint, warnings are deep orange. Only errors keep red, so a problem is never mistaken for a highlight.
+     The admin console pins its own green/amber/blue status colours (see .admin-theme). */
   --color-danger: #b42318;
   --color-danger-strong: #8f1c14;
   --color-danger-bg: #fef3f2;
-  --color-success: #067647;
-  --color-success-bg: #ecfdf3;
-  --color-warn: #7a4a00;
-  --color-warn-bg: #fff8e1;
-  --color-info: #1849a9;
-  --color-info-bg: #eff4ff;
+  --color-success: #111111;
+  --color-success-bg: #f5f5f5;
+  --color-warn: #111111;
+  --color-warn-bg: #f5f5f5;
+  --color-info: #111111;
+  --color-info-bg: #f5f5f5;
 
   /* Admin navigation uses the same charcoal, not a second brand colour */
   --color-navy-950: #101010;
@@ -48,17 +56,17 @@
   --color-navy-800: #242424;
   --color-navy-700: #333333;
 
-  --shadow-card: 0 1px 2px rgb(255 92 0 / 0.06), 0 12px 30px -18px rgb(255 92 0 / 0.35);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 10px 26px -18px rgb(0 0 0 / 0.25);
   --shadow-raised: 0 8px 24px -16px rgb(23 23 23 / 0.35);
-  /* Restrained neutral shadows: soft for resting cards, float for raised panels, lift for hover. */
-  --shadow-soft: 0 1px 2px rgb(255 92 0 / 0.05), 0 10px 26px -18px rgb(255 92 0 / 0.3);
+  /* Restrained black shadows: soft for resting cards, float for raised panels, lift for hover. */
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.05), 0 10px 26px -18px rgb(0 0 0 / 0.22);
   --shadow-float: 0 8px 24px -8px rgb(16 24 40 / 0.12);
   --shadow-lift: 0 12px 28px -12px rgb(16 24 40 / 0.22);
   --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
-  --shadow-glow: 0 6px 16px -8px rgb(255 92 0 / 0.55);
-  /* Neon orange: a soft orange halo for primary actions and hovered cards. */
-  --shadow-neon: 0 8px 22px -8px rgb(255 92 0 / 0.6), 0 0 0 1px rgb(255 92 0 / 0.12);
-  --shadow-neon-lift: 0 14px 34px -14px rgb(255 92 0 / 0.45), 0 0 0 1px rgb(255 92 0 / 0.35);
+  --shadow-glow: 0 0 0 1px #ff5c00;
+  /* "Neon" accents: a crisp neon orange edge with a black shadow (no orange haze). */
+  --shadow-neon: 0 0 0 1px #ff5c00, 0 6px 16px -8px rgb(0 0 0 / 0.35);
+  --shadow-neon-lift: 0 0 0 1px #ff5c00, 0 14px 30px -14px rgb(0 0 0 / 0.35);
 
   /* Named radii (Tailwind's rounded-sm..4xl defaults stay as they are): controls, cards, panels, feature blocks, pills.
      Kept small for a crisp retail look. */
@@ -114,12 +122,12 @@
     transition-[background-color,color,border-color,box-shadow,transform] duration-200 active:scale-[0.98]
     disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
 }
-@utility btn-primary { @apply btn bg-brand-500 text-on-brand shadow-neon hover:bg-brand-hover hover:shadow-[0_10px_28px_-6px_rgb(255_92_0/0.75)]; }
+@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-ink hover:text-white; }
 @utility btn-secondary { @apply btn border border-brand-500/40 bg-bg text-ink hover:border-brand-500 hover:text-brand-700 hover:shadow-neon; }
 @utility btn-outline { @apply btn border border-brand-500/40 bg-bg text-ink hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand hover:shadow-neon; }
 @utility btn-ghost { @apply btn text-ink hover:bg-brand-50 hover:text-brand-700; }
 @utility btn-text { @apply btn text-ink hover:bg-surface; }
-@utility btn-dark { @apply btn bg-brand-700 text-white shadow-neon hover:bg-brand-600; }
+@utility btn-dark { @apply btn bg-ink text-white hover:bg-brand-500 hover:text-on-brand hover:shadow-neon; }
 @utility btn-danger { @apply btn bg-danger text-white hover:bg-danger-strong; }
 @utility btn-lg { @apply min-h-12 px-7 text-base; }
 @utility input {

@@ -4,6 +4,9 @@ import { CatalogueView, type RawParams } from "@/components/products/catalogue-v
 import { ErpUnavailable } from "@/components/ui/states";
 import { listProducts } from "@/lib/erp/catalogue";
 import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
+import { RecentlyViewed } from "@/components/products/recently-viewed";
+import Link from "next/link";
+import { categoryIcon } from "@/components/ui/category-icon";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<RawParams> };
 
@@ -47,7 +50,34 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         title={category.name}
         intro={`${category.count} ${category.count === 1 ? "product" : "products"} in this category.`}
       />
+      {category.subs.length > 0 && (
+        // Sub-category tiles, as large stores show above a category's products.
+        <nav aria-label={`${category.name} sub-categories`} className="-mx-4 mb-6 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+          <ul className="flex w-max gap-2.5 sm:w-auto sm:flex-wrap">
+            {[{ slug: "", name: `All ${category.name}`, count: category.count }, ...category.subs].map((s) => {
+              const on = (sub?.slug ?? "") === s.slug;
+              const Icon = categoryIcon(s.name || category.name);
+              return (
+                <li key={s.slug || "all"}>
+                  <Link
+                    href={s.slug ? `/categories/${slug}?sub=${s.slug}` : `/categories/${slug}`}
+                    aria-current={on ? "page" : undefined}
+                    className={`flex min-h-12 items-center gap-2.5 rounded-card border px-3.5 py-2 text-sm font-semibold transition-[border-color,background-color,box-shadow] ${on ? "border-ink bg-ink text-white" : "border-border bg-bg text-ink hover:border-brand-500 hover:shadow-neon"}`}
+                  >
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-full ${on ? "bg-brand-500 text-on-brand" : "bg-brand-50 text-brand-600"}`}>
+                      <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                    </span>
+                    {s.name}
+                    <span className={`text-xs font-medium ${on ? "text-white/70" : "text-muted"}`}>{s.count}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
       <CatalogueView basePath={`/categories/${slug}`} params={query} fixedCategory={slug} />
+      <RecentlyViewed />
     </>
   );
 }

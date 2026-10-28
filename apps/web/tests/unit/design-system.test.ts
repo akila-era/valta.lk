@@ -54,10 +54,10 @@ describe("design system tokens", () => {
     }
   });
 
-  it("styles the primary button with dark text, a deeper hover and no glow, and inputs with the strong outline", () => {
+  it("styles the primary button with black text, a black hover and no glow, and inputs with the strong outline", () => {
     const rule = (name: string) => css.match(new RegExp(`@utility ${name} \\{([^}]*)\\}`))?.[1] ?? "";
     expect(rule("btn-primary")).toContain("text-on-brand");
-    expect(rule("btn-primary")).toContain("hover:bg-brand-hover");
+    expect(rule("btn-primary")).toContain("hover:bg-ink"); // orange turns black: no second shade of orange
     expect(rule("btn-primary")).not.toContain("shadow-glow");
     expect(rule("input")).toContain("border-border-strong");
     expect(rule("btn")).toContain("min-h-11");
@@ -71,8 +71,28 @@ describe("design system tokens", () => {
     expect(admin).toContain("--color-surface: #f5f6f7;");
     expect(admin).toContain("--color-border: #e6e8eb;");
     expect(css).not.toMatch(/\.admin-theme [^{]*\{\s*color:\s*#fff/);
-    for (const name of ["danger", "danger-bg", "success", "success-bg", "warn", "warn-bg", "info", "info-bg"]) {
-      expect(admin).toContain(`--color-${name}: ${token(name)};`);
+    // errors are the same red everywhere; the console keeps its own green / amber / blue for the other states
+    for (const name of ["danger", "danger-bg"]) expect(admin).toContain(`--color-${name}: ${token(name)};`);
+    for (const [name, value] of [["success", "#067647"], ["success-bg", "#ecfdf3"], ["warn", "#7a4a00"], ["warn-bg", "#fff8e1"], ["info", "#1849a9"], ["info-bg", "#eff4ff"]]) {
+      expect(admin).toContain(`--color-${name}: ${value};`);
+    }
+  });
+
+  it("keeps the storefront's non-error states inside the white, neon orange and black palette", () => {
+    for (const name of ["success", "info"]) expect(token(name)).toBe(token("ink"));
+    expect(token("warn")).toBe(token("brand-700"));
+    for (const name of ["success-bg", "warn-bg"]) expect(token(name)).toBe(token("brand-50"));
+  });
+});
+
+describe("three-colour palette", () => {
+  it("uses one neon orange, white and black only: no light orange tints", () => {
+    for (const name of ["brand-400", "brand-500", "brand-hover"]) expect(token(name).toLowerCase()).toBe("#ff5c00");
+    expect(token("bg")).toBe("#ffffff");
+    // every other storefront colour is white, black or a grey (equal red, green and blue)
+    for (const name of ["surface", "border", "border-strong", "ink", "muted", "brand-50", "brand-100", "brand-600", "brand-700", "on-brand"]) {
+      const [r, g, b] = [1, 3, 5].map((i) => token(name).slice(i, i + 2).toLowerCase());
+      expect(r === g && g === b, `${name} ${token(name)} is a grey`).toBe(true);
     }
   });
 });

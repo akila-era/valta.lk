@@ -9,7 +9,7 @@ export function BackToTop() {
       type="button"
       aria-label="Back to top"
       onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}
-      className="flex h-10 w-10 items-center justify-center rounded-control bg-ink text-white transition-colors hover:bg-ink/85"
+      className="flex h-10 w-10 items-center justify-center rounded-control bg-brand-500 text-on-brand shadow-neon transition-colors hover:bg-brand-hover"
     >
       <ChevronUp className="h-5 w-5" aria-hidden />
     </button>

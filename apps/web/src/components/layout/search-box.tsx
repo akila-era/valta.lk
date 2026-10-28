@@ -25,7 +25,7 @@ interface Suggestion {
  * products from the catalogue API as the shopper types.
  */
 /** `label` names the search landmark; pages with a second search box pass their own so the two can be told apart. */
-export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "Site search" }: { autoFocus?: boolean; size?: "md" | "lg"; initialQuery?: string; label?: string }) {
+export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "Site search", popular = [] }: { autoFocus?: boolean; size?: "md" | "lg"; initialQuery?: string; label?: string; /** Quick links shown on focus before typing: the catalogue's biggest brands and categories. */ popular?: { label: string; href: string }[] }) {
   const router = useRouter();
   const listId = useId();
   const [q, setQ] = useState(initialQuery);
@@ -34,6 +34,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1);
   const [armed, setArmed] = useState(false);
+  const [hint, setHint] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -75,7 +76,10 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
-      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
+      if (wrap.current && !wrap.current.contains(e.target as Node)) {
+        setOpen(false);
+        setHint(false);
+      }
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -86,7 +90,10 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
   const total = items.length + 1; // the final option is "see all results"
 
   function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") return setOpen(false);
+    if (e.key === "Escape") {
+      setHint(false);
+      return setOpen(false);
+    }
     if (!visible) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -121,6 +128,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
             }
           }}
           onFocus={() => {
+            setHint(true);
             // The search page autofocuses with the query already shown; open suggestions only once the shopper edits it.
             if (q.trim().length >= 2 && q !== initialQuery) setArmed(true);
             if (items.length) setOpen(true);
@@ -160,6 +168,20 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
         {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[4.25rem]" : "right-10"}`} aria-hidden />}
       </form>
 
+      {hint && term.length === 0 && popular.length > 0 && (
+        <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-card border border-border bg-bg p-3 text-ink shadow-overlay">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Top brands &amp; categories</p>
+          <ul className="flex flex-wrap gap-2">
+            {popular.map((p) => (
+              <li key={p.href}>
+                <Link href={p.href} onClick={() => setHint(false)} className="inline-flex min-h-8 items-center rounded-full border border-border px-3 text-xs font-semibold text-ink transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand">
+                  {p.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {visible && (
         <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-card border border-border bg-bg py-1 text-ink shadow-overlay">
           {items.length === 0 && !loading && <li role="presentation" className="px-4 py-3 text-sm text-muted">No matching products</li>}

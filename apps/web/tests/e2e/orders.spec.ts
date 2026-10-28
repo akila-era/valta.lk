@@ -283,7 +283,7 @@ test.describe("admin orders", () => {
     // ERP recovers: retry sends it exactly once, repeated retries are harmless
     await control({ orderOutage: false });
     await page.getByRole("button", { name: "Retry sync to ERP" }).click();
-    await expect(page.getByText("In ERP").first()).toBeVisible();
+    await expect(page.getByText("In ERP", { exact: true }).first()).toBeVisible(); // the sync badge, not the "In ERP since" row
     await expect(page.getByRole("button", { name: "Retry sync to ERP" })).toHaveCount(0);
     const state = await control({});
     expect(state.orders).toBe(1);
@@ -310,7 +310,7 @@ test.describe("admin orders", () => {
     await expect(page.getByTestId("last-error")).toContainText("Not enough stock when the order reached the ERP.");
     await control({ rejectOrders: [] });
     await page.getByRole("button", { name: "Retry sync to ERP" }).click(); // stock is fine again
-    await expect(page.getByText("In ERP").first()).toBeVisible();
+    await expect(page.getByText("In ERP", { exact: true }).first()).toBeVisible(); // the sync badge, not the "In ERP since" row
     expect((await control({})).orderRefs).toContain(ref);
   });
 });

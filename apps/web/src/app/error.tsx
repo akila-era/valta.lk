@@ -7,8 +7,7 @@ import { Icon3D } from "@/components/ui/icon-3d";
 export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <main className="relative isolate flex min-h-[75vh] flex-col items-center justify-center overflow-hidden px-4 py-16 text-center" role="alert">
-      <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[#FAF8F5] via-[#F4EFEA] to-white" />
-      <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -z-10 aspect-square w-[min(40rem,130vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-500/25 [transform:perspective(900px)_rotateX(74deg)]" />
+            <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 -z-10 aspect-square w-[min(40rem,130vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-brand-500 [transform:perspective(900px)_rotateX(74deg)]" />
       
       <span className="group animate-float [--dur:6s]">
         <Icon3D icon={AlertTriangle} size="lg" />

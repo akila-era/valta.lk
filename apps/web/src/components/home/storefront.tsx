@@ -1,14 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Banknote, Headset, PackageSearch, Truck, type LucideIcon } from "lucide-react";
+import { ArrowRight, BadgeCheck, Banknote, Headset, PackageSearch, RefreshCw, Star, Truck, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { CompactProductCard } from "@/components/products/compact-product-card";
-import { categoryIcon } from "@/components/ui/category-icon";
 import type { HomeData, ResolvedBanner } from "@/lib/home-data";
 import type { ErpProduct } from "@/lib/erp/types";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { categoryVisual } from "./category-art";
+import { CategoryCarousel } from "./category-carousel";
 import { HeroBanner, type HeroSlide } from "./hero-banner";
 import { Reveal } from "./reveal";
 
@@ -46,7 +46,7 @@ export function SectionHead({ id, eyebrow, title, children }: { id: string; eyeb
     <div className="mb-7 text-center sm:mb-9">
       {eyebrow ? <p className="eyebrow mb-1.5">{eyebrow}</p> : null}
       <h2 id={id} className="font-display text-[clamp(1.6rem,1.15rem+1.5vw,2.4rem)] font-extrabold leading-tight tracking-title text-ink">{title}</h2>
-      <span aria-hidden className="mx-auto mt-3 block h-[3px] w-12 rounded-full bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.6)]" />
+      <span aria-hidden className="mx-auto mt-3 block h-[3px] w-12 rounded-full bg-brand-500" />
       {children ? <p className="mx-auto mt-3 max-w-xl text-sm text-muted sm:text-[15px]">{children}</p> : null}
     </div>
   );
@@ -124,64 +124,50 @@ export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
 /** "Shop by Category": one tile per real ERP category, with studio art, the ERP's own photo or an icon, and the count. */
 export function CategoryGrid({ categories }: { categories: Category[] }) {
   if (!categories.length) return null;
-  const shown = categories.slice(0, 12);
+  const tiles = categories.slice(0, 12).map((c) => ({ slug: c.slug, name: c.name, count: c.count, art: categoryVisual(c.name) ?? c.image }));
   return (
     <section aria-labelledby="cats" className="container-page mt-12 sm:mt-16">
       <SectionHead id="cats" eyebrow="Browse" title="Shop by Category">Find the right device or accessory in a tap.</SectionHead>
-      {/* Three per row on phones and tablets, six on wide screens; a short last row stays centred. */}
-      <ul className="flex flex-wrap justify-center gap-x-2 gap-y-5 sm:gap-x-4 lg:gap-x-6">
-        {shown.map((c, i) => {
-          const Icon = categoryIcon(c.name);
-          const art = categoryVisual(c.name) ?? c.image;
-          const count = `${c.count} ${c.count === 1 ? "product" : "products"}`;
-          return (
-            <Reveal as="li" key={c.slug} delay={Math.min(i, 6) * 40} className="w-[calc((100%-1rem)/3)] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-7.5rem)/6)] lg:max-w-52">
-              <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group relative flex h-full flex-col items-center p-2 text-center">
-                <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-brand-100 to-brand-50 ring-2 ring-transparent ring-offset-4 transition-[box-shadow] duration-300 group-hover:shadow-[0_14px_30px_-10px_rgb(255_92_0/0.7)] group-hover:ring-brand-500">
-                  {art ? (
-                    <Image src={art} alt="" fill sizes="144px" className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" />
-                  ) : (
-                    <Icon className="h-12 w-12 text-ink/70" strokeWidth={1.2} />
-                  )}
-                </span>
-                <span className="text-[13px] font-bold leading-tight text-ink group-hover:text-brand-600 sm:text-[15px]">{c.name}</span>
-                <span className="mt-1.5 rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 ring-1 ring-brand-100 transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">{count}</span>
-              </Link>
-            </Reveal>
-          );
-        })}
-      </ul>
+      <CategoryCarousel tiles={tiles} />
       <ViewAll href="/products" label="View all products" />
     </section>
   );
 }
 
 /**
- * Spotlight: the two largest categories that have studio art, as big side-by-side tiles with a centred title, a line
- * and one action, the way large brand stores feature their key ranges.
+ * Spotlight: the two largest categories that have studio art, as two equal side-by-side tiles with a title, a line,
+ * one action and the category photo, the way large brand stores feature their key ranges.
  */
 export function Spotlight({ categories }: { categories: Category[] }) {
   const picks = [...categories].filter((c) => categoryVisual(c.name)).sort((a, b) => b.count - a.count).slice(0, 2);
   if (picks.length < 2) return null;
   return (
     <section aria-label="Featured ranges" className="container-page mt-14 sm:mt-20">
-      <ul className="grid gap-4 md:grid-cols-2">
-        {picks.map((c, i) => (
-          <li key={c.slug}>
-            <Link
-              href={`/categories/${c.slug}`}
-              className={`group relative flex h-[19rem] flex-col items-center overflow-hidden rounded-panel px-6 pt-7 text-center sm:h-[26rem] sm:pt-9 ${i ? "bg-[linear-gradient(160deg,#fff4ec,#ffe0c8)]" : "bg-[linear-gradient(160deg,#f6f6f7,#e9eaec)]"}`}
-            >
-              <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-600">{c.count} {c.count === 1 ? "product" : "products"}</span>
-              <span className="mt-2 font-display text-2xl font-extrabold tracking-title text-ink sm:text-3xl">{c.name}</span>
-              <span className="mt-2 max-w-sm text-sm text-muted">{collectionLine(c.name, c.count)}</span>
-              <span className="btn-primary mt-5 min-h-10 rounded-full px-6 text-[13px]">Shop now</span>
-              <span aria-hidden className="absolute bottom-[-6%] left-1/2 aspect-square h-[58%] -translate-x-1/2 mix-blend-multiply transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-105 motion-reduce:transition-none">
-                <Image src={categoryVisual(c.name)!} alt="" fill sizes="(min-width:768px) 30vw, 70vw" className="object-contain [mask-image:radial-gradient(closest-side,#000_70%,transparent)]" />
-              </span>
-            </Link>
-          </li>
-        ))}
+      {/* Side by side from laptops; stacked full-width below, so the title always has room next to the photo. */}
+      <ul className="grid gap-4 lg:grid-cols-2">
+        {picks.map((c, i) => {
+          // Two tiles with the same layout (text left, photo on a white disc right) in the store's colours: the first
+          // black with white text, the second neon orange with black text.
+          const dark = i === 0;
+          return (
+            <li key={c.slug}>
+              <Link
+                href={`/categories/${c.slug}`}
+                className={`group grid h-full min-h-52 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 overflow-hidden rounded-panel p-5 sm:min-h-64 sm:gap-6 sm:p-8 ${dark ? "bg-ink text-white" : "bg-brand-500 text-ink"}`}
+              >
+                <span className="flex min-w-0 flex-col items-start text-left">
+                  <span className={`text-xs font-bold uppercase tracking-[0.14em] ${dark ? "text-brand-500" : "text-ink"}`}>{c.count} {c.count === 1 ? "product" : "products"}</span>
+                  <span className="mt-2 font-display text-xl font-extrabold leading-tight tracking-title xs:text-2xl sm:text-3xl">{c.name}</span>
+                  <span className={`mt-2 max-w-xs text-sm leading-6 ${dark ? "text-white/75" : "text-ink/80"}`}>{collectionLine(c.name, c.count)}</span>
+                  <span className={`btn mt-5 min-h-10 rounded-full px-6 text-[13px] ${dark ? "bg-brand-500 text-on-brand group-hover:bg-white group-hover:text-ink" : "bg-ink text-white group-hover:bg-white group-hover:text-ink"}`}>Shop now</span>
+                </span>
+                <span aria-hidden className={`relative aspect-square w-24 overflow-hidden rounded-full bg-white ring-4 xs:w-32 transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none sm:w-44 lg:w-52 ${dark ? "ring-brand-500" : "ring-ink"}`}>
+                  <Image src={categoryVisual(c.name)!} alt="" fill sizes="(min-width:1024px) 208px, (min-width:640px) 176px, 128px" className="object-cover" />
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
@@ -257,7 +243,7 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
     </>
   );
   return tinted ? (
-    <section id={id} aria-labelledby={`${id}-title`} className="mt-12 scroll-mt-40 bg-gradient-to-b from-brand-50 to-bg py-10 sm:mt-16 sm:py-14">
+    <section id={id} aria-labelledby={`${id}-title`} className="mt-12 scroll-mt-40 border-y border-border bg-surface py-10 sm:mt-16 sm:py-14">
       <div className="container-page">{grid}</div>
     </section>
   ) : (
@@ -300,13 +286,13 @@ export function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={b.logo} alt="" loading="lazy" className="h-11 max-w-[75%] object-contain transition-transform duration-300 group-hover:scale-105 sm:h-12" />
               ) : (
-                <span aria-hidden className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-500 font-display text-xl font-extrabold text-on-brand shadow-neon transition-transform duration-300 group-hover:scale-110 sm:h-12 sm:w-12">
+                <span aria-hidden className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-500 font-display text-xl font-extrabold text-on-brand shadow-neon transition-transform duration-300 group-hover:scale-110 sm:h-12 sm:w-12">
                   {b.name.trim().charAt(0).toUpperCase()}
                 </span>
               )}
               <span className="max-w-full truncate text-[13px] font-bold uppercase tracking-[0.06em] text-ink transition-colors group-hover:text-brand-600 sm:text-sm">{b.name}</span>
               <span className="text-[11px] font-medium text-muted transition-colors group-hover:text-brand-700">{count}</span>
-              <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-brand-500 shadow-[0_0_10px_rgb(255_92_0/0.8)] transition-transform duration-300 group-hover:scale-x-100" />
+              <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-brand-500 transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
           </li>
         );
@@ -319,12 +305,81 @@ export function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
 export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
   if (!brands.length) return null;
   return (
-    <section aria-labelledby="brands" className="mt-12 bg-gradient-to-b from-brand-50 to-bg py-10 sm:mt-16 sm:py-14">
+    <section aria-labelledby="brands" className="mt-12 border-y border-border bg-surface py-10 sm:mt-16 sm:py-14">
       <div className="container-page">
         <SectionHead id="brands" eyebrow={`Brands at ${siteConfig.name}`} title="Shop by Brand">The brands in our catalogue, all in one place.</SectionHead>
         <BrandGrid brands={brands.slice(0, 12)} />
         <ViewAll href="/brands" label="View all brands" />
       </div>
+    </section>
+  );
+}
+
+/**
+ * "Why Choose VOLTA.LK" on a black band: only things the store really does (checkout rules come from the live ERP
+ * settings). No warranty, authorised-dealer or delivery-time promises, because none are verified.
+ */
+export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
+  const reasons: { icon: LucideIcon; title: string; text: string }[] = [
+    ...(checkout.cod ? [{ icon: Banknote, title: "Cash on Delivery", text: "Pay in cash when your order arrives. No card needed to order." }] : []),
+    ...(checkout.deliveryCharge != null ? [{ icon: Truck, title: "One Clear Delivery Charge", text: `A flat ${formatLkr(checkout.deliveryCharge)}, shown before you place your order.` }] : []),
+    { icon: RefreshCw, title: "Live Prices & Stock", text: "Every price and stock level comes from our live catalogue and is checked again at checkout." },
+    { icon: PackageSearch, title: "Track & Cancel Online", text: "Follow your order with its reference, and cancel online before it is dispatched." },
+    { icon: BadgeCheck, title: "Shop by Brand", text: "Every brand in our catalogue in one place, with its own shop page." },
+    { icon: Headset, title: "Real People to Help", text: "Questions about an order or a product? Our team answers." },
+  ];
+  return (
+    <section aria-labelledby="why" className="relative mt-14 overflow-hidden bg-ink py-14 text-white sm:mt-20 sm:py-20">
+      <div className="container-page relative">
+        <div className="mb-9 text-center">
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.14em] text-brand-500">Why choose us</p>
+          <h2 id="why" className="font-display text-[clamp(1.6rem,1.15rem+1.5vw,2.4rem)] font-extrabold leading-tight tracking-title">Why Choose {siteConfig.name}</h2>
+          <span aria-hidden className="mx-auto mt-3 block h-[3px] w-12 rounded-full bg-brand-500" />
+        </div>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {reasons.map(({ icon: I, title, text }) => (
+            <li key={title} className="group rounded-card border border-white/10 bg-white/[0.04] p-5 transition-[border-color,background-color,box-shadow] duration-300 hover:border-brand-500 hover:bg-white/[0.07] sm:p-6">
+              <span className="flex h-12 w-12 items-center justify-center rounded-control bg-brand-500 text-on-brand shadow-neon">
+                <I className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+              </span>
+              <h3 className="mt-4 text-base font-bold">{title}</h3>
+              <p className="mt-1.5 text-sm leading-6 text-white/70">{text}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Customer reviews configured by the owner (HOME_REVIEWS): real reviews only, each with its rating and, when given,
+ * where it was posted. Hidden until reviews are configured, so the page never shows invented praise.
+ */
+export function Reviews({ title, reviews }: { title: string; reviews: HomeData["reviews"]["items"] }) {
+  if (!reviews.length) return null;
+  return (
+    <section aria-labelledby="reviews" className="container-page mt-14 sm:mt-20">
+      <SectionHead id="reviews" eyebrow="Reviews" title={title} />
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {reviews.map((r, i) => (
+          <li key={i} className="flex flex-col rounded-card border border-border bg-bg p-5 transition-[border-color,box-shadow] hover:border-brand-500 hover:shadow-neon-lift sm:p-6">
+            <p className="flex gap-0.5" aria-label={`Rated ${r.rating} out of 5`}>
+              {Array.from({ length: 5 }, (_, k) => (
+                <Star key={k} aria-hidden className={`h-4 w-4 ${k < r.rating ? "fill-brand-500 text-brand-500" : "text-border-strong/40"}`} />
+              ))}
+            </p>
+            <blockquote className="mt-3 flex-1 text-[15px] leading-7 text-ink">“{r.text}”</blockquote>
+            <p className="mt-4 flex items-center gap-3 border-t border-border pt-4">
+              <span aria-hidden className="flex h-10 w-10 items-center justify-center rounded-full bg-ink font-bold text-brand-500">{r.name.charAt(0).toUpperCase()}</span>
+              <span className="min-w-0">
+                <span className="block text-sm font-bold">{r.name}</span>
+                {r.source || r.date ? <span className="block text-xs text-muted">{[r.source ? `on ${r.source}` : null, r.date].filter(Boolean).join(" · ")}</span> : null}
+              </span>
+            </p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

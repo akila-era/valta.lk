@@ -29,7 +29,7 @@ export interface PanelProduct {
 /** One delivery / payment fact under the buy buttons. Only facts the store really offers are passed in. */
 function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
   return (
-    <li className="group flex items-start gap-3 rounded-2xl border border-border/80 bg-warm-white/40 p-3 transition-colors duration-200 hover:border-brand-500/30 hover:bg-brand-50/30">
+    <li className="group flex items-start gap-3 rounded-2xl border border-border/80 bg-bg p-3 transition-colors duration-200 hover:border-brand-500 hover:bg-brand-50/30">
       <Icon3D icon={Icon} tone="glass" size="sm" />
       <span className="min-w-0">
         <span className="block font-semibold leading-5 text-ink">{title}</span>

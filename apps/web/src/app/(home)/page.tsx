@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Faq } from "@/components/home/more-sections";
-import { BrandWall, CategoryGrid, HomeHero, ProductSection, PromoTiles, ServiceStrip, Spotlight, collectionLine } from "@/components/home/storefront";
+import { BrandWall, CategoryGrid, HomeHero, ProductSection, PromoTiles, Reviews, ServiceStrip, Spotlight, WhyChoose, collectionLine } from "@/components/home/storefront";
 import { VideoShowcase } from "@/components/home/video-showcase";
 import { ErpUnavailable } from "@/components/ui/states";
 import { getHomeData } from "@/lib/home-data";
@@ -18,8 +18,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * The homepage as a retail storefront: the banner slider (staff banners first), the service strip, categories, brands,
- * staff offers, hot deals, one collection per larger category, new arrivals, videos and the FAQ. Every section comes from live data and is left out when it has nothing to show.
+ * The homepage as a retail storefront: the banner slider (staff banners first), the service strip, the category row
+ * (moved with arrows), spotlight tiles, most popular (from website orders), brands, staff offers, hot deals, one
+ * collection per larger category, new arrivals, why choose us, customer reviews (owner-configured), videos and the
+ * FAQ. Every section comes from live data and is left out when it has nothing to show.
  */
 export default async function HomePage() {
   const data = await getHomeData();
@@ -38,6 +40,7 @@ export default async function HomePage() {
         <>
           <CategoryGrid categories={data.categories} />
           <Spotlight categories={data.categories} />
+          <ProductSection id="popular" eyebrow="Customer favourites" title="Most Popular" text="The products ordered most on VOLTA.LK in the last 90 days." href="/products" products={data.popular} />
           <BrandWall brands={data.brands} />
           {data.staffBanners ? <PromoTiles banners={data.banners.slice(0, 4)} /> : null}
           <ProductSection
@@ -56,6 +59,8 @@ export default async function HomePage() {
             <ProductSection key={r.slug} id={`c-${r.slug}`} eyebrow={`${r.name} collection`} title={r.name} text={collectionLine(r.name, r.count)} href={`/categories/${r.slug}`} products={r.products} tinted={i % 2 === 1} />
           ))}
           <ProductSection id="new-arrivals" eyebrow="Just in" title="New Arrivals" text="The latest products added to our catalogue." href="/products" products={data.newArrivals} tinted={otherRails.length % 2 === 1} />
+          <WhyChoose checkout={data.checkout} />
+          <Reviews title={data.reviews.title} reviews={data.reviews.items} />
           <div className="container-page">
             <VideoShowcase title={data.videos.title} videos={data.videos.items} />
           </div>

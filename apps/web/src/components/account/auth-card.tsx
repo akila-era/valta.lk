@@ -42,7 +42,7 @@ export function AuthCard({
                 className={`relative flex min-h-12 items-center justify-center transition-colors ${on ? "text-brand-600" : "text-muted hover:text-ink"}`}
               >
                 {label}
-                {on ? <span aria-hidden className="absolute inset-x-6 -bottom-px h-[3px] rounded-t-full bg-brand-500 shadow-[0_0_8px_rgb(255_92_0/0.7)]" /> : null}
+                {on ? <span aria-hidden className="absolute inset-x-6 -bottom-px h-[3px] rounded-t-full bg-brand-500" /> : null}
               </Link>
             );
           })}
@@ -75,7 +75,7 @@ export function AuthCard({
 
       {tabs ? (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-8">
-          <aside className="relative order-2 self-start overflow-hidden rounded-panel bg-gradient-to-br from-brand-500 to-brand-400 p-6 text-on-brand shadow-neon sm:p-8 lg:order-1">
+          <aside className="relative order-2 self-start overflow-hidden rounded-panel bg-brand-500 p-6 text-on-brand shadow-neon sm:p-8 lg:order-1">
             <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border-[18px] border-white/20" />
             <p className="relative text-xs font-bold uppercase tracking-[0.14em]">{siteConfig.name} account</p>
             <h2 className="relative mt-2 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Shop faster, keep track of every order.</h2>

@@ -274,7 +274,7 @@ export function CartView() {
           </div>
         </dl>
         <p className="mt-3 text-xs text-muted">Payment is cash on delivery. Prices and stock are confirmed live with our ERP.</p>
-        <Link href="/checkout" className={`btn-primary mt-5 w-full rounded-full py-3 text-sm font-bold shadow-[0_8px_20px_-6px_rgb(255_92_0/0.5)] ${blocked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={blocked} tabIndex={blocked ? -1 : undefined}>
+        <Link href="/checkout" className={`btn-primary mt-5 w-full rounded-full py-3 text-sm font-bold ${blocked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={blocked} tabIndex={blocked ? -1 : undefined}>
           Proceed to Checkout
         </Link>
         <Link href="/products" className="btn-secondary mt-2.5 w-full rounded-full py-2.5 text-xs font-semibold">

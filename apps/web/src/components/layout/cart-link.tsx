@@ -1,15 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { formatLkr } from "@/lib/utils/money";
 import { useCart } from "@/store/cart";
+import { openCartFromClick } from "@/store/cart-drawer";
 
+/** Header cart: opens the cart drawer on the same page; a new-tab click still opens the full cart page. */
 export function CartLink() {
   const { count, subtotal } = useCart();
+  const pathname = usePathname();
   return (
     <Link
       href="/cart"
+      aria-haspopup="dialog"
+      onClick={(e) => openCartFromClick(e, pathname)}
       className="group inline-flex min-h-11 items-center gap-2.5 rounded-control px-2 transition-colors hover:text-brand-600"
     >
       <span className="relative">

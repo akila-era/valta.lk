@@ -7,6 +7,8 @@ import { ErpUnavailable } from "@/components/ui/states";
 import { AccessoryRail } from "@/components/products/accessory-rail";
 import { Gallery } from "@/components/products/gallery";
 import { ProductGrid } from "@/components/products/product-card";
+import { RecentlyViewed, RecordView } from "@/components/products/recently-viewed";
+import { ShareButtons } from "@/components/products/share-buttons";
 import { PurchasePanel } from "@/components/products/purchase-panel";
 import { VariantChoice } from "@/components/products/variant-choice";
 import { requireAdmin } from "@/lib/admin/auth";
@@ -230,6 +232,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
                 variants: product.variants,
               }}
             />
+            <div className="mt-5 border-t border-border pt-4">
+              <ShareButtons url={`${siteConfig.url}/products/${product.slug}`} title={title} />
+            </div>
           </div>
           {c && c.features.length > 0 && (
             <div className="mt-8">
@@ -238,7 +243,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
                 {c.features.map((f, i) => {
                   const Icon = FEATURE_ICON[f.icon] ?? Check;
                   return (
-                  <li key={i} className="flex gap-3 rounded-2xl border border-border/80 bg-warm-white/40 p-3.5 text-sm shadow-soft">
+                  <li key={i} className="flex gap-3 rounded-2xl border border-border/80 bg-bg p-3.5 text-sm shadow-soft">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                       <Icon className="h-4 w-4" aria-hidden />
                     </span>
@@ -281,13 +286,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
               {siteSpecGroups.map((g) => (
                 <div key={g.group}>
                   {siteSpecGroups.length > 1 || g.group !== "General" ? <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">{g.group}</h3> : null}
-                  <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-warm-white/60">
+                  <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-bg">
                     {g.rows.map((s, i) => <SpecRow key={i} name={s.name} value={`${s.value}${s.unit ? ` ${s.unit}` : ""}`} />)}
                   </dl>
                 </div>
               ))}
               {erpSpecs.length > 0 && (
-                <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-warm-white/60">
+                <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-bg">
                   {erpSpecs.map(([k, v]) => <SpecRow key={k} name={k} value={v} />)}
                 </dl>
               )}
@@ -332,11 +337,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
               <p className="kicker"><span className="text-brand-600">More</span> / To explore</p>
               <h2 id="related" className="statement mt-1 text-title-section">Related products</h2>
             </div>
-            <p className="max-w-sm text-sm leading-6 text-muted">{chosen.length ? "Handpicked additions for this item." : product.category ? `Other popular items in ${product.category.name}.` : null}</p>
+            <p className="max-w-sm text-sm leading-6 text-muted">{chosen.length ? "Handpicked additions for this item." : product.category ? `More from ${product.category.name}.` : null}</p>
           </div>
           <ProductGrid products={related} columns={5} />
         </section>
       )}
+      <RecordView item={{ productId: product.id, slug: product.slug, name: title, image: product.images[0] }} />
+      <RecentlyViewed exclude={product.id} />
     </>
   );
 }

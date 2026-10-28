@@ -215,7 +215,11 @@ test.describe("phone tab bar and contact", () => {
     await expect(bar.getByRole("link", { name: "Cart, 1 item" })).toBeVisible();
     await bar.getByRole("link", { name: "Wishlist" }).click();
     await expect(page).toHaveURL(/\/wishlist$/);
+    // Cart opens the cart drawer on the same page; its "View full cart" leads to the cart page
     await bar.getByRole("link", { name: "Cart, 1 item" }).click();
+    await expect(page.getByRole("dialog", { name: "Your Shopping Bag" })).toBeVisible();
+    await expect(page).toHaveURL(/\/wishlist$/);
+    await page.getByRole("dialog", { name: "Your Shopping Bag" }).getByRole("link", { name: "View full cart" }).click();
     await expect(page).toHaveURL(/\/cart$/);
     await bar.getByRole("link", { name: "My account" }).click();
     await expect(page).toHaveURL(/\/account\/login/); // signed out: the account tab leads to sign in
@@ -270,5 +274,130 @@ test.describe("phone header", () => {
     await page.getByRole("button", { name: "Close search" }).click();
     await expect(box).toHaveCount(0);
     await ctx.close();
+  });
+});
+
+test.describe("cart drawer", () => {
+  test("the header cart opens the bag on the same page: empty state, quantities, remove, totals and checkout", async ({ page }) => {
+    await page.goto("/products");
+    const cart = page.locator("header").getByRole("link", { name: /^Cart/ });
+    await cart.click();
+    const bag = page.getByRole("dialog", { name: "Your Shopping Bag" });
+    await expect(bag).toBeVisible();
+    await expect(page).toHaveURL(/\/products$/); // no new page
+    await expect(bag.getByText("Your bag is empty")).toBeVisible();
+    await bag.getByRole("button", { name: "Close cart" }).first().click();
+    await expect(bag).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Add to cart: Pulse Wireless Earbuds" }).click();
+    await page.getByRole("button", { name: "Add to cart: Atlas Smartwatch" }).click();
+    await cart.click();
+    await expect(bag.getByText("2 items selected")).toBeVisible();
+    await expect(bag.getByText("Delivery LKR 450 · Cash on delivery")).toBeVisible(); // live ERP settings
+    await bag.getByRole("button", { name: "Increase quantity of Pulse Wireless Earbuds" }).click();
+    await expect(bag.getByText("3 items selected")).toBeVisible();
+    await expect(page.getByTestId("cart-count")).toHaveText("3");
+    // 2 x 14,900 + 34,900 + 450 delivery
+    await expect(bag.getByText("LKR 65,150")).toBeVisible();
+    await bag.getByRole("button", { name: "Remove Atlas Smartwatch" }).click();
+    await expect(bag.getByRole("listitem")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    await expect(bag).toHaveCount(0);
+    await expect(cart).toBeFocused(); // focus returns to the cart
+
+    await cart.click();
+    await bag.getByRole("link", { name: "Checkout" }).click();
+    await expect(page).toHaveURL(/\/checkout$/);
+    await expect(bag).toHaveCount(0);
+  });
+});
+
+test.describe("store features", () => {
+  test("category pages: sub-category tiles, On sale filter, result range and products per page", async ({ page }) => {
+    await page.goto("/categories/audio");
+    const subs = page.getByRole("navigation", { name: "Audio sub-categories" });
+    await expect(subs.getByRole("link", { name: /^All Audio/ })).toHaveAttribute("aria-current", "page");
+    await subs.getByRole("link", { name: /^Speakers/ }).click();
+    await expect(page).toHaveURL(/sub=speakers/);
+    await expect(page.locator("main article")).toHaveCount(2);
+    await expect(page.getByRole("status").filter({ hasText: "Showing 1–2 of 2 results" })).toBeVisible();
+
+    await page.goto("/products");
+    await page.getByLabel("On sale only").check();
+    await page.getByRole("button", { name: "Apply filters" }).click();
+    await expect(page).toHaveURL(/sale=1/);
+    await expect(page.locator("main article")).toHaveCount(1); // Orbit Pro is the only reduced product
+
+    await page.goto("/products");
+    const per = page.getByRole("navigation", { name: "Products per page" });
+    await expect(per.getByRole("link", { name: "Show 15 per page" })).toHaveAttribute("aria-current", "true");
+    await per.getByRole("link", { name: "Show 30 per page" }).click();
+    await expect(page).toHaveURL(/per=30/);
+    await expect(per.getByRole("link", { name: "Show 30 per page" })).toHaveAttribute("aria-current", "true");
+  });
+
+  test("recently viewed lists the products opened in this browser and can be cleared", async ({ page }) => {
+    await page.goto("/products/orbit-pro-smartphone-cm0item00000002");
+    await page.waitForLoadState("networkidle"); // the view is recorded once the page is interactive
+    await page.goto(PULSE);
+    const recent = page.locator("section[aria-labelledby=recent]");
+    await expect(recent.getByRole("link", { name: "Orbit Pro Smartphone" })).toBeVisible();
+    await expect(recent.getByRole("link", { name: "Pulse Wireless Earbuds" })).toHaveCount(0); // not the current product
+    await page.goto("/products");
+    await expect(page.locator("section[aria-labelledby=recent]").getByRole("link")).toHaveCount(2);
+    await page.locator("section[aria-labelledby=recent]").getByRole("button", { name: "Clear" }).click();
+    await expect(page.locator("section[aria-labelledby=recent]")).toHaveCount(0);
+  });
+
+  test("product page share links and the search box's quick links", async ({ page }) => {
+    await page.goto(PULSE);
+    await expect(page.getByRole("link", { name: "Share on WhatsApp (opens in a new tab)" })).toHaveAttribute("href", /^https:\/\/wa\.me\/\?text=.*pulse-wireless-earbuds/);
+    await expect(page.getByRole("link", { name: "Share on Facebook (opens in a new tab)" })).toHaveAttribute("href", /facebook\.com\/sharer/);
+    await expect(page.getByRole("button", { name: "Copy link" })).toBeVisible();
+
+    await page.goto("/");
+    await page.locator("header").getByRole("combobox", { name: "Search products" }).focus();
+    await expect(page.getByText("Top brands & categories")).toBeVisible();
+    await page.locator("header").getByRole("link", { name: "Volt", exact: true }).click();
+    await expect(page).toHaveURL(/\/products\?brand=Volt$/);
+  });
+});
+
+test.describe("most popular", () => {
+  test("Most Popular appears once four different products have been ordered, most ordered first", async ({ page }) => {
+    // Other tests in the run also place orders (in the same test database), so this one orders larger quantities of
+    // other products and checks their relative order.
+    const settings = await (await page.request.get("/api/store/settings")).json();
+    const delivery = Number(settings.deliveryCharge ?? 0);
+    const list = await (await page.request.get("/api/store/products?pageSize=15")).json();
+    const picks = (list.items as { id: string; name: string; price: number; salePrice?: number | null; available: boolean; hasVariants: boolean }[])
+      .filter((p) => p.available && !p.hasVariants && !/sold out|earbuds/i.test(p.name))
+      .slice(0, 4);
+    expect(picks.length).toBe(4);
+    const alphabet = "ABCDEFGHJKMNPQRSTVWXYZ23456789";
+    for (const [i, p] of picks.entries()) {
+      const qty = 10 - i; // 10, 9, 8, 7
+      const unit = p.salePrice ?? p.price;
+      const ref = `VLK-261027-${Array.from({ length: 10 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("")}`;
+      const res = await page.request.post("/api/store/orders", {
+        headers: { Origin: "http://localhost:3100" },
+        data: {
+          externalRef: ref,
+          lines: [{ productId: p.id, variantKey: "", quantity: qty }],
+          customer: { name: "Kasun Perera", phone: "0771234567", email: "" },
+          delivery: { address: "12 Galle Road", city: "Colombo", district: "Colombo", postalCode: "", notes: "" },
+          expectedTotal: Math.round((unit * qty + delivery) * 100) / 100,
+          acceptTerms: true,
+        },
+      });
+      expect(res.status(), await res.text()).toBeLessThan(300);
+    }
+
+    await page.goto("/");
+    const popular = page.locator("#popular");
+    await expect(popular.getByRole("heading", { name: "Most Popular" })).toBeVisible();
+    await expect(popular.getByText("The products ordered most on VOLTA.LK in the last 90 days.")).toBeVisible();
+    const titles = await popular.locator("article h3").allInnerTexts();
+    expect(titles.filter((t) => picks.some((p) => p.name === t))).toEqual(picks.map((p) => p.name));
   });
 });

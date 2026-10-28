@@ -144,7 +144,7 @@ export function HeroBanner({ slides, bleed = false }: { slides: HeroSlide[]; ble
                 className="group/dot flex h-8 items-center gap-1.5 px-1.5 text-xs font-bold tabular-nums"
               >
                 <span aria-hidden className={idx === i ? "text-white" : "text-white/55 group-hover/dot:text-white"}>{String(idx + 1).padStart(2, "0")}</span>
-                <span aria-hidden className={`block h-0.5 rounded-full transition-all duration-300 ${idx === i ? "w-8 bg-brand-500 shadow-[0_0_8px_rgb(255_92_0/0.9)]" : "w-3 bg-white/40"}`} />
+                <span aria-hidden className={`block h-0.5 rounded-full transition-all duration-300 ${idx === i ? "w-8 bg-brand-500" : "w-3 bg-white/40"}`} />
               </button>
             ))}
             <button

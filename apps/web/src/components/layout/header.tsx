@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
 import { AccountMenu } from "./account-menu";
+import { CartDrawer } from "@/components/cart/cart-drawer";
 import { CartLink } from "./cart-link";
 import { WishlistLink } from "./wishlist-link";
 import { CategoryNav } from "./category-nav";
@@ -20,7 +21,7 @@ async function loadNavData() {
     const [cats, deals, brands] = await Promise.all([listProducts({ pageSize: 1 }), listProducts({ pageSize: 1, onSale: true }), listBrands()]);
     // "Popular" = the biggest brands and categories in the catalogue (we have no search-history data)
     const quick = [
-      ...brands.slice(0, 4).map((b) => ({ label: b.name, href: `/search?q=${encodeURIComponent(b.name)}` })),
+      ...brands.slice(0, 4).map((b) => ({ label: b.name, href: `/products?brand=${encodeURIComponent(b.name)}` })),
       ...[...cats.categories].sort((a, b) => b.count - a.count).slice(0, 3).map((c) => ({ label: c.name, href: `/categories/${c.slug}` })),
     ];
     return { categories: cats.categories.map((c) => ({ slug: c.slug, name: c.name, subs: c.subs.map((x) => ({ slug: x.slug, name: x.name })) })), hasDeals: deals.total > 0, hasBrands: brands.length > 0, quick };
@@ -35,7 +36,7 @@ export { Wordmark };
 
 export async function Header() {
   const accounts = accountsEnabled();
-  const [{ categories, hasDeals }, customer, settings] = await Promise.all([
+  const [{ categories, hasDeals, quick }, customer, settings] = await Promise.all([
     loadNavData(),
     accounts ? getCurrentCustomer() : null,
     getSettings().catch(() => null),
@@ -44,11 +45,11 @@ export async function Header() {
   const announcement = siteConfig.announcement || `Welcome to ${siteConfig.name}`;
   return (
     <>
-      {/* Neon orange top bar: a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
-      <div role="region" aria-label="Store information" className="bg-brand-500 text-on-brand [&_:focus-visible]:outline-ink">
+      {/* Black top bar (neon orange accents): a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
+      <div role="region" aria-label="Store information" className="on-dark bg-ink text-white/85">
         <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
-          <ul className="flex min-w-0 flex-1 items-center gap-4 divide-ink/20 sm:divide-x [&>li+li]:pl-4">
-            <li className="marquee min-w-0 flex-1 overflow-hidden font-bold uppercase tracking-[0.08em]">
+          <ul className="flex min-w-0 flex-1 items-center gap-4 divide-white/15 sm:divide-x [&>li+li]:pl-4">
+            <li className="marquee min-w-0 flex-1 overflow-hidden font-bold uppercase tracking-[0.08em] text-white">
               {/* Up to laptops the line scrolls so all of it can be read next to the help links (a second copy makes the
                   loop seamless; reduced motion stops it). On very wide screens it fits and stays still. */}
               <span className="flex w-max animate-marquee gap-16 whitespace-nowrap [--marquee-dur:16s] 2xl:hidden">
@@ -59,24 +60,24 @@ export async function Header() {
             </li>
             {settings ? (
               <li className="hidden shrink-0 items-center gap-1.5 sm:flex md:hidden lg:flex">
-                <Truck className="h-3.5 w-3.5" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
+                <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
               </li>
             ) : null}
             {cod ? (
               <li className="hidden shrink-0 items-center gap-1.5 xl:flex">
-                <Wallet className="h-3.5 w-3.5" aria-hidden /> Cash on Delivery Available
+                <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Cash on Delivery Available
               </li>
             ) : null}
           </ul>
-          <nav aria-label="Help" className="hidden shrink-0 items-center gap-4 divide-x divide-ink/20 font-semibold md:flex [&>*+*]:pl-4">
+          <nav aria-label="Help" className="hidden shrink-0 items-center gap-4 divide-x divide-white/15 font-semibold md:flex [&>*+*]:pl-4">
             {siteConfig.phone ? (
-              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="hidden items-center gap-1.5 rounded-sm hover:underline lg:inline-flex">
-                <Phone className="h-3.5 w-3.5" aria-hidden /> {siteConfig.phone}
+              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="hidden items-center gap-1.5 rounded-sm hover:text-brand-500 lg:inline-flex">
+                <Phone className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {siteConfig.phone}
               </a>
             ) : null}
-            <Link href="/track-order" className="rounded-sm hover:underline">Track order</Link>
-            <Link href="/contact" className="rounded-sm hover:underline">Help</Link>
-            <Link href="/about" className="rounded-sm hover:underline">About Us</Link>
+            <Link href="/track-order" className="rounded-sm hover:text-brand-500">Track order</Link>
+            <Link href="/contact" className="rounded-sm hover:text-brand-500">Help</Link>
+            <Link href="/about" className="rounded-sm hover:text-brand-500">About Us</Link>
           </nav>
         </div>
       </div>
@@ -86,7 +87,7 @@ export async function Header() {
           <Wordmark className="shrink-0 text-[1.5rem] leading-none text-ink xs:text-[1.75rem] sm:text-[2rem] lg:text-[2.25rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
           <div className="hidden md:mx-auto md:block md:w-full md:max-w-3xl">
-            <SearchBox size="lg" />
+            <SearchBox size="lg" popular={quick} />
           </div>
           <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
             <Link href="/contact" className="hidden items-center gap-2.5 px-3 hover:text-brand-600 xl:inline-flex">
@@ -97,7 +98,7 @@ export async function Header() {
               </span>
             </Link>
             {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
-            <MobileSearch />
+            <MobileSearch popular={quick} />
             {accounts ? <AccountMenu customer={customer ? { name: customer.name } : null} enabled /> : null}
             <WishlistLink />
             <CartLink />
@@ -108,8 +109,10 @@ export async function Header() {
         </Suspense>
       </HeaderShell>
       <div className="border-b border-border bg-bg px-3 py-2.5 md:hidden">
-        <SearchBox size="lg" />
+        <SearchBox size="lg" popular={quick} />
       </div>
+      {/* One cart drawer for the page, opened by the header cart and the phone tab bar. */}
+      <CartDrawer deliveryCharge={settings ? settings.deliveryCharge : null} cod={cod} />
     </>
   );
 }

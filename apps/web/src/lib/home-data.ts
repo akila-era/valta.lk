@@ -6,7 +6,8 @@ import { isOnSale } from "./erp/product-utils";
 import { getCheckoutAvailability } from "./erp/settings";
 import type { ErpProduct } from "./erp/types";
 import { configuredHotDeals } from "./hot-deals-store";
-import { configuredBanners, configuredVideos, type BannerConfig, type VideoConfig } from "./home-config";
+import { getDb } from "./db";
+import { configuredBanners, configuredReviews, configuredVideos, type BannerConfig, type ReviewConfig, type VideoConfig } from "./home-config";
 
 export interface ResolvedBanner extends BannerConfig {
   image?: string;
@@ -89,10 +90,38 @@ export interface HomeData {
   /** Further products beyond the ones already shown in "New Arrivals": same catalogue, next in line. */
   more: ErpProduct[];
   videos: { title: string; items: VideoConfig[] };
+  reviews: { title: string; items: ReviewConfig[] };
+  /** The products ordered most on this website in the last 90 days (empty until enough orders exist). */
+  popular: ErpProduct[];
   rails: { slug: string; name: string; count: number; products: ErpProduct[] }[];
   budget: { under: number; over: number } | null;
   phonesSlug?: string;
   checkout: { cod: boolean; deliveryCharge: number | null };
+}
+
+/** How far back "Most Popular" counts website orders, and how many different products it needs before it is shown. */
+const POPULAR_DAYS = 90;
+const POPULAR_MIN = 4;
+
+/**
+ * "Most Popular": the products ordered most (by quantity) on this website in the last 90 days, from the website's own
+ * order records; cancelled orders are left out. Only products still in the catalogue and available are shown, and the
+ * section stays hidden until at least four different products have been ordered, so it never claims popularity from
+ * a handful of orders. Empty without the website database.
+ */
+async function mostOrdered(products: Map<string, ErpProduct> | null): Promise<ErpProduct[]> {
+  const db = getDb();
+  if (!db || !products) return [];
+  const since = new Date(Date.now() - POPULAR_DAYS * 24 * 60 * 60 * 1000);
+  const rows = await db.webOrder.findMany({ where: { createdAt: { gte: since }, NOT: { erpStatus: "CANCELLED" } }, select: { items: true }, take: 5000 }).catch(() => []);
+  const qty = new Map<string, number>();
+  for (const r of rows) {
+    for (const l of (Array.isArray(r.items) ? r.items : []) as { itemId?: unknown; quantity?: unknown }[]) {
+      if (typeof l?.itemId === "string" && typeof l.quantity === "number") qty.set(l.itemId, (qty.get(l.itemId) ?? 0) + l.quantity);
+    }
+  }
+  const ranked = [...qty.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => products.get(id)).filter((p): p is ErpProduct => Boolean(p?.available));
+  return ranked.length >= POPULAR_MIN ? ranked.slice(0, 10) : [];
 }
 
 /** Each source is fetched independently so a failure in one section never breaks the whole page. */
@@ -134,6 +163,11 @@ export async function getHomeData(): Promise<HomeData> {
       const v = configuredVideos();
       return { title: v.title, items: v.videos };
     })(),
+    reviews: (() => {
+      const r = configuredReviews();
+      return { title: r.title, items: r.reviews };
+    })(),
+    popular: await mostOrdered(snapshot?.products ?? null),
     offers: saleOffers,
     hotDeals: curatedDeals ?? saleOffers,
     hotDealsCurated: curatedDeals !== null,

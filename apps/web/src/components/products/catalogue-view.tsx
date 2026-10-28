@@ -20,7 +20,12 @@ export interface RawParams {
   brand?: string;
   /** "list" shows one product per row; anything else is the grid. */
   view?: string;
+  /** Products per page: one of PER_PAGE (default 15). */
+  per?: string;
 }
+
+/** Page sizes offered ("Show 15 / 30 / 45"): whole rows of the five-column grid. */
+const PER_PAGE = [15, 30, 45] as const;
 
 const SORTS: { value: SortKey; label: string }[] = [
   { value: "newest", label: "Newest" },
@@ -45,7 +50,7 @@ export function parseParams(p: RawParams, fixedCategory?: string): ProductQuery 
     maxPrice: num(p.max),
     inStockOnly: p.stock === "1",
     onSale: p.sale === "1",
-    pageSize: 15,
+    pageSize: PER_PAGE.find((n) => String(n) === p.per) ?? PER_PAGE[0],
   };
 }
 
@@ -161,7 +166,7 @@ export async function CatalogueView({
           {/* Applying filters keeps the chosen order and layout. */}
           {query.sort !== "newest" && <input type="hidden" name="sort" value={query.sort} />}
           {params.view === "list" && <input type="hidden" name="view" value="list" />}
-          {query.onSale && <input type="hidden" name="sale" value="1" />}
+          {query.pageSize !== PER_PAGE[0] && <input type="hidden" name="per" value={query.pageSize} />}
           {query.sub && <input type="hidden" name="sub" value={query.sub} />}
           {!fixedCategory && query.category && <input type="hidden" name="category" value={query.category} />}
 
@@ -175,7 +180,7 @@ export async function CatalogueView({
                 id="brand"
                 name="brand"
                 defaultValue={brandValue}
-                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs font-medium text-ink transition-colors focus:border-brand-500 focus:bg-white"
+                className="h-9 w-full rounded-xl border border-border/80 bg-bg px-2.5 text-xs font-medium text-ink transition-colors focus:border-brand-500 focus:bg-white"
               >
                 <option value="">All brands</option>
                 {result.brands.map((b) => (
@@ -201,7 +206,7 @@ export async function CatalogueView({
                 inputMode="numeric"
                 placeholder="Min"
                 defaultValue={params.min}
-                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white"
+                className="h-9 w-full rounded-xl border border-border/80 bg-bg px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white"
               />
               <input
                 aria-label="Maximum price"
@@ -209,12 +214,18 @@ export async function CatalogueView({
                 inputMode="numeric"
                 placeholder="Max"
                 defaultValue={params.max}
-                className="h-9 w-full rounded-xl border border-border/80 bg-warm-white/40 px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white"
+                className="h-9 w-full rounded-xl border border-border/80 bg-bg px-2.5 text-xs text-ink placeholder:text-muted transition-colors focus:border-brand-500 focus:bg-white"
               />
             </div>
           </fieldset>
 
-          {/* Availability checkbox */}
+          {/* Stock status */}
+          <fieldset className="space-y-1">
+          <legend className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink">Stock status</legend>
+          <label className="flex cursor-pointer items-center gap-2 py-0.5 text-xs font-medium text-ink">
+            <input type="checkbox" name="sale" value="1" defaultChecked={query.onSale} className="h-3.5 w-3.5 rounded border-border accent-brand-500" />
+            On sale only
+          </label>
           <label className="flex cursor-pointer items-center gap-2 py-0.5 text-xs font-medium text-ink">
             <input
               type="checkbox"
@@ -225,6 +236,7 @@ export async function CatalogueView({
             />
             Available items only
           </label>
+          </fieldset>
 
           {/* Apply button */}
           <button
@@ -269,7 +281,7 @@ export async function CatalogueView({
                     </Link>
 
                     {isCurrent && c.subs.length > 0 && (
-                      <ul className="my-0.5 ml-2.5 space-y-0.5 border-l-2 border-brand-500/25 pl-2">
+                      <ul className="my-0.5 ml-2.5 space-y-0.5 border-l-2 border-brand-500 pl-2">
                         {c.subs.map((sc) => {
                           const isSub = query.sub === sc.slug;
                           return (
@@ -304,7 +316,9 @@ export async function CatalogueView({
         {/* Controls Bar: Count on left, Sort pills + View icons on right (matching screenshot) */}
         <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-semibold text-muted" role="status">
-            {result.total} {result.total === 1 ? "product" : "products"}
+            {result.total === 0
+              ? "No products"
+              : `Showing ${(result.page - 1) * query.pageSize! + 1}–${Math.min(result.page * query.pageSize!, result.total)} of ${result.total} ${result.total === 1 ? "result" : "results"}`}
             {query.q ? ` for “${query.q}”` : ""}
           </p>
 
@@ -331,6 +345,26 @@ export async function CatalogueView({
                   );
                 })}
               </ul>
+            </nav>
+
+            {/* Products per page */}
+            <nav aria-label="Products per page" className="hidden items-center gap-1 text-xs font-semibold text-muted md:flex">
+              <span className="mr-1">Show:</span>
+              {PER_PAGE.map((n) => {
+                const on = query.pageSize === n;
+                return (
+                  <Link
+                    key={n}
+                    href={href(basePath, params, { per: n === PER_PAGE[0] ? "" : String(n), page: "" })}
+                    aria-current={on ? "true" : undefined}
+                    aria-label={`Show ${n} per page`}
+                    scroll={false}
+                    className={`flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 tabular-nums transition-colors ${on ? "bg-ink text-white" : "hover:text-brand-600"}`}
+                  >
+                    {n}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Grid / list layout, kept in the URL (?view=list) so it survives sorting, filters and paging. */}

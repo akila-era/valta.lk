@@ -48,14 +48,10 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-r from-[#FFF6EF] via-[#FAF8F5] to-[#FFF3E8] px-6 py-10 text-center shadow-soft">
+      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-bg px-6 py-10 text-center shadow-soft">
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.06)_1px,transparent_1.3px)] [background-size:16px_16px]"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand-500/12 blur-3xl"
         />
         <div className="relative z-10">
           {pending ? (

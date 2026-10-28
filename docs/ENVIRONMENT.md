@@ -23,6 +23,8 @@ If `HX_API_BASE` / `HX_STORE_CREDENTIAL` are missing or malformed the site rende
 | `SITE_SOCIAL_FACEBOOK`, `SITE_SOCIAL_INSTAGRAM`, `SITE_SOCIAL_TIKTOK`, `SITE_SOCIAL_YOUTUBE` | `https://` profile URLs shown in the footer. Hidden when unset. |
 | `HOME_VIDEOS` | JSON array of up to 4 YouTube videos: `{id: "<11-character video id>", title, channel?, thumbnail?}`. `thumbnail` may be an internal path or an `i.ytimg.com` URL. The player (youtube-nocookie.com) loads only after the visitor presses play. Hidden when unset or invalid. |
 | `HOME_VIDEOS_TITLE` | Heading above those videos (default "Watch and learn"). |
+| `HOME_REVIEWS` | JSON array of up to 6 real customer reviews: `{name, text, rating (1-5), source?, date?}`, e.g. `[{"name":"Kasun P.","text":"Genuine product and quick delivery.","rating":5,"source":"Google"}]`. Only reviews the owner can stand behind (for example copied from the store's Google reviews, with the source named). Hidden when unset or invalid. |
+| `HOME_REVIEWS_TITLE` | Heading above those reviews (default "What the Pros Are Saying"). |
 
 ## Header and service bar text (optional, owner-supplied)
 
@@ -33,7 +35,8 @@ Business claims appear only when the owner sets them. Everything else in the hea
 | `SITE_ANNOUNCEMENT` | Shown first in the slim announcement bar above the header, before the ERP facts (delivery charge, cash on delivery), the phone number and "Track order". |
 | `SITE_CONTACT_PHONE` | Announcement bar, footer, contact page, and the "Customer Support" item of the service bar. |
 | `SITE_CONTACT_ADDRESS` | Footer and contact page. |
-| `SITE_HIGHLIGHTS`, `SITE_CONTACT_WHATSAPP` | Read into the site settings (`lib/site-config.ts`) but **not displayed anywhere at the moment**. |
+| `SITE_HIGHLIGHTS` | Read into the site settings (`lib/site-config.ts`) but **not displayed anywhere at the moment**. |
+| `SITE_CONTACT_WHATSAPP` | WhatsApp number (e.g. `+94771234567`). When set, a floating WhatsApp chat button appears on every storefront page. Blank = no button. |
 
 The service bar under the hero is not configurable (`SITE_SERVICE_BAR` is not read by the code). It always shows the ERP delivery charge, "Cash on Delivery" when the ERP allows COD, "Track Your Order", and "Customer Support".
 

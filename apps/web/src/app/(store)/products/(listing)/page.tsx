@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CatalogueView, type RawParams } from "@/components/products/catalogue-view";
 import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
+import { RecentlyViewed } from "@/components/products/recently-viewed";
 
 const brandOf = (p: RawParams) => p.brand?.trim().slice(0, 80) || undefined;
 
@@ -31,6 +32,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
         />
       )}
       <CatalogueView basePath="/products" params={params} />
+      <RecentlyViewed />
     </>
   );
 }

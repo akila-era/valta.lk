@@ -38,19 +38,15 @@ export function PolicyPage({
       </nav>
 
       {/* Hero Header */}
-      <header className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-white via-[#FCFBF9] to-amber-50/30 p-6 shadow-soft sm:p-10">
+      <header className="relative overflow-hidden rounded-3xl border border-border/80 bg-bg p-6 shadow-soft sm:p-10">
         {/* Ambient Glow & Dot Pattern */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-brand-500/15 blur-3xl"
-        />
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgb(23_23_23/0.05)_1px,transparent_1.3px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_at_top_right,#000,transparent_75%)]"
         />
         <span
           aria-hidden
-          className="pointer-events-none absolute -right-20 top-1/2 hidden aspect-square w-[28rem] -translate-y-1/2 rounded-full border border-brand-500/25 [transform:perspective(800px)_rotateX(72deg)] sm:block"
+          className="pointer-events-none absolute -right-20 top-1/2 hidden aspect-square w-[28rem] -translate-y-1/2 rounded-full border border-brand-500 [transform:perspective(800px)_rotateX(72deg)] sm:block"
         />
 
         <div className="relative z-10 max-w-2xl">

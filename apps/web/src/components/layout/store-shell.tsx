@@ -1,8 +1,10 @@
 import { ToastProvider } from "@/components/ui/toast";
 import { accountsEnabled } from "@/lib/auth/session";
+import { siteConfig } from "@/lib/site-config";
 import { Footer } from "./footer";
 import { Header } from "./header";
 import { MobileTabBar } from "./mobile-tab-bar";
+import { WhatsAppButton } from "./whatsapp-button";
 
 /** Shared page chrome. `contained` pages get a centred container; the homepage lays out its own bands. */
 export function StoreShell({ children, contained = true }: { children: React.ReactNode; contained?: boolean }) {
@@ -26,6 +28,7 @@ export function StoreShell({ children, contained = true }: { children: React.Rea
       )}
       <Footer />
       <MobileTabBar accounts={accountsEnabled()} />
+      <WhatsAppButton number={siteConfig.whatsapp} />
     </ToastProvider>
   );
 }
