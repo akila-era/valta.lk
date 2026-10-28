@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronRight, Flame, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame, LayoutGrid, Search, X } from "lucide-react";
 import { categoryIcon } from "@/components/ui/category-icon";
-import { Wordmark } from "./wordmark";
 
 export interface DrawerCategory {
   slug: string;
@@ -36,17 +35,23 @@ const MENU_LINKS = [
   { href: "/returns-policy", label: "Returns Policy" },
 ];
 
+/** One flat drawer row: full width, 50px tall, divider underneath. */
+const ROW = "flex min-h-[50px] flex-1 items-center gap-3 px-5 text-sm font-medium text-ink transition-colors hover:bg-surface hover:text-brand-600";
+
 /**
- * Phone navigation drawer (left side): search, an "All categories" tab with expandable sub-categories, and a "Menu"
- * tab with site pages, in the store's white and orange theme.
+ * "All Categories" drawer, used on every screen size (layout modelled on ugreen.lk): a white full-height panel from the
+ * left with Close, a product search, "All categories" / "Menu" tabs, and flat category rows. A category with
+ * sub-categories has its own › button that slides in a second level with a Back row. Escape, the overlay or choosing a
+ * link closes it; focus is trapped while open and returns to the opener afterwards.
  */
 export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories" }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<"categories" | "menu">(initialTab);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [level, setLevel] = useState<string | null>(null); // slug of the category whose sub-categories are shown
   const [term, setTerm] = useState("");
   const panel = useRef<HTMLDivElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
+  const returnTo = useRef<string | null>(null); // the › button to refocus after Back
   const id = useId();
 
   // Focus management, Escape to close, scroll lock and a simple focus trap while open.
@@ -55,7 +60,11 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
     restoreFocus.current = document.activeElement as HTMLElement | null;
     panel.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") return onClose();
+      if (e.key === "Escape") {
+        setLevel(null);
+        returnTo.current = null;
+        return onClose();
+      }
       if (e.key !== "Tab" || !panel.current) return;
       const f = panel.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])');
       if (!f.length) return;
@@ -78,7 +87,22 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
     };
   }, [open, onClose]);
 
+  // Moving between levels keeps keyboard focus in a sensible place: Back on the way in, the › button on the way out.
+  useEffect(() => {
+    if (!open) return;
+    if (level) panel.current?.querySelector<HTMLElement>("[data-back]")?.focus();
+    else if (returnTo.current) panel.current?.querySelector<HTMLElement>(`[data-sub-toggle="${returnTo.current}"]`)?.focus();
+  }, [level, open]);
+
   if (!open || typeof document === "undefined") return null;
+
+  // Every way of closing starts the next opening fresh: top level, focus on Close.
+  const close = () => {
+    setLevel(null);
+    returnTo.current = null;
+    onClose();
+  };
+  const current = level ? categories.find((c) => c.slug === level) : null;
 
   const tabBtn = (t: "categories" | "menu", label: string) => (
     <button
@@ -88,10 +112,8 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
       aria-selected={tab === t}
       aria-controls={`${id}-${t}`}
       onClick={() => setTab(t)}
-      className={`relative flex-1 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${
-        tab === t
-          ? "text-brand-600 after:absolute after:inset-x-6 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-brand-500"
-          : "text-muted hover:text-ink"
+      className={`relative flex-1 py-4 text-[13px] font-semibold uppercase tracking-wide transition-colors ${
+        tab === t ? "bg-bg text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-brand-500" : "bg-surface text-muted hover:text-ink"
       }`}
     >
       {label}
@@ -104,183 +126,149 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
         type="button"
         aria-label="Close menu overlay"
         tabIndex={-1}
-        onClick={onClose}
-        className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-black/50 backdrop-blur-xs"
+        onClick={close}
+        className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-black/60"
       />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label="Browse VOLTA.LK"
-        className="absolute inset-y-0 left-0 flex w-[86%] max-w-[20rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg text-ink shadow-[0_20px_60px_-15px_rgba(27,23,20,0.35)]"
+        className="absolute inset-y-0 left-0 flex w-[86%] max-w-[340px] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg text-ink shadow-[8px_0_40px_-12px_rgb(0_0_0/0.35)]"
       >
-        {/* Orange header band with the wordmark and the close button */}
-        <div className="flex items-center justify-between bg-brand-500 px-4 py-3 text-on-brand">
-          <Wordmark className="text-[1.4rem] [&_.text-brand-500]:text-white" />
+        {/* Close */}
+        <div className="flex h-16 shrink-0 items-center justify-end border-b border-border px-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             aria-label="Close menu"
-            className="flex h-9 w-9 items-center justify-center rounded-control bg-white/90 text-ink transition-colors hover:bg-white focus-visible:outline-ink"
             data-autofocus
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-control px-2 text-[15px] font-medium text-ink transition-colors hover:text-brand-600"
           >
-            <X className="h-4.5 w-4.5" aria-hidden />
+            <X className="h-5 w-5" aria-hidden /> Close
           </button>
         </div>
 
-        {/* Search input in a pill container */}
+        {/* Search */}
         <form
           role="search"
-          className="px-4 py-3"
+          aria-label="Search from the menu"
+          className="shrink-0 border-b border-border"
           onSubmit={(e) => {
             e.preventDefault();
             const q = term.trim();
             if (!q) return;
-            onClose();
+            close();
             router.push(`/search?q=${encodeURIComponent(q)}`);
           }}
         >
           <label htmlFor={`${id}-q`} className="sr-only">Search for products</label>
           <div className="relative flex items-center">
-            <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-muted" aria-hidden />
             <input
               id={`${id}-q`}
               type="search"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
-              placeholder="Search products..."
+              placeholder="Search for products"
               maxLength={100}
-              className="h-10 w-full rounded-control border-2 border-brand-500 bg-bg pl-10 pr-10 text-[13.5px] outline-none transition-colors placeholder:text-muted focus-visible:ring-2 focus-visible:ring-brand-500"
+              className="h-[70px] w-full bg-bg pl-5 pr-14 text-sm text-ink outline-none placeholder:font-medium placeholder:text-ink/60 focus-visible:bg-surface"
             />
-            {term ? (
-              <button
-                type="button"
-                onClick={() => setTerm("")}
-                aria-label="Clear search"
-                className="absolute right-3 text-muted hover:text-ink"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                aria-label="Search"
-                className="absolute right-1 flex h-8 w-8 items-center justify-center rounded-control bg-brand-500 text-on-brand transition-colors hover:bg-brand-hover"
-              >
-                <Search className="h-3.5 w-3.5" aria-hidden />
-              </button>
-            )}
+            <button type="submit" aria-label="Search" className="absolute right-2 flex h-11 w-11 items-center justify-center text-ink transition-colors hover:text-brand-600">
+              <Search className="h-5 w-5" aria-hidden />
+            </button>
           </div>
         </form>
 
-        {/* Underlined tabs */}
-        <div role="tablist" aria-label="Navigation" className="mb-1 border-b border-border">
-          <div className="flex">
-            {tabBtn("categories", "All Categories")}
-            {tabBtn("menu", "Menu")}
-          </div>
+        {/* Tabs */}
+        <div role="tablist" aria-label="Navigation" className="flex shrink-0 border-b border-border">
+          {tabBtn("categories", "All categories")}
+          {tabBtn("menu", "Menu")}
         </div>
 
-        {/* Content list */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-1">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           {tab === "categories" ? (
-            <ul id={`${id}-categories`} role="tabpanel" aria-labelledby={`${id}-categories-tab`} className="space-y-1">
-              {hasDeals && (
-                <li className="mb-2">
-                  <Link
-                    href="/products?sale=1"
-                    onClick={onClose}
-                    className="group flex items-center justify-between rounded-control bg-brand-50 p-2.5 text-[13.5px] font-bold text-brand-700 transition-colors hover:bg-brand-100"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-control bg-brand-500 text-on-brand shadow-neon">
-                        <Flame className="h-4 w-4 fill-brand-500" strokeWidth={2} aria-hidden />
-                      </span>
-                      Hot Deals
-                    </span>
-                    <span className="rounded-sm bg-brand-500 px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wider text-on-brand">
-                      Sale
-                    </span>
-                  </Link>
-                </li>
-              )}
-              {categories.map((c) => {
-                const Icon = categoryIcon(c.name);
-                const isOpen = expanded === c.slug;
-                const subId = `${id}-sub-${c.slug}`;
-                return (
-                  <li key={c.slug} className="group/item">
-                    <div className="flex items-center justify-between rounded-control transition-colors hover:bg-brand-50">
-                      <Link
-                        href={`/categories/${c.slug}`}
-                        onClick={onClose}
-                        className="flex flex-1 items-center gap-3 px-2.5 py-2 text-[13.5px] font-medium text-ink transition-colors hover:text-brand-600"
-                      >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-border bg-bg text-muted transition-colors group-hover/item:border-brand-500 group-hover/item:bg-brand-50 group-hover/item:text-brand-600">
-                          <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-                        </span>
-                        {c.name}
-                      </Link>
-                      {c.subs.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setExpanded(isOpen ? null : c.slug)}
-                          aria-expanded={isOpen}
-                          aria-controls={subId}
-                          aria-label={`${isOpen ? "Hide" : "Show"} ${c.name} sub-categories`}
-                          className="mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:bg-brand-100/50 hover:text-brand-600"
-                        >
-                          <ChevronRight className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-90 text-brand-600" : ""}`} aria-hidden />
-                        </button>
-                      )}
-                    </div>
-                    {isOpen && (
-                      <ul id={subId} className="my-1.5 ml-5 space-y-0.5 border-l-2 border-brand-500 py-1 pl-3">
-                        <li>
-                          <Link
-                            href={`/categories/${c.slug}`}
-                            onClick={onClose}
-                            className="block rounded-control px-2.5 py-1.5 text-xs font-semibold text-ink/80 transition-colors hover:bg-brand-50 hover:text-brand-600"
-                          >
-                            All {c.name}
-                          </Link>
-                        </li>
-                        {c.subs.map((s) => (
-                          <li key={s.slug}>
-                            <Link
-                              href={`/categories/${c.slug}?sub=${s.slug}`}
-                              onClick={onClose}
-                              className="block rounded-control px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-brand-50 hover:text-brand-600"
-                            >
-                              {s.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+            <div id={`${id}-categories`} role="tabpanel" aria-labelledby={`${id}-categories-tab`}>
+              {current ? (
+                // Second level: Back, the whole category, then its sub-categories. Slides in from the right.
+                <ul key={current.slug} aria-label={`${current.name} sub-categories`} className="animate-[slide-in-right_0.22s_cubic-bezier(0.2,0.7,0.2,1)]">
+                  <li className="flex border-b border-border">
+                    <button type="button" data-back onClick={() => setLevel(null)} className={`${ROW} font-semibold`}>
+                      <ChevronLeft className="h-4 w-4 text-muted" aria-hidden /> Back
+                    </button>
                   </li>
-                );
-              })}
-              {categories.length === 0 && <li className="px-5 py-6 text-sm text-muted">Categories are unavailable right now.</li>}
-            </ul>
+                  <li className="flex border-b border-border">
+                    <Link href={`/categories/${current.slug}`} onClick={close} className={`${ROW} font-semibold`}>
+                      <LayoutGrid className="h-[18px] w-[18px] text-brand-500" strokeWidth={1.75} aria-hidden /> All {current.name}
+                    </Link>
+                  </li>
+                  {current.subs.map((s) => {
+                    const SubIcon = categoryIcon(s.name);
+                    return (
+                      <li key={s.slug} className="flex border-b border-border">
+                        <Link href={`/categories/${current.slug}?sub=${s.slug}`} onClick={close} className={ROW}>
+                          <SubIcon className="h-[18px] w-[18px] text-muted" strokeWidth={1.75} aria-hidden /> {s.name}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <ul aria-label="Categories">
+                  {hasDeals && (
+                    <li className="flex border-b border-border">
+                      <Link href="/products?sale=1" onClick={close} className={`${ROW} font-semibold text-brand-600`}>
+                        <Flame className="h-[18px] w-[18px] fill-brand-500 text-brand-500" strokeWidth={1.75} aria-hidden /> Hot Deals
+                      </Link>
+                    </li>
+                  )}
+                  {categories.map((c) => {
+                    const Icon = categoryIcon(c.name);
+                    return (
+                      <li key={c.slug} className="flex border-b border-border">
+                        <Link href={`/categories/${c.slug}`} onClick={close} className={ROW}>
+                          <Icon className="h-[18px] w-[18px] text-muted" strokeWidth={1.75} aria-hidden /> {c.name}
+                        </Link>
+                        {c.subs.length > 0 && (
+                          <button
+                            type="button"
+                            data-sub-toggle={c.slug}
+                            onClick={() => {
+                              returnTo.current = c.slug;
+                              setLevel(c.slug);
+                            }}
+                            aria-expanded={false}
+                            aria-label={`Show ${c.name} sub-categories`}
+                            className="flex w-[50px] shrink-0 items-center justify-center border-l border-border text-ink transition-colors hover:bg-surface hover:text-brand-600"
+                          >
+                            <ChevronRight className="h-4 w-4" aria-hidden />
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                  {categories.length === 0 && <li className="px-5 py-6 text-sm text-muted">Categories are unavailable right now.</li>}
+                  <li className="flex border-b border-border">
+                    <Link href="/products" onClick={close} className={`${ROW} font-semibold`}>
+                      <LayoutGrid className="h-[18px] w-[18px] text-brand-500" strokeWidth={1.75} aria-hidden /> All Products
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </div>
           ) : (
-            <ul id={`${id}-menu`} role="tabpanel" aria-labelledby={`${id}-menu-tab`} className="space-y-0.5">
+            <ul id={`${id}-menu`} role="tabpanel" aria-labelledby={`${id}-menu-tab`}>
               {MENU_LINKS.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    onClick={onClose}
-                    className="flex items-center justify-between rounded-control px-3 py-2.5 text-[13.5px] font-medium text-ink transition-colors hover:bg-brand-50 hover:text-brand-600"
-                  >
+                <li key={l.href} className="flex border-b border-border">
+                  <Link href={l.href} onClick={close} className={`${ROW} justify-between`}>
                     {l.label}
-                    <ChevronRight className="h-4 w-4 text-muted/50" />
+                    <ChevronRight className="h-4 w-4 text-muted/60" aria-hidden />
                   </Link>
                 </li>
               ))}
             </ul>
           )}
         </div>
-
       </div>
     </div>,
     document.body,

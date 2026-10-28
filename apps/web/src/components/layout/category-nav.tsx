@@ -2,21 +2,19 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { BadgeCheck, Cable, ChevronDown, Flame, Headphones, Menu, Smartphone, Star, Tablet, Watch, type LucideIcon } from "lucide-react";
-import type { DrawerCategory } from "./category-drawer";
-import { CategoryMenu } from "./category-menu";
+import { CategoryDrawer, type DrawerCategory } from "./category-drawer";
 
 export type NavCategory = DrawerCategory;
 
-/** Desktop category bar built from the categories that really exist in the catalogue. */
+/** Desktop category bar built from the categories that really exist in the catalogue; "All Categories" opens the drawer. */
 export function CategoryNav({ categories, showDeals }: { categories: NavCategory[]; showDeals: boolean }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const open = openedAt === pathname;
   const close = useCallback(() => setOpenedAt(null), []);
-  const opener = useRef<HTMLButtonElement>(null);
 
   const iconFor = (name: string): LucideIcon | null => {
     if (/phone|mobile/i.test(name)) return Smartphone;
@@ -38,7 +36,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
       <div className="container-wide flex items-center gap-x-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
-          ref={opener}
+          aria-haspopup="dialog"
           aria-expanded={open}
           onClick={() => setOpenedAt(open ? null : pathname)}
           className={`my-1 inline-flex h-8 shrink-0 items-center gap-2 rounded-full px-4 text-xs font-bold uppercase tracking-[0.06em] transition-colors ${open ? "bg-ink text-white" : "bg-brand-500 text-on-brand hover:bg-ink hover:text-white"}`}
@@ -79,7 +77,8 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
           <Star className="h-3.5 w-3.5 fill-brand-500 text-brand-500" strokeWidth={1.75} aria-hidden /> New Arrivals
         </Link>
       </div>
-      <CategoryMenu open={open} onClose={close} categories={categories} hasDeals={showDeals} opener={opener} />
+      {/* The same left drawer as on phones (ugreen.lk style): categories with a sub-category level, and a site menu. */}
+      <CategoryDrawer open={open} onClose={close} categories={categories} hasDeals={showDeals} />
     </nav>
   );
 }

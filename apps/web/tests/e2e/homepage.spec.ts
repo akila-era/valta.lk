@@ -103,16 +103,18 @@ test.describe("homepage", () => {
     await expect(nav.getByRole("link", { name: "Audio" })).toHaveAttribute("aria-current", "page");
   });
 
-  test("All Categories dropdown: categories, sub-categories on hover, Escape and outside click", async ({ page }) => {
+  test("All Categories drawer: categories, sub-category level, Escape and outside click", async ({ page }) => {
     await page.goto("/");
     const opener = page.locator("header").getByRole("button", { name: /All categories/i });
     await opener.click();
     await expect(opener).toHaveAttribute("aria-expanded", "true");
-    const menu = page.getByRole("region", { name: "All categories" });
+    const menu = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
     await expect(menu.getByRole("link", { name: "Hot Deals" })).toHaveAttribute("href", "/products?sale=1");
-    await expect(menu.getByRole("link", { name: "Audio" })).toHaveAttribute("href", "/categories/audio");
-    // sub-categories appear for the hovered category only where the ERP has them
-    await menu.getByRole("link", { name: "Audio" }).hover();
+    await expect(menu.getByRole("link", { name: "Audio", exact: true })).toHaveAttribute("href", "/categories/audio");
+    // a › button only where the ERP has sub-categories; it opens a second level that starts with Back
+    await expect(menu.getByRole("button", { name: "Show Wearables sub-categories" })).toHaveCount(0);
+    await menu.getByRole("button", { name: "Show Audio sub-categories" }).click();
+    await expect(menu.getByRole("button", { name: "Back" })).toBeFocused();
     await menu.getByRole("link", { name: "Speakers" }).click();
     await expect(page).toHaveURL(/\/categories\/audio\?sub=speakers/);
     await expect(menu).toHaveCount(0);
@@ -125,9 +127,9 @@ test.describe("homepage", () => {
     await expect(menu).toHaveCount(0);
     await expect(opener).toBeFocused();
 
-    // a click outside closes it
+    // a click on the dimmed page closes it
     await opener.click();
-    await page.mouse.click(5, 600);
+    await page.mouse.click(1000, 600);
     await expect(menu).toHaveCount(0);
   });
 
@@ -147,7 +149,7 @@ test.describe("homepage", () => {
     await expect(drawer.getByRole("button", { name: "Show Audio sub-categories" })).toBeVisible();
     await expect(drawer.getByRole("button", { name: "Show Wearables sub-categories" })).toHaveCount(0);
     await drawer.getByRole("button", { name: "Show Audio sub-categories" }).click();
-    await expect(drawer.getByRole("button", { name: "Hide Audio sub-categories" })).toHaveAttribute("aria-expanded", "true");
+    await expect(drawer.getByRole("button", { name: "Back" })).toBeFocused();
     await drawer.getByRole("link", { name: "Speakers" }).click();
     await expect(page).toHaveURL(/\/categories\/audio\?sub=speakers/);
     await expect(drawer).toHaveCount(0);
