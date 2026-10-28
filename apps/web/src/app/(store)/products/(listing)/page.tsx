@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { CatalogueView, type RawParams } from "@/components/products/catalogue-view";
 import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
 import { RecentlyViewed } from "@/components/products/recently-viewed";
+import { CategoryTileRow } from "@/components/products/category-tile-row";
+import { listProducts } from "@/lib/erp/catalogue";
 
 const brandOf = (p: RawParams) => p.brand?.trim().slice(0, 80) || undefined;
 
@@ -16,6 +18,8 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<RawParams> }) {
   const params = await searchParams;
   const brand = brandOf(params);
+  // The catalogue's categories as tiles; if the ERP cannot answer, the page simply shows no tiles.
+  const categories = brand ? [] : await listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []);
   return (
     <>
       {brand ? (
@@ -29,7 +33,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           breadcrumbs={[{ href: "/", label: "Home" }, { label: "All products" }]}
           title="All Products"
           intro="Explore our complete catalogue of mobile phones, electronics and tech accessories."
-        />
+        >
+          <CategoryTileRow label="Shop by category" items={categories.map((c) => ({ href: `/categories/${c.slug}`, name: c.name, count: c.count }))} />
+        </StoreHeroBanner>
       )}
       <CatalogueView basePath="/products" params={params} />
       <RecentlyViewed />
