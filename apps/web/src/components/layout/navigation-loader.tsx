@@ -10,7 +10,7 @@ const SHOW_BEFORE_MS = 420;
 const GIVE_UP_MS = 12_000;
 
 /**
- * A light veil with the dot spinner over the page area while the visitor is moving to another page. It listens for
+ * A light veil with just the dot spinner (no box, no text) over the page area while the visitor is moving to another page. It listens for
  * clicks on internal links, shows the spinner at once, lets it spin for a moment, then does the navigation itself and
  * keeps the veil until the new page has arrived (then the page transition plays). The header stays visible.
  *
@@ -84,10 +84,7 @@ export function NavigationLoader() {
       className={`fixed inset-x-0 bottom-0 z-[45] flex items-center justify-center bg-white/70 backdrop-blur-[3px] transition-opacity duration-200 ${on ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
     >
       {on ? <span className="sr-only" role="status">Loading page</span> : null}
-      <div className={`flex flex-col items-center gap-3 rounded-3xl bg-white px-10 py-7 shadow-float ring-1 ring-ink/[0.06] transition-transform duration-300 ${on ? "scale-100" : "scale-90"}`}>
-        <DotSpinner size={60} />
-        <span className="text-sm font-semibold text-ink">Loading…</span>
-      </div>
+      <DotSpinner size={68} className={`transition-transform duration-300 ${on ? "scale-100" : "scale-75"}`} />
     </div>
   );
 }

@@ -40,12 +40,12 @@ export function DotSpinner({ size = 56, className = "" }: { size?: number; class
   );
 }
 
-/** Full-width centred loading state for a page that is being fetched. */
+/** Full-width centred loading state for a page that is being fetched: only the spinner is shown; the label is for screen readers. */
 export function PageLoader({ label = "Loading" }: { label?: string }) {
   return (
-    <div role="status" aria-live="polite" aria-busy="true" className="flex min-h-[55vh] animate-loader-in flex-col items-center justify-center gap-4">
-      <DotSpinner size={64} />
-      <span className="text-sm font-medium text-muted">{label}…</span>
+    <div role="status" aria-live="polite" aria-busy="true" className="flex min-h-[55vh] animate-loader-in items-center justify-center">
+      <DotSpinner size={68} />
+      <span className="sr-only">{label}</span>
     </div>
   );
 }
