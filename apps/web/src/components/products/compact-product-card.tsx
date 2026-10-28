@@ -61,8 +61,6 @@ export function CompactProductCard({ product, priority, row = false }: CompactPr
         ) : (
           <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">In stock</span>
         )}
-        {pct ? <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span> : null}
-        {fresh ? <span className="rounded-full border border-ink bg-bg px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-ink">New</span> : null}
       </div>
       <div className="absolute right-3.5 top-3.5 z-10 sm:right-4 sm:top-4">
         <WishlistButton className="h-8 w-8 bg-bg" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.images[0], price: current }} />
@@ -88,6 +86,13 @@ export function CompactProductCard({ product, priority, row = false }: CompactPr
             ))}
           </ul>
         ) : null}
+        {pct || fresh ? (
+          // One row at the bottom-left of the photo, so badges never pile up over the picture.
+          <div className="pointer-events-none absolute bottom-1.5 left-1.5 z-10 flex flex-wrap items-end gap-1 transition-opacity duration-200 group-hover/card:opacity-0 [@media(hover:none)]:group-hover/card:opacity-100">
+            {pct ? <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span> : null}
+            {fresh ? <span className="rounded-full border border-ink bg-bg px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-ink">New</span> : null}
+          </div>
+        ) : null}
         {!row ? (
           // Mouse devices: the action is a bar over the bottom of the photo, shown on hover or keyboard focus.
           <div className="absolute inset-x-2 bottom-2 z-10 opacity-0 transition-opacity duration-200 group-hover/card:opacity-100 group-focus-within/card:opacity-100 [@media(hover:none)]:hidden">
@@ -111,9 +116,9 @@ export function CompactProductCard({ product, priority, row = false }: CompactPr
         </h3>
         <p className={`mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-2 ${row ? "" : "justify-center"}`}>
           {product.hasVariants && <span className="text-xs font-semibold text-muted">From:</span>}
-          <span className="font-display text-[19px] font-extrabold tabular-nums text-brand-500">{formatLkr(current)}</span>
+          <span className="whitespace-nowrap font-display text-[17px] font-extrabold tabular-nums text-brand-500 min-[340px]:text-[19px]">{formatLkr(current)}</span>
           {current < product.price && (
-            <span className="text-xs text-muted">
+            <span className="whitespace-nowrap text-xs text-muted">
               <span className="sr-only">Regular price</span>
               <s>{formatLkr(product.price)}</s>
             </span>
