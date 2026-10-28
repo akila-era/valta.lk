@@ -313,6 +313,18 @@ test.describe("cart drawer", () => {
 });
 
 test.describe("store features", () => {
+  test("a category without sub-categories shows its brands as tiles, and a brand tile filters it", async ({ page }) => {
+    await page.goto("/categories/mobile-phones");
+    const brands = page.getByRole("navigation", { name: "Mobile Phones brands" });
+    await expect(brands.getByRole("link", { name: /^All Mobile Phones/ })).toHaveAttribute("aria-current", "page");
+    await expect(brands.getByRole("link", { name: /Orbit/ })).toBeVisible();
+    await brands.getByRole("link", { name: /Nova/ }).click();
+    await expect(page).toHaveURL(/\/categories\/mobile-phones\?brand=Nova/);
+    await expect(page.locator("main article")).toHaveCount(2); // Nova X1 + Nova Lite
+    await expect(brands.getByRole("link", { name: /Nova/ })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("navigation", { name: "Breadcrumbs" }).getByText("Nova")).toBeVisible();
+  });
+
   test("category pages: sub-category tiles, On sale filter, result range and products per page", async ({ page }) => {
     await page.goto("/categories/audio");
     const subs = page.getByRole("navigation", { name: "Audio sub-categories" });

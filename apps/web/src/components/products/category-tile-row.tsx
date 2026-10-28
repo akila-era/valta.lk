@@ -10,11 +10,13 @@ export interface TileItem {
   /** Number of products, shown small under the name when known. */
   count?: number;
   active?: boolean;
+  /** A brand tile: the staff-uploaded logo when there is one, otherwise the brand's first letter, instead of an icon. */
+  brand?: { logo?: string };
 }
 
 /**
- * A row of category / sub-category tiles in the style of large brand stores (ugreen.lk): a large line icon with the
- * name underneath, in fixed-width columns under the title, with no card around each one. The current one is marked in
+ * A row of category / sub-category / brand tiles in the style of large brand stores (ugreen.lk): a large line icon (or a
+ * brand's logo) with the name underneath, in fixed-width columns under the title, with no card around each one. The current one is marked in
  * orange. On phones the row scrolls sideways instead of wrapping into several rows.
  */
 export function CategoryTileRow({ label, items }: { label: string; items: TileItem[] }) {
@@ -44,7 +46,18 @@ export function CategoryTileRow({ label, items }: { label: string; items: TileIt
                 <span
                   className={`flex h-12 w-12 items-center justify-center rounded-full transition-[background-color,transform] duration-200 group-hover:-translate-y-0.5 motion-reduce:group-hover:translate-y-0 sm:h-14 sm:w-14 ${t.active ? "bg-brand-500 text-on-brand" : "bg-surface text-ink group-hover:bg-brand-50 group-hover:text-brand-600"}`}
                 >
-                  <Icon className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={1.4} aria-hidden />
+                  {t.brand ? (
+                    t.brand.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- staff-uploaded logo served by /api/brand-logo
+                      <img src={t.brand.logo} alt="" loading="lazy" className="h-7 w-7 object-contain sm:h-8 sm:w-8" />
+                    ) : (
+                      <span aria-hidden className="font-display text-xl font-extrabold leading-none sm:text-2xl">
+                        {t.name.trim().charAt(0).toUpperCase()}
+                      </span>
+                    )
+                  ) : (
+                    <Icon className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={1.4} aria-hidden />
+                  )}
                 </span>
                 <span className="text-[13px] font-semibold leading-snug sm:text-sm">{t.name}</span>
                 {t.count != null ? <span className="-mt-1.5 text-[11px] font-medium text-muted">{t.count} {t.count === 1 ? "product" : "products"}</span> : null}
