@@ -62,7 +62,7 @@ export function CompactProductCard({ product, priority, row = false }: CompactPr
           <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">In stock</span>
         )}
         {pct ? <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span> : null}
-        {fresh ? <span className="rounded-full border border-ink bg-bg px-2.5 py-0.5 text-[10.5px] font-bold uppercase tracking-wider text-ink">New</span> : null}
+        {fresh ? <span className="rounded-full border border-ink bg-bg px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-ink">New</span> : null}
       </div>
       <div className="absolute right-3.5 top-3.5 z-10 sm:right-4 sm:top-4">
         <WishlistButton className="h-8 w-8 bg-bg" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.images[0], price: current }} />
@@ -82,7 +82,7 @@ export function CompactProductCard({ product, priority, row = false }: CompactPr
                 <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
                 <span className="min-w-0 leading-tight">
                   <span className="block truncate text-[11px] font-bold text-ink sm:text-xs">{d.value}</span>
-                  <span className="block truncate text-[10px] text-muted">{d.name}</span>
+                  <span className="block truncate text-[11px] text-muted">{d.name}</span>
                 </span>
               </li>
             ))}

@@ -112,8 +112,8 @@
 
 /* Content width for every section below the hero: capped at 1700px with comfortable side padding on each side. */
 @utility container-page { @apply mx-auto w-full max-w-[106.25rem] px-4 sm:px-6 lg:px-10 2xl:px-12; }
-/* Full-width bands (header): edge to edge with comfortable side padding, capped only on very wide screens. */
-@utility container-wide { @apply mx-auto w-full max-w-[120rem] px-3 sm:px-4 lg:px-6; }
+/* Header bands use exactly the page container, so the logo and the content below start at the same left edge on every screen. */
+@utility container-wide { @apply mx-auto w-full max-w-[106.25rem] px-4 sm:px-6 lg:px-10 2xl:px-12; }
 /* Card: a hairline edge and a faint contact shadow. */
 @utility card { @apply rounded-card border border-border bg-bg shadow-card; }
 /* Buttons. Primary is the orange fill with dark on-brand text (>= 5:1 at rest and on hover); it deepens on hover. */

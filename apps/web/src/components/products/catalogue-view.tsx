@@ -222,17 +222,17 @@ export async function CatalogueView({
           {/* Stock status */}
           <fieldset className="space-y-1">
           <legend className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-ink">Stock status</legend>
-          <label className="flex cursor-pointer items-center gap-2 py-0.5 text-xs font-medium text-ink">
-            <input type="checkbox" name="sale" value="1" defaultChecked={query.onSale} className="h-3.5 w-3.5 rounded border-border accent-brand-500" />
+          <label className="flex cursor-pointer items-center gap-2 py-0.5 text-xs font-medium text-ink pointer-coarse:min-h-10">
+            <input type="checkbox" name="sale" value="1" defaultChecked={query.onSale} className="h-3.5 w-3.5 rounded border-border accent-brand-500 pointer-coarse:h-5 pointer-coarse:w-5" />
             On sale only
           </label>
-          <label className="flex cursor-pointer items-center gap-2 py-0.5 text-xs font-medium text-ink">
+          <label className="flex cursor-pointer items-center gap-2 py-0.5 text-xs font-medium text-ink pointer-coarse:min-h-10">
             <input
               type="checkbox"
               name="stock"
               value="1"
               defaultChecked={query.inStockOnly}
-              className="h-3.5 w-3.5 rounded border-border accent-brand-500"
+              className="h-3.5 w-3.5 rounded border-border accent-brand-500 pointer-coarse:h-5 pointer-coarse:w-5"
             />
             Available items only
           </label>
@@ -268,7 +268,7 @@ export async function CatalogueView({
                     <Link
                       href={`/categories/${c.slug}`}
                       aria-current={isCurrent ? "page" : undefined}
-                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
+                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 pointer-coarse:py-2.5 text-xs transition-colors ${
                         isCurrent
                           ? "bg-brand-50 font-bold text-brand-700"
                           : "font-medium text-ink/80 hover:bg-surface hover:text-brand-600"
@@ -289,14 +289,14 @@ export async function CatalogueView({
                               <Link
                                 href={`/categories/${c.slug}?sub=${sc.slug}`}
                                 aria-current={isSub ? "page" : undefined}
-                                className={`flex items-center justify-between rounded-md px-2 py-1 text-[11px] transition-colors ${
+                                className={`flex items-center justify-between rounded-md px-2 py-1 pointer-coarse:py-2 text-xs transition-colors ${
                                   isSub
                                     ? "bg-brand-50/80 font-bold text-brand-700"
                                     : "text-muted hover:bg-surface hover:text-brand-600"
                                 }`}
                               >
                                 <span className="truncate pr-1">{sc.name}</span>
-                                <span className="shrink-0 text-[10px] text-muted">{sc.count}</span>
+                                <span className="shrink-0 text-[11px] text-muted">{sc.count}</span>
                               </Link>
                             </li>
                           );
@@ -359,7 +359,7 @@ export async function CatalogueView({
                     aria-current={on ? "true" : undefined}
                     aria-label={`Show ${n} per page`}
                     scroll={false}
-                    className={`flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 tabular-nums transition-colors ${on ? "bg-ink text-white" : "hover:text-brand-600"}`}
+                    className={`flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 pointer-coarse:h-10 pointer-coarse:min-w-10 tabular-nums transition-colors ${on ? "bg-ink text-white" : "hover:text-brand-600"}`}
                   >
                     {n}
                   </Link>
@@ -378,7 +378,7 @@ export async function CatalogueView({
                     aria-label={label}
                     aria-current={on ? "true" : undefined}
                     scroll={false}
-                    className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${on ? "bg-brand-500 text-on-brand shadow-neon" : "text-muted hover:text-brand-600"}`}
+                    className={`flex h-7 w-7 items-center justify-center rounded-full pointer-coarse:h-10 pointer-coarse:w-10 transition-colors ${on ? "bg-brand-500 text-on-brand shadow-neon" : "text-muted hover:text-brand-600"}`}
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden />
                   </Link>

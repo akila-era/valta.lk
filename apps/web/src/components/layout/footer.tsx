@@ -174,7 +174,7 @@ export async function Footer() {
           <h2 className={colHead}>Contact</h2>
           <span className={accentBar} aria-hidden />
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            {siteConfig.phone && <ContactRow icon={Phone} label="Customer support"><a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="py-1 hover:underline">{siteConfig.phone}</a></ContactRow>}
+            {siteConfig.phone && <ContactRow icon={Phone} label="Customer support"><a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="inline-flex items-center py-1 hover:underline pointer-coarse:min-h-11">{siteConfig.phone}</a></ContactRow>}
             {siteConfig.email && <ContactRow icon={Mail} label="Email us"><a href={`mailto:${siteConfig.email}`} className="hover:underline">{siteConfig.email}</a></ContactRow>}
             {siteConfig.address && <ContactRow icon={MapPin} label="Visit our store">{siteConfig.address}</ContactRow>}
             {siteConfig.hours.length > 0 && (
@@ -204,8 +204,8 @@ export async function Footer() {
               <p className="mt-1 text-xs">Prices and availability are subject to change without notice.</p>
             </div>
             <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold md:ml-auto md:mr-2">
-              <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:text-brand-500">Privacy policy</Link></li>
-              <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:text-brand-500">Terms & conditions</Link></li>
+              <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:text-brand-500 pointer-coarse:min-h-11">Privacy policy</Link></li>
+              <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:text-brand-500 pointer-coarse:min-h-11">Terms & conditions</Link></li>
             </ul>
             <BackToTop />
           </div>

@@ -71,13 +71,13 @@ export async function Header() {
           </ul>
           <nav aria-label="Help" className="hidden shrink-0 items-center gap-4 divide-x divide-white/15 font-semibold md:flex [&>*+*]:pl-4">
             {siteConfig.phone ? (
-              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="hidden items-center gap-1.5 rounded-sm hover:text-brand-500 lg:inline-flex">
+              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="hidden h-7 items-center gap-1.5 rounded-sm hover:text-brand-500 lg:inline-flex">
                 <Phone className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {siteConfig.phone}
               </a>
             ) : null}
-            <Link href="/track-order" className="rounded-sm hover:text-brand-500">Track order</Link>
-            <Link href="/contact" className="rounded-sm hover:text-brand-500">Help</Link>
-            <Link href="/about" className="rounded-sm hover:text-brand-500">About Us</Link>
+            <Link href="/track-order" className="inline-flex h-7 items-center rounded-sm hover:text-brand-500">Track order</Link>
+            <Link href="/contact" className="inline-flex h-7 items-center rounded-sm hover:text-brand-500">Help</Link>
+            <Link href="/about" className="inline-flex h-7 items-center rounded-sm hover:text-brand-500">About Us</Link>
           </nav>
         </div>
       </div>

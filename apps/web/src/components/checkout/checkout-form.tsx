@@ -352,7 +352,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         </div>
       </div>
 
-      <aside className="order-first h-fit rounded-3xl border border-border/80 bg-white p-6 shadow-soft lg:sticky lg:top-28 xl:top-32 lg:order-none" aria-label="Order summary">
+      <aside className="order-first h-fit rounded-3xl border border-border/80 bg-white p-4 shadow-soft sm:p-6 lg:sticky lg:top-28 xl:top-32 lg:order-none" aria-label="Order summary">
         <h2 className="hidden text-base font-bold text-ink lg:block">Order Summary</h2>
         {/* Phones: the summary sits above the form, so it starts collapsed to the total and opens on demand. */}
         <button
@@ -362,12 +362,12 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           aria-controls="checkout-summary-details"
           onClick={() => setSummaryOpen((o) => !o)}
         >
-          <span>
-            <span className="block text-lg font-semibold text-ink">Order summary</span>
+          <span className="min-w-0">
+            <span className="block text-base font-semibold text-ink sm:text-lg">Order summary</span>
             <span className="block text-xs text-muted">{lines.length} {lines.length === 1 ? "item" : "items"} · {summaryOpen ? "Hide details" : "Show details"}</span>
           </span>
-          <span className="flex items-center gap-2">
-            <span className="font-display text-lg font-bold tracking-[-0.02em] tabular-nums text-ink">{formatLkr(total)}</span>
+          <span className="flex shrink-0 items-center gap-2">
+            <span className="whitespace-nowrap font-display text-base font-bold tracking-[-0.02em] tabular-nums text-ink sm:text-lg">{formatLkr(total)}</span>
             <ChevronDown className={`h-5 w-5 text-muted transition-transform ${summaryOpen ? "rotate-180" : ""}`} aria-hidden />
           </span>
         </button>

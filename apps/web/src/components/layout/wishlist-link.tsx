@@ -7,7 +7,7 @@ import { useWishlist } from "@/store/wishlist";
 export function WishlistLink() {
   const { count } = useWishlist();
   return (
-    <Link href="/wishlist" className="hidden items-center gap-2 px-3 text-sm font-medium hover:text-brand-600 md:inline-flex" aria-label={`Wishlist, ${count} item${count === 1 ? "" : "s"}`}>
+    <Link href="/wishlist" className="hidden min-h-10 items-center gap-2 px-3 text-sm font-medium hover:text-brand-600 md:inline-flex" aria-label={`Wishlist, ${count} item${count === 1 ? "" : "s"}`}>
       <span className="relative">
         <Heart className="h-[24px] w-[24px]" strokeWidth={1.6} aria-hidden />
         {count > 0 && (
