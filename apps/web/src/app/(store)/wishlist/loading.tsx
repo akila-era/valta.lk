@@ -1,5 +1,5 @@
-import { PageSkeleton } from "@/components/ui/states";
+import { PageLoader } from "@/components/ui/dot-spinner";
 
 export default function Loading() {
-  return <PageSkeleton label="Loading wishlist" />;
+  return <PageLoader label="Loading your wishlist" />;
 }

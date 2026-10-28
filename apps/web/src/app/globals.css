@@ -332,3 +332,10 @@
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(*), ::view-transition-new(*), ::view-transition-group(*) { animation-duration: 0s !important; animation-delay: 0s !important; }
 }
+
+/* ---------- Loading spinner (components/ui/dot-spinner.tsx) ---------- */
+@keyframes dot-ring { to { transform: rotate(360deg); } }
+@utility animate-dot-ring { animation: dot-ring 1.1s linear infinite; }
+/* The page loader waits 200 ms before appearing, so fast page loads never flash it. */
+@keyframes loader-in { from { opacity: 0; } }
+@utility animate-loader-in { animation: loader-in 0.3s ease-out 0.2s backwards; }
