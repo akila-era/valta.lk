@@ -1,22 +1,42 @@
+/** Dot sizes (as a share of the spinner's width) and colours, head of the trail first: pink fading to orange, and a little smaller. */
+const DOTS = [
+  { d: 0.15, c: "#ff6ec7" },
+  { d: 0.145, c: "#ff7fb5" },
+  { d: 0.14, c: "#ff8d9c" },
+  { d: 0.13, c: "#ff9b83" },
+  { d: 0.12, c: "#ffa86b" },
+  { d: 0.11, c: "#ffb352" },
+  { d: 0.1, c: "#ffbc3d" },
+  { d: 0.09, c: "#ffc42e" },
+];
+
 /**
- * A ring spinner: a faint orange track with a bright orange arc (round ends, fading into the track) running round it
- * (decorative: pair it with a labelled status region). Under reduced motion it stays as a still ring.
+ * Eight separate round dots in a ring, pink at the head of the trail fading to orange, spinning clockwise (decorative:
+ * pair it with a labelled status region). Under reduced motion it stays as a still ring.
  */
 export function DotSpinner({ size = 56, className = "" }: { size?: number; className?: string }) {
-  const stroke = Math.max(4, size * 0.11);
-  const r = (size - stroke) / 2;
-  const c = 2 * Math.PI * r;
+  const r = size * 0.38; // radius of the ring of dot centres
   return (
-    <svg aria-hidden width={size} height={size} viewBox={`0 0 ${size} ${size}`} className={`animate-dot-ring ${className}`}>
-      <defs>
-        <linearGradient id="valta-ring-arc" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ff5c00" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#ff5c00" />
-        </linearGradient>
-      </defs>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#ff5c00" strokeOpacity="0.2" strokeWidth={stroke} />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="url(#valta-ring-arc)" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${c * 0.7} ${c}`} />
-    </svg>
+    <span aria-hidden className={`relative inline-block animate-dot-ring ${className}`} style={{ width: size, height: size }}>
+      {DOTS.map((dot, i) => {
+        const d = dot.d * size;
+        return (
+          <span
+            key={i}
+            className="absolute left-1/2 top-1/2 rounded-full"
+            style={{
+              width: d,
+              height: d,
+              marginLeft: -d / 2,
+              marginTop: -d / 2,
+              background: dot.c,
+              // each dot sits on the ring, 45 degrees behind the previous one, so the eight close the circle
+              transform: `rotate(${-i * 45}deg) translateY(${-r}px)`,
+            }}
+          />
+        );
+      })}
+    </span>
   );
 }
 
