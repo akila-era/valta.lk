@@ -243,7 +243,8 @@ test.describe("storefront sections", () => {
     const cats = page.locator("section[aria-labelledby=cats]");
     await expect(cats.getByRole("heading", { name: "Shop by Category" })).toBeVisible();
     await expect(cats.getByRole("link", { name: "View all products" })).toHaveAttribute("href", "/products");
-    await expect(cats.getByRole("link")).toHaveCount(6); // five categories + View all
+    await expect(cats.getByRole("link")).toHaveCount(7); // five categories + All Products + View all
+    await expect(cats.getByRole("link", { name: "All Products, 15 products" })).toHaveAttribute("href", "/products");
     for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables"]) await expect(cats.getByRole("link", { name: new RegExp(`^${name}, `) })).toBeVisible();
     const audio = cats.getByRole("link", { name: "Audio, 4 products" });
     await expect(audio).toHaveAttribute("href", "/categories/audio");
@@ -266,27 +267,32 @@ test.describe("storefront sections", () => {
   });
 
   test("category row: moved by hand with arrows on both sides, each category once, nothing overflows", async ({ browser }) => {
-    // wide screens: the five categories fit, so the row is centred and has no arrows
+    // wide screens: six tiles, exactly five in view; Previous is disabled at the start, Next brings in the sixth
     const wide = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     let page = await wide.newPage();
     await page.goto("/");
     const cats = page.locator("section[aria-labelledby=cats]");
-    await expect(cats.getByRole("link", { name: /, \d+ products?$/ })).toHaveCount(5);
-    await expect(cats.getByRole("button", { name: /categories$/ })).toHaveCount(0);
-    const boxes = await cats.locator("ul > li").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ x: r.x, w: r.width, r: r.right })));
-    for (const b of boxes.slice(1)) expect(Math.abs(b.w - boxes[0].w)).toBeLessThan(2);
-    expect(Math.abs(boxes[0].x - (1440 - boxes[boxes.length - 1].r))).toBeLessThan(1440 * 0.05);
+    await expect(cats.getByRole("link", { name: /, \d+ products?$/ })).toHaveCount(6);
+    const inView = () => cats.locator("ul > li").evaluateAll((els) => {
+      const ul = els[0].parentElement!.getBoundingClientRect();
+      return els.filter((e) => { const r = e.getBoundingClientRect(); return r.left >= ul.left - 2 && r.right <= ul.right + 2; }).length;
+    });
+    expect(await inView()).toBe(5);
+    await expect(cats.getByRole("button", { name: "Previous categories" })).toBeDisabled();
+    await cats.getByRole("button", { name: "Next categories" }).click();
+    await expect(cats.getByRole("button", { name: "Next categories" })).toBeDisabled();
+    await expect(cats.getByRole("button", { name: "Previous categories" })).toBeEnabled();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
     await wide.close();
 
-    // phones: the row scrolls; Next and Previous appear only when there is more that way
+    // phones: the row scrolls; Previous is disabled until the row has moved
     const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     page = await phone.newPage();
     await page.goto("/");
     const row = page.locator("section[aria-labelledby=cats]");
-    await expect(row.getByRole("button", { name: "Previous categories" })).toHaveCount(0);
+    await expect(row.getByRole("button", { name: "Previous categories" })).toBeDisabled();
     await row.getByRole("button", { name: "Next categories" }).click();
-    await expect(row.getByRole("button", { name: "Previous categories" })).toBeVisible();
+    await expect(row.getByRole("button", { name: "Previous categories" })).toBeEnabled();
     await expect.poll(() => row.locator("ul").first().evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
     await phone.close();
