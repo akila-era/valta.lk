@@ -30,6 +30,7 @@ async function loadNavData() {
   }
 }
 
+import { AnnouncementLine } from "./announcement-line";
 import { Wordmark } from "./wordmark";
 
 export { Wordmark };
@@ -49,14 +50,8 @@ export async function Header() {
       <div role="region" aria-label="Store information" className="on-dark bg-ink text-white/85">
         <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
           <ul className="flex min-w-0 flex-1 items-center gap-4 divide-white/15 sm:divide-x [&>li+li]:pl-4">
-            <li className="marquee min-w-0 flex-1 overflow-hidden font-bold uppercase tracking-[0.08em] text-white">
-              {/* Up to laptops the line scrolls so all of it can be read next to the help links (a second copy makes the
-                  loop seamless; reduced motion stops it). On very wide screens it fits and stays still. */}
-              <span className="flex w-max animate-marquee gap-16 whitespace-nowrap [--marquee-dur:16s] 2xl:hidden">
-                <span>{announcement}</span>
-                <span aria-hidden>{announcement}</span>
-              </span>
-              <span className="hidden truncate 2xl:block">{announcement}</span>
+            <li className="marquee min-w-0 flex-1 font-bold uppercase tracking-[0.08em] text-white">
+              <AnnouncementLine text={announcement} />
             </li>
             {settings ? (
               <li className="hidden shrink-0 items-center gap-1.5 sm:flex md:hidden lg:flex">
