@@ -28,8 +28,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = await params;
   let category;
+  let allCategories: Awaited<ReturnType<typeof listProducts>>["categories"] = [];
   try {
-    category = await findCategory(slug);
+    allCategories = (await listProducts({ pageSize: 1 })).categories;
+    category = allCategories.find((c) => c.slug === slug) ?? null;
   } catch {
     return <ErpUnavailable retryHref={`/categories/${slug}`} />;
   }
@@ -48,17 +50,18 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         ]}
         title={category.name}
       >
-        <CategoryTileRow
-          label={`${category.name} sub-categories`}
-          items={
-            category.subs.length === 0
-              ? []
-              : [
-                  { href: `/categories/${slug}`, name: `All ${category.name}`, count: category.count, active: !sub },
-                  ...category.subs.map((s) => ({ href: `/categories/${slug}?sub=${s.slug}`, name: s.name, count: s.count, active: sub?.slug === s.slug })),
-                ]
-          }
-        />
+        {/* With sub-categories: those (plus "All"). Without: the main categories, this one highlighted, so every category page has the same tile row. */}
+        {category.subs.length > 0 ? (
+          <CategoryTileRow
+            label={`${category.name} sub-categories`}
+            items={[
+              { href: `/categories/${slug}`, name: `All ${category.name}`, count: category.count, active: !sub },
+              ...category.subs.map((s) => ({ href: `/categories/${slug}?sub=${s.slug}`, name: s.name, count: s.count, active: sub?.slug === s.slug })),
+            ]}
+          />
+        ) : (
+          <CategoryTileRow label="Shop by category" items={allCategories.map((c) => ({ href: `/categories/${c.slug}`, name: c.name, count: c.count, active: c.slug === slug }))} />
+        )}
       </StoreHeroBanner>
       <CatalogueView basePath={`/categories/${slug}`} params={query} fixedCategory={slug} />
       <RecentlyViewed />

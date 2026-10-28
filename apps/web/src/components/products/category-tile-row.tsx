@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { categoryIcon } from "@/components/ui/category-icon";
 
 export interface TileItem {
@@ -15,9 +18,19 @@ export interface TileItem {
  * orange. On phones the row scrolls sideways instead of wrapping into several rows.
  */
 export function CategoryTileRow({ label, items }: { label: string; items: TileItem[] }) {
+  const nav = useRef<HTMLElement>(null);
+
+  // On phones the row scrolls sideways: bring the current tile into view (centred) when the page opens.
+  useEffect(() => {
+    const el = nav.current;
+    const current = el?.querySelector<HTMLElement>("[aria-current=\"page\"]");
+    if (!el || !current || el.scrollWidth <= el.clientWidth) return;
+    el.scrollLeft = current.offsetLeft - (el.clientWidth - current.offsetWidth) / 2;
+  }, []);
+
   if (!items.length) return null;
   return (
-    <nav aria-label={label} className="-mx-4 mt-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+    <nav ref={nav} aria-label={label} className="relative -mx-4 mt-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
       <ul className="flex w-max gap-2 sm:grid sm:w-full sm:grid-cols-[repeat(auto-fill,minmax(9.5rem,11rem))] sm:gap-x-5 sm:gap-y-4">
         {items.map((t) => {
           const Icon = categoryIcon(t.name);
