@@ -49,6 +49,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
   const [tab, setTab] = useState<"categories" | "menu">(initialTab);
   const [level, setLevel] = useState<string | null>(null); // slug of the category whose sub-categories are shown
   const [term, setTerm] = useState("");
+  const [returning, setReturning] = useState(false); // the top level is showing again after Back: it slides in from the left
   const panel = useRef<HTMLDivElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
   const returnTo = useRef<string | null>(null); // the › button to refocus after Back
@@ -62,6 +63,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setLevel(null);
+        setReturning(false);
         returnTo.current = null;
         return onClose();
       }
@@ -99,6 +101,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
   // Every way of closing starts the next opening fresh: top level, focus on Close.
   const close = () => {
     setLevel(null);
+    setReturning(false);
     returnTo.current = null;
     onClose();
   };
@@ -192,20 +195,20 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
               {current ? (
                 // Second level: Back, the whole category, then its sub-categories. Slides in from the right.
                 <ul key={current.slug} aria-label={`${current.name} sub-categories`} className="animate-[slide-in-right_0.22s_cubic-bezier(0.2,0.7,0.2,1)]">
-                  <li className="flex border-b border-border">
-                    <button type="button" data-back onClick={() => setLevel(null)} className={`${ROW} font-semibold`}>
+                  <li className="flex animate-row-in border-b border-border" style={{ "--i": 0 } as React.CSSProperties}>
+                    <button type="button" data-back onClick={() => { setReturning(true); setLevel(null); }} className={`${ROW} font-semibold`}>
                       <ChevronLeft className="h-4 w-4 text-muted" aria-hidden /> Back
                     </button>
                   </li>
-                  <li className="flex border-b border-border">
+                  <li className="flex animate-row-in border-b border-border" style={{ "--i": 1 } as React.CSSProperties}>
                     <Link href={`/categories/${current.slug}`} onClick={close} className={`${ROW} font-semibold`}>
                       <LayoutGrid className="h-[18px] w-[18px] text-brand-500" strokeWidth={1.75} aria-hidden /> All {current.name}
                     </Link>
                   </li>
-                  {current.subs.map((s) => {
+                  {current.subs.map((s, si) => {
                     const SubIcon = categoryIcon(s.name);
                     return (
-                      <li key={s.slug} className="flex border-b border-border">
+                      <li key={s.slug} className="flex animate-row-in border-b border-border" style={{ "--i": si + 2 } as React.CSSProperties}>
                         <Link href={`/categories/${current.slug}?sub=${s.slug}`} onClick={close} className={ROW}>
                           <SubIcon className="h-[18px] w-[18px] text-muted" strokeWidth={1.75} aria-hidden /> {s.name}
                         </Link>
@@ -214,18 +217,19 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                   })}
                 </ul>
               ) : (
-                <ul aria-label="Categories">
+                <ul aria-label="Categories" className={returning ? "animate-slide-back" : undefined}>
                   {hasDeals && (
-                    <li className="flex border-b border-border">
+                    <li className="flex animate-row-in border-b border-border" style={{ "--i": 0 } as React.CSSProperties}>
                       <Link href="/products?sale=1" onClick={close} className={`${ROW} font-semibold text-brand-600`}>
                         <Flame className="h-[18px] w-[18px] fill-brand-500 text-brand-500" strokeWidth={1.75} aria-hidden /> Hot Deals
                       </Link>
                     </li>
                   )}
-                  {categories.map((c) => {
+                  {categories.map((c, ci) => {
                     const Icon = categoryIcon(c.name);
+                    const at = ci + (hasDeals ? 1 : 0);
                     return (
-                      <li key={c.slug} className="flex border-b border-border">
+                      <li key={c.slug} className="flex animate-row-in border-b border-border" style={{ "--i": at } as React.CSSProperties}>
                         <Link href={`/categories/${c.slug}`} onClick={close} className={ROW}>
                           <Icon className="h-[18px] w-[18px] text-muted" strokeWidth={1.75} aria-hidden /> {c.name}
                         </Link>
@@ -235,20 +239,21 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                             data-sub-toggle={c.slug}
                             onClick={() => {
                               returnTo.current = c.slug;
+                              setReturning(false);
                               setLevel(c.slug);
                             }}
                             aria-expanded={false}
                             aria-label={`Show ${c.name} sub-categories`}
-                            className="flex w-[50px] shrink-0 items-center justify-center border-l border-border text-ink transition-colors hover:bg-surface hover:text-brand-600"
+                            className="group/sub flex w-[50px] shrink-0 items-center justify-center border-l border-border text-ink transition-[background-color,color,transform] duration-150 hover:bg-brand-50 hover:text-brand-600 active:scale-90 motion-reduce:active:scale-100"
                           >
-                            <ChevronRight className="h-4 w-4" aria-hidden />
+                            <ChevronRight className="h-4 w-4 animate-nudge transition-transform group-hover/sub:animate-none group-hover/sub:translate-x-1 group-focus-visible/sub:animate-none" style={{ "--i": ci } as React.CSSProperties} aria-hidden />
                           </button>
                         )}
                       </li>
                     );
                   })}
                   {categories.length === 0 && <li className="px-5 py-6 text-sm text-muted">Categories are unavailable right now.</li>}
-                  <li className="flex border-b border-border">
+                  <li className="flex animate-row-in border-b border-border" style={{ "--i": categories.length + (hasDeals ? 1 : 0) } as React.CSSProperties}>
                     <Link href="/products" onClick={close} className={`${ROW} font-semibold`}>
                       <LayoutGrid className="h-[18px] w-[18px] text-brand-500" strokeWidth={1.75} aria-hidden /> All Products
                     </Link>
@@ -258,8 +263,8 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
             </div>
           ) : (
             <ul id={`${id}-menu`} role="tabpanel" aria-labelledby={`${id}-menu-tab`}>
-              {MENU_LINKS.map((l) => (
-                <li key={l.href} className="flex border-b border-border">
+              {MENU_LINKS.map((l, mi) => (
+                <li key={l.href} className="flex animate-row-in border-b border-border" style={{ "--i": mi } as React.CSSProperties}>
                   <Link href={l.href} onClick={close} className={`${ROW} justify-between`}>
                     {l.label}
                     <ChevronRight className="h-4 w-4 text-muted/60" aria-hidden />

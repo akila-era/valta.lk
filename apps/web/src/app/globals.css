@@ -173,7 +173,8 @@
 @utility animate-pop { animation: pop 0.25s ease-out; }
 
 @media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  /* Delays go too: a staggered item must not stay hidden while it waits for its turn. */
+  * { animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; scroll-behavior: auto !important; }
 }
 
 /* ---------- Motion (all effects are disabled by the prefers-reduced-motion rule above) ---------- */
@@ -297,3 +298,18 @@
 .admin-theme .btn-dark { background: var(--color-ink); color: #fff; box-shadow: none; }
 .admin-theme :is(h1, h2, h3) { font-family: var(--font-sans); }
 .admin-theme :is(.media-spot, .media-square) { background: var(--color-media); }
+
+/* ---------- Navigation motion: category drawer and page changes (all off with prefers-reduced-motion) ---------- */
+/* Drawer rows slide in one after another (--i is the row's index). */
+@keyframes row-in { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+@utility animate-row-in { animation: row-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(110ms + var(--i, 0) * 50ms); }
+/* Back from a sub-category list: the top level comes in from the left (the sub-category list comes in from the right). */
+@keyframes slide-back { from { opacity: 0; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+@utility animate-slide-back { animation: slide-back 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+/* The › button of a category with sub-categories nudges right now and then, hinting that it opens a level. */
+@keyframes nudge { 0%, 55%, 100% { transform: translateX(0); } 22% { transform: translateX(4px); } 38% { transform: translateX(1px); } }
+@utility animate-nudge { animation: nudge 2.4s ease-in-out infinite; animation-delay: calc(0.8s + var(--i, 0) * 0.25s); }
+/* Every page change: the page fades in and rises a few pixels. Done with `top` on a relative box (not transform) so
+   fixed and sticky elements inside the page (the product bar, sticky filters) are not affected while it plays. */
+@keyframes page-in { from { opacity: 0; top: 14px; } }
+@utility animate-page-in { position: relative; animation: page-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; }

@@ -48,6 +48,11 @@ function useReducedMotion() {
  * and one call to action on the left. Numbered markers (01, 02, 03) show the position. Slides move on their own (paused on hover, focus, with the pause button or reduced motion), and
  * can be changed with the arrows, the dots, the arrow keys or a swipe.
  */
+/** Photo: slightly zoomed while its slide is away, settling to full size over 1.8 s when it becomes the current one. */
+const ZOOM = "object-cover scale-[1.08] transition-transform duration-[1800ms] ease-out group-data-[active=true]/slide:scale-100";
+/** Caption parts: hidden and 20px low while the slide is away, rising in (with their own delay) when it is current. */
+const RISE = "translate-y-5 opacity-0 transition-[opacity,translate] duration-700 ease-out group-data-[active=true]/slide:translate-y-0 group-data-[active=true]/slide:opacity-100";
+
 export function HeroBanner({ slides, bleed = false }: { slides: HeroSlide[]; bleed?: boolean }) {
   const n = slides.length;
   const [i, setI] = useState(0);
@@ -90,7 +95,7 @@ export function HeroBanner({ slides, bleed = false }: { slides: HeroSlide[]; ble
         touch.current = null;
       }}
     >
-      <div className={`flex h-full w-full ${reduced ? "" : "transition-transform duration-700 ease-out"}`} style={{ transform: `translateX(-${i * 100}%)` }}>
+      <div className={`flex h-full w-full ${reduced ? "" : "transition-transform duration-[950ms] ease-[cubic-bezier(0.65,0,0.35,1)]"}`} style={{ transform: `translateX(-${i * 100}%)` }}>
         {slides.map((s, idx) => (
           <div
             key={s.src}
@@ -99,29 +104,32 @@ export function HeroBanner({ slides, bleed = false }: { slides: HeroSlide[]; ble
             aria-label={`${idx + 1} of ${n}`}
             aria-hidden={idx !== i}
             inert={idx !== i}
-            className="relative h-full w-full shrink-0 overflow-hidden"
+            data-active={idx === i}
+            className="group/slide relative h-full w-full shrink-0 overflow-hidden"
           >
             {s.kind === "image" ? (
               s.href ? (
                 <Link href={s.href} className="relative block h-full w-full">
-                  <Image src={s.src} alt={s.alt} fill priority={idx === 0} unoptimized={s.src.startsWith("/api/")} sizes="100vw" className="object-cover" />
+                  <Image src={s.src} alt={s.alt} fill priority={idx === 0} unoptimized={s.src.startsWith("/api/")} sizes="100vw" className={ZOOM} />
                 </Link>
               ) : (
-                <Image src={s.src} alt={s.alt} fill priority={idx === 0} unoptimized={s.src.startsWith("/api/")} sizes="100vw" className="object-cover" />
+                <Image src={s.src} alt={s.alt} fill priority={idx === 0} unoptimized={s.src.startsWith("/api/")} sizes="100vw" className={ZOOM} />
               )
             ) : (
             <>
-            <Image src={s.src} alt={s.alt} fill priority={idx === 0} sizes="100vw" className="object-cover object-[72%_50%]" />
+            <Image src={s.src} alt={s.alt} fill priority={idx === 0} sizes="100vw" className={`${ZOOM} object-[72%_50%]`} />
             {/* A wash from the left keeps the caption legible over the photograph. */}
             <span aria-hidden className={`absolute inset-0 ${s.dark ? "bg-gradient-to-r from-black/80 via-black/55 to-black/10 sm:via-black/40 sm:to-transparent" : "bg-gradient-to-r from-white/95 via-white/80 to-white/20 sm:from-white/90 sm:via-white/40 sm:to-transparent"}`} />
             <div className={`relative flex h-full flex-col justify-center pb-16 pt-8 ${bleed ? "container-page" : "px-6 sm:px-10 lg:px-14"} ${s.dark ? "text-white" : "text-ink"}`}>
               <div className="max-w-[34rem]">
-              <p className={`text-xs font-bold uppercase tracking-[0.16em] ${s.dark ? "text-brand-400" : "text-brand-600"}`}>{s.eyebrow}</p>
-              <p className="mt-3 font-display text-[clamp(1.9rem,1.2rem+2.8vw,3.75rem)] font-extrabold leading-[1.05] tracking-title">{s.title}</p>
-              <p className={`mt-3 max-w-sm text-sm leading-6 sm:text-[15px] ${s.dark ? "text-white/80" : "text-ink/75"}`}>{s.text}</p>
-              <Link href={s.href} className="btn-primary mt-6 w-fit px-6">
-                {s.cta} <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
+              <p className={`${RISE} text-xs font-bold uppercase tracking-[0.16em] ${s.dark ? "text-brand-400" : "text-brand-600"}`} style={{ transitionDelay: "280ms" }}>{s.eyebrow}</p>
+              <p className={`${RISE} mt-3 font-display text-[clamp(1.9rem,1.2rem+2.8vw,3.75rem)] font-extrabold leading-[1.05] tracking-title`} style={{ transitionDelay: "400ms" }}>{s.title}</p>
+              <p className={`${RISE} mt-3 max-w-sm text-sm leading-6 sm:text-[15px] ${s.dark ? "text-white/80" : "text-ink/75"}`} style={{ transitionDelay: "540ms" }}>{s.text}</p>
+              <div className={`${RISE} mt-6 w-fit`} style={{ transitionDelay: "680ms" }}>
+                <Link href={s.href} className="btn-primary w-fit px-6">
+                  {s.cta} <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </div>
               </div>
             </div>
             </>
