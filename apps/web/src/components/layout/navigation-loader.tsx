@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { DotSpinner } from "@/components/ui/dot-spinner";
 
 /** How long the spinner shows before the browser leaves the page (the new page is usually ready by then). */
-const SHOW_BEFORE_MS = 420;
+const SHOW_BEFORE_MS = 240;
 /** Safety net: never leave the veil up longer than this if a navigation never arrives. */
 const GIVE_UP_MS = 12_000;
 
@@ -81,7 +81,7 @@ export function NavigationLoader() {
     <div
       aria-hidden={!on}
       style={{ top }}
-      className={`fixed inset-x-0 bottom-0 z-[45] flex items-center justify-center bg-white/70 backdrop-blur-[3px] transition-opacity duration-200 ${on ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+      className={`fixed inset-x-0 bottom-0 z-[45] flex items-center justify-center bg-white/70 backdrop-blur-[3px] transition-opacity duration-150 ${on ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
     >
       {on ? <span className="sr-only" role="status">Loading page</span> : null}
       <DotSpinner size={68} className={`transition-transform duration-300 ${on ? "scale-100" : "scale-75"}`} />
