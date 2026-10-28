@@ -8,7 +8,7 @@ import type { ErpProduct } from "@/lib/erp/types";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { categoryVisual } from "./category-art";
-import { CategoryCarousel, type CategoryTile } from "./category-carousel";
+import { CategoryCarousel } from "./category-carousel";
 import { HeroBanner, type HeroSlide } from "./hero-banner";
 import { Reveal } from "./reveal";
 
@@ -124,9 +124,7 @@ export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
 /** "Shop by Category": one tile per real ERP category, with studio art, the ERP's own photo or an icon, and the count. */
 export function CategoryGrid({ categories }: { categories: Category[] }) {
   if (!categories.length) return null;
-  const tiles: CategoryTile[] = categories.slice(0, 12).map((c) => ({ slug: c.slug, name: c.name, count: c.count, art: categoryVisual(c.name) ?? c.image }));
-  // One more tile at the end: everything in the catalogue (the categories partition it, so their counts add up to it).
-  tiles.push({ slug: "all-products", name: "All Products", count: categories.reduce((n, c) => n + c.count, 0), href: "/products", all: true });
+  const tiles = categories.slice(0, 12).map((c) => ({ slug: c.slug, name: c.name, count: c.count, art: categoryVisual(c.name) ?? c.image }));
   return (
     <section aria-labelledby="cats" className="container-page mt-12 sm:mt-16">
       <SectionHead id="cats" eyebrow="Browse" title="Shop by Category">Find the right device or accessory in a tap.</SectionHead>

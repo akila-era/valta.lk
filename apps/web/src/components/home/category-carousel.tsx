@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { categoryIcon } from "@/components/ui/category-icon";
 
 export interface CategoryTile {
@@ -11,17 +11,12 @@ export interface CategoryTile {
   name: string;
   count: number;
   art?: string;
-  /** Where the tile goes; defaults to the category page. */
-  href?: string;
-  /** The "All Products" tile: a grid icon instead of category art. */
-  all?: boolean;
 }
 
 /**
- * "Shop by Category" as a row moved by hand, never automatically: five tiles show at a time on laptops and wider (three
- * on tablets, two and a bit on phones), and round previous / next buttons on both sides move it one tile at a time, as on the banner.
- * Swiping works on touch screens and Tab walks through the tiles. The buttons only exist when there is more than fits;
- * at either end the matching button is disabled. When everything fits, the row is centred.
+ * "Shop by Category" as a row moved by hand: previous / next arrows on both sides (as on the banner), swipe on touch
+ * screens, and the keyboard's Tab. Each arrow shows only when there is more to see that way; when every category fits,
+ * there are no arrows and the row is centred.
  */
 export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
   const track = useRef<HTMLUListElement>(null);
@@ -30,8 +25,7 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
   const measure = useCallback(() => {
     const el = track.current;
     if (!el) return;
-    // a few pixels of slack: snapping and the side padding can leave the row a hair off its true ends
-    setEdge({ start: el.scrollLeft <= 6, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 6 });
+    setEdge({ start: el.scrollLeft <= 2, end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2 });
   }, []);
 
   useEffect(() => {
@@ -47,37 +41,29 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
     };
   }, [measure]);
 
-  // One tile per press: its width plus the gap.
   const go = (dir: 1 | -1) => {
     const el = track.current;
     if (!el) return;
-    const tile = el.querySelector("li");
-    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
-    el.scrollBy({ left: dir * ((tile?.getBoundingClientRect().width ?? 160) + gap), behavior: "smooth" });
+    el.scrollBy({ left: dir * Math.max(el.clientWidth * 0.8, 160), behavior: "smooth" });
   };
 
-  const fits = edge.start && edge.end;
-  const arrow =
-    "absolute top-[34%] z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink shadow-card ring-1 ring-ink/10 transition-[background-color,color,opacity] hover:bg-brand-500 hover:text-on-brand disabled:cursor-default disabled:opacity-35 disabled:hover:bg-white disabled:hover:text-ink sm:h-11 sm:w-11";
+  const arrow = "absolute top-[38%] z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-bg text-ink shadow-card transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand sm:h-11 sm:w-11";
 
   return (
     <div className="relative">
       <ul
         ref={track}
         aria-label="Categories"
-        className={`flex snap-x snap-mandatory overflow-x-auto scroll-smooth scroll-px-1 px-1 py-2 [--gap:1rem] [scrollbar-width:none] sm:[--gap:1.5rem] [&::-webkit-scrollbar]:hidden gap-[var(--gap)] ${fits ? "justify-center" : ""}`}
+        className={`flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 py-2 [scrollbar-width:none] sm:gap-6 [&::-webkit-scrollbar]:hidden ${edge.start && edge.end ? "justify-center" : ""}`}
       >
         {tiles.map((c) => {
           const Icon = categoryIcon(c.name);
           const count = `${c.count} ${c.count === 1 ? "product" : "products"}`;
           return (
-            // 2 and a bit tiles on phones (so it is clear the row moves), 3 on tablets, exactly 5 from laptops.
-            <li key={c.slug} className="w-[calc((100%-var(--gap)*1.4)/2.4)] shrink-0 snap-start sm:w-[calc((100%-var(--gap)*2)/3)] lg:w-[calc((100%-var(--gap)*4)/5)]">
-              <Link href={c.href ?? `/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group relative flex h-full flex-col items-center p-2 text-center">
+            <li key={c.slug} className="w-32 shrink-0 snap-start sm:w-40 lg:w-44">
+              <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group relative flex h-full flex-col items-center p-2 text-center">
                 <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-surface ring-2 ring-transparent ring-offset-4 transition-[box-shadow] duration-300 group-hover:ring-brand-500">
-                  {c.all ? (
-                    <LayoutGrid className="h-12 w-12 text-brand-500" strokeWidth={1.3} />
-                  ) : c.art ? (
+                  {c.art ? (
                     <Image src={c.art} alt="" fill sizes="176px" className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" />
                   ) : (
                     <Icon className="h-12 w-12 text-ink/70" strokeWidth={1.2} />
@@ -90,15 +76,15 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
           );
         })}
       </ul>
-      {!fits ? (
-        <>
-          <button type="button" onClick={() => go(-1)} disabled={edge.start} aria-label="Previous categories" className={`${arrow} -left-2 lg:-left-5`}>
-            <ChevronLeft className="h-5 w-5" aria-hidden />
-          </button>
-          <button type="button" onClick={() => go(1)} disabled={edge.end} aria-label="Next categories" className={`${arrow} -right-2 lg:-right-5`}>
-            <ChevronRight className="h-5 w-5" aria-hidden />
-          </button>
-        </>
+      {!edge.start ? (
+        <button type="button" onClick={() => go(-1)} aria-label="Previous categories" className={`${arrow} -left-2 lg:-left-5`}>
+          <ChevronLeft className="h-5 w-5" aria-hidden />
+        </button>
+      ) : null}
+      {!edge.end ? (
+        <button type="button" onClick={() => go(1)} aria-label="Next categories" className={`${arrow} -right-2 lg:-right-5`}>
+          <ChevronRight className="h-5 w-5" aria-hidden />
+        </button>
       ) : null}
     </div>
   );
