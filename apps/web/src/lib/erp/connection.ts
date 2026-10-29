@@ -2,6 +2,7 @@ import "server-only";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { getDb } from "../db";
 import { getErpEnv, type ErpEnv } from "../env";
+import { erpSettingsSchema } from "./types";
 
 /**
  * Which ERP this website talks to: the connection saved in the admin (encrypted in the website database) wins over
@@ -108,9 +109,30 @@ export async function probeErp(base: string, credential: string): Promise<ProbeR
     if (ping.status === 403) return { ok: false, message: "The ERP says e-commerce is not active for this shop. Ask the shop owner or HEXALYTE to enable it." };
     if (!ping.ok) return { ok: false, message: `The ERP answered with an error (${ping.status}). Check the address.` };
     const s = await call("/settings");
-    const j = (await s.json().catch(() => null)) as { data?: { currency?: string; ordersEnabled?: boolean; paymentMethods?: { COD?: boolean } } } | null;
-    if (!s.ok || !j?.data) return { ok: false, message: "The ERP answered, but not like a HEXALYTE store API. Check the address." };
-    return { ok: true, message: "Connected.", shop: { currency: String(j.data.currency ?? ""), ordersEnabled: Boolean(j.data.ordersEnabled), cod: Boolean(j.data.paymentMethods?.COD) } };
+    const j = (await s.json().catch(() => null)) as { data?: unknown; code?: unknown; message?: unknown } | null;
+    if (!s.ok) {
+      // Say exactly what the ERP answered (its own code and message), so the cause can be fixed on the ERP side.
+      const code = typeof j?.code === "string" ? ` ${j.code.slice(0, 60)}` : "";
+      const said = typeof j?.message === "string" ? `: "${j.message.slice(0, 160)}"` : "";
+      const hint =
+        s.status === 403 ? " E-commerce or the Store API may not be enabled for this shop in the ERP."
+        : s.status === 404 ? " The store API path may be different; check the address."
+        : s.status === 429 ? " Too many requests; wait a minute and try again."
+        : "";
+      return { ok: false, message: `The ERP accepted the credential but refused the shop settings (HTTP ${s.status}${code})${said}.${hint}` };
+    }
+    if (!j || typeof j.data !== "object" || j.data === null) {
+      const keys = j && typeof j === "object" ? Object.keys(j).slice(0, 6).join(", ") : "not JSON";
+      return { ok: false, message: `The ERP answered the shop settings in an unexpected format (expected {success, data}; got: ${keys || "empty"}).` };
+    }
+    // The same check the shop uses later: a mismatch here would otherwise only show up as a broken checkout.
+    const parsed = erpSettingsSchema.safeParse(j.data);
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      return { ok: false, message: `The ERP shop settings do not match what this website needs: "${issue?.path.join(".") || "settings"}" ${issue?.message ?? "is invalid"}.` };
+    }
+    const d = parsed.data;
+    return { ok: true, message: "Connected.", shop: { currency: d.currency, ordersEnabled: d.ordersEnabled, cod: Boolean(d.paymentMethods.COD) } };
   } catch {
     return { ok: false, message: "Could not reach the ERP at that address. Check the IP/host, port and that the ERP is running." };
   }
