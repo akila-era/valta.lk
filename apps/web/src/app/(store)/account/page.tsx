@@ -159,8 +159,8 @@ export default async function AccountPage() {
       />
 
       <div className="grid items-start gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8">
-        {/* Sidebar: who is signed in, the sections, and sign out */}
-        <aside className="min-w-0 lg:sticky lg:top-[calc(var(--hdr-sticky,7rem)+1.5rem)]">
+        {/* Sidebar: the sections and sign out. It scrolls with the page (a pinned sidebar felt detached from the content). */}
+        <aside className="min-w-0">
           <nav aria-label="Account" className="rounded-panel border border-border bg-bg p-2.5">
             <ul className="flex gap-1 overflow-x-auto [scrollbar-width:none] lg:flex-col lg:overflow-visible [&::-webkit-scrollbar]:hidden">
               {NAV.map((item, i) => (
