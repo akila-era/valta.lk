@@ -119,6 +119,16 @@ export async function getRelated(product: ErpProduct, limit = 4): Promise<ErpPro
   return [...products.values()].filter((p) => p.id !== product.id && p.category?.slug === product.category?.slug).slice(0, limit);
 }
 
+/** The products before and after this one in its category, A to Z by name (for the product page's ‹ › arrows). None at the ends. */
+export async function getNeighbours(product: ErpProduct): Promise<{ prev: ErpProduct | null; next: ErpProduct | null }> {
+  if (!product.category) return { prev: null, next: null };
+  const { products } = await getSnapshot();
+  const list = [...products.values()].filter((p) => p.category?.slug === product.category?.slug).sort((a, b) => a.name.localeCompare(b.name));
+  const i = list.findIndex((p) => p.id === product.id);
+  if (i < 0) return { prev: null, next: null };
+  return { prev: list[i - 1] ?? null, next: list[i + 1] ?? null };
+}
+
 /** Distinct brand names present in the catalogue (with a real product image when one exists), most products first. */
 export async function listBrands(): Promise<{ name: string; count: number; image?: string }[]> {
   const { products } = await getSnapshot();

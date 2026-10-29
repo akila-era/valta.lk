@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Faq } from "@/components/home/more-sections";
-import { BrandWall, CategoryGrid, HomeHero, ProductSection, PromoTiles, Reviews, ServiceStrip, Spotlight, WhyChoose, collectionLine } from "@/components/home/storefront";
+import { BrandWall, CategoryGrid, FeatureSplit, HomeHero, ProductSection, PromoTiles, RangeTabs, Reviews, ServiceStrip, Spotlight, WhyChoose, featureArt } from "@/components/home/storefront";
+import { categoryVisual } from "@/components/home/category-art";
 import { VideoShowcase } from "@/components/home/video-showcase";
 import { ErpUnavailable } from "@/components/ui/states";
 import { getHomeData } from "@/lib/home-data";
@@ -25,7 +26,12 @@ export const metadata: Metadata = {
  */
 export default async function HomePage() {
   const data = await getHomeData();
-  const [firstRail, ...otherRails] = data.rails;
+  // One larger category gets the split banner + products block: preferably one the two Spotlight tiles do not show
+  // already, and only a kind of category with a campaign photograph. The other larger categories become tabs.
+  const spotlit = new Set([...data.categories].filter((c) => categoryVisual(c.name)).sort((a, b) => b.count - a.count).slice(0, 2).map((c) => c.slug));
+  const withArt = data.rails.filter((r) => featureArt(r.name) && r.products.length >= 2);
+  const featured = withArt.find((r) => !spotlit.has(r.slug)) ?? withArt[0] ?? null;
+  const tabRails = data.rails.filter((r) => r !== featured);
   const deals = data.hotDeals.filter((p) => p.available);
 
   return (
@@ -52,13 +58,8 @@ export default async function HomePage() {
             products={deals}
             priority
           />
-          {firstRail ? (
-            <ProductSection id={`c-${firstRail.slug}`} eyebrow={`${firstRail.name} collection`} title={firstRail.name} text={collectionLine(firstRail.name, firstRail.count)} href={`/categories/${firstRail.slug}`} products={firstRail.products} tinted />
-          ) : null}
-          {otherRails.map((r, i) => (
-            <ProductSection key={r.slug} id={`c-${r.slug}`} eyebrow={`${r.name} collection`} title={r.name} text={collectionLine(r.name, r.count)} href={`/categories/${r.slug}`} products={r.products} tinted={i % 2 === 1} />
-          ))}
-          <ProductSection id="new-arrivals" eyebrow="Just in" title="New Arrivals" text="The latest products added to our catalogue." href="/products" products={data.newArrivals} tinted={otherRails.length % 2 === 1} />
+          {featured ? <FeatureSplit rail={featured} /> : null}
+          <RangeTabs newArrivals={data.newArrivals} rails={tabRails} tinted />
           <WhyChoose checkout={data.checkout} />
           <Reviews title={data.reviews.title} reviews={data.reviews.items} />
           <div className="container-page">

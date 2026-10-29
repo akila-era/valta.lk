@@ -10,6 +10,7 @@ import { formatLkr } from "@/lib/utils/money";
 import { categoryVisual } from "./category-art";
 import { CategoryCarousel, type CategoryTile } from "./category-carousel";
 import { HeroBanner, type HeroSlide } from "./hero-banner";
+import { ProductTabs } from "./product-tabs";
 import { Reveal } from "./reveal";
 
 type Category = HomeData["categories"][number];
@@ -229,16 +230,7 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
   const grid = (
     <>
       <SectionHead id={`${id}-title`} eyebrow={eyebrow} title={title}>{text}</SectionHead>
-      <ul
-        aria-label={`${title} products`}
-        className="flex flex-wrap justify-center gap-3 sm:gap-4 max-md:[&>li:nth-child(n+5)]:hidden md:max-lg:[&>li:nth-child(n+7)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden"
-      >
-        {products.slice(0, 10).map((p, i) => (
-          <Reveal as="li" key={p.id} delay={(i % 5) * 40} className="w-[calc((100%-0.75rem)/2)] sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-4rem)/5)]">
-            <CompactProductCard product={p} priority={priority && i < 4} />
-          </Reveal>
-        ))}
-      </ul>
+      <ProductRow label={`${title} products`} products={products} priority={priority} />
       <ViewAll href={href} />
     </>
   );
@@ -248,6 +240,97 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
     </section>
   ) : (
     <section id={id} aria-labelledby={`${id}-title`} className="container-page mt-12 scroll-mt-40 sm:mt-16">{grid}</section>
+  );
+}
+
+/** Up to ten product cards in centred rows (two rows at every width: 2, 3, 4 or 5 per row). */
+function ProductRow({ label, products, priority = false }: { label: string; products: ErpProduct[]; priority?: boolean }) {
+  return (
+    <ul
+      aria-label={label}
+      className="flex flex-wrap justify-center gap-3 sm:gap-4 max-md:[&>li:nth-child(n+5)]:hidden md:max-lg:[&>li:nth-child(n+7)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden"
+    >
+      {products.slice(0, 10).map((p, i) => (
+        <Reveal as="li" key={p.id} delay={(i % 5) * 40} className="w-[calc((100%-0.75rem)/2)] sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-4rem)/5)]">
+          <CompactProductCard product={p} priority={priority && i < 4} />
+        </Reveal>
+      ))}
+    </ul>
+  );
+}
+
+type Rail = HomeData["rails"][number];
+
+/**
+ * "Explore Our Range": New Arrivals and the larger categories as tabs of one block (instead of one long section each).
+ * Each tab keeps its section id (new-arrivals, c-<category>) and its own "View all" link.
+ */
+export function RangeTabs({ newArrivals, rails, tinted = false }: { newArrivals: ErpProduct[]; rails: Rail[]; tinted?: boolean }) {
+  const tabs = [
+    ...(newArrivals.length ? [{ id: "new-arrivals", label: "New Arrivals", href: "/products", view: "View all new arrivals", products: newArrivals }] : []),
+    ...rails.map((r) => ({ id: `c-${r.slug}`, label: r.name, href: `/categories/${r.slug}`, view: `View all ${r.name}`, products: r.products })),
+  ];
+  if (!tabs.length) return null;
+  return (
+    <section aria-labelledby="range-title" className={`mt-12 scroll-mt-40 sm:mt-16 ${tinted ? "border-y border-border bg-surface py-10 sm:py-14" : ""}`}>
+      <div className="container-page">
+        <SectionHead id="range-title" eyebrow="Just in & by category" title="Explore Our Range">The newest products, then each of our larger ranges. Prices and stock are live.</SectionHead>
+        <ProductTabs
+          label="Product ranges"
+          tabs={tabs.map((t) => ({
+            id: t.id,
+            label: t.label,
+            content: (
+              <>
+                <ProductRow label={`${t.label} products`} products={t.products} />
+                <ViewAll href={t.href} label={t.view} />
+              </>
+            ),
+          }))}
+        />
+      </div>
+    </section>
+  );
+}
+
+/** The campaign photograph (and its words) for a category, when the store has one for that kind of category. */
+export function featureArt(name: string) {
+  return SLIDE_ART.find((a) => a.test.test(name));
+}
+
+/**
+ * One category as a split block: its campaign photograph as a tall banner on the left (with a Shop now action), and
+ * four of its products on the right. Breaks up the rows of cards, as on a brand store.
+ */
+export function FeatureSplit({ rail }: { rail: Rail }) {
+  const art = featureArt(rail.name);
+  if (!art || rail.products.length < 2) return null;
+  const href = `/categories/${rail.slug}`;
+  const picks = rail.products.slice(0, 4);
+  // no empty slots: four products sit 2 x 2 (4 across on wide screens); three sit 3 across (two on phones)
+  const cols = picks.length === 4 ? "grid-cols-2 xl:grid-cols-4" : picks.length === 3 ? "grid-cols-2 sm:grid-cols-3 max-sm:[&>li:nth-child(3)]:hidden" : "grid-cols-2";
+  return (
+    <section aria-labelledby="feature-title" className="container-page mt-12 sm:mt-16">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-5">
+        <Link href={href} className="group relative isolate flex min-h-72 overflow-hidden rounded-panel bg-ink text-white sm:min-h-80">
+          <Image src={art.src} alt="" fill sizes="(min-width:1024px) 33vw, 100vw" className="-z-10 object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none" />
+          <span aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+          <span className="mt-auto flex flex-col items-start p-6 sm:p-8">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-500">{rail.count} {rail.count === 1 ? "product" : "products"}</span>
+            <h2 id="feature-title" className="mt-2 font-display text-2xl font-extrabold leading-tight tracking-title sm:text-3xl">{rail.name}</h2>
+            <span className="mt-2 max-w-xs text-sm leading-6 text-white/80">{art.title}</span>
+            <span className="btn mt-5 min-h-10 rounded-full bg-brand-500 px-6 text-[13px] text-on-brand transition-colors group-hover:bg-white group-hover:text-ink">Shop {rail.name}</span>
+          </span>
+        </Link>
+        <ul aria-label={`${rail.name} products`} className={`grid gap-3 sm:gap-4 ${cols}`}>
+          {picks.map((p, i) => (
+            <Reveal as="li" key={p.id} delay={i * 40}>
+              <CompactProductCard product={p} />
+            </Reveal>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 

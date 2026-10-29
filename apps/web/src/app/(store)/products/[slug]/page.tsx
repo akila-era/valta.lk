@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Battery, Camera, Check, ChevronRight, Cpu, Headphones, ShieldCheck, Smartphone, Store, Truck, Wifi, Zap, type LucideIcon } from "lucide-react";
+import { Battery, Camera, Check, ChevronLeft, ChevronRight, LayoutGrid, Cpu, Headphones, ShieldCheck, Smartphone, Store, Truck, Wifi, Zap, type LucideIcon } from "lucide-react";
 import { Notice } from "@/components/ui/notice";
 import { ErpUnavailable } from "@/components/ui/states";
 import { AccessoryRail } from "@/components/products/accessory-rail";
@@ -16,7 +16,7 @@ import { getRecord } from "@/lib/admin/product-content";
 import { BADGE_LABELS, groupSpecs, type ContentDoc } from "@/lib/content/schema";
 import { htmlToText, sanitizeHtml } from "@/lib/content/sanitize";
 import { getDb } from "@/lib/db";
-import { getErpSnapshot, getProductBySlug, getRelated } from "@/lib/erp/catalogue";
+import { getErpSnapshot, getNeighbours, getProductBySlug, getRelated } from "@/lib/erp/catalogue";
 import { applyContent, mediaUrl } from "@/lib/erp/content-overlay";
 import { offersForSources } from "@/lib/accessories/load";
 import { effectivePrice, productOffer } from "@/lib/erp/product-utils";
@@ -100,6 +100,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
   // Related: the products staff chose (only ones that really exist), otherwise same-category products.
   const chosen = c?.related.length ? (await getErpSnapshot().then((s) => c.related.map((id) => s.products.get(id)).filter((p): p is ErpProduct => Boolean(p)))).slice(0, 8) : [];
   const related = chosen.length ? chosen : await getRelated(product).catch(() => []);
+  const { prev, next } = await getNeighbours(product).catch(() => ({ prev: null, next: null }));
 
   const descHtml = c?.descriptionHtml ? sanitizeHtml(c.descriptionHtml) : "";
   const siteSpecGroups = c ? groupSpecs(c.specs) : [];
@@ -144,7 +145,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
       )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="mb-6 w-fit">
+      <div className="mb-6 flex items-start justify-between gap-4">
+      <nav aria-label="Breadcrumb" className="w-fit min-w-0">
         <ol className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
           <li>
             <Link href="/" className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
@@ -188,6 +190,30 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </li>
         </ol>
       </nav>
+      {/* ‹ › the previous and next product in this category (A to Z), with the category itself between them. */}
+      {product.category && (prev || next) ? (
+        <nav aria-label="More in this category" className="flex shrink-0 items-center gap-1">
+          {[
+            { p: prev, label: "Previous product", Icon: ChevronLeft },
+            { p: null, label: `All ${product.category.name}`, Icon: LayoutGrid, href: `/categories/${product.category.slug}` },
+            { p: next, label: "Next product", Icon: ChevronRight },
+          ].map(({ p, label, Icon, href }) => {
+            const to = href ?? (p ? `/products/${p.slug}` : null);
+            const name = p ? `${label}: ${p.content?.displayTitle || p.name}` : label;
+            const cls = "flex h-9 w-9 items-center justify-center rounded-full border border-border text-ink transition-colors";
+            return to ? (
+              <Link key={label} href={to} aria-label={name} title={name} className={`${cls} hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand`}>
+                <Icon className="h-4 w-4" aria-hidden />
+              </Link>
+            ) : (
+              <span key={label} aria-hidden className={`${cls} opacity-35`}>
+                <Icon className="h-4 w-4" />
+              </span>
+            );
+          })}
+        </nav>
+      ) : null}
+      </div>
 
       <VariantChoice initial={initialVariant}>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">

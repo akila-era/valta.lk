@@ -143,7 +143,7 @@ export async function getHomeData(): Promise<HomeData> {
 
   const categories = newest?.categories ?? [];
   // One rail per larger category, newest first
-  const railCats = [...categories].filter((c) => c.count >= 3).sort((a, b) => b.count - a.count).slice(0, 3);
+  const railCats = [...categories].filter((c) => c.count >= 3).sort((a, b) => b.count - a.count).slice(0, 4);
   const rails = (
     await Promise.all(
       railCats.map(async (c) => {

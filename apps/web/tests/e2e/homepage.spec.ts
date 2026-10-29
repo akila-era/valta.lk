@@ -25,7 +25,7 @@ test.describe("homepage", () => {
 
     await expect(page.getByRole("heading", { name: "Shop by Category" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Hot Deals" })).toBeVisible(); // the ERP has a real sale price
-    await expect(page.getByRole("heading", { name: "New Arrivals" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "New Arrivals" })).toBeVisible();
     // staff promo cards only appear once staff create banners in the admin
     await expect(page.getByRole("region", { name: "Offers" })).toHaveCount(0);
     const bar = page.getByRole("region", { name: "Shopping with VOLTA.LK" });
@@ -297,14 +297,28 @@ test.describe("storefront sections", () => {
     await phone.close();
   });
 
-  test("collections: one section per larger category, with its real products and a link to the category", async ({ page }) => {
+  test("range tabs: New Arrivals and the larger categories as tabs, each with its real products and a link", async ({ page }) => {
     await page.goto("/");
+    const range = page.locator("section[aria-labelledby=range-title]");
+    await expect(range.getByRole("tab")).toHaveText([/New Arrivals/i, /Accessories/i, /Smart Home/i, /Audio/i]);
+    await expect(range.getByRole("tab", { name: "New Arrivals" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.locator("#c-audio")).toBeHidden();
+    await range.getByRole("tab", { name: "Audio" }).click();
     const audio = page.locator("#c-audio");
-    await expect(audio.getByRole("heading", { name: "Audio", level: 2 })).toBeVisible();
-    await expect(audio.getByText("Audio collection")).toBeVisible();
+    await expect(audio).toBeVisible();
+    await expect(page.locator("#new-arrivals")).toBeHidden();
     await expect(audio.locator("article")).toHaveCount(4);
-    await expect(audio.getByRole("link", { name: "View all" })).toHaveAttribute("href", "/categories/audio");
-    for (const id of ["#c-accessories", "#c-mobile-phones"]) await expect(page.locator(id)).toHaveCount(1);
+    await expect(audio.getByRole("link", { name: "View all Audio" })).toHaveAttribute("href", "/categories/audio");
+    // keyboard: arrow keys move between the tabs
+    await range.getByRole("tab", { name: "Audio" }).press("ArrowRight");
+    await expect(range.getByRole("tab", { name: "New Arrivals" })).toBeFocused();
+    await expect(page.locator("#new-arrivals")).toBeVisible();
+
+    // the split block: a category's campaign photo with four (here three) of its products
+    const feature = page.locator("section[aria-labelledby=feature-title]");
+    await expect(feature.getByRole("heading", { name: "Mobile Phones" })).toBeVisible();
+    await expect(feature.getByRole("link", { name: /Shop Mobile Phones/ })).toHaveAttribute("href", "/categories/mobile-phones");
+    await expect(feature.locator("article")).toHaveCount(3);
     // no unsupported claims about curation, ratings or sales
     await expect(page.getByText(/handpicked|best.?sellers?|top rated|customer reviews/i)).toHaveCount(0);
   });
@@ -391,9 +405,8 @@ test.describe("more homepage sections", () => {
   test("new arrivals: real data, balanced grid, correct links and a labelled Add to cart", async ({ page }) => {
     await page.goto("/");
     const section = page.locator("#new-arrivals");
-    await expect(section.getByRole("heading", { name: "New Arrivals" })).toBeVisible();
-    await expect(section.getByText("The latest products added to our catalogue.")).toBeVisible();
-    await expect(section.getByRole("link", { name: "View all" })).toHaveAttribute("href", "/products");
+    await expect(page.getByRole("tab", { name: "New Arrivals" })).toHaveAttribute("aria-selected", "true");
+    await expect(section.getByRole("link", { name: "View all new arrivals" })).toHaveAttribute("href", "/products");
 
     const cards = section.locator("article");
     expect(await cards.count()).toBeGreaterThanOrEqual(8);
@@ -480,7 +493,7 @@ test.describe("motion", () => {
     await scrollThrough(page);
     const hidden = await page.$$eval("[data-reveal='hidden']", (els) => els.length);
     expect(hidden).toBe(0);
-    await expect(page.getByRole("heading", { name: "New Arrivals" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "New Arrivals" })).toBeVisible();
     expect(await page.locator("[data-reveal='shown']").count()).toBeGreaterThan(0);
   });
 
@@ -490,7 +503,7 @@ test.describe("motion", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
     expect(await page.locator("[data-reveal]").count()).toBe(0);
-    await expect(page.getByRole("heading", { name: "New Arrivals" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "New Arrivals" })).toBeVisible();
     await ctx.close();
   });
 

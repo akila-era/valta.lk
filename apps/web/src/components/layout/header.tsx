@@ -77,7 +77,7 @@ export async function Header() {
         </div>
       </div>
       <HeaderShell>
-        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
+        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0 md:transition-[height] md:duration-300 md:group-data-[compact=true]/hdr:h-14">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
           <Wordmark className="shrink-0 text-[1.5rem] leading-none text-ink xs:text-[1.75rem] sm:text-[2rem] lg:text-[2rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
@@ -99,9 +99,14 @@ export async function Header() {
             <CartLink />
           </div>
         </div>
-        <Suspense fallback={null}>
-          <CategoryNav categories={categories} showDeals={hasDeals} />
-        </Suspense>
+        {/* The category row folds away while the visitor scrolls down (see HeaderShell) and comes back on the way up. */}
+        <div className="grid grid-rows-[1fr] transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none group-data-[compact=true]/hdr:grid-rows-[0fr]">
+          <div className="min-h-0 transition-[visibility] duration-300 group-data-[compact=true]/hdr:invisible group-data-[compact=true]/hdr:overflow-hidden">
+            <Suspense fallback={null}>
+              <CategoryNav categories={categories} showDeals={hasDeals} />
+            </Suspense>
+          </div>
+        </div>
       </HeaderShell>
       <div className="border-b border-border bg-bg px-3 py-2.5 md:hidden">
         <SearchBox size="lg" popular={quick} />

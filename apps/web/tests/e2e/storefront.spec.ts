@@ -37,7 +37,7 @@ test.describe("browse", () => {
   test("homepage, search, category and product pages", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("VOLTA.LK");
-    await expect(page.getByRole("heading", { name: "New Arrivals" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "New Arrivals" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Hot Deals" })).toBeVisible(); // Orbit Pro has a real sale price
 
     await page.getByRole("combobox", { name: "Search products" }).fill("earbuds");
@@ -64,6 +64,30 @@ test.describe("browse", () => {
     await expect(page.getByRole("navigation", { name: "Pagination" })).toHaveCount(1);
     await page.goto("/products?sort=price-asc&page=2");
     await expect(page.locator("main article")).toHaveCount(5);
+  });
+
+  test("product page: previous / next product in the category (A to Z), and the category between them", async ({ page }) => {
+    await page.goto(`/products/pulse-over-ear-headphones-${id(4)}`);
+    const nav = page.getByRole("navigation", { name: "More in this category" });
+    await expect(nav.getByRole("link", { name: "Previous product: Echo Mini Speaker" })).toHaveAttribute("href", `/products/echo-mini-speaker-${id(15)}`);
+    await expect(nav.getByRole("link", { name: "All Audio" })).toHaveAttribute("href", "/categories/audio");
+    await nav.getByRole("link", { name: "Next product: Pulse Wireless Earbuds" }).click();
+    await expect(page).toHaveURL(new RegExp(`/products/pulse-wireless-earbuds-${id(3)}$`));
+    // the last product in the category has no next link
+    await expect(page.getByRole("navigation", { name: "More in this category" }).getByRole("link", { name: /^Next product/ })).toHaveCount(0);
+  });
+
+  test("header folds its category row while scrolling down and brings it back on the way up", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/products");
+    const header = page.locator("header");
+    await expect(header).toHaveAttribute("data-compact", "false");
+    for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 300);
+    await expect(header).toHaveAttribute("data-compact", "true");
+    await expect(header.getByRole("navigation", { name: "Categories" })).toBeHidden();
+    await page.mouse.wheel(0, -200);
+    await expect(header).toHaveAttribute("data-compact", "false");
+    await expect(header.getByRole("navigation", { name: "Categories" })).toBeVisible();
   });
 
   test("variants and unavailable products", async ({ page }) => {
