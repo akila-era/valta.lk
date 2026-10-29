@@ -321,9 +321,9 @@
 /* A short orange bar sweeps along the track under the wordmark. */
 @keyframes loader-bar { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 @utility animate-loader-bar { animation: loader-bar 1.4s cubic-bezier(0.45, 0, 0.2, 1) infinite; }
-/* On the splash the bar fills the track once, in the splash's 1.6 s. */
+/* On the splash the bar fills the track once, in the splash's 1.8 s. */
 @keyframes loader-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@utility animate-loader-fill { animation: loader-fill 1.6s ease-out both; }
+@utility animate-loader-fill { animation: loader-fill 1.8s ease-out both; }
 /* Safety net for the splash: if scripts never run, it hides itself (under reduced motion, at once). */
 @keyframes splash-auto-out { to { opacity: 0; visibility: hidden; } }
 .splash-auto-out { animation: splash-auto-out 0.4s ease 6s forwards; }
