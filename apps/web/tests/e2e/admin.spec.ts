@@ -111,6 +111,39 @@ test.describe("admin console", () => {
   });
 });
 
+test.describe("instalment line (Payments)", () => {
+  test("staff switch the KOKO / Mintpay line on and off; shoppers cannot change it", async ({ page, browser }) => {
+    const anon = await browser.newContext();
+    expect((await anon.request.put(`${SITE}/api/admin/settings/instalments`, { data: { enabled: true, providers: ["koko"], parts: 3 }, headers: { Origin: SITE } })).status()).toBe(401);
+    await anon.close();
+
+    await signInAsAdmin(page);
+    // on with no provider is refused
+    expect((await page.request.put("/api/admin/settings/instalments", { data: { enabled: true, providers: [], parts: 3 }, headers: { Origin: SITE } })).status()).toBe(422);
+
+    await page.goto("/admin/payments");
+    await page.getByLabel("Show the instalment line on product cards").check();
+    await page.getByLabel("KOKO").check();
+    await page.getByLabel("Mintpay").check();
+    await page.getByLabel("Number of parts").selectOption("3");
+    await expect(page.getByText("or 3 × LKR 4,967 with KOKO | Mintpay")).toBeVisible(); // preview
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+
+    await page.goto("/products");
+    const earbuds = page.locator("main article", { hasText: "Pulse Wireless Earbuds" });
+    await expect(earbuds.getByText(/or 3 × LKR 4,967 with KOKO/)).toBeVisible(); // 14,900 ÷ 3, rounded up
+    await expect(page.locator("main article", { hasText: "Limited Case (sold out)" }).getByText(/with KOKO/)).toHaveCount(0);
+
+    await page.goto("/admin/payments");
+    await page.getByLabel("Show the instalment line on product cards").uncheck();
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+    await page.goto("/products");
+    await expect(page.locator("main article").getByText(/with KOKO/)).toHaveCount(0);
+  });
+});
+
 test.describe("ERP connection form", () => {
   test("tests and saves a connection from the admin, never shows the credential, refuses bad ones, and can be removed", async ({ page }) => {
     await signInAsAdmin(page);

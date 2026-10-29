@@ -6,7 +6,7 @@ import { Notice } from "@/components/ui/notice";
 import { ErpUnavailable } from "@/components/ui/states";
 import { AccessoryRail } from "@/components/products/accessory-rail";
 import { Gallery } from "@/components/products/gallery";
-import { ProductGrid } from "@/components/products/product-card";
+import { ProductGrid } from "@/components/products/product-grid";
 import { RecentlyViewed, RecordView } from "@/components/products/recently-viewed";
 import { ShareButtons } from "@/components/products/share-buttons";
 import { PurchasePanel } from "@/components/products/purchase-panel";

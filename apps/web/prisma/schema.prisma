@@ -318,3 +318,12 @@ model StorefrontEvent {
   @@index([visitId])
   @@index([createdAt])
 }
+
+/// Storefront settings staff change in the admin (one JSON value per key, validated by the code that reads it), e.g.
+/// "instalments": the "or 3 × LKR … with KOKO" line on product cards. Never prices, stock or anything the ERP owns.
+model StoreSetting {
+  key       String   @id
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}

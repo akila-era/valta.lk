@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { discountPercent, effectivePrice, isNewArrival } from "@/lib/erp/product-utils";
 import type { ErpProduct } from "@/lib/erp/types";
+import type { InstalmentLine } from "@/lib/instalments";
 import { formatLkr } from "@/lib/utils/money";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-card";
@@ -11,8 +12,8 @@ interface CompactProductCardProps {
   priority?: boolean;
   /** List layout: photo on the left, details and actions on the right. */
   row?: boolean;
-  /** Instalment providers to show the "or 3 × … with KOKO" line for (from siteConfig.instalments, passed by server parents). */
-  instalments?: string[];
+  /** The "or 3 × … with KOKO" line as set in the admin (Payments), passed by server parents; null or absent = no line. */
+  instalments?: InstalmentLine;
 }
 
 /**
@@ -40,12 +41,10 @@ export function cardHighlights(product: ErpProduct): { value: string; name: stri
  * focus; on touch screens (and in the list layout) it is a button under the price. Variant products link to the
  * product page instead.
  */
-/** Display names of the instalment providers (see siteConfig.instalments). */
+/** Display names of the instalment providers (the same as INSTALMENT_PROVIDERS in lib/instalments, which is server-only). */
 const INSTALMENT_NAMES: Record<string, string> = { koko: "KOKO", mintpay: "Mintpay" };
-/** How many parts an instalment plan splits the price into. */
-const INSTALMENT_PARTS = 3;
 
-export function CompactProductCard({ product, priority, row = false, instalments = [] }: CompactProductCardProps) {
+export function CompactProductCard({ product, priority, row = false, instalments = null }: CompactProductCardProps) {
   const title = product.content?.displayTitle || product.name;
   const current = effectivePrice(product);
   const pct = discountPercent(product);
@@ -132,10 +131,10 @@ export function CompactProductCard({ product, priority, row = false, instalments
           )}
         </p>
         {/* The price in equal parts with the store's instalment providers (only when the owner has set any). */}
-        {instalments.length && product.available ? (
+        {instalments && product.available ? (
           <p className={`mt-1 text-[11px] leading-4 text-muted sm:text-xs ${row ? "" : "text-center"}`}>
-            or {INSTALMENT_PARTS} × <span className="font-semibold tabular-nums text-ink">{formatLkr(Math.ceil(current / INSTALMENT_PARTS))}</span> with{" "}
-            {instalments.map((k, i) => (
+            or {instalments.parts} × <span className="font-semibold tabular-nums text-ink">{formatLkr(Math.ceil(current / instalments.parts))}</span> with{" "}
+            {instalments.providers.map((k, i) => (
               <span key={k}>
                 {i > 0 ? <span aria-hidden className="mx-1 text-border-strong">|</span> : null}
                 <span className="font-extrabold tracking-wide text-ink">{INSTALMENT_NAMES[k]}</span>

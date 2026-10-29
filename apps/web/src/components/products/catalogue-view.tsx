@@ -5,7 +5,7 @@ import { listProducts, type ProductQuery, type SortKey } from "@/lib/erp/catalog
 import { Pagination } from "@/components/ui/chrome";
 import { EmptyState, ErpUnavailable } from "@/components/ui/states";
 import { FilterPanel } from "./filter-panel";
-import { ProductGrid } from "./product-card";
+import { ProductGrid } from "./product-grid";
 
 export interface RawParams {
   q?: string;

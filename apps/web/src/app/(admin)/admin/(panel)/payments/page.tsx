@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Banknote, Clock, CreditCard, Hourglass } from "lucide-react";
+import { InstalmentSettingsForm } from "@/components/admin/instalment-settings";
 import { PageHeader, Panel, Stat } from "@/components/admin/ui";
 import { adminDb, adminGate } from "@/lib/admin/gate";
 import { getSettings } from "@/lib/erp/settings";
+import { getInstalmentSettings } from "@/lib/instalments";
 import { formatLkr } from "@/lib/utils/money";
 
 export const metadata: Metadata = { title: "Payments" };
@@ -16,11 +18,12 @@ export default async function PaymentsPage() {
   if (!db) return notice;
 
   const live = { NOT: { erpStatus: "CANCELLED" } };
-  const [collected, toCollect, unsent, settings] = await Promise.all([
+  const [collected, toCollect, unsent, settings, instalments] = await Promise.all([
     db.webOrder.aggregate({ where: { ...live, erpPaymentStatus: "COD_COLLECTED" }, _sum: { total: true }, _count: { _all: true } }),
     db.webOrder.aggregate({ where: { ...live, syncStatus: "SYNCED", NOT: [{ erpStatus: "CANCELLED" }, { erpPaymentStatus: "COD_COLLECTED" }] }, _sum: { total: true }, _count: { _all: true } }),
     db.webOrder.aggregate({ where: { syncStatus: { not: "SYNCED" } }, _sum: { total: true }, _count: { _all: true } }),
     getSettings().catch(() => null),
+    getInstalmentSettings(),
   ]);
   const n = (v: unknown) => formatLkr(Number(v ?? 0));
 
@@ -43,6 +46,9 @@ export default async function PaymentsPage() {
           ) : (
             <p className="text-sm text-muted">The ERP settings could not be read right now.</p>
           )}
+        </Panel>
+        <Panel title="Instalment line on product cards" id="instalments">
+          <InstalmentSettingsForm initial={instalments} canSave />
         </Panel>
         <Panel title="Details" id="details">
           <p className="text-sm text-muted">See every order with its payment status on <Link href="/admin/payments/transactions" className="font-semibold text-brand-600 hover:underline">Transactions</Link>. Refunds and online gateway settlements do not exist yet because no gateway is connected.</p>

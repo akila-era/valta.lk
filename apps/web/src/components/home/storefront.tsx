@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { CompactProductCard } from "@/components/products/compact-product-card";
 import type { HomeData, ResolvedBanner } from "@/lib/home-data";
 import type { ErpProduct } from "@/lib/erp/types";
+import { instalmentLine } from "@/lib/instalments";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { categoryVisual } from "./category-art";
@@ -244,7 +245,8 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
 }
 
 /** Up to ten product cards in centred rows (two rows at every width: 2, 3, 4 or 5 per row). */
-function ProductRow({ label, products, priority = false }: { label: string; products: ErpProduct[]; priority?: boolean }) {
+async function ProductRow({ label, products, priority = false }: { label: string; products: ErpProduct[]; priority?: boolean }) {
+  const instalments = await instalmentLine();
   return (
     <ul
       aria-label={label}
@@ -252,7 +254,7 @@ function ProductRow({ label, products, priority = false }: { label: string; prod
     >
       {products.slice(0, 10).map((p, i) => (
         <Reveal as="li" key={p.id} delay={(i % 5) * 40} className="w-[calc((100%-0.75rem)/2)] sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-4rem)/5)]">
-          <CompactProductCard product={p} priority={priority && i < 4} instalments={siteConfig.instalments} />
+          <CompactProductCard product={p} priority={priority && i < 4} instalments={instalments} />
         </Reveal>
       ))}
     </ul>
@@ -302,7 +304,8 @@ export function featureArt(name: string) {
  * One category as a split block: its campaign photograph as a tall banner on the left (with a Shop now action), and
  * four of its products on the right. Breaks up the rows of cards, as on a brand store.
  */
-export function FeatureSplit({ rail }: { rail: Rail }) {
+export async function FeatureSplit({ rail }: { rail: Rail }) {
+  const instalments = await instalmentLine();
   const art = featureArt(rail.name);
   if (!art || rail.products.length < 2) return null;
   const href = `/categories/${rail.slug}`;
@@ -325,7 +328,7 @@ export function FeatureSplit({ rail }: { rail: Rail }) {
         <ul aria-label={`${rail.name} products`} className={`grid gap-3 sm:gap-4 ${cols}`}>
           {picks.map((p, i) => (
             <Reveal as="li" key={p.id} delay={i * 40}>
-              <CompactProductCard product={p} instalments={siteConfig.instalments} />
+              <CompactProductCard product={p} instalments={instalments} />
             </Reveal>
           ))}
         </ul>
