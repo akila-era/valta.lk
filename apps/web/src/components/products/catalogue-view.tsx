@@ -313,8 +313,8 @@ export async function CatalogueView({
 
       {/* Main product area */}
       <section aria-label="Products" className="min-w-0">
-        {/* Controls Bar: Count on left, Sort pills + View icons on right (matching screenshot) */}
-        <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Controls bar: the count, then sort, per-page and view; one row from xl, where the product area is wide enough. */}
+        <div className="mb-4 flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <p className="text-sm font-semibold text-muted" role="status">
             {result.total === 0
               ? "No products"

@@ -217,7 +217,7 @@ export function ProductEditor(p: Props) {
             <Link href={`/products/${p.slug}?preview=1`} target="_blank" rel="noopener" className="btn-secondary min-h-10 px-3 text-[13px]"><Eye className="h-4 w-4" aria-hidden /> Preview</Link>
             <details ref={moreRef} className="relative">
               <summary role="button" className="btn-secondary min-h-10 cursor-pointer list-none px-2.5" aria-label="More actions"><MoreVertical className="h-4 w-4" aria-hidden /></summary>
-              <div role="menu" className="card absolute right-0 z-20 mt-2 w-56 p-1.5 shadow-card">
+              <div role="menu" className="card absolute right-0 z-20 mt-2 w-56 p-1.5 shadow-card max-sm:fixed max-sm:inset-x-3 max-sm:bottom-3 max-sm:z-50 max-sm:mt-0 max-sm:w-auto">
                 <button type="button" role="menuitem" className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-surface disabled:opacity-40" disabled={!live || busy !== null} onClick={() => { moreRef.current?.removeAttribute("open"); void act("unpublish"); }}>Unpublish</button>
                 <button type="button" role="menuitem" className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm hover:bg-surface disabled:opacity-40" disabled={!(version > 0 && !dirty && unpublishedChanges) || busy !== null} onClick={() => { moreRef.current?.removeAttribute("open"); void act("discard"); }}>Discard draft</button>
               </div>
@@ -251,11 +251,11 @@ export function ProductEditor(p: Props) {
         ))}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className={tab === "basics" ? "min-w-0" : "card min-w-0 p-5"}>
         {tab !== "basics" && <CardHeader icon={TABS.find((t) => t[0] === tab)![2]} title={TABS.find((t) => t[0] === tab)![3]} />}
         {tab === "basics" && (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_17.5rem]">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_17.5rem]">
             <section className="card p-5" aria-label="Website presentation">
               <CardHeader icon={Tag} title="Website Presentation" />
               <div className="space-y-5">
@@ -502,7 +502,7 @@ export function ProductEditor(p: Props) {
       <aside className="min-w-0"><ErpPanel erp={p.erp} /></aside>
       </div>
 
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+      <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <QuickPreview doc={doc} urls={urls} erp={p.erp} previewHref={`/products/${p.slug}?preview=1`} />
         <CompletionCard doc={doc} onGo={(t) => { setTab(t); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
       </div>

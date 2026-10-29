@@ -45,7 +45,7 @@ export function Dialog({ open, title, onClose, children }: { open: boolean; titl
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center p-4 sm:items-center">
       <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close dialog" onClick={onClose} />
-      <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId} className="card relative z-10 w-full max-w-lg bg-bg p-6 shadow-overlay">
+      <div ref={panel} role="dialog" aria-modal="true" aria-labelledby={titleId} className="card relative z-10 max-h-[calc(100svh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain bg-bg p-6 shadow-overlay">
         <h2 id={titleId} className="text-lg font-bold text-ink">{title}</h2>
         <div className="mt-3 type-body">{children}</div>
       </div>

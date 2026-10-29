@@ -160,7 +160,7 @@ function Notifications({ badges }: { badges: AdminBadges }) {
         <Bell className="h-5 w-5" aria-hidden />
         {total > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{total > 99 ? "99+" : total}</span>}
       </summary>
-      <div className="card absolute right-0 mt-2 w-80 max-w-[85vw] p-2 shadow-card">
+      <div className="card absolute right-0 mt-2 w-80 max-w-[85vw] p-2 shadow-card max-sm:fixed max-sm:inset-x-3 max-sm:top-[4.25rem] max-sm:mt-0 max-sm:w-auto max-sm:max-w-none">
         {items.length === 0 ? (
           <p className="p-3 text-sm text-muted">Nothing needs attention right now.</p>
         ) : (
@@ -290,7 +290,7 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
               </span>
               <ChevronDown className="hidden h-4 w-4 text-muted sm:block" aria-hidden />
             </summary>
-            <div className="card absolute right-0 mt-2 w-64 p-4 shadow-card">
+            <div className="card absolute right-0 mt-2 w-64 p-4 shadow-card max-sm:fixed max-sm:inset-x-3 max-sm:top-[4.25rem] max-sm:mt-0 max-sm:w-auto">
               <p className="truncate text-sm font-semibold">{user.name}</p>
               <p className="truncate text-xs text-muted">{user.email}</p>
               <div className="mt-4"><SignOutButton /></div>

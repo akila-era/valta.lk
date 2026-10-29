@@ -13,18 +13,24 @@ export function AccountMenu({ customer, enabled }: { customer: { name: string } 
   const open = openedAt === pathname;
   const box = useRef<HTMLDivElement>(null);
   const id = useId();
+  // Phones: the menu is a full-width panel just under the button (a 288px menu anchored to the button would run off
+  // the left edge of a narrow screen). Measured when it opens; it closes if the page scrolls, so it never drifts.
+  const [phoneTop, setPhoneTop] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpenedAt(null);
     const onDoc = (e: MouseEvent) => box.current && !box.current.contains(e.target as Node) && setOpenedAt(null);
+    const onScroll = () => phoneTop !== null && setOpenedAt(null);
     document.addEventListener("keydown", onKey);
     document.addEventListener("mousedown", onDoc);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onDoc);
+      window.removeEventListener("scroll", onScroll);
     };
-  }, [open]);
+  }, [open, phoneTop]);
 
   if (!enabled) return null;
 
@@ -38,7 +44,11 @@ export function AccountMenu({ customer, enabled }: { customer: { name: string } 
         aria-expanded={open}
         aria-controls={`${id}-menu`}
         aria-label={customer ? `My account, signed in as ${customer.name}` : "My account, sign in or register"}
-        onClick={() => setOpenedAt(open ? null : pathname)}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          setPhoneTop(window.matchMedia("(max-width: 639px)").matches ? Math.round(r.bottom + 8) : null);
+          setOpenedAt(open ? null : pathname);
+        }}
         className="inline-flex min-h-11 items-center gap-2 px-2 text-sm font-medium hover:text-brand-600 md:px-3"
       >
         <User className="h-6 w-6" strokeWidth={1.6} aria-hidden />
@@ -46,7 +56,10 @@ export function AccountMenu({ customer, enabled }: { customer: { name: string } 
         <ChevronDown className={`hidden h-4 w-4 transition-transform lg:block ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
       {open && (
-        <div id={`${id}-menu`} className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-card border border-border border-t-[3px] border-t-brand-500 bg-bg text-ink shadow-[0_18px_40px_-16px_rgb(16_24_40/0.35)]">
+        <div
+          id={`${id}-menu`}
+          style={phoneTop !== null ? { position: "fixed", top: phoneTop, left: 12, right: 12, width: "auto", marginTop: 0 } : undefined}
+          className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-card border border-border border-t-[3px] border-t-brand-500 bg-bg text-ink shadow-[0_18px_40px_-16px_rgb(16_24_40/0.35)]">
           {customer ? (
             <>
               <div className="flex items-center gap-3 bg-brand-50 px-4 py-3">

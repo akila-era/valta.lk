@@ -171,13 +171,13 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
             <Plus className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <div className="flex flex-1 gap-3">
-          <button type="button" className="btn-primary btn-lg rounded-full shine min-w-0 flex-1 whitespace-nowrap px-6 shadow-soft hover:shadow-lift transition-all" disabled={!purchasable || added} onClick={() => add()}>
+        <div className="flex flex-1 flex-wrap gap-3">
+          <button type="button" className="btn-primary btn-lg rounded-full shine min-w-0 flex-1 basis-[8.5rem] whitespace-nowrap px-4 shadow-soft transition-all hover:shadow-lift sm:px-6" disabled={!purchasable || added} onClick={() => add()}>
             {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : <><ShoppingCart className="h-4 w-4" aria-hidden /> Add to cart</>}
           </button>
           <button
             type="button"
-            className="btn-dark btn-lg rounded-full min-w-0 flex-1 whitespace-nowrap px-6 shadow-soft hover:shadow-lift transition-all"
+            className="btn-dark btn-lg rounded-full min-w-0 flex-1 basis-[8.5rem] whitespace-nowrap px-4 shadow-soft transition-all hover:shadow-lift sm:px-6"
             disabled={!purchasable || added}
             onClick={() => {
               if (add(true)) router.push("/checkout");
