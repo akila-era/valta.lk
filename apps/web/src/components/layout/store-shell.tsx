@@ -6,6 +6,7 @@ import { Header } from "./header";
 import { MobileTabBar } from "./mobile-tab-bar";
 import { NavigationLoader } from "./navigation-loader";
 import { ShellMain } from "./shell-main";
+import { SplashScreen } from "./splash-screen";
 import { WhatsAppButton } from "./whatsapp-button";
 
 /** Shared page chrome (header, page area, footer, tab bar). The page area decides the homepage vs container layout itself. */
@@ -21,6 +22,7 @@ export function StoreShell({ children }: { children: React.ReactNode }) {
       <MobileTabBar accounts={accountsEnabled()} />
       <WhatsAppButton number={siteConfig.whatsapp} />
       <NavigationLoader />
+      <SplashScreen />
     </ToastProvider>
   );
 }
