@@ -39,22 +39,22 @@ export function DealCountdown({ endsAt }: { endsAt: string }) {
   const endText = now == null ? "" : new Date(end).toLocaleString("en-LK", { dateStyle: "medium", timeStyle: "short" });
 
   return (
-    <div className="-mt-3 mb-8 flex min-h-[3.25rem] flex-wrap items-center justify-center gap-3 sm:-mt-4 sm:mb-10">
+    <div className="-mt-2 mb-9 flex min-h-[4.5rem] flex-wrap items-center justify-center gap-x-4 gap-y-3 sm:-mt-3 sm:mb-11 sm:min-h-[5.5rem]">
       {now != null ? <span className="sr-only">Deals end {endText}.</span> : null}
       {left == null ? null : left <= 0 ? (
         <p aria-hidden className="text-sm font-semibold text-muted">These deals have ended. Refresh for the latest prices.</p>
       ) : (
         <>
-          <span aria-hidden className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.1em] text-ink">
-            <Clock className="h-4 w-4 text-brand-500" aria-hidden /> Ends in
+          <span aria-hidden className="inline-flex items-center gap-2 text-sm font-extrabold uppercase tracking-[0.12em] text-ink sm:text-base">
+            <Clock className="h-5 w-5 text-brand-500 sm:h-6 sm:w-6" aria-hidden /> Ends in
           </span>
-          <span aria-hidden className="flex items-center gap-1.5">
+          <span aria-hidden className="flex items-center gap-1.5 sm:gap-2.5">
             {units.map((u, i) => (
-              <span key={u.l} className="flex items-center gap-1.5">
-                {i > 0 ? <span className="font-bold text-ink/30">:</span> : null}
-                <span className="flex min-w-[3rem] flex-col items-center rounded-control bg-ink px-2 py-1.5 leading-none text-white">
-                  <span className="font-display text-lg font-extrabold tabular-nums text-brand-500">{u.v}</span>
-                  <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/70">{u.l}</span>
+              <span key={u.l} className="flex items-center gap-1.5 sm:gap-2.5">
+                {i > 0 ? <span className="text-xl font-extrabold text-ink/30 sm:text-2xl">:</span> : null}
+                <span className="flex min-w-[3.75rem] flex-col items-center rounded-card bg-ink px-2.5 py-2.5 leading-none text-white shadow-[0_8px_20px_-10px_rgb(0_0_0/0.5)] sm:min-w-[4.75rem] sm:py-3">
+                  <span className="font-display text-2xl font-extrabold tabular-nums text-brand-500 sm:text-[2rem]">{u.v}</span>
+                  <span className="mt-1.5 text-[10px] font-bold uppercase tracking-wider text-white/70 sm:text-[11px]">{u.l}</span>
                 </span>
               </span>
             ))}
