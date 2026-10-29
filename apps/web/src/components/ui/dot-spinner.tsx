@@ -1,5 +1,3 @@
-import { BrandLoaderMark } from "./brand-loader";
-
 /** Dot sizes (as a share of the spinner's width) and opacities, head of the trail first: all neon orange, each a little smaller and fainter. */
 const DOTS = [
   { d: 0.16, o: 1 },
@@ -43,11 +41,15 @@ export function DotSpinner({ size = 56, className = "" }: { size?: number; class
   );
 }
 
-/** Full-width centred loading state for a page that is being fetched: the animated VOLTA.LK wordmark; the label is for screen readers. */
+/**
+ * Loading state for a page that is being fetched: the same orange dot spinner as the one shown on a link click, at the
+ * same size and centred in the same area (the screen below the header), so it simply carries on without a jump. The
+ * label is for screen readers.
+ */
 export function PageLoader({ label = "Loading" }: { label?: string }) {
   return (
-    <div role="status" aria-live="polite" aria-busy="true" className="flex min-h-[55vh] animate-loader-in items-center justify-center">
-      <BrandLoaderMark size="md" />
+    <div role="status" aria-live="polite" aria-busy="true" className="flex min-h-[calc(100svh-var(--hdr-sticky,7rem))] items-center justify-center">
+      <DotSpinner size={68} className="drop-shadow-[0_2px_6px_rgb(0_0_0/0.3)]" />
       <span className="sr-only">{label}</span>
     </div>
   );
