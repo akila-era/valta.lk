@@ -91,12 +91,19 @@
   /* Anchor jumps land below the sticky header (logo row + category row on md+, the slim logo row on phones). */
   html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
   @media (min-width: 48rem) { html { scroll-padding-top: 10rem; } }
-  /* Page scrollbar in the brand colour: a neon orange thumb on a light track. */
-  html { scrollbar-color: var(--color-brand-500) var(--color-surface); }
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: var(--color-surface); }
-  ::-webkit-scrollbar-thumb { background: var(--color-brand-500); border-radius: 9999px; border: 2px solid var(--color-surface); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-600); }
+  /* Page scrollbar as a slim line: a 1px grey rail with a narrow neon orange pill on it, no arrow buttons.
+     Chrome, Edge and Safari use the ::-webkit-scrollbar rules (they ignore them once scrollbar-color is set, so that
+     is given only to browsers without them, i.e. Firefox: a thin orange thumb). */
+  @supports not selector(::-webkit-scrollbar) {
+    html { scrollbar-width: thin; scrollbar-color: var(--color-brand-500) transparent; }
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; background: var(--color-bg); }
+  ::-webkit-scrollbar-button { display: none; }
+  ::-webkit-scrollbar-track { background: linear-gradient(to right, transparent 4.5px, var(--color-border) 4.5px, var(--color-border) 5.5px, transparent 5.5px); }
+  ::-webkit-scrollbar-track:horizontal { background: linear-gradient(to bottom, transparent 4.5px, var(--color-border) 4.5px, var(--color-border) 5.5px, transparent 5.5px); }
+  ::-webkit-scrollbar-thumb { background: var(--color-brand-500); background-clip: padding-box; border: 3px solid transparent; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { border-width: 2px; }
+  ::-webkit-scrollbar-corner { background: transparent; }
   body {
     background: var(--color-bg);
     color: var(--color-ink);
