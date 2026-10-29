@@ -1,3 +1,4 @@
+import { DealCountdown } from "@/components/home/deal-countdown";
 import type { Metadata } from "next";
 import { Faq } from "@/components/home/more-sections";
 import { BrandWall, CategoryGrid, FeatureSplit, HomeHero, ProductSection, PromoTiles, RangeTabs, Reviews, ServiceStrip, Spotlight, WhyChoose, featureArt } from "@/components/home/storefront";
@@ -57,6 +58,7 @@ export default async function HomePage() {
             href="/products?sale=1"
             products={deals}
             priority
+            aside={data.hotDealsEndAt ? <DealCountdown endsAt={data.hotDealsEndAt} /> : null}
           />
           {featured ? <FeatureSplit rail={featured} /> : null}
           <RangeTabs newArrivals={data.newArrivals} rails={tabRails} tinted />

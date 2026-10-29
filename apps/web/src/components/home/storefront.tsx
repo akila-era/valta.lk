@@ -217,7 +217,7 @@ export function PromoTiles({ banners }: { banners: ResolvedBanner[] }) {
 }
 
 /** A product section: heading, then up to ten cards in centred rows (two rows at every width: 2, 3, 4 or 5 per row). */
-export function ProductSection({ id, eyebrow, title, text, href, products, priority = false, tinted = false }: {
+export function ProductSection({ id, eyebrow, title, text, href, products, priority = false, tinted = false, aside }: {
   id: string;
   eyebrow?: string;
   title: string;
@@ -226,11 +226,14 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
   products: ErpProduct[];
   priority?: boolean;
   tinted?: boolean;
+  /** Shown between the heading and the products (the Hot Deals countdown). */
+  aside?: ReactNode;
 }) {
   if (!products.length) return null;
   const grid = (
     <>
       <SectionHead id={`${id}-title`} eyebrow={eyebrow} title={title}>{text}</SectionHead>
+      {aside}
       <ProductRow label={`${title} products`} products={products} priority={priority} />
       <ViewAll href={href} />
     </>

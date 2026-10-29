@@ -5,7 +5,7 @@ import { budgetBands, getSnapshot, listBrands, listPrices, listProducts, type Pr
 import { isOnSale } from "./erp/product-utils";
 import { getCheckoutAvailability } from "./erp/settings";
 import type { ErpProduct } from "./erp/types";
-import { configuredHotDeals } from "./hot-deals-store";
+import { configuredHotDealsWithEnd } from "./hot-deals-store";
 import { getDb } from "./db";
 import { configuredBanners, configuredReviews, configuredVideos, type BannerConfig, type ReviewConfig, type VideoConfig } from "./home-config";
 
@@ -80,6 +80,8 @@ export interface HomeData {
   hotDeals: ErpProduct[];
   /** True when hotDeals is the staff selection (some may have no price reduction), false when it is ERP sales. */
   hotDealsCurated: boolean;
+  /** When the first of the staff-picked deals ends (ISO), for the countdown; null when none has an end date. */
+  hotDealsEndAt: string | null;
   featured: ErpProduct[];
   brands: { name: string; count: number; image?: string; logo?: string }[];
   banners: ResolvedBanner[];
@@ -136,7 +138,8 @@ export async function getHomeData(): Promise<HomeData> {
   ]);
   const [logos, staffBanners, wideBanners, snapshot] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners(), safe(() => getSnapshot())]);
   // Staff-picked Hot Deals, matched against the same ERP snapshot as every other section (real prices and stock).
-  const curatedDeals = await configuredHotDeals(snapshot?.products ?? null);
+  const curated = await configuredHotDealsWithEnd(snapshot?.products ?? null);
+  const curatedDeals = curated?.deals ?? null;
   const saleOffers = (offers?.items ?? []).filter(isOnSale);
 
   const all = newest?.items ?? [];
@@ -171,6 +174,7 @@ export async function getHomeData(): Promise<HomeData> {
     offers: saleOffers,
     hotDeals: curatedDeals ?? saleOffers,
     hotDealsCurated: curatedDeals !== null,
+    hotDealsEndAt: curated?.endsAt?.toISOString() ?? null,
     featured: featured?.items ?? [],
     brands: (brands ?? []).map((b) => ({ ...b, logo: logos.get(brandKey(b.name)) })),
     // Banners staff created in the admin win; with none active the category-derived / HOME_BANNERS ones remain.
