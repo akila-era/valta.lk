@@ -8,7 +8,7 @@ import { planAccessoryAdds } from "@/lib/accessories/add";
 import { offerMatchesSelection, preferSpecificOffers, type AccessoryOffer } from "@/lib/accessories/resolve";
 import { useVariantChoice } from "./variant-choice";
 import { lineKey } from "@/lib/utils/cart-math";
-import { formatLkr } from "@/lib/utils/money";
+import { addMoney, formatLkr } from "@/lib/utils/money";
 import { cartActions, useCart } from "@/store/cart";
 
 const DISMISS = "volta.accessories.dismissed";
@@ -109,7 +109,14 @@ export function AccessoryRail({
   }
 
   function addSelected() {
-    const chosen = visible.filter((item) => pickedIds.includes(lineKey(item)));
+    addItems(visible.filter((item) => pickedIds.includes(lineKey(item))));
+  }
+
+  // "Add all": every accessory that can go straight in the cart (no options to choose), in one tap.
+  const addable = visible.filter((item) => item.canAdd);
+  const addableTotal = addMoney(...addable.map((item) => item.unitPrice));
+
+  function addItems(chosen: AccessoryOffer[]) {
     const plan = planAccessoryAdds(chosen, lines);
     for (const item of plan.add) {
       cartActions.add({
@@ -196,16 +203,23 @@ export function AccessoryRail({
           </li>
         ))}
       </ul>
-      {visible.some((item) => item.canAdd) && (
-        <button
-          type="button"
-          className="btn-primary mt-4 rounded-full px-5 py-2 text-xs font-semibold shadow-soft hover:shadow-lift"
-          disabled={!pickedIds.length}
-          onClick={addSelected}
-        >
-          Add selected
-        </button>
-      )}
+      {addable.length ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {addable.length > 1 ? (
+            <button type="button" className="btn-primary rounded-full px-5 py-2 text-xs font-semibold shadow-soft hover:shadow-lift" onClick={() => addItems(addable)}>
+              Add all {addable.length} · {formatLkr(addableTotal)}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className={`${addable.length > 1 ? "btn-secondary" : "btn-primary"} rounded-full px-5 py-2 text-xs font-semibold shadow-soft hover:shadow-lift`}
+            disabled={!pickedIds.length}
+            onClick={addSelected}
+          >
+            Add selected
+          </button>
+        </div>
+      ) : null}
       {note && <p role="status" className="mt-3 text-sm">{note}</p>}
     </section>
   );
