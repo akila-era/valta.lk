@@ -5,6 +5,7 @@ import type { InstalmentLine } from "@/lib/instalments";
 import { formatLkr, fromCents, toCents } from "@/lib/utils/money";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-card";
+import { QuickView } from "./quick-view";
 import { WishlistButton } from "./wishlist-button";
 
 interface CompactProductCardProps {
@@ -71,8 +72,32 @@ export function CompactProductCard({ product, priority, row = false, instalments
           <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">In stock</span>
         )}
       </div>
-      <div className="absolute right-3.5 top-3.5 z-10 sm:right-4 sm:top-4">
+      <div className="absolute right-3.5 top-3.5 z-10 flex flex-col gap-1.5 sm:right-4 sm:top-4">
         <WishlistButton className="h-8 w-8 bg-bg" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.images[0], price: current }} />
+        {/* Quick view (mouse devices, on hover or keyboard focus): a look at the product without leaving the list. */}
+        {!row ? (
+          <span className="opacity-0 transition-opacity duration-200 group-hover/card:opacity-100 group-focus-within/card:opacity-100 [@media(hover:none)]:hidden">
+            <QuickView
+              product={{
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                title,
+                sku: product.sku,
+                label,
+                images: product.images.slice(0, 5),
+                price: product.price,
+                current,
+                save,
+                available: product.available,
+                hasVariants: product.hasVariants,
+                low: low ? product.purchasableQuantity : 0,
+                summary: product.content?.shortDescription || undefined,
+                details: cardHighlights(product),
+              }}
+            />
+          </span>
+        ) : null}
       </div>
 
       <div className={`relative aspect-square shrink-0 overflow-hidden rounded-control bg-bg ${row ? "w-32 sm:w-44" : "w-full"}`}>

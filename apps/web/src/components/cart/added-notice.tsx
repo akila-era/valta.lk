@@ -38,7 +38,7 @@ export function AddedNotice() {
       key={notice.n}
       role="status"
       aria-live="polite"
-      className="fixed right-3 top-[calc(var(--hdr-sticky,7rem)+0.75rem)] z-50 w-[min(100%-1.5rem,22rem)] animate-[added-in_0.3s_cubic-bezier(0.2,0.7,0.2,1)] overflow-hidden rounded-card border border-border bg-bg text-ink shadow-overlay sm:right-5"
+      className="fixed right-3 top-[calc(var(--hdr-sticky,7rem)+0.75rem)] z-[95] w-[min(100%-1.5rem,22rem)] animate-[added-in_0.3s_cubic-bezier(0.2,0.7,0.2,1)] overflow-hidden rounded-card border border-border bg-bg text-ink shadow-overlay sm:right-5"
     >
       <div className="flex items-center gap-2 bg-ink px-4 py-2 text-[13px] font-bold text-white">
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-500">
