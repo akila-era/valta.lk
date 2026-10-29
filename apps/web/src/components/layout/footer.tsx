@@ -1,3 +1,4 @@
+import { NewsletterForm } from "./newsletter-form";
 import fs from "node:fs";
 import path from "node:path";
 import Link from "next/link";
@@ -136,6 +137,21 @@ export async function Footer() {
             );
           })}
         </ul>
+      </div>
+
+      {/* Newsletter: new arrivals and price drops by email. */}
+      <div className="border-b border-white/10">
+        <div className="container-page flex flex-col gap-5 py-9 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+          <div className="max-w-md">
+            <h2 className="font-display text-xl font-extrabold text-white sm:text-2xl">
+              Get the <span className="text-brand-500">deals</span> first
+            </h2>
+            <p className="mt-1.5 text-sm leading-6 text-white/70">New arrivals and price drops in your inbox, about twice a month. Unsubscribe any time.</p>
+          </div>
+          <div className="w-full lg:max-w-lg">
+            <NewsletterForm />
+          </div>
+        </div>
       </div>
 
       <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.3fr_0.9fr_1.1fr_0.9fr_1.4fr] lg:gap-y-0 lg:py-14">

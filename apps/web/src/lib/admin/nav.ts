@@ -1,6 +1,6 @@
 import {
   Award, Banknote, BarChart3, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon,
-  Inbox, KeyRound, LayoutDashboard, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw,
+  Inbox, KeyRound, LayoutDashboard, Mail, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw,
   RotateCcw, Scale, ScrollText, Settings, Settings2, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
 } from "lucide-react";
 
@@ -86,6 +86,7 @@ export const NAV: NavGroup[] = [
       { label: "Promotions & Discounts", href: "/admin/marketing/promotions" },
       { label: "Promotional Banners", href: "/admin/marketing/banners" },
       { label: "Hot Deals", href: "/admin/marketing/hot-deals" },
+      { label: "Newsletter Subscribers", href: "/admin/marketing/subscribers" },
     ],
   },
   {
@@ -122,6 +123,7 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
   Transactions: Receipt, "Pending Payments": Clock, "Failed Payments": CircleAlert, Refunds: RotateCcw, "Cash on Delivery": Banknote, "Payment Reconciliation": Scale,
   Shipments: Truck, "Delivery Tracking": MapPin, "Delivery Partners": Handshake,
   "ERP Overview": Gauge, "Product Sync": Package, "Inventory Sync": Boxes, "Order Sync": ShoppingBag, "Failed Sync Jobs": TriangleAlert, "Integration Logs": ScrollText, "Connection Settings": Plug,
+  "Newsletter Subscribers": Mail,
   "Homepage Content": House, "Promotional Banners": ImageIcon, "Promotions & Discounts": Percent,
   "Sales Reports": TrendingUp, "Conversion Analytics": Funnel,"Order Reports": ClipboardList, "Product Reports": PackageSearch, "Payment Reports": Wallet, "ERP Sync Reports": RefreshCw,
   "Admin Users": UserCog, "Roles & Permissions": KeyRound, "Audit Logs": ScrollText, "General Settings": Settings, "Payment Settings": CreditCard, "Shipping Settings": Truck, "ERP Settings": Plug,

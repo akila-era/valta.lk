@@ -327,3 +327,13 @@ model StoreSetting {
   updatedBy String?
   updatedAt DateTime @updatedAt
 }
+
+/// Shoppers who asked for VOLTA.LK news (new arrivals, price drops) from the footer sign-up. Email is stored
+/// lower-case; one row per address. Staff see and export the list in the admin (Promotions, Newsletter Subscribers).
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  /// Where the sign-up came from, e.g. "footer".
+  source    String?
+  createdAt DateTime @default(now())
+}
