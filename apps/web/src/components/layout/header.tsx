@@ -79,7 +79,7 @@ export async function Header() {
       <HeaderShell>
         <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="shrink-0 text-[1.5rem] leading-none text-ink xs:text-[1.75rem] sm:text-[2rem] lg:text-[2rem]" />
+          <Wordmark shine className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
           <div className="hidden md:mx-auto md:block md:w-full md:max-w-3xl">
             <SearchBox size="lg" popular={quick} />
