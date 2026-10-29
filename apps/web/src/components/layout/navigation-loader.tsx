@@ -3,6 +3,10 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DotSpinner } from "@/components/ui/dot-spinner";
+import { installViewTransitionGuard } from "@/lib/view-transition-guard";
+
+// Before any page change can start (this loader is on every store page): no page animation while the tab is hidden.
+installViewTransitionGuard();
 
 /** How long the spinner shows before the browser leaves the page (the new page is usually ready by then). */
 const SHOW_BEFORE_MS = 240;
