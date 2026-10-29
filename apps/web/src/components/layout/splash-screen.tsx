@@ -45,9 +45,7 @@ export function SplashScreen() {
         phase === "leave" ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >
-      <span className={`transition-transform duration-700 ease-out ${phase === "leave" ? "scale-105" : ""}`}>
-        <BrandLoaderMark />
-      </span>
+      <BrandLoaderMark />
       <span className="sr-only">Loading VOLTA.LK</span>
     </div>
   );
