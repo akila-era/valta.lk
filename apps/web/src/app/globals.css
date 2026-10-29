@@ -7,7 +7,7 @@
 
   /* VOLTA.LK storefront: neon orange, white and black only. White canvas, black text and black sections, neon orange
      for fills, icons and lines; greys are tints of black for hairlines and muted text. The admin console keeps its
-     own neutral theme (see .admin-theme). "on-brand" is the black text used on orange fills (5.8:1 on brand-500).
+     own neutral theme (see .admin-theme). "on-brand" is the white text used on orange fills (the owner's choice; bold text keeps it readable).
      muted passes 4.5:1 on bg, surface and brand-50 alike, because text-muted is used on all three.
      border is for decorative separators; border-strong (>= 3:1 on bg and surface) outlines form controls. */
   --color-bg: #ffffff;
@@ -20,7 +20,7 @@
   --color-night: #111111;
   --color-night-2: #1c1c1c;
   --color-media: #ffffff;
-  --color-on-brand: #111111;
+  --color-on-brand: #ffffff;
 
   /* The storefront uses three colours only: neon orange #FF5C00, white and black (with black's grey tints for
      hairlines, muted text and quiet fills). No light orange tints.
@@ -116,7 +116,7 @@
 @utility container-wide { @apply mx-auto w-full max-w-[106.25rem] px-4 sm:px-6 lg:px-10 2xl:px-12; }
 /* Card: a hairline edge and a faint contact shadow. */
 @utility card { @apply rounded-card border border-border bg-bg shadow-card; }
-/* Buttons. Primary is the orange fill with dark on-brand text (>= 5:1 at rest and on hover); it deepens on hover. */
+/* Buttons. Primary is the orange fill with white on-brand text; it turns black on hover. */
 @utility btn {
   @apply inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-control px-5 text-sm font-semibold
     transition-[background-color,color,border-color,box-shadow,transform] duration-200 active:scale-[0.98]
@@ -264,7 +264,7 @@
 }
 
 /* Admin console: clean white SaaS theme on the same brand orange, ink, surfaces and borders as the storefront (the
-   @theme tokens), with dark on-brand text on orange fills. Scoped to .admin-theme: status colours are pinned here,
+   @theme tokens), with white on-brand text on orange fills. Scoped to .admin-theme: status colours are pinned here,
    cards are flatter, and the storefront's pill buttons, display headings and neon glow stay out of the console. */
 .admin-theme {
   --color-bg: #ffffff;

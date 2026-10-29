@@ -32,10 +32,13 @@ const contrast = (a: string, b: string) => {
 };
 
 describe("design system tokens", () => {
-  it("keeps dark text readable on the orange fills, at rest and on hover", () => {
+  // White text on the neon orange is the owner's choice (about 3.1:1): it meets the 3:1 level for large / bold text and
+  // UI parts, not 4.5:1 for small normal text, which is why text on orange fills is kept bold.
+  it("keeps white text on the orange fills at least at the large-text level, at rest and on hover", () => {
     expect(token("brand-500").toLowerCase()).toBe("#ff5c00");
-    expect(contrast("on-brand", "brand-500")).toBeGreaterThanOrEqual(4.5);
-    expect(contrast("on-brand", "brand-hover")).toBeGreaterThanOrEqual(4.5);
+    expect(token("on-brand").toLowerCase()).toBe("#ffffff");
+    expect(contrast("on-brand", "brand-500")).toBeGreaterThanOrEqual(3);
+    expect(contrast("on-brand", "brand-hover")).toBeGreaterThanOrEqual(3);
   });
 
   it("keeps body, muted and text-safe orange text at 4.5:1 on every light surface", () => {
@@ -54,7 +57,7 @@ describe("design system tokens", () => {
     }
   });
 
-  it("styles the primary button with black text, a black hover and no glow, and inputs with the strong outline", () => {
+  it("styles the primary button with white text, a black hover and no glow, and inputs with the strong outline", () => {
     const rule = (name: string) => css.match(new RegExp(`@utility ${name} \\{([^}]*)\\}`))?.[1] ?? "";
     expect(rule("btn-primary")).toContain("text-on-brand");
     expect(rule("btn-primary")).toContain("hover:bg-ink"); // orange turns black: no second shade of orange

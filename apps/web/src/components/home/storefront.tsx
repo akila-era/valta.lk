@@ -155,12 +155,12 @@ export function Spotlight({ categories }: { categories: Category[] }) {
             <li key={c.slug}>
               <Link
                 href={`/categories/${c.slug}`}
-                className={`group grid h-full min-h-52 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 overflow-hidden rounded-panel p-5 sm:min-h-64 sm:gap-6 sm:p-8 ${dark ? "bg-ink text-white" : "bg-brand-500 text-ink"}`}
+                className={`group grid h-full min-h-52 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 overflow-hidden rounded-panel p-5 sm:min-h-64 sm:gap-6 sm:p-8 ${dark ? "bg-ink text-white" : "bg-brand-500 text-white"}`}
               >
                 <span className="flex min-w-0 flex-col items-start text-left">
-                  <span className={`text-xs font-bold uppercase tracking-[0.14em] ${dark ? "text-brand-500" : "text-ink"}`}>{c.count} {c.count === 1 ? "product" : "products"}</span>
+                  <span className={`text-xs font-bold uppercase tracking-[0.14em] ${dark ? "text-brand-500" : "text-white"}`}>{c.count} {c.count === 1 ? "product" : "products"}</span>
                   <span className="mt-2 font-display text-xl font-extrabold leading-tight tracking-title xs:text-2xl sm:text-3xl">{c.name}</span>
-                  <span className={`mt-2 max-w-xs text-sm leading-6 ${dark ? "text-white/75" : "text-ink/80"}`}>{collectionLine(c.name, c.count)}</span>
+                  <span className={`mt-2 max-w-xs text-sm leading-6 ${dark ? "text-white/75" : "text-white/90"}`}>{collectionLine(c.name, c.count)}</span>
                   <span className={`btn mt-5 min-h-10 rounded-full px-6 text-[13px] ${dark ? "bg-brand-500 text-on-brand group-hover:bg-white group-hover:text-ink" : "bg-ink text-white group-hover:bg-white group-hover:text-ink"}`}>Shop now</span>
                 </span>
                 <span aria-hidden className={`relative aspect-square w-24 overflow-hidden rounded-full bg-white ring-4 xs:w-32 transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none sm:w-44 lg:w-52 ${dark ? "ring-brand-500" : "ring-ink"}`}>

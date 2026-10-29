@@ -245,7 +245,7 @@ export function ProductEditor(p: Props) {
       <div role="tablist" aria-label="Product content sections" className="card mb-5 flex gap-1 overflow-x-auto p-1.5">
         {TABS.map(([id, label, Icon]) => (
           <button key={id} role="tab" type="button" id={`tab-${id}`} aria-selected={tab === id} aria-controls={`panel-${id}`} onClick={() => setTab(id)}
-            className={`flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-sm font-semibold transition-colors motion-reduce:transition-none ${tab === id ? "bg-brand-500 text-ink" : "text-muted hover:bg-surface hover:text-ink"}`}>
+            className={`flex min-h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 text-sm font-semibold transition-colors motion-reduce:transition-none ${tab === id ? "bg-brand-500 text-white" : "text-muted hover:bg-surface hover:text-ink"}`}>
             <Icon className="h-4 w-4 shrink-0" aria-hidden />{label}
           </button>
         ))}
@@ -330,7 +330,7 @@ export function ProductEditor(p: Props) {
                   <li key={g.id} className="min-w-0 rounded-lg border border-border p-3">
                     <span className="relative block aspect-square overflow-hidden rounded-md bg-surface">
                       <Image src={urls[g.id] ?? `/api/media/${g.id}`} alt={g.alt || `Product image ${i + 1}`} fill sizes="260px" className="object-contain p-2" unoptimized />
-                      {i === 0 && <span className="badge absolute left-2 top-2 bg-brand-500 text-ink">Main</span>}
+                      {i === 0 && <span className="badge absolute left-2 top-2 bg-brand-500 text-white">Main</span>}
                     </span>
                     <div className="mt-3 space-y-2">
                       <label className="sr-only" htmlFor={`alt-${i}`}>Alt text for image {i + 1}</label>

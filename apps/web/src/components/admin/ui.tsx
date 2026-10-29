@@ -194,7 +194,7 @@ export function Pager({ page, pageCount, href, total, pageSize, defaultSize = DE
           {page > 1 && <Link className={step} rel="prev" href={href(page - 1)}>Previous</Link>}
           {pageList(page, pageCount).map((n, i) =>
             n === "gap" ? <span key={`g${i}`} className="px-2 text-muted" aria-hidden>…</span> : (
-              <Link key={n} href={href(n)} aria-current={n === page ? "page" : undefined} aria-label={`Page ${n}`} className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 font-medium ${n === page ? "border-brand-500 bg-brand-500 text-ink shadow-sm" : "border-border bg-bg hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700"}`}>{n}</Link>
+              <Link key={n} href={href(n)} aria-current={n === page ? "page" : undefined} aria-label={`Page ${n}`} className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 font-medium ${n === page ? "border-brand-500 bg-brand-500 text-white shadow-sm" : "border-border bg-bg hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700"}`}>{n}</Link>
             ),
           )}
           {page < pageCount && <Link className={step} rel="next" href={href(page + 1)}>Next</Link>}

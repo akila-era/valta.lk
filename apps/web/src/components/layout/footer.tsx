@@ -50,7 +50,7 @@ function PaymentBadge({ id }: { id: string }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/payments/${id}.svg`} alt={name} width={48} height={24} className="h-6 w-auto max-w-[3.5rem] object-contain" loading="lazy" />
       ) : (
-        <span className="whitespace-nowrap text-xs font-bold text-on-brand">{name}</span>
+        <span className="whitespace-nowrap text-xs font-bold text-ink">{name}</span>
       )}
     </li>
   );
@@ -184,7 +184,7 @@ export async function Footer() {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                 <span className="font-bold">We accept</span>
                 <ul className="flex flex-wrap items-center gap-2" aria-label="Accepted payment methods">
-                  {cod && <li className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-white px-3 text-xs font-bold text-on-brand"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
+                  {cod && <li className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-white px-3 text-xs font-bold text-ink"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
                   {siteConfig.paymentMethods.map((id) => <PaymentBadge key={id} id={id} />)}
                 </ul>
               </div>
@@ -202,7 +202,7 @@ export async function Footer() {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`${s.label} (opens in a new tab)`}
-                          className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-white hover:text-on-brand"
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-white hover:text-ink"
                         >
                           <Icon className="h-5 w-5" aria-hidden />
                         </a>
