@@ -102,7 +102,7 @@ describe("error mapping", () => {
 });
 
 import { parseDecimal, toDecimalString } from "@/lib/utils/money";
-import { mapProduct, productSlug, slugify } from "@/lib/erp/product-mapper";
+import { conditionLabel, mapProduct, productSlug, slugify } from "@/lib/erp/product-mapper";
 import { rawProductSchema, erpOrderSchema, erpSettingsSchema } from "@/lib/erp/types";
 
 describe("ERP decimal strings", () => {
@@ -146,6 +146,11 @@ describe("catalogue mapping", () => {
     expect(slugify("  Nova X1 -- Phone! ")).toBe("nova-x1-phone");
     expect(productSlug("Nova X1", "CM0Item1")).toBe("nova-x1-cm0item1");
     expect(mapProduct(raw(), null).category).toEqual({ slug: "mobile-phones", name: "Mobile Phones" });
+  });
+  it("shows the ERP condition code as plain words", () => {
+    expect(conditionLabel("BRAND_NEW")).toBe("Brand new");
+    expect(conditionLabel("REFURBISHED")).toBe("Refurbished");
+    expect(mapProduct(raw({ condition: "USED" }), null).specs.Condition).toBe("Used");
   });
   it("applies the sale price only while the discount is active", () => {
     expect(mapProduct(raw(), null).salePrice).toBe(900);

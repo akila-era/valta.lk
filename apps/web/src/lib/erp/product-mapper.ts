@@ -16,6 +16,12 @@ export const productSlug = (name: string, id: string) => `${slugify(name) || "pr
 
 const isInStock = (availability: string) => availability === "IN_STOCK";
 
+/** The ERP sends the condition as a code (BRAND_NEW, USED, REFURBISHED); shoppers see "Brand new", "Used", "Refurbished". */
+export function conditionLabel(code: string): string {
+  const words = code.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : code;
+}
+
 /**
  * Where the storefront loads a product photo from. Photos stored on the connected ERP itself go through this site's
  * /api/erp-image route (it works for an ERP connected later in the admin, and for an http:// ERP on this https site);
@@ -48,7 +54,7 @@ export function mapProduct(raw: RawProduct, erpOrigin: string | null): ErpProduc
   const specs: Record<string, string> = {};
   if (raw.brand) specs.Brand = raw.brand;
   if (raw.model) specs.Model = raw.model;
-  if (raw.condition) specs.Condition = raw.condition;
+  if (raw.condition) specs.Condition = conditionLabel(raw.condition);
   if (raw.warrantyMonths) specs.Warranty = `${raw.warrantyMonths} months${raw.warrantyNote ? ` (${raw.warrantyNote})` : ""}`;
   const barcode = raw.barcode?.trim();
   if (barcode) specs.Barcode = barcode;
