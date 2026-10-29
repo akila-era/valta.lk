@@ -1,3 +1,4 @@
+import { featuredReviews } from "./reviews";
 import "server-only";
 import { activeBanners, activeWideBanners, type WideBanner } from "./banners";
 import { brandKey, brandLogoMap } from "./brand-logos";
@@ -166,9 +167,11 @@ export async function getHomeData(): Promise<HomeData> {
       const v = configuredVideos();
       return { title: v.title, items: v.videos };
     })(),
-    reviews: (() => {
+    // The owner's own reviews (HOME_REVIEWS) when set; otherwise the best approved customer reviews from product pages.
+    reviews: await (async () => {
       const r = configuredReviews();
-      return { title: r.title, items: r.reviews };
+      if (r.reviews.length) return { title: r.title, items: r.reviews };
+      return { title: process.env.HOME_REVIEWS_TITLE?.trim().slice(0, 80) || "What Our Customers Say", items: await featuredReviews().catch(() => []) };
     })(),
     popular: await mostOrdered(snapshot?.products ?? null),
     offers: saleOffers,

@@ -337,3 +337,29 @@ model NewsletterSubscriber {
   source    String?
   createdAt DateTime @default(now())
 }
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// A shopper's review of one ERP product. Shown on the storefront only once staff approve it (Admin, Catalog, Product
+/// Reviews). `verified` is set when the reviewer was signed in and has a website order containing the product.
+model ProductReview {
+  id          String       @id @default(cuid())
+  erpItemId   String
+  rating      Int
+  title       String?
+  body        String
+  name        String
+  customerId  String?
+  verified    Boolean      @default(false)
+  status      ReviewStatus @default(PENDING)
+  moderatedBy String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([erpItemId, status, createdAt])
+  @@index([status, createdAt])
+}

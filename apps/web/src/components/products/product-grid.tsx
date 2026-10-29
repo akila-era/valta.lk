@@ -1,6 +1,7 @@
 import { Reveal } from "@/components/home/reveal";
 import type { ErpProduct } from "@/lib/erp/types";
 import { instalmentLine } from "@/lib/instalments";
+import { cardRatings } from "@/lib/reviews";
 import { CompactProductCard } from "./compact-product-card";
 
 /**
@@ -19,12 +20,12 @@ export async function ProductGrid({
   /** "list": one product per row, photo on the left (the catalogue's List view). */
   layout?: "grid" | "list";
 }) {
-  const instalments = await instalmentLine();
+  const [instalments, ratings] = await Promise.all([instalmentLine(), cardRatings()]);
   if (layout === "list") {
     return (
       <div className="grid gap-3">
         {products.map((p, i) => (
-          <CompactProductCard key={p.id} product={p} priority={i < 3} row instalments={instalments} />
+          <CompactProductCard key={p.id} product={p} priority={i < 3} row instalments={instalments} rating={ratings.get(p.id)} />
         ))}
       </div>
     );
@@ -40,7 +41,7 @@ export async function ProductGrid({
     <div className={`grid ${colClasses}`}>
       {products.map((p, i) => (
         <Reveal key={p.id} delay={(i % 5) * 50}>
-          <CompactProductCard product={p} priority={i < 5} instalments={instalments} />
+          <CompactProductCard product={p} priority={i < 5} instalments={instalments} rating={ratings.get(p.id)} />
         </Reveal>
       ))}
     </div>

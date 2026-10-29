@@ -2,10 +2,12 @@ import Link from "next/link";
 import { discountPercent, effectivePrice, isNewArrival } from "@/lib/erp/product-utils";
 import type { ErpProduct } from "@/lib/erp/types";
 import type { InstalmentLine } from "@/lib/instalments";
+import type { CardRating } from "@/lib/reviews";
 import { formatLkr, fromCents, toCents } from "@/lib/utils/money";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-card";
 import { QuickView } from "./quick-view";
+import { Stars } from "./stars";
 import { WishlistButton } from "./wishlist-button";
 
 interface CompactProductCardProps {
@@ -15,6 +17,8 @@ interface CompactProductCardProps {
   row?: boolean;
   /** The "or 3 × … with KOKO" line as set in the admin (Payments), passed by server parents; null or absent = no line. */
   instalments?: InstalmentLine;
+  /** Approved customer reviews (average and count), passed by server parents; absent = no stars line. */
+  rating?: CardRating;
 }
 
 /**
@@ -45,7 +49,7 @@ export function cardHighlights(product: ErpProduct): { value: string; name: stri
 /** Display names of the instalment providers (the same as INSTALMENT_PROVIDERS in lib/instalments, which is server-only). */
 const INSTALMENT_NAMES: Record<string, string> = { koko: "KOKO", mintpay: "Mintpay" };
 
-export function CompactProductCard({ product, priority, row = false, instalments = null }: CompactProductCardProps) {
+export function CompactProductCard({ product, priority, row = false, instalments = null, rating }: CompactProductCardProps) {
   const title = product.content?.displayTitle || product.name;
   const current = effectivePrice(product);
   const pct = discountPercent(product);
@@ -155,6 +159,12 @@ export function CompactProductCard({ product, priority, row = false, instalments
             {title}
           </Link>
         </h3>
+        {rating && rating.count > 0 ? (
+          <p className="mt-1 inline-flex items-center gap-1.5 text-xs">
+            <Stars rating={rating.average} size="h-3.5 w-3.5" label={`Rated ${rating.average} out of 5 from ${rating.count} ${rating.count === 1 ? "review" : "reviews"}`} />
+            <span aria-hidden className="text-muted">({rating.count})</span>
+          </p>
+        ) : null}
         <p className={`mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-2 ${row ? "" : "justify-center"}`}>
           {product.hasVariants && <span className="text-xs font-semibold text-muted">From:</span>}
           <span className="whitespace-nowrap font-display text-[17px] font-extrabold tabular-nums text-brand-500 min-[340px]:text-[19px]">{formatLkr(current)}</span>

@@ -28,6 +28,7 @@ export const NAV: NavGroup[] = [
       { label: "Products", href: "/admin/products", deep: true },
       { label: "Categories", href: "/admin/categories" },
       { label: "Brands", href: "/admin/brands" },
+      { label: "Product Reviews", href: "/admin/reviews" },
     ],
   },
   {
@@ -124,6 +125,7 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
   Shipments: Truck, "Delivery Tracking": MapPin, "Delivery Partners": Handshake,
   "ERP Overview": Gauge, "Product Sync": Package, "Inventory Sync": Boxes, "Order Sync": ShoppingBag, "Failed Sync Jobs": TriangleAlert, "Integration Logs": ScrollText, "Connection Settings": Plug,
   "Newsletter Subscribers": Mail,
+  "Product Reviews": Star,
   "Homepage Content": House, "Promotional Banners": ImageIcon, "Promotions & Discounts": Percent,
   "Sales Reports": TrendingUp, "Conversion Analytics": Funnel,"Order Reports": ClipboardList, "Product Reports": PackageSearch, "Payment Reports": Wallet, "ERP Sync Reports": RefreshCw,
   "Admin Users": UserCog, "Roles & Permissions": KeyRound, "Audit Logs": ScrollText, "General Settings": Settings, "Payment Settings": CreditCard, "Shipping Settings": Truck, "ERP Settings": Plug,

@@ -5,6 +5,9 @@ import { Battery, Camera, Check, ChevronLeft, ChevronRight, LayoutGrid, Cpu, Hea
 import { Notice } from "@/components/ui/notice";
 import { ErpUnavailable } from "@/components/ui/states";
 import { AccessoryRail } from "@/components/products/accessory-rail";
+import { ProductReviews } from "@/components/products/product-reviews";
+import { Stars } from "@/components/products/stars";
+import { productReviews } from "@/lib/reviews";
 import { Gallery } from "@/components/products/gallery";
 import { ProductGrid } from "@/components/products/product-grid";
 import { RecentlyViewed, RecordView } from "@/components/products/recently-viewed";
@@ -111,17 +114,18 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const priced: PricedLine[] = product.hasVariants
     ? product.variants.map((v) => ({ productId: product.id, variantKey: v.key, quantity: 1, listPrice: v.price, erpPrice: effectivePrice(v), categoryName: product.category?.name ?? null }))
     : [{ productId: product.id, variantKey: "", quantity: 1, listPrice: product.price, erpPrice: effectivePrice(product), categoryName: product.category?.name ?? null }];
-  const [quote, accessories, settings] = await Promise.all([quotePricedLines(priced), offersForSources([product.id]), getSettings().catch(() => null)]);
+  const [quote, accessories, settings, rev] = await Promise.all([quotePricedLines(priced), offersForSources([product.id]), getSettings().catch(() => null), productReviews(product.id)]);
   // In-page links, only to the sections this product really has.
   const jumps = [
     ...(descHtml || product.description ? [{ id: "desc", label: "Description" }] : []),
     ...(siteSpecGroups.length > 0 || erpSpecs.length > 0 ? [{ id: "specs", label: "Specifications" }] : []),
     ...(hasWarranty || product.specs.Warranty ? [{ id: "warranty", label: "Warranty" }] : []),
     ...(hasDelivery ? [{ id: "delivery", label: "Delivery & pickup" }] : []),
+    { id: "reviews", label: rev.summary ? `Reviews (${rev.summary.count})` : "Reviews" },
   ];
   const offerNames = Object.fromEntries(quote.lines.flatMap((l) => (l.offerName ? [[l.variantKey, l.offerName]] : [])));
 
-  // Structured data only from real fields: no ratings, review counts or invented stock.
+  // Structured data only from real fields: ratings only from approved customer reviews, no invented stock.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -132,6 +136,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
     image: product.images.length ? product.images.map((i) => (i.startsWith("/") ? `${siteConfig.url}${i}` : i)) : undefined,
     url: `${siteConfig.url}/products/${product.slug}`,
     offers: productOffer(product),
+    aggregateRating: rev.summary ? { "@type": "AggregateRating", ratingValue: rev.summary.average, reviewCount: rev.summary.count, bestRating: 5, worstRating: 1 } : undefined,
+    review: rev.reviews.length
+      ? rev.reviews.slice(0, 5).map((r) => ({ "@type": "Review", reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 }, author: { "@type": "Person", name: r.name }, datePublished: r.createdAt.slice(0, 10), reviewBody: r.body }))
+      : undefined,
   };
 
   return (
@@ -227,6 +235,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
             </p>
           )}
           <h1 className="statement mt-2 text-[clamp(1.5rem,1.2rem+1vw,2.125rem)] leading-tight">{title}</h1>
+          {rev.summary ? (
+            <a href="#reviews" className="mt-2 inline-flex items-center gap-2 text-sm hover:underline">
+              <Stars rating={rev.summary.average} label={`Rated ${rev.summary.average} out of 5`} />
+              <span className="font-semibold text-ink">{rev.summary.average.toFixed(1)}</span>
+              <span className="text-muted">({rev.summary.count} {rev.summary.count === 1 ? "review" : "reviews"})</span>
+            </a>
+          ) : null}
           {(showModel || c?.subtitle) && (
             <p className="mt-2 text-base text-muted">
               {c?.subtitle}
@@ -356,6 +371,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
       </div>
 
       </VariantChoice>
+
+      <ProductReviews productId={product.id} productName={title} summary={rev.summary} reviews={rev.reviews} />
 
       {related.length > 0 && (
         <section aria-labelledby="related" className="mt-20">
