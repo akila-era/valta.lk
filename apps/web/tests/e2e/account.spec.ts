@@ -129,10 +129,10 @@ test.describe("customer accounts", () => {
     await page.goto("/account");
     const row = page.locator("li", { hasText: ref });
     await expect(row).toBeVisible();
-    await expect(row.getByText("Placed")).toBeVisible();
+    await expect(row.getByTestId("order-status")).toHaveText("Placed");
     await control({ setOrderStatus: { ref, status: "DISPATCHED" } });
     await page.reload();
-    await expect(page.locator("li", { hasText: ref }).getByText("Dispatched")).toBeVisible();
+    await expect(page.locator("li", { hasText: ref }).getByTestId("order-status")).toHaveText("Dispatched");
   });
 
   test("account API rejects cross-site requests", async ({ request }) => {

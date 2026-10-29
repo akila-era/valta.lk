@@ -71,7 +71,7 @@ export function AccountMenu({ customer, enabled }: { customer: { name: string } 
               </div>
               <div className="p-2">
                 <Link href="/account" onClick={() => setOpenedAt(null)} className={item}><User className="h-4 w-4" aria-hidden /> My account</Link>
-                <Link href="/account#orders-title" onClick={() => setOpenedAt(null)} className={item}><Package className="h-4 w-4" aria-hidden /> My orders</Link>
+                <Link href="/account/orders" onClick={() => setOpenedAt(null)} className={item}><Package className="h-4 w-4" aria-hidden /> My orders</Link>
                 <div className="mt-1 border-t border-border pt-1">
                   <SignOutButton className={`${item} w-full text-left`} onDone={() => setOpenedAt(null)} />
                 </div>
