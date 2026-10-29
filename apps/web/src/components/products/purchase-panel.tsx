@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Minus, Plus, RefreshCw, ShieldCheck, ShoppingCart, Truck, Wallet, type LucideIcon } from "lucide-react";
+import { BadgeCheck, Check, Minus, Plus, RefreshCw, ShieldCheck, ShoppingCart, Truck, Wallet, type LucideIcon } from "lucide-react";
 import { effectivePrice, quantityCap, variantChoiceRequired } from "@/lib/erp/product-utils";
+import { addedNotice } from "@/store/added-notice";
 import { cartActions } from "@/store/cart";
 import { MAX_LINE_QTY } from "@/lib/utils/cart-math";
 import { formatLkr } from "@/lib/utils/money";
@@ -39,7 +40,8 @@ function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: s
   );
 }
 
-export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean }) {
+/** `warranty`: the product's warranty in a few words (from its content or ERP specs), shown as a trust tile when set. */
+export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, warranty }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; warranty?: string | null }) {
   const router = useRouter();
   const mustChoose = variantChoiceRequired(product.variants.length);
   const only = product.variants.length === 1 ? product.variants[0].key : "";
@@ -91,10 +93,11 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
     setAdded(false);
   }
 
-  function add() {
+  /** `silent`: Buy now goes straight to checkout, so no "Added to cart" notice. */
+  function add(silent = false) {
     if (lock.current || !purchasable || (mustChoose && !variant)) return false;
     lock.current = true;
-    cartActions.add({
+    const line = {
       productId: product.id,
       variantKey,
       slug: product.slug,
@@ -104,7 +107,9 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       image: product.image,
       unitPrice: unit,
       quantity: qty,
-    });
+    };
+    cartActions.add(line);
+    if (!silent) addedNotice.show(line);
     setAdded(true);
     window.setTimeout(() => {
       lock.current = false;
@@ -167,7 +172,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>
         </div>
         <div className="flex flex-1 gap-3">
-          <button type="button" className="btn-primary btn-lg rounded-full shine min-w-0 flex-1 whitespace-nowrap px-6 shadow-soft hover:shadow-lift transition-all" disabled={!purchasable || added} onClick={add}>
+          <button type="button" className="btn-primary btn-lg rounded-full shine min-w-0 flex-1 whitespace-nowrap px-6 shadow-soft hover:shadow-lift transition-all" disabled={!purchasable || added} onClick={() => add()}>
             {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : <><ShoppingCart className="h-4 w-4" aria-hidden /> Add to cart</>}
           </button>
           <button
@@ -175,7 +180,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
             className="btn-dark btn-lg rounded-full min-w-0 flex-1 whitespace-nowrap px-6 shadow-soft hover:shadow-lift transition-all"
             disabled={!purchasable || added}
             onClick={() => {
-              if (add()) router.push("/checkout");
+              if (add(true)) router.push("/checkout");
             }}
           >
             Buy now
@@ -192,13 +197,18 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <Assurance icon={RefreshCw} title="Returns">
           <Link href="/returns-policy" className="inline-block py-1 underline underline-offset-2 hover:text-ink">Returns policy</Link>
         </Assurance>
+        {warranty ? (
+          <Assurance icon={BadgeCheck} title="Warranty">
+            {warranty}
+          </Assurance>
+        ) : null}
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>
       {showBar ? (
         <div className="fixed inset-x-0 bottom-16 z-40 border-t md:bottom-0 border-border/80 bg-white/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-[-0.02em] text-ink tabular-nums">{formatLkr(unit)}</p>
-            <button type="button" className="btn-primary rounded-full px-5 py-2.5 text-xs font-semibold shrink-0 shadow-soft" disabled={!purchasable || added} aria-label={added ? `Added: ${product.name} is in your cart` : `Add to cart: ${product.name}`} onClick={add}>
+            <button type="button" className="btn-primary rounded-full px-5 py-2.5 text-xs font-semibold shrink-0 shadow-soft" disabled={!purchasable || added} aria-label={added ? `Added: ${product.name} is in your cart` : `Add to cart: ${product.name}`} onClick={() => add()}>
               {added ? "Added" : "Add to cart"}
             </button>
           </div>

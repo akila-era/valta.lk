@@ -245,6 +245,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
               offerNames={offerNames}
               deliveryCharge={settings?.deliveryCharge}
               cod={settings?.paymentMethods.COD === true}
+              warranty={[c?.warranty.duration, c?.warranty.provider].filter(Boolean).join(" · ") || product.specs.Warranty || null}
               product={{
                 id: product.id,
                 slug: product.slug,

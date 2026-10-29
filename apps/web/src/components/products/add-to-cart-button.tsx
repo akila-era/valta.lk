@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, ShoppingCart } from "lucide-react";
+import { addedNotice } from "@/store/added-notice";
 import { cartActions } from "@/store/cart";
 import type { CartLine } from "@/lib/utils/cart-math";
 
@@ -18,6 +19,7 @@ export function AddToCartButton({ line, label = "Add to cart", compact, outline,
   function add() {
     if (done) return;
     cartActions.add({ ...line, quantity: 1 });
+    addedNotice.show({ ...line, quantity: 1 });
     setDone(true);
     timer.current = setTimeout(() => setDone(false), 1500);
   }

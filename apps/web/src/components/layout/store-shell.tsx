@@ -1,3 +1,4 @@
+import { AddedNotice } from "@/components/cart/added-notice";
 import { ToastProvider } from "@/components/ui/toast";
 import { accountsEnabled } from "@/lib/auth/session";
 import { siteConfig } from "@/lib/site-config";
@@ -23,6 +24,7 @@ export function StoreShell({ children }: { children: React.ReactNode }) {
       <WhatsAppButton number={siteConfig.whatsapp} />
       <NavigationLoader />
       <SplashScreen />
+      <AddedNotice />
     </ToastProvider>
   );
 }

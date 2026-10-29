@@ -2,7 +2,7 @@ import Link from "next/link";
 import { discountPercent, effectivePrice, isNewArrival } from "@/lib/erp/product-utils";
 import type { ErpProduct } from "@/lib/erp/types";
 import type { InstalmentLine } from "@/lib/instalments";
-import { formatLkr } from "@/lib/utils/money";
+import { formatLkr, fromCents, toCents } from "@/lib/utils/money";
 import { AddToCartButton } from "./add-to-cart-button";
 import { ProductImage } from "./product-card";
 import { WishlistButton } from "./wishlist-button";
@@ -56,6 +56,9 @@ export function CompactProductCard({ product, priority, row = false, instalments
   const canAdd = product.available && !product.hasVariants;
   const line = { productId: product.id, variantKey: "", slug: product.slug, name: product.name, sku: product.sku, image: product.images[0], unitPrice: current };
   const otherLabel = product.available ? "Choose options" : "View details";
+  const save = current < product.price ? fromCents(toCents(product.price) - toCents(current)) : 0;
+  // A second photo, shown on hover (mouse devices), so shoppers see another side without opening the product.
+  const second = product.images[1];
 
   return (
     <article className={`group/card relative flex h-full overflow-hidden rounded-card ${row ? "flex-row" : "flex-col"} border border-border bg-bg p-2.5 text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift sm:p-3`}>
@@ -75,7 +78,14 @@ export function CompactProductCard({ product, priority, row = false, instalments
       <div className={`relative aspect-square shrink-0 overflow-hidden rounded-control bg-bg ${row ? "w-32 sm:w-44" : "w-full"}`}>
         <Link href={href} tabIndex={-1} aria-hidden className="absolute inset-0 block">
           <span className={`absolute inset-y-0 left-0 transition-transform duration-500 ease-out group-hover/card:scale-[1.04] motion-reduce:transition-none ${details.length ? "right-[34%]" : "right-0"}`}>
-            <ProductImage src={product.images[0]} alt={title} sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" priority={priority} contain padding="p-4 pt-10 sm:p-5 sm:pt-11" />
+            <span className={`absolute inset-0 ${second ? "transition-opacity duration-300 group-hover/card:opacity-0 [@media(hover:none)]:group-hover/card:opacity-100" : ""}`}>
+              <ProductImage src={product.images[0]} alt={title} sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" priority={priority} contain padding="p-4 pt-10 sm:p-5 sm:pt-11" />
+            </span>
+            {second ? (
+              <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/card:opacity-100 [@media(hover:none)]:hidden">
+                <ProductImage src={second} alt="" sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" contain padding="p-4 pt-10 sm:p-5 sm:pt-11" />
+              </span>
+            ) : null}
           </span>
         </Link>
         {details.length ? (
@@ -130,6 +140,8 @@ export function CompactProductCard({ product, priority, row = false, instalments
             </span>
           )}
         </p>
+        {/* The saving as an amount: on a costly item "Save LKR 20,000" reads bigger than a percentage. */}
+        {save > 0 ? <p className={`mt-0.5 text-xs font-bold text-success ${row ? "" : "text-center"}`}>Save {formatLkr(save)}</p> : null}
         {/* The price in equal parts with the store's instalment providers (only when the owner has set any). */}
         {instalments && product.available ? (
           <p className={`mt-1 text-[11px] leading-4 text-muted sm:text-xs ${row ? "" : "text-center"}`}>
