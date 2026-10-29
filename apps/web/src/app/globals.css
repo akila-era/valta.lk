@@ -91,6 +91,12 @@
   /* Anchor jumps land below the sticky header (logo row + category row on md+, the slim logo row on phones). */
   html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
   @media (min-width: 48rem) { html { scroll-padding-top: 10rem; } }
+  /* Page scrollbar in the brand colour: a neon orange thumb on a light track. */
+  html { scrollbar-color: var(--color-brand-500) var(--color-surface); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-surface); }
+  ::-webkit-scrollbar-thumb { background: var(--color-brand-500); border-radius: 9999px; border: 2px solid var(--color-surface); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-600); }
   body {
     background: var(--color-bg);
     color: var(--color-ink);

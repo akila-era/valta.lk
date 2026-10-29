@@ -77,16 +77,13 @@ test.describe("browse", () => {
     await expect(page.getByRole("navigation", { name: "More in this category" }).getByRole("link", { name: /^Next product/ })).toHaveCount(0);
   });
 
-  test("header folds its category row while scrolling down and brings it back on the way up", async ({ page }) => {
+  test("header keeps its category row while scrolling", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/products");
     const header = page.locator("header");
-    await expect(header).toHaveAttribute("data-compact", "false");
     for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 300);
-    await expect(header).toHaveAttribute("data-compact", "true");
-    await expect(header.getByRole("navigation", { name: "Categories" })).toBeHidden();
+    await expect(header.getByRole("navigation", { name: "Categories" })).toBeVisible();
     await page.mouse.wheel(0, -200);
-    await expect(header).toHaveAttribute("data-compact", "false");
     await expect(header.getByRole("navigation", { name: "Categories" })).toBeVisible();
   });
 
