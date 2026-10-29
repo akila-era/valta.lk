@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { BrandLoaderMark } from "@/components/ui/brand-loader";
 
 /** The splash stays at least this long, so the wordmark animation is seen rather than flashed. */
-const MIN_MS = 900;
-/** Length of the fade-out (matches duration-500 below). */
-const LEAVE_MS = 500;
+const MIN_MS = 2200;
+/** Length of the fade-out (matches duration-700 below). */
+const LEAVE_MS = 700;
 
 /**
  * Opening screen on a full page load: white, with the animated VOLTA.LK wordmark, until the page has loaded. It is in
@@ -41,11 +41,11 @@ export function SplashScreen() {
       role="status"
       aria-live="polite"
       aria-hidden={phase === "leave"}
-      className={`splash-auto-out fixed inset-0 z-[100] flex items-center justify-center bg-bg transition-opacity duration-500 ease-out motion-reduce:transition-none ${
+      className={`splash-auto-out fixed inset-0 z-[100] flex items-center justify-center bg-bg transition-opacity duration-700 ease-out motion-reduce:transition-none ${
         phase === "leave" ? "pointer-events-none opacity-0" : "opacity-100"
       }`}
     >
-      <span className={`transition-transform duration-500 ease-out ${phase === "leave" ? "scale-105" : ""}`}>
+      <span className={`transition-transform duration-700 ease-out ${phase === "leave" ? "scale-105" : ""}`}>
         <BrandLoaderMark />
       </span>
       <span className="sr-only">Loading VOLTA.LK</span>
