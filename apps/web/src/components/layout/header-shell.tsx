@@ -6,8 +6,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  * Sticky header wrapper (it scrolls away on short landscape screens, where it would take a third of the view) that gains a soft shadow once the page has scrolled. It also publishes the height of the sticky
  * part as --hdr-sticky, so sticky in-page navigation (product page) can sit just below it.
  *
- * The whole header, category row included, stays in place while scrolling; a neon orange line along its bottom edge
- * shows how far down the page the visitor is.
+ * The whole header, category row included, stays in place while scrolling; a neon orange line pinned to the very top
+ * of the window shows how far down the page the visitor is.
  */
 export function HeaderShell({ children }: { children: ReactNode }) {
   const sentinel = useRef<HTMLDivElement>(null);
@@ -73,10 +73,10 @@ export function HeaderShell({ children }: { children: ReactNode }) {
         className="group/hdr sticky top-0 z-40 [@media(max-height:520px)]:static border-b border-border bg-bg text-ink transition-shadow duration-300 data-[scrolled=true]:shadow-[0_6px_20px_-12px_rgb(16_24_40/0.3)]"
       >
         {children}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 -bottom-px h-[3px] overflow-hidden">
-          <div ref={progress} className="h-full origin-left bg-brand-500" style={{ transform: "scaleX(0)" }} />
-        </div>
       </header>
+      <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-[3px] overflow-hidden">
+        <div ref={progress} className="h-full origin-left bg-brand-500" style={{ transform: "scaleX(0)" }} />
+      </div>
     </>
   );
 }
