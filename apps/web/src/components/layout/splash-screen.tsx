@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BrandLoaderMark } from "@/components/ui/brand-loader";
 
 /** The splash stays at least this long, a short beat, so the wordmark is seen rather than flashed. */
-const MIN_MS = 1000;
+const MIN_MS = 1400;
 /** Length of the fade-out (matches duration-300 below). */
 const LEAVE_MS = 300;
 

@@ -10,7 +10,7 @@ const Letters = () => (
 );
 
 /**
- * The VOLTA.LK wordmark, linking home. With `shine`, a soft light band sweeps across the letters every few seconds: a
+ * The VOLTA.LK wordmark, linking home. With `shine`, a neon orange band sweeps across the letters every few seconds: a
  * copy of the letters sits on top, transparent except for the moving band clipped to the glyphs, so the shine shows
  * only on the letters, never on the background (decorative; off under reduced motion).
  */
