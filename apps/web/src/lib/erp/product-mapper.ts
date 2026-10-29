@@ -16,11 +16,18 @@ export const productSlug = (name: string, id: string) => `${slugify(name) || "pr
 
 const isInStock = (availability: string) => availability === "IN_STOCK";
 
+/**
+ * Where the storefront loads a product photo from. Photos stored on the connected ERP itself go through this site's
+ * /api/erp-image route (it works for an ERP connected later in the admin, and for an http:// ERP on this https site);
+ * photos on other hosts (a CDN) are used as they are and must be listed in ERP_IMAGE_HOSTS.
+ */
 function imageUrl(img: { url: string; relative?: boolean }, erpOrigin: string | null): string | null {
   try {
     const pathOnly = !/^https?:\/\//i.test(img.url);
-    const abs = img.relative || pathOnly ? (erpOrigin ? new URL(img.url, erpOrigin).toString() : null) : new URL(img.url).toString();
-    return abs && /^https?:\/\//i.test(abs) ? abs : null;
+    const abs = img.relative || pathOnly ? (erpOrigin ? new URL(img.url, erpOrigin) : null) : new URL(img.url);
+    if (!abs || !/^https?:$/.test(abs.protocol)) return null;
+    if (erpOrigin && abs.origin === erpOrigin && abs.pathname.length > 1) return `/api/erp-image${abs.pathname}`;
+    return abs.toString();
   } catch {
     return null;
   }

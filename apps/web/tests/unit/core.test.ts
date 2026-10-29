@@ -152,9 +152,11 @@ describe("catalogue mapping", () => {
     expect(mapProduct(raw({ discountActive: false }), null).salePrice).toBeNull();
     expect(mapProduct(raw({ salePrice: "1200.00" }), null).salePrice).toBeNull();
   });
-  it("resolves relative images against the ERP origin and drops unsafe schemes", () => {
-    expect(mapProduct(raw(), "https://erp.example").images).toEqual(["https://erp.example/uploads/a.jpg"]);
-    expect(mapProduct(raw({ images: [{ url: "/uploads/b.jpg" }] }), "https://erp.example").images).toEqual(["https://erp.example/uploads/b.jpg"]);
+  it("serves ERP-hosted images through /api/erp-image, keeps other hosts, drops unsafe schemes", () => {
+    expect(mapProduct(raw(), "https://erp.example").images).toEqual(["/api/erp-image/uploads/a.jpg"]);
+    expect(mapProduct(raw({ images: [{ url: "/uploads/b.jpg" }] }), "https://erp.example").images).toEqual(["/api/erp-image/uploads/b.jpg"]);
+    expect(mapProduct(raw({ images: [{ url: "https://erp.example/uploads/c.jpg" }] }), "https://erp.example").images).toEqual(["/api/erp-image/uploads/c.jpg"]);
+    expect(mapProduct(raw({ images: [{ url: "https://cdn.example/p/d.jpg" }] }), "https://erp.example").images).toEqual(["https://cdn.example/p/d.jpg"]);
     expect(mapProduct(raw(), null).images).toEqual([]);
     expect(mapProduct(raw({ images: [{ url: "javascript:alert(1)" }] }), null).images).toEqual([]);
   });

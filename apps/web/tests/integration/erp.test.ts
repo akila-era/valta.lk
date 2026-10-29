@@ -129,7 +129,7 @@ describe("catalogue", () => {
     expect(products.get(id(7))?.sku).toBe("SKU-7");
     expect(products.get(id(7))?.images).toEqual([]);
     expect(products.get(id(1))?.sku).toBe("SKU-1");
-    expect(products.get(id(1))?.images).toEqual([`http://localhost:${PORT}/uploads/${id(1)}.svg`]);
+    expect(products.get(id(1))?.images).toEqual([`/api/erp-image/uploads/${id(1)}.svg`]);
   });
 });
 
