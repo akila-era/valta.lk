@@ -1,6 +1,7 @@
 import type { ErpProduct } from "@/lib/erp/types";
 import { Reveal } from "@/components/home/reveal";
 import { CatalogueImage } from "./catalogue-image";
+import { siteConfig } from "@/lib/site-config";
 import { CompactProductCard } from "./compact-product-card";
 
 export function ProductImage({
@@ -53,7 +54,7 @@ export function ProductGrid({
     return (
       <div className="grid gap-3">
         {products.map((p, i) => (
-          <CompactProductCard key={p.id} product={p} priority={i < 3} row />
+          <CompactProductCard key={p.id} product={p} priority={i < 3} row instalments={siteConfig.instalments} />
         ))}
       </div>
     );
@@ -69,7 +70,7 @@ export function ProductGrid({
     <div className={`grid ${colClasses}`}>
       {products.map((p, i) => (
         <Reveal key={p.id} delay={(i % 5) * 50}>
-          <CompactProductCard product={p} priority={i < 5} />
+          <CompactProductCard product={p} priority={i < 5} instalments={siteConfig.instalments} />
         </Reveal>
       ))}
     </div>

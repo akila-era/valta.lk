@@ -13,6 +13,11 @@ export const siteConfig = {
    * mcash, koko, genie. Blank = none. List only methods checkout really offers: today the ERP supports cash on delivery only.
    */
   paymentMethods: (process.env.SITE_PAYMENT_METHODS ?? "").split(",").map((s) => s.trim().toLowerCase()).filter((s) => ["visa", "mastercard", "amex", "frimi", "ezcash", "mcash", "koko", "genie"].includes(s)).slice(0, 8),
+  /**
+   * Pay-in-instalments providers to advertise under each product price ("or 3 × LKR … with KOKO | Mintpay"), as a comma
+   * list of: koko, mintpay. Blank = no instalment line anywhere. Set it only once checkout really offers that provider.
+   */
+  instalments: (process.env.SITE_INSTALMENTS ?? "").split(",").map((s) => s.trim().toLowerCase()).filter((s) => ["koko", "mintpay"].includes(s)),
   announcement: process.env.SITE_ANNOUNCEMENT?.trim() || "",
   whatsapp: process.env.SITE_CONTACT_WHATSAPP?.trim() || "",
   /** Owner-supplied service claims for the top bar, e.g. "Islandwide Delivery|Secure Payments". Blank = derived from live ERP settings. */

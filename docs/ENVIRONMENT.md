@@ -9,6 +9,7 @@ All are server-side. None use the `NEXT_PUBLIC_` prefix. Never commit real value
 | `SITE_URL` | yes (prod) | Public origin, used for canonical URLs, sitemap, Open Graph |
 | `ERP_IMAGE_HOSTS` | if products have images | Comma-separated hostnames allowed by `next/image` |
 | `SITE_CONTACT_PHONE`, `SITE_CONTACT_EMAIL`, `SITE_CONTACT_ADDRESS` | optional | Shown in footer/contact when set; hidden when blank |
+| `SITE_INSTALMENTS` | optional | Pay-in-instalments line under every product card price, e.g. `koko,mintpay` shows "or 3 × LKR … with KOKO \| Mintpay" (price ÷ 3, rounded up). Blank = no line. Set it only once checkout really offers that provider |
 | `SITE_PAYMENT_METHODS` | optional | Footer "We accept" brands: comma list of `visa, mastercard, amex, frimi, ezcash, mcash, koko, genie`. Official logos are used from `public/payments/<id>.svg` when present, otherwise the name is shown. List only methods checkout really offers (the ERP supports cash on delivery only today) |
 | `SITE_BUSINESS_HOURS` | optional | Opening hours in the footer; separate lines with `|`. Hidden when blank |
 | `SITE_ANNOUNCEMENT` | optional | Announcement bar text; hidden when blank |

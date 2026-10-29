@@ -252,7 +252,7 @@ function ProductRow({ label, products, priority = false }: { label: string; prod
     >
       {products.slice(0, 10).map((p, i) => (
         <Reveal as="li" key={p.id} delay={(i % 5) * 40} className="w-[calc((100%-0.75rem)/2)] sm:w-[calc((100%-1rem)/2)] md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-4rem)/5)]">
-          <CompactProductCard product={p} priority={priority && i < 4} />
+          <CompactProductCard product={p} priority={priority && i < 4} instalments={siteConfig.instalments} />
         </Reveal>
       ))}
     </ul>
@@ -325,7 +325,7 @@ export function FeatureSplit({ rail }: { rail: Rail }) {
         <ul aria-label={`${rail.name} products`} className={`grid gap-3 sm:gap-4 ${cols}`}>
           {picks.map((p, i) => (
             <Reveal as="li" key={p.id} delay={i * 40}>
-              <CompactProductCard product={p} />
+              <CompactProductCard product={p} instalments={siteConfig.instalments} />
             </Reveal>
           ))}
         </ul>
