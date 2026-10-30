@@ -11,8 +11,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6">
       <div className="min-w-0">
         <h1 className="page-title font-extrabold">{title}</h1>
-        <span aria-hidden className="mt-2.5 block h-[3px] w-10 rounded-full bg-brand-500" />
-        {subtitle && <p className="mt-2.5 max-w-3xl text-sm leading-6 text-muted">{subtitle}</p>}
+        {subtitle && <p className="mt-1.5 max-w-3xl text-sm leading-6 text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -24,7 +23,7 @@ export function Panel({ title, action, children, className = "", id }: { title?:
     <section aria-labelledby={id} className={`card min-w-0 p-5 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 id={id} className="flex items-center gap-2.5 font-display text-[17px] font-extrabold tracking-title"><span aria-hidden className="h-4 w-1 rounded-full bg-brand-500" />{title}</h2>}
+          {title && <h2 id={id} className="font-display text-[17px] font-extrabold tracking-title">{title}</h2>}
           {action && <Link href={action.href} className="text-sm font-semibold text-brand-600 hover:underline">{action.label} →</Link>}
         </div>
       )}
@@ -34,7 +33,7 @@ export function Panel({ title, action, children, className = "", id }: { title?:
 }
 
 const TONES = {
-  orange: "bg-brand-500 text-white shadow-[0_8px_18px_-10px_rgb(255_92_0/0.8)]",
+  orange: "bg-brand-500 text-white",
   green: "bg-success-bg text-success",
   blue: "bg-ink text-white",
   purple: "bg-ink text-brand-500",
@@ -52,7 +51,7 @@ export function Stat({ icon: Icon, tone, label, value, sub, delta, goodWhenDown,
     <>
       <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${TONES[tone]}`}><Icon className="h-6 w-6" aria-hidden /></span>
       <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">{label}</p>
+        <p className="text-[13px] font-medium text-muted">{label}</p>
         <p className="mt-0.5 truncate font-display text-[1.65rem] font-extrabold leading-tight tracking-title tabular-nums">{value}</p>
         {delta != null && delta !== 0 ? (
           <p className={`flex items-center gap-1 text-xs font-medium ${good ? "text-success" : "text-danger"}`}>
