@@ -1,16 +1,12 @@
 import { NewsletterForm } from "./newsletter-form";
-import fs from "node:fs";
-import path from "node:path";
 import Link from "next/link";
 import {
-  Banknote, Building2, ChevronRight, Clock, FileText, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck,
+  Building2, ChevronRight, Clock, FileText, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck,
   type LucideIcon,
 } from "lucide-react";
 import { listProducts } from "@/lib/erp/catalogue";
-import { getSettings } from "@/lib/erp/settings";
 import { socialLinks } from "@/lib/home-config";
 import { siteConfig } from "@/lib/site-config";
-import { formatLkr } from "@/lib/utils/money";
 import { BackToTop } from "./back-to-top";
 import { Wordmark } from "./wordmark";
 
@@ -38,24 +34,6 @@ const SOCIAL_ICON: Record<string, (p: IconProps) => React.ReactElement> = {
   YouTube: svg(<><rect x="3" y="6" width="18" height="12" rx="3.5" /><path d="m10.5 9.5 4 2.5-4 2.5z" fill="currentColor" /></>),
   TikTok: svg(<path d="M15 4v9.2a3.7 3.7 0 1 1-3.7-3.7M15 4c.3 2.3 1.9 3.9 4.2 4.1" />),
 };
-
-const PAYMENT_NAMES: Record<string, string> = { visa: "Visa", mastercard: "Mastercard", amex: "American Express", frimi: "FriMi", ezcash: "eZ Cash", mcash: "mCash", koko: "KOKO", genie: "Genie" };
-
-/** The brand's own logo from public/payments/<id>.svg when the owner has added it; otherwise its name as a plain label. */
-function PaymentBadge({ id }: { id: string }) {
-  const name = PAYMENT_NAMES[id];
-  const hasLogo = fs.existsSync(path.join(process.cwd(), "public", "payments", `${id}.svg`));
-  return (
-    <li className="flex h-8 min-w-[3.5rem] items-center justify-center rounded-sm bg-white px-3">
-      {hasLogo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={`/payments/${id}.svg`} alt={name} width={48} height={24} className="h-6 w-auto max-w-[3.5rem] object-contain" loading="lazy" />
-      ) : (
-        <span className="whitespace-nowrap text-xs font-bold text-ink">{name}</span>
-      )}
-    </li>
-  );
-}
 
 const colHead = "text-sm font-bold uppercase tracking-[0.1em] text-white";
 const accentBar = "mt-2.5 block h-0.5 w-8 bg-brand-500";
@@ -92,53 +70,14 @@ function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: 
   );
 }
 
-/** Dark footer in the style of large brand stores (ugreen.lk): trust tiles, link columns, then an orange payment/social bar. */
+/** Dark footer in the style of large brand stores (ugreen.lk): newsletter, link columns, then an orange social bar (when set). */
 export async function Footer() {
-  const [categories, settings] = await Promise.all([
-    listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []),
-    getSettings().catch(() => null),
-  ]);
+  const categories = await listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []);
   const social = socialLinks();
-  const cod = Boolean(settings?.paymentMethods.COD);
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
-  const hasPayments = cod || siteConfig.paymentMethods.length > 0;
-  // Trust tiles on every page (as large stores show above the footer): only what the store really does.
-  const tiles: { icon: LucideIcon; title: string; text: string; href?: string }[] = [
-    ...(cod ? [{ icon: Banknote, title: "Cash on Delivery", text: "Pay when your order arrives" }] : []),
-    ...(settings ? [{ icon: Truck, title: `Delivery ${formatLkr(settings.deliveryCharge)}`, text: "Shown before you order", href: "/shipping-policy" }] : []),
-    { icon: PackageSearch, title: "Order Tracking", text: "Follow your order online", href: "/track-order" },
-    { icon: MessageSquare, title: "Dedicated Support", text: "We are here to help", href: "/contact" },
-  ];
 
   return (
     <footer className="on-dark relative mt-16 border-t-[3px] border-brand-500 bg-ink pb-16 text-white/80 md:pb-0">
-      <div className="border-b border-white/10">
-        <ul aria-label="Shopping with us" className="container-page grid grid-cols-2 lg:grid-cols-4">
-          {tiles.map(({ icon: Icon, title, text, href }) => {
-            const body = (
-              <>
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-500/60 text-brand-500 transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">
-                  <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-[13px] font-bold leading-tight text-white sm:text-sm">{title}</span>
-                  <span className="hidden text-xs text-white/60 sm:block">{text}</span>
-                </span>
-              </>
-            );
-            return (
-              <li key={title} className="border-white/10 lg:border-l lg:first:border-l-0">
-                {href ? (
-                  <Link href={href} className="group flex h-full items-center gap-3 px-1 py-5 sm:px-5">{body}</Link>
-                ) : (
-                  <div className="group flex h-full items-center gap-3 px-1 py-5 sm:px-5">{body}</div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
       {/* Newsletter: new arrivals and price drops by email. */}
       <div className="border-b border-white/10">
         <div className="container-page flex flex-col gap-5 py-9 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
@@ -192,19 +131,10 @@ export async function Footer() {
         </div>
       </div>
 
-      {/* The orange bar (as ugreen's green one): payment methods on the left, social links on the right. */}
-      {(hasPayments || social.length > 0) && (
+      {/* The orange bar: social links, shown only when the owner has set any. */}
+      {social.length > 0 && (
         <div className="bg-brand-500 text-on-brand">
           <div className="container-page flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-4">
-            {hasPayments && (
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                <span className="font-bold">We accept</span>
-                <ul className="flex flex-wrap items-center gap-2" aria-label="Accepted payment methods">
-                  {cod && <li className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-white px-3 text-xs font-bold text-ink"><Banknote className="h-4 w-4" aria-hidden />Cash on delivery</li>}
-                  {siteConfig.paymentMethods.map((id) => <PaymentBadge key={id} id={id} />)}
-                </ul>
-              </div>
-            )}
             {social.length > 0 && (
               <div className="flex items-center gap-3 sm:ml-auto">
                 <span className="text-sm font-bold">Follow us</span>
