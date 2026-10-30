@@ -40,7 +40,7 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
   const isOpen = (g: NavGroup) => open[g.id] ?? g.id === activeGroup;
 
   return (
-    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-6 pt-2 [scrollbar-color:rgb(255_255_255/0.15)_transparent] [scrollbar-width:thin]">
+    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-6 pt-2 [scrollbar-width:thin]">
       {NAV.map((g) => {
         const Icon = g.icon;
         const single = g.items.length === 1;
@@ -56,7 +56,7 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               aria-label={collapsed ? g.label : undefined}
               aria-current={groupActive && single ? "page" : undefined}
               className={`mt-1 flex min-h-12 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors ${
-                groupActive ? "bg-brand-500 font-semibold text-white shadow-[0_8px_18px_-8px_rgb(255_92_0/0.7)]" : "text-white/70 hover:bg-white/[0.07] hover:text-white"
+                groupActive ? "bg-brand-500 font-semibold text-white" : "text-ink/75 hover:bg-surface hover:text-ink"
               } ${collapsed ? "justify-center px-0" : ""}`}
             >
               <Icon className="h-5 w-5 shrink-0" aria-hidden />
@@ -72,14 +72,14 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               aria-expanded={expanded}
               aria-controls={`nav-${g.id}`}
               onClick={() => setOpen((o) => ({ ...o, [g.id]: !expanded }))}
-              className={`flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-[12.5px] font-bold uppercase tracking-[0.1em] transition-colors hover:text-white ${groupActive ? "text-brand-500" : "text-white/45"}`}
+              className={`flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-[12.5px] font-bold uppercase tracking-[0.1em] transition-colors hover:text-ink ${groupActive ? "text-brand-600" : "text-muted"}`}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
               <span className="text-left leading-tight">{g.label}</span>
               <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${expanded ? "" : "-rotate-90"}`} aria-hidden />
             </button>
             {expanded && (
-              <ul id={`nav-${g.id}`} className="ml-[1.45rem] mt-1 space-y-0.5 border-l border-white/10 pl-2.5">
+              <ul id={`nav-${g.id}`} className="ml-[1.45rem] mt-1 space-y-0.5 border-l border-border pl-2.5">
                 {g.items.map((i) => {
                   const active = isActive(i, pathname, status, filter);
                   return (
@@ -89,7 +89,7 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
                         onClick={onNavigate}
                         aria-current={active ? "page" : undefined}
                         className={`flex min-h-11 items-center gap-3 rounded-xl py-1.5 pl-3 pr-2.5 text-[15px] font-medium transition-colors ${
-                          active ? "bg-brand-500 font-semibold text-white shadow-[0_8px_18px_-8px_rgb(255_92_0/0.7)]" : "text-white/65 hover:bg-white/[0.07] hover:text-white"
+                          active ? "bg-brand-500 font-semibold text-white" : "text-ink/70 hover:bg-surface hover:text-ink"
                         }`}
                       >
                         {(() => { const ItemIcon = iconFor(i.label); return <ItemIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />; })()}
@@ -177,7 +177,7 @@ function Notifications({ badges }: { badges: AdminBadges }) {
 
 function Brand({ collapsed }: { collapsed: boolean }) {
   return (
-    <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2.5 px-5 text-white" aria-label="VOLTA.LK admin home">
+    <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2.5 px-5 text-ink" aria-label="VOLTA.LK admin home">
       {collapsed ? (
         <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 font-display text-lg font-extrabold text-white">V</span>
       ) : (
@@ -197,20 +197,20 @@ function SidebarUser({ user, collapsed }: { user: { name: string; email: string 
   const initial = user.name.trim().charAt(0).toUpperCase();
   if (collapsed) {
     return (
-      <div className="flex shrink-0 justify-center border-t border-white/10 py-3">
+      <div className="flex shrink-0 justify-center border-t border-border py-3">
         <span title={`${user.name} (${user.email})`} className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">{initial}</span>
       </div>
     );
   }
   return (
-    <div className="shrink-0 border-t border-white/10 p-3">
-      <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] p-2.5">
+    <div className="shrink-0 border-t border-border p-3">
+      <div className="flex items-center gap-3 rounded-xl bg-surface p-2.5">
         <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">{initial}</span>
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="block truncate text-[15px] font-semibold text-white">{user.name}</span>
-          <span className="block truncate text-xs text-white/50">{user.email}</span>
+          <span className="block truncate text-[15px] font-semibold text-ink">{user.name}</span>
+          <span className="block truncate text-xs text-muted">{user.email}</span>
         </span>
-        <Link href="/" target="_blank" rel="noopener" title="View store (opens in a new tab)" aria-label="View store (opens in a new tab)" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white">
+        <Link href="/" target="_blank" rel="noopener" title="View store (opens in a new tab)" aria-label="View store (opens in a new tab)" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-bg hover:text-ink">
           <ExternalLink className="h-4 w-4" aria-hidden />
         </Link>
       </div>
@@ -275,8 +275,8 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
       <a href="#admin-main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[80] focus:rounded focus:bg-bg focus:px-3 focus:py-2">Skip to content</a>
 
       {/* Desktop sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col bg-ink text-white transition-[width] duration-200 motion-reduce:transition-none lg:flex ${collapsed ? "w-[4.5rem]" : "w-64"}`}>
-        <div className="border-b border-white/10"><Brand collapsed={collapsed} /></div>
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border bg-bg text-ink transition-[width] duration-200 motion-reduce:transition-none lg:flex ${collapsed ? "w-[4.5rem]" : "w-64"}`}>
+        <div className="border-b border-border"><Brand collapsed={collapsed} /></div>
         <Suspense fallback={<div className="flex-1" />}><Nav collapsed={collapsed} badges={badges} /></Suspense>
         <SidebarUser user={user} collapsed={collapsed} />
       </aside>
@@ -285,10 +285,10 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
       {drawer && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Admin menu">
           <button type="button" aria-label="Close menu" className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} tabIndex={-1} />
-          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-ink text-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-white/10 pr-3">
+          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-bg text-ink shadow-xl">
+            <div className="flex items-center justify-between border-b border-border pr-3">
               <Brand collapsed={false} />
-              <button ref={closeRef} type="button" className="flex h-10 w-10 items-center justify-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white" aria-label="Close menu" onClick={() => setDrawer(false)}>
+              <button ref={closeRef} type="button" className="flex h-10 w-10 items-center justify-center rounded-lg text-ink hover:bg-surface" aria-label="Close menu" onClick={() => setDrawer(false)}>
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
