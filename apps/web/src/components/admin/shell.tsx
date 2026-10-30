@@ -24,7 +24,7 @@ const subscribe = (cb: () => void) => {
 function Badge({ n, tone, onActive = false }: { n: number; tone: "new" | "pending" | "failed"; onActive?: boolean }) {
   if (!n) return null;
   return (
-    <span className={`ml-auto min-w-5 rounded-full px-1.5 py-0.5 text-center text-[11px] font-bold ${onActive ? "bg-white text-brand-600" : tone === "failed" ? "bg-danger text-white" : "bg-brand-500 text-white"}`} aria-label={`${n} ${tone}`}>
+    <span className={`ml-auto min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-bold ${onActive ? "bg-white text-brand-600" : tone === "failed" ? "bg-danger text-white" : "bg-brand-500 text-white"}`} aria-label={`${n} ${tone}`}>
       {n}
     </span>
   );
@@ -55,11 +55,11 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               title={g.label}
               aria-label={collapsed ? g.label : undefined}
               aria-current={groupActive && single ? "page" : undefined}
-              className={`mt-1 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors ${
+              className={`mt-1 flex min-h-12 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors ${
                 groupActive ? "bg-brand-500 font-semibold text-white shadow-[0_8px_18px_-8px_rgb(255_92_0/0.7)]" : "text-white/70 hover:bg-white/[0.07] hover:text-white"
               } ${collapsed ? "justify-center px-0" : ""}`}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              <Icon className="h-5 w-5 shrink-0" aria-hidden />
               {!collapsed && g.label}
             </Link>
           );
@@ -72,14 +72,14 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               aria-expanded={expanded}
               aria-controls={`nav-${g.id}`}
               onClick={() => setOpen((o) => ({ ...o, [g.id]: !expanded }))}
-              className={`flex min-h-9 w-full items-center gap-2 rounded-lg px-3 text-[11px] font-bold uppercase tracking-[0.12em] transition-colors hover:text-white ${groupActive ? "text-brand-500" : "text-white/45"}`}
+              className={`flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-[12.5px] font-bold uppercase tracking-[0.1em] transition-colors hover:text-white ${groupActive ? "text-brand-500" : "text-white/45"}`}
             >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden />
+              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
               <span>{g.label}</span>
               <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${expanded ? "" : "-rotate-90"}`} aria-hidden />
             </button>
             {expanded && (
-              <ul id={`nav-${g.id}`} className="ml-[1.35rem] mt-1 space-y-0.5 border-l border-white/10 pl-2.5">
+              <ul id={`nav-${g.id}`} className="ml-[1.45rem] mt-1 space-y-0.5 border-l border-white/10 pl-2.5">
                 {g.items.map((i) => {
                   const active = isActive(i, pathname, status, filter);
                   return (
@@ -88,11 +88,11 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
                         href={i.href}
                         onClick={onNavigate}
                         aria-current={active ? "page" : undefined}
-                        className={`flex min-h-10 items-center gap-3 rounded-xl py-1.5 pl-3 pr-2.5 text-[13.5px] font-medium transition-colors ${
+                        className={`flex min-h-11 items-center gap-3 rounded-xl py-1.5 pl-3 pr-2.5 text-[15px] font-medium transition-colors ${
                           active ? "bg-brand-500 font-semibold text-white shadow-[0_8px_18px_-8px_rgb(255_92_0/0.7)]" : "text-white/65 hover:bg-white/[0.07] hover:text-white"
                         }`}
                       >
-                        {(() => { const ItemIcon = iconFor(i.label); return <ItemIcon className="h-4 w-4 shrink-0" aria-hidden />; })()}
+                        {(() => { const ItemIcon = iconFor(i.label); return <ItemIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />; })()}
                         {i.label}
                         {i.badge && <Badge n={badges[i.badge]} tone={i.badge} onActive={active} />}
                       </Link>
@@ -207,8 +207,8 @@ function SidebarUser({ user, collapsed }: { user: { name: string; email: string 
       <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] p-2.5">
         <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">{initial}</span>
         <span className="min-w-0 flex-1 leading-tight">
-          <span className="block truncate text-sm font-semibold text-white">{user.name}</span>
-          <span className="block truncate text-[11px] text-white/50">{user.email}</span>
+          <span className="block truncate text-[15px] font-semibold text-white">{user.name}</span>
+          <span className="block truncate text-xs text-white/50">{user.email}</span>
         </span>
         <Link href="/" target="_blank" rel="noopener" title="View store (opens in a new tab)" aria-label="View store (opens in a new tab)" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white">
           <ExternalLink className="h-4 w-4" aria-hidden />
