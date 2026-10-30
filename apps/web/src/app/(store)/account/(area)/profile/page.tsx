@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, KeyRound, Mail, MapPin } from "lucide-react";
-import { AccountShell } from "@/components/account/account-shell";
 import { AccountsUnavailableNotice } from "@/components/account/auth-card";
 import { ProfileForm } from "@/components/account/profile-form";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
@@ -16,7 +15,7 @@ export default async function AccountProfilePage() {
   if (!customer) redirect("/account/login?next=/account/profile");
 
   return (
-    <AccountShell section="profile">
+    <>
       <section aria-labelledby="profile-title" className="rounded-panel border border-border bg-bg p-6 sm:p-8">
         <p className="eyebrow">Your details</p>
         <h2 id="profile-title" className="font-display text-2xl font-extrabold tracking-title text-ink">Personal information</h2>
@@ -45,6 +44,6 @@ export default async function AccountProfilePage() {
           </ul>
         </div>
       </section>
-    </AccountShell>
+    </>
   );
 }

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AccountShell } from "@/components/account/account-shell";
 import { AccountsUnavailableNotice } from "@/components/account/auth-card";
 import { NoOrders, OrderCard } from "@/components/account/order-card";
 import { accountOrders } from "@/lib/account/orders";
@@ -16,7 +15,7 @@ export default async function AccountOrdersPage() {
   const orders = await accountOrders(customer.id);
 
   return (
-    <AccountShell section="orders">
+    <>
       <section aria-labelledby="orders-title">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
@@ -37,6 +36,6 @@ export default async function AccountOrdersPage() {
           </ul>
         )}
       </section>
-    </AccountShell>
+    </>
   );
 }

@@ -1,10 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Heart, LayoutDashboard, Package, PackageSearch, UserRound, type LucideIcon } from "lucide-react";
 import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
 import { SignOutButton } from "./sign-out-button";
 
-export type AccountSection = "overview" | "orders" | "profile";
+type AccountSection = "overview" | "orders" | "profile";
 
 const NAV: { href: string; label: string; icon: LucideIcon; section?: AccountSection }[] = [
   { href: "/account", label: "Overview", icon: LayoutDashboard, section: "overview" },
@@ -20,11 +23,17 @@ const TITLES: Record<AccountSection, { title: string; crumb: string; intro: stri
   profile: { title: "Profile", crumb: "Profile", intro: "Your name and phone, used to fill in checkout for you." },
 };
 
+const sectionFor = (pathname: string): AccountSection =>
+  pathname.startsWith("/account/orders") ? "orders" : pathname.startsWith("/account/profile") ? "profile" : "overview";
+
 /**
- * The signed-in account area: the page banner, a sidebar that stays in view while the page scrolls (each entry is its
- * own page, so the highlight always matches what is shown) and the section itself.
+ * The signed-in account area, rendered once by the account layout: the page banner and a sidebar that stays in view
+ * while the page scrolls. Moving between Overview, My orders and Profile only swaps the section beside it (with its
+ * own small loader), so the banner and sidebar never disappear. The highlight follows the address.
  */
-export function AccountShell({ section, children }: { section: AccountSection; children: ReactNode }) {
+export function AccountShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const section = sectionFor(pathname);
   const t = TITLES[section];
   return (
     <div className="space-y-8">

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Clock, Headset, Heart, Package, PackageSearch, ShoppingBag, Wallet, type LucideIcon } from "lucide-react";
-import { AccountShell } from "@/components/account/account-shell";
 import { AccountsUnavailableNotice } from "@/components/account/auth-card";
 import { NoOrders, OrderCard } from "@/components/account/order-card";
 import { SignOutButton } from "@/components/account/sign-out-button";
@@ -63,7 +62,7 @@ export default async function AccountPage() {
   const spent = addMoney(...known.filter((o) => o.status !== "CANCELLED").map((o) => o.total));
 
   return (
-    <AccountShell section="overview">
+    <>
       {/* Welcome panel */}
       <section aria-labelledby="account-name" className="relative overflow-hidden rounded-panel bg-ink p-6 text-white sm:p-8">
         <span aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-brand-500/25 blur-3xl" />
@@ -131,6 +130,6 @@ export default async function AccountPage() {
           </ul>
         )}
       </section>
-    </AccountShell>
+    </>
   );
 }
