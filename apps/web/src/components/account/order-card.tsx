@@ -47,7 +47,7 @@ function paymentLabel(order: PublicOrder) {
 }
 
 /** Placed → Confirmed → Dispatched → Delivered, filled up to the order's current step. */
-function OrderProgress({ status }: { status: string }) {
+export function OrderProgress({ status }: { status: string }) {
   if (status === "CANCELLED") {
     return (
       <p className="mt-4 inline-flex items-center gap-2 rounded-control bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">

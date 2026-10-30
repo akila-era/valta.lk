@@ -32,7 +32,8 @@ export interface PublicOrder {
   currency: string;
   paymentMethod: string;
   codCollected: boolean;
-  lines: { name: string; variantLabel?: string; quantity: number; unitPrice: number }[];
+  /** `image` and `slug` come from the cached catalogue (absent when the product is no longer listed). */
+  lines: { name: string; variantLabel?: string; quantity: number; unitPrice: number; image?: string; slug?: string }[];
   deliveryCharge: number;
   total: number;
   createdAt?: string;
@@ -64,6 +65,8 @@ export function toPublicOrder(o: ErpOrder, products: Map<string, ErpProduct> = n
         variantLabel: l.variantKey ? (p?.variants.find((v) => v.key === l.variantKey)?.label ?? undefined) : undefined,
         quantity: l.quantity,
         unitPrice: l.unitPrice,
+        image: p?.images[0],
+        slug: p?.slug,
       };
     }),
     deliveryCharge: o.deliveryCharge,

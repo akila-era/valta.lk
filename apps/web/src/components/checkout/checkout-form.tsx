@@ -222,7 +222,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
   return (
     <form ref={formRef} onSubmit={onSubmit} noValidate className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]" aria-busy={submitting}>
       <div className="min-w-0 space-y-6">
-        <nav aria-label="Checkout progress">
+        <nav aria-label="Checkout progress" className="rounded-panel border border-border bg-bg p-3 sm:p-4">
           <ol className="grid grid-cols-3 gap-2 text-sm">
             {STEPS.map((s) => {
               const done = s.n < step;
@@ -230,10 +230,10 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
               const canGo = s.n <= reached && s.n !== step && !submitting;
               const inner = (
                 <>
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-on-brand" : done ? "border-brand-600 bg-brand-50 text-brand-700" : "border-border text-muted"}`}>
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-on-brand ring-4 ring-brand-500/20" : done ? "border-brand-500 bg-brand-500 text-white" : "border-border bg-surface text-muted"}`}>
                     {done ? <Check className="h-4 w-4" aria-hidden /> : s.n}
                   </span>
-                  <span className={`min-w-0 text-[11px] leading-tight [overflow-wrap:anywhere] xs:text-xs sm:text-sm ${current ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
+                  <span className={`min-w-0 text-[11px] leading-tight [overflow-wrap:anywhere] xs:text-xs sm:text-sm ${current ? "font-bold text-ink" : done ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
                 </>
               );
               return (
@@ -247,6 +247,10 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
               );
             })}
           </ol>
+          {/* How far along: a third per step. */}
+          <div aria-hidden className="mt-3 h-1 overflow-hidden rounded-full bg-surface">
+            <div className="h-full rounded-full bg-brand-500 transition-[width] duration-500 ease-out motion-reduce:transition-none" style={{ width: `${(step / STEPS.length) * 100}%` }} />
+          </div>
         </nav>
 
         {banner && (
