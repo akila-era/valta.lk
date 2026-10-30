@@ -10,8 +10,9 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:mb-6">
       <div className="min-w-0">
-        <h1 className="page-title">{title}</h1>
-        {subtitle && <p className="mt-1 max-w-3xl text-sm text-muted">{subtitle}</p>}
+        <h1 className="page-title font-extrabold">{title}</h1>
+        <span aria-hidden className="mt-2.5 block h-[3px] w-10 rounded-full bg-brand-500" />
+        {subtitle && <p className="mt-2.5 max-w-3xl text-sm leading-6 text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -23,7 +24,7 @@ export function Panel({ title, action, children, className = "", id }: { title?:
     <section aria-labelledby={id} className={`card min-w-0 p-5 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 id={id} className="text-base font-semibold">{title}</h2>}
+          {title && <h2 id={id} className="flex items-center gap-2.5 font-display text-[17px] font-extrabold tracking-title"><span aria-hidden className="h-4 w-1 rounded-full bg-brand-500" />{title}</h2>}
           {action && <Link href={action.href} className="text-sm font-semibold text-brand-600 hover:underline">{action.label} →</Link>}
         </div>
       )}
@@ -33,10 +34,10 @@ export function Panel({ title, action, children, className = "", id }: { title?:
 }
 
 const TONES = {
-  orange: "bg-brand-50 text-brand-700",
+  orange: "bg-brand-500 text-white shadow-[0_8px_18px_-10px_rgb(255_92_0/0.8)]",
   green: "bg-success-bg text-success",
-  blue: "bg-surface text-ink",
-  purple: "bg-brand-50 text-brand-700",
+  blue: "bg-ink text-white",
+  purple: "bg-ink text-brand-500",
   red: "bg-danger-bg text-danger",
   grey: "bg-surface text-muted",
 } as const;
@@ -51,8 +52,8 @@ export function Stat({ icon: Icon, tone, label, value, sub, delta, goodWhenDown,
     <>
       <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${TONES[tone]}`}><Icon className="h-6 w-6" aria-hidden /></span>
       <div className="min-w-0">
-        <p className="text-xs font-medium text-muted">{label}</p>
-        <p className="truncate text-2xl font-bold leading-tight">{value}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted">{label}</p>
+        <p className="mt-0.5 truncate font-display text-[1.65rem] font-extrabold leading-tight tracking-title tabular-nums">{value}</p>
         {delta != null && delta !== 0 ? (
           <p className={`flex items-center gap-1 text-xs font-medium ${good ? "text-success" : "text-danger"}`}>
             {up ? <ArrowUp className="h-3 w-3" aria-hidden /> : <ArrowDown className="h-3 w-3" aria-hidden />}
@@ -64,8 +65,8 @@ export function Stat({ icon: Icon, tone, label, value, sub, delta, goodWhenDown,
       </div>
     </>
   );
-  const cls = "card flex min-w-0 items-center gap-4 p-4";
-  return href ? <Link href={href} className={`${cls} hover:border-ink`}>{body}</Link> : <div className={cls}>{body}</div>;
+  const cls = "card flex min-w-0 items-center gap-4 p-4 transition-[border-color,box-shadow] sm:p-5";
+  return href ? <Link href={href} className={`${cls} hover:border-brand-500 hover:shadow-lift`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
 /**
@@ -121,15 +122,15 @@ export function Facts({ rows, label }: { rows: { k: string; v: ReactNode; testId
 
 /** A bar of filters above a list. */
 export function Toolbar({ children }: { children: ReactNode }) {
-  return <div className="mb-5 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-bg p-3 sm:p-4">{children}</div>;
+  return <div className="mb-5 flex flex-wrap items-end gap-3 rounded-panel border border-border bg-bg p-3 shadow-card sm:p-4">{children}</div>;
 }
 
 /** Link-based segmented control (works without JavaScript; the current choice is exposed with aria-current). */
 export function Segmented({ label, options, current }: { label: string; options: { href: string; label: string; value: string }[]; current: string }) {
   return (
-    <nav aria-label={label} className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-sm">
+    <nav aria-label={label} className="inline-flex flex-wrap rounded-control border border-border bg-bg p-1 text-sm shadow-card">
       {options.map((o) => (
-        <Link key={o.value} href={o.href} aria-current={o.value === current ? "true" : undefined} className={`rounded-md px-3 py-1.5 font-medium transition-colors ${o.value === current ? "bg-ink text-white" : "text-muted hover:text-ink"}`}>
+        <Link key={o.value} href={o.href} aria-current={o.value === current ? "true" : undefined} className={`rounded-[4px] px-3.5 py-1.5 font-semibold transition-colors ${o.value === current ? "bg-brand-500 text-white shadow-sm" : "text-muted hover:bg-surface hover:text-ink"}`}>
           {o.label}
         </Link>
       ))}
@@ -147,15 +148,15 @@ export function ErrorNote({ children }: { children: ReactNode }) {
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted">{children}</p>;
+  return <p className="rounded-panel border border-dashed border-border bg-bg p-8 text-center text-sm text-muted">{children}</p>;
 }
 
 /** Compact data table: horizontally scrollable on small screens. */
 export function Table({ head, children, min = "40rem", label, dense }: { head: (string | { label: string; right?: boolean })[]; children: ReactNode; min?: string; label?: string; dense?: boolean }) {
   return (
-    <div className="max-w-full overflow-x-auto rounded-xl border border-border bg-bg">
+    <div className="max-w-full overflow-x-auto rounded-panel border border-border bg-bg shadow-card">
       <table className="w-full text-left text-sm" style={{ minWidth: min }} aria-label={label}>
-        <thead className="border-b border-border bg-surface/80 text-[11px] uppercase tracking-wider text-muted">
+        <thead className="bg-ink text-[11px] uppercase tracking-[0.08em] text-white/75">
           <tr>
             {head.map((h) => {
               const o = typeof h === "string" ? { label: h, right: false } : h;
@@ -163,7 +164,7 @@ export function Table({ head, children, min = "40rem", label, dense }: { head: (
             })}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border tabular-nums [&_tr:hover]:bg-surface/70">{children}</tbody>
+        <tbody className="divide-y divide-border tabular-nums [&_tr:hover]:bg-brand-50/50">{children}</tbody>
       </table>
     </div>
   );
@@ -250,7 +251,7 @@ export function BarChart({ data, format, label }: { data: { label: string; value
   );
 }
 
-export const SLICE_COLORS = ["#ff5c00", "#60a5fa", "#16a34a", "#f59e0b", "#7c3aed", "#94a3b8"];
+export const SLICE_COLORS = ["#ff5c00", "#111111", "#ff9f66", "#6b7280", "#ffd2b8", "#c4c8ce"];
 
 export function Donut({ slices, centre, label }: { slices: { label: string; value: number }[]; centre: { big: string; small: string }; label: string }) {
   const total = slices.reduce((a, s) => a + s.value, 0);

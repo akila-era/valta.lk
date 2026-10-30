@@ -75,7 +75,7 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               className={`flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-[12.5px] font-bold uppercase tracking-[0.1em] transition-colors hover:text-white ${groupActive ? "text-brand-500" : "text-white/45"}`}
             >
               <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
-              <span>{g.label}</span>
+              <span className="text-left leading-tight">{g.label}</span>
               <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${expanded ? "" : "-rotate-90"}`} aria-hidden />
             </button>
             {expanded && (

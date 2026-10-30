@@ -83,7 +83,7 @@ export default async function ShippingPage({ searchParams }: { searchParams: Pro
         <nav aria-label="Shipment status" className="flex flex-wrap gap-1 text-sm">
           {FILTERS.map(([v, l]) => {
             const on = status === v;
-            return <Link key={v} href={url({ status: v, page: 1 })} aria-current={on ? "true" : undefined} className={`inline-flex min-h-10 items-center rounded-lg border px-3 font-medium ${on ? "border-ink bg-ink text-white" : "border-border bg-bg hover:border-ink"}`}>{l}</Link>;
+            return <Link key={v} href={url({ status: v, page: 1 })} aria-current={on ? "true" : undefined} className={`inline-flex min-h-10 items-center rounded-control border px-3.5 font-semibold transition-colors ${on ? "border-brand-500 bg-brand-500 text-white" : "border-border bg-bg hover:border-brand-500 hover:text-brand-700"}`}>{l}</Link>;
           })}
         </nav>
         <button className="btn-primary min-h-10" type="submit">Apply</button>

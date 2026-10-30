@@ -5,10 +5,10 @@ import type { ReactNode } from "react";
 /* Dashboard building blocks (server components, no client JS). */
 
 const TONES = {
-  orange: { box: "bg-brand-50 text-brand-700", stroke: "#ff5c00", glow: "from-brand-500/10" },
+  orange: { box: "bg-brand-500 text-white", stroke: "#ff5c00", glow: "from-brand-500/10" },
   green: { box: "bg-success-bg text-success", stroke: "#067647", glow: "from-success/10" },
-  blue: { box: "bg-sky-50 text-sky-700", stroke: "#0ea5e9", glow: "from-ink/5" },
-  purple: { box: "bg-violet-50 text-violet-700", stroke: "#7c3aed", glow: "from-brand-500/10" },
+  blue: { box: "bg-ink text-white", stroke: "#111111", glow: "from-ink/5" },
+  purple: { box: "bg-ink text-brand-500", stroke: "#ff5c00", glow: "from-brand-500/10" },
   red: { box: "bg-danger-bg text-danger", stroke: "#b42318", glow: "from-danger/10" },
 } as const;
 export type DashTone = keyof typeof TONES;
@@ -43,7 +43,7 @@ export function Kpi({ icon: Icon, tone, label, value, sub, delta, href, trend, t
           <p className="min-w-0 text-[13px] font-medium leading-tight text-muted">{label}</p>
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${t.box}`}><Icon className="h-[18px] w-[18px]" aria-hidden /></span>
         </div>
-        <p className="mt-1 truncate text-xl font-semibold leading-tight tracking-tight tabular-nums sm:text-2xl">{value}</p>
+        <p className="mt-1 truncate font-display text-xl font-extrabold leading-tight tracking-title tabular-nums sm:text-[1.65rem]">{value}</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
           {delta != null && delta !== 0 && (
             <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 font-semibold ${up ? "bg-success-bg text-success" : "bg-danger-bg text-danger"}`}>
@@ -58,7 +58,7 @@ export function Kpi({ icon: Icon, tone, label, value, sub, delta, href, trend, t
     </>
   );
   const cls = "card relative block min-w-0 overflow-hidden p-4 transition-[border-color,box-shadow] motion-reduce:transition-none";
-  return href ? <Link href={href} className={`${cls} hover:border-brand-500/50 hover:shadow-md`}>{body}</Link> : <div className={cls}>{body}</div>;
+  return href ? <Link href={href} className={`${cls} hover:border-brand-500 hover:shadow-lift`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
 /** Card with an icon heading, an optional orange action link and an optional (read-only) period chip. */
@@ -68,7 +68,7 @@ export function Section({ icon: Icon, title, id, action, period, children, class
   return (
     <section aria-labelledby={id} className={`card min-w-0 p-4 sm:p-5 ${className}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 id={id} className="flex min-w-0 items-center gap-2 text-[15px] font-semibold tracking-tight"><Icon className="h-4 w-4 shrink-0 text-brand-600" aria-hidden />{title}</h2>
+        <h2 id={id} className="flex min-w-0 items-center gap-2 font-display text-base font-extrabold tracking-title"><Icon className="h-[18px] w-[18px] shrink-0 text-brand-500" aria-hidden />{title}</h2>
         {period && <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-surface px-2.5 py-1 text-xs font-medium text-muted"><CalendarDays className="h-3.5 w-3.5" aria-hidden />{period}</span>}
         {action && <Link href={action.href} className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-sm font-semibold text-brand-600 hover:underline">{action.label}<ArrowRight className="h-4 w-4" aria-hidden /></Link>}
       </div>
@@ -91,7 +91,7 @@ export function EmptyPanel({ icon: Icon, title, children }: { icon: LucideIcon; 
 /** Date-range switch: blue pill for the current range. */
 export function RangeTabs({ ranges, current, href }: { ranges: readonly number[]; current: number; href: (r: number) => string }) {
   return (
-    <nav aria-label="Date range" className="flex max-w-full flex-wrap rounded-lg border border-border bg-bg p-0.5 text-sm">
+    <nav aria-label="Date range" className="flex max-w-full flex-wrap rounded-control border border-border bg-bg p-1 text-sm shadow-card">
       {ranges.map((r) => (
         <Link key={r} href={href(r)} aria-current={r === current ? "true" : undefined} className={`rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors motion-reduce:transition-none sm:px-4 ${r === current ? "bg-brand-500 text-on-brand" : "text-muted hover:text-ink"}`}>
           Last {r} days
@@ -109,7 +109,7 @@ export function Attention({ items }: { items: AttentionItem[] }) {
   const TONE = { red: "bg-danger-bg text-danger", amber: "bg-warn-bg text-warn", blue: "bg-info-bg text-info" } as const;
   return (
     <section aria-label="Needs attention" className="card mb-5 flex flex-wrap items-center gap-x-5 gap-y-2.5 px-4 py-3 sm:px-5">
-      <h2 className="text-sm font-semibold">Needs attention</h2>
+      <h2 className="font-display text-sm font-extrabold">Needs attention</h2>
       {open.length === 0 ? (
         <p className="flex items-center gap-2 text-sm text-success"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />Nothing needs attention right now.</p>
       ) : (

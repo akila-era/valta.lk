@@ -148,7 +148,7 @@
 @utility field-error { @apply mt-1.5 text-sm text-danger; }
 /* Small uppercase label above section and hero titles. */
 @utility eyebrow { @apply inline-flex items-center text-xs font-bold uppercase tracking-[0.14em] text-brand-600; }
-@utility badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+@utility badge { @apply inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold; }
 @utility section-title { @apply font-display text-title-section font-bold tracking-title text-ink; }
 @utility page-title { @apply font-display text-title-page font-bold tracking-title text-ink; }
 @utility type-product { @apply line-clamp-2 font-display text-sm font-semibold leading-[1.2rem] tracking-[-0.005em] text-ink; }
@@ -312,10 +312,8 @@
 }
 .admin-theme .card { box-shadow: var(--shadow-card); }
 .admin-theme { --shadow-glow: none; --shadow-neon: none; }
-.admin-theme :is(.btn, .btn-primary, .btn-secondary, .btn-outline, .btn-ghost, .btn-text, .btn-dark, .btn-danger) { border-radius: 0.5rem; }
-.admin-theme :is(.card) { border-radius: 0.75rem; }
+.admin-theme :is(.card) { border-radius: var(--radius-panel); }
 .admin-theme .btn-dark { background: var(--color-ink); color: #fff; box-shadow: none; }
-.admin-theme :is(h1, h2, h3) { font-family: var(--font-sans); }
 .admin-theme :is(.media-spot, .media-square) { background: var(--color-media); }
 
 /* ---------- Brand loader: opening splash and page loaders (off with prefers-reduced-motion) ---------- */

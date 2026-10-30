@@ -54,7 +54,7 @@ export function StockList({ products, basePath, sp, pills, noun = "products", em
           <nav aria-label="Stock filter" className="flex flex-wrap gap-1 text-sm">
             {[["", `All (${low + out})`], ["low", `Low Stock (${low})`], ["out", `Out of Stock (${out})`]].map(([v, l]) => {
               const on = stock === v;
-              return <Link key={v} href={url({ stock: v, page: 1 })} aria-current={on ? "true" : undefined} className={`inline-flex min-h-10 items-center rounded-lg border px-3 font-medium ${on ? "border-ink bg-ink text-white" : "border-border bg-bg hover:border-ink"}`}>{l}</Link>;
+              return <Link key={v} href={url({ stock: v, page: 1 })} aria-current={on ? "true" : undefined} className={`inline-flex min-h-10 items-center rounded-control border px-3.5 font-semibold transition-colors ${on ? "border-brand-500 bg-brand-500 text-white" : "border-border bg-bg hover:border-brand-500 hover:text-brand-700"}`}>{l}</Link>;
             })}
           </nav>
         )}
