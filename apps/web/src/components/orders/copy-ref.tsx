@@ -18,9 +18,9 @@ export function CopyRef({ value }: { value: string }) {
           /* clipboard blocked: the reference stays visible to copy by hand */
         }
       }}
-      className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border border-white/25 px-4 text-xs font-bold text-white transition-colors hover:border-white hover:bg-white hover:text-ink"
+      className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-control border border-border bg-bg px-3.5 text-sm font-semibold text-ink transition-colors hover:border-ink"
     >
-      {copied ? <Check className="h-4 w-4 text-brand-500" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+      {copied ? <Check className="h-4 w-4 text-success" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
       <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
     </button>
   );
