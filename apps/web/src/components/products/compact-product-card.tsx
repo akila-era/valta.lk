@@ -27,7 +27,7 @@ interface CompactProductCardProps {
  * product page instead of guessing a variant. Only facts from the ERP are shown: no invented feature badges.
  */
 /**
- * Up to three key details for the card (as large brand stores print beside the product photo): the first
+ * Up to three key details for the card (shown in one line under the title): the first
  * specifications staff entered for the product (Admin, product content, Specifications), otherwise the ERP's own
  * specifications. Brand and model are left out: the card already names the product.
  */
@@ -41,7 +41,7 @@ export function cardHighlights(product: ErpProduct): { value: string; name: stri
 
 /**
  * The storefront product card, laid out like a large brand store's: a stock pill and badges over the photo, up to three
- * key details beside it, the centred title, and the price (the regular price struck through only for a real ERP
+ * the photo across the full width, the centred title with key details under it, and the price (the regular price struck through only for a real ERP
  * reduction). On mouse devices "Add to cart" is a bar over the bottom of the photo that appears on hover or keyboard
  * focus; on touch screens (and in the list layout) it is a button under the price. Variant products link to the
  * product page instead.
@@ -106,31 +106,17 @@ export function CompactProductCard({ product, priority, row = false, instalments
 
       <div className={`relative aspect-square shrink-0 overflow-hidden rounded-control bg-bg ${row ? "w-32 sm:w-44" : "w-full"}`}>
         <Link href={href} tabIndex={-1} aria-hidden className="absolute inset-0 block">
-          <span className={`absolute inset-y-0 left-0 transition-transform duration-500 ease-out group-hover/card:scale-[1.04] motion-reduce:transition-none ${details.length ? "right-[34%]" : "right-0"}`}>
+          <span className="absolute inset-0 transition-transform duration-500 ease-out group-hover/card:scale-[1.04] motion-reduce:transition-none">
             <span className={`absolute inset-0 ${second ? "transition-opacity duration-300 group-hover/card:opacity-0 [@media(hover:none)]:group-hover/card:opacity-100" : ""}`}>
-              <ProductImage src={product.images[0]} alt={title} sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" priority={priority} contain padding="p-4 pt-10 sm:p-5 sm:pt-11" />
+              <ProductImage src={product.images[0]} alt={title} sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" priority={priority} contain padding="p-2.5 pt-9 sm:p-3 sm:pt-10" />
             </span>
             {second ? (
               <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/card:opacity-100 [@media(hover:none)]:hidden">
-                <ProductImage src={second} alt="" sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" contain padding="p-4 pt-10 sm:p-5 sm:pt-11" />
+                <ProductImage src={second} alt="" sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" contain padding="p-2.5 pt-9 sm:p-3 sm:pt-10" />
               </span>
             ) : null}
           </span>
         </Link>
-        {details.length ? (
-          // Key details beside the photo: the value in bold, what it is underneath.
-          <ul className="pointer-events-none absolute inset-y-0 right-0 flex w-[36%] flex-col justify-center gap-2.5 pr-1 pt-6">
-            {details.map((d) => (
-              <li key={d.name} className="flex gap-1.5">
-                <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-                <span className="min-w-0 leading-tight">
-                  <span className="block truncate text-[11px] font-bold text-ink sm:text-xs">{d.value}</span>
-                  <span className="block truncate text-[11px] text-muted">{d.name}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
         {pct || fresh ? (
           // One row at the bottom-left of the photo, so badges never pile up over the picture.
           <div className="pointer-events-none absolute bottom-1.5 left-1.5 z-10 flex flex-wrap items-end gap-1 transition-opacity duration-200 group-hover/card:opacity-0 [@media(hover:none)]:group-hover/card:opacity-100">
@@ -159,6 +145,18 @@ export function CompactProductCard({ product, priority, row = false, instalments
             {title}
           </Link>
         </h3>
+        {/* Key details under the title (the photo keeps the full width of the card): "Brand new · 12 months Warranty". */}
+        {details.length ? (
+          <p className={`mt-0.5 line-clamp-1 text-[11px] text-muted sm:text-xs ${row ? "" : "text-center"}`}>
+            {details.map((d, i) => (
+              <span key={d.name}>
+                {i > 0 ? <span aria-hidden className="mx-1.5 text-brand-500">·</span> : null}
+                <span className="font-semibold text-ink/80">{d.value}</span>
+                {/^condition$/i.test(d.name) ? null : <span> {d.name}</span>}
+              </span>
+            ))}
+          </p>
+        ) : null}
         {rating && rating.count > 0 ? (
           <p className="mt-1 inline-flex items-center gap-1.5 text-xs">
             <Stars rating={rating.average} size="h-3.5 w-3.5" label={`Rated ${rating.average} out of 5 from ${rating.count} ${rating.count === 1 ? "review" : "reviews"}`} />
