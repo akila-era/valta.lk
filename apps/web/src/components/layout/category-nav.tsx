@@ -39,7 +39,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
           aria-haspopup="dialog"
           aria-expanded={open}
           onClick={() => setOpenedAt(open ? null : pathname)}
-          className={`my-1.5 inline-flex h-9 shrink-0 items-center gap-2 rounded-full px-4 text-[13.5px] min-[90rem]:px-5 font-bold uppercase tracking-[0.06em] transition-colors ${open ? "bg-ink text-white" : "bg-brand-500 text-on-brand hover:bg-ink hover:text-white"}`}
+          className={`my-1.5 inline-flex h-9 shrink-0 items-center gap-2 rounded-control px-4 text-[13.5px] min-[90rem]:px-5 font-bold uppercase tracking-[0.06em] transition-colors ${open ? "bg-ink text-white" : "bg-brand-500 text-on-brand hover:bg-ink hover:text-white"}`}
         >
           <Menu className="h-4 w-4" aria-hidden /> All Categories <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden />
         </button>

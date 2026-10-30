@@ -28,8 +28,8 @@ const sectionFor = (pathname: string): AccountSection =>
 
 /**
  * The signed-in account area, rendered once by the account layout: the page banner and a sidebar that stays in view
- * while the page scrolls. Moving between Overview, My orders and Profile only swaps the section beside it (with its
- * own small loader), so the banner and sidebar never disappear. The highlight follows the address.
+ * while the page scrolls. Moving between Overview, My orders and Profile only swaps the section beside it (the site-wide
+ * click spinner shows meanwhile, once), so the banner and sidebar never disappear. The highlight follows the address.
  */
 export function AccountShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
