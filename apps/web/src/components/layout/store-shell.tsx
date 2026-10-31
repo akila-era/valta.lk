@@ -23,7 +23,7 @@ export async function StoreShell({ children }: { children: React.ReactNode }) {
       <Header />
       {season?.season === "halloween" ? <HalloweenDecor /> : null}
       <ShellMain>{children}</ShellMain>
-      <Footer />
+      <Footer halloween={season?.season === "halloween"} />
       <MobileTabBar accounts={accountsEnabled()} />
       <WhatsAppButton number={siteConfig.whatsapp} />
       <NavigationLoader />

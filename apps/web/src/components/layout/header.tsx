@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
 import { activeSeason } from "@/lib/season";
+import { Pumpkin } from "./halloween";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
@@ -46,14 +47,16 @@ export async function Header() {
   ]);
   const cod = settings?.paymentMethods.COD === true;
   // A seasonal theme (admin switch) brings its own line; otherwise the owner's announcement or the welcome line.
+  const halloween = season?.season === "halloween";
   const announcement = season?.message || siteConfig.announcement || `Welcome to ${siteConfig.name}`;
   return (
     <>
       {/* Black top bar (neon orange accents): a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
-      <div role="region" aria-label="Store information" className="on-dark bg-ink text-white/85">
+      <div role="region" aria-label="Store information" className={`on-dark text-white/85 ${halloween ? "bg-[#1d0f29]" : "bg-ink"}`}>
         <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
           <ul className="flex min-w-0 flex-1 items-center gap-4 divide-white/15 sm:divide-x [&>li+li]:pl-4">
-            <li className="marquee min-w-0 flex-1 font-bold uppercase tracking-[0.08em] text-white">
+            <li className="marquee flex min-w-0 flex-1 items-center gap-2 font-bold uppercase tracking-[0.08em] text-white">
+              {halloween ? <Pumpkin className="h-4 w-4 shrink-0" /> : null}
               <AnnouncementLine text={announcement} />
             </li>
             {settings ? (
@@ -82,7 +85,7 @@ export async function Header() {
       <HeaderShell>
         <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark shine pumpkin={season?.season === "halloween"} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
+          <Wordmark shine pumpkin={halloween} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
           <div className="hidden md:mx-auto md:block md:w-full md:max-w-3xl">
             <SearchBox size="lg" popular={quick} />

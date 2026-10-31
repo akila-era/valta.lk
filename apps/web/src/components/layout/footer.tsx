@@ -8,6 +8,7 @@ import { listProducts } from "@/lib/erp/catalogue";
 import { socialLinks } from "@/lib/home-config";
 import { siteConfig } from "@/lib/site-config";
 import { BackToTop } from "./back-to-top";
+import { HalloweenSkyline } from "./halloween";
 import { Wordmark } from "./wordmark";
 
 const support: { href: string; label: string; icon: LucideIcon }[] = [
@@ -71,13 +72,14 @@ function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: 
 }
 
 /** Dark footer in the style of large brand stores (ugreen.lk): newsletter, link columns, then an orange social bar (when set). */
-export async function Footer() {
+export async function Footer({ halloween = false }: { halloween?: boolean }) {
   const categories = await listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []);
   const social = socialLinks();
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark relative mt-16 border-t-[3px] border-brand-500 bg-ink pb-16 text-white/80 md:pb-0">
+    <footer className={`on-dark relative border-t-[3px] border-brand-500 bg-ink pb-16 text-white/80 md:pb-0 ${halloween ? "mt-32 sm:mt-40" : "mt-16"}`}>
+      {halloween ? <HalloweenSkyline /> : null}
       {/* Newsletter: new arrivals and price drops by email. */}
       <div className="border-b border-white/10">
         <div className="container-page flex flex-col gap-5 py-9 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
@@ -95,7 +97,7 @@ export async function Footer() {
 
       <div className="container-page relative grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.3fr_0.9fr_1.1fr_0.9fr_1.4fr] lg:gap-y-0 lg:py-14">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
-          <Wordmark className="text-[2.1rem] leading-none text-white" />
+          <Wordmark pumpkin={halloween} className="text-[2.1rem] leading-none text-white" />
           <p className="mt-4 max-w-xs text-sm leading-6 text-white/70">{siteConfig.description}</p>
         </div>
 
