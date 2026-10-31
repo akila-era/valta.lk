@@ -3,6 +3,7 @@ import { Headset, Phone, Truck, Wallet } from "lucide-react";
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
+import { activeSeason } from "@/lib/season";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
@@ -37,13 +38,15 @@ export { Wordmark };
 
 export async function Header() {
   const accounts = accountsEnabled();
-  const [{ categories, hasDeals, quick }, customer, settings] = await Promise.all([
+  const [{ categories, hasDeals, quick }, customer, settings, season] = await Promise.all([
     loadNavData(),
     accounts ? getCurrentCustomer() : null,
     getSettings().catch(() => null),
+    activeSeason(),
   ]);
   const cod = settings?.paymentMethods.COD === true;
-  const announcement = siteConfig.announcement || `Welcome to ${siteConfig.name}`;
+  // A seasonal theme (admin switch) brings its own line; otherwise the owner's announcement or the welcome line.
+  const announcement = season?.message || siteConfig.announcement || `Welcome to ${siteConfig.name}`;
   return (
     <>
       {/* Black top bar (neon orange accents): a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
@@ -79,7 +82,7 @@ export async function Header() {
       <HeaderShell>
         <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark shine className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
+          <Wordmark shine pumpkin={season?.season === "halloween"} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
           <div className="hidden md:mx-auto md:block md:w-full md:max-w-3xl">
             <SearchBox size="lg" popular={quick} />

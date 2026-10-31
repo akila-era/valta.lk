@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { PumpkinO } from "./halloween";
 
-const Letters = () => (
+/** The letters; with `pumpkin` the O is a jack-o'-lantern (Halloween theme), kept as an empty space in the shine copy. */
+const Letters = ({ pumpkin = false, overlay = false }: { pumpkin?: boolean; overlay?: boolean }) => (
   <>
     <span>V</span>
-    <span className="text-brand-500">O</span>
+    {pumpkin ? <PumpkinO className={overlay ? "invisible" : ""} /> : <span className="text-brand-500">O</span>}
     <span>LTA</span>
     <span className="text-[0.82em] font-extrabold">.LK</span>
   </>
@@ -14,7 +16,7 @@ const Letters = () => (
  * copy of the letters sits on top, transparent except for the moving band clipped to the glyphs, so the shine shows
  * only on the letters, never on the background (decorative; off under reduced motion).
  */
-export function Wordmark({ className = "", shine = false }: { className?: string; shine?: boolean }) {
+export function Wordmark({ className = "", shine = false, pumpkin = false }: { className?: string; shine?: boolean; pumpkin?: boolean }) {
   return (
     <Link
       href="/"
@@ -22,10 +24,10 @@ export function Wordmark({ className = "", shine = false }: { className?: string
     >
       <span className="sr-only">VOLTA.LK home</span>
       <span aria-hidden className="relative inline-flex items-baseline">
-        <Letters />
+        <Letters pumpkin={pumpkin} />
         {shine ? (
           <span className="wordmark-shine pointer-events-none absolute inset-0 inline-flex items-baseline">
-            <Letters />
+            <Letters pumpkin={pumpkin} overlay />
           </span>
         ) : null}
       </span>

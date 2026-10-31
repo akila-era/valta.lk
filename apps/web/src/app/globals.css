@@ -251,6 +251,11 @@
   animation: wordmark-shine 5s ease-in-out 1.2s infinite;
 }
 .wordmark-shine, .wordmark-shine * { color: transparent; }
+/* Halloween theme (admin switch): bats flap and drift a little; the spider rises and drops on its thread. */
+@keyframes bat-flap { 0%, 100% { transform: translateY(0) scaleY(1); } 25% { transform: translateY(-3px) scaleY(0.55); } 50% { transform: translateY(-5px) scaleY(1); } 75% { transform: translateY(-2px) scaleY(0.6); } }
+.halloween-bat { animation: bat-flap 3.2s ease-in-out infinite; }
+@keyframes spider-drop { 0%, 100% { transform: translateY(-14px); } 50% { transform: translateY(0); } }
+.halloween-spider { animation: spider-drop 7s ease-in-out infinite; }
 @keyframes shine { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(320%) skewX(-20deg); } }
 @utility shine {
   position: relative;
