@@ -7,7 +7,7 @@ const unique = () => `cust${Date.now()}${Math.floor(Math.random() * 1e6)}@exampl
 async function registerVia(page: Page, email: string, password = "secret123") {
   await page.goto("/account/register");
   await page.getByLabel("Full name").fill("Kasun Perera");
-  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Phone (optional)").fill("0771234567");
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByLabel("Confirm password").fill(password);
@@ -56,7 +56,7 @@ test.describe("customer accounts", () => {
     // signed-out users are sent to sign in, then back to where they were going
     await page.goto("/account");
     await expect(page).toHaveURL(/\/account\/login\?next=(%2F|\/)account$/);
-    await page.getByLabel("Email").fill(email.toUpperCase()); // emails are case-insensitive
+    await page.getByLabel("Email", { exact: true }).fill(email.toUpperCase()); // emails are case-insensitive
     await page.getByLabel("Password", { exact: true }).fill("secret123");
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page).toHaveURL(/\/account$/);
@@ -65,13 +65,13 @@ test.describe("customer accounts", () => {
   test("validation and duplicate email messages", async ({ page }) => {
     await page.goto("/account/register");
     await page.getByLabel("Full name").fill("K");
-    await page.getByLabel("Email").fill("not-an-email");
+    await page.getByLabel("Email", { exact: true }).fill("not-an-email");
     await page.getByLabel("Password", { exact: true }).fill("short");
     await page.getByLabel("Confirm password").fill("short");
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page.getByText("Please enter your full name")).toBeVisible();
     await expect(page.getByText("Enter a valid email address")).toBeVisible();
-    await expect(page.getByLabel("Email")).toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByLabel("Email", { exact: true })).toHaveAttribute("aria-invalid", "true");
 
     const email = unique();
     await registerVia(page, email);
@@ -80,7 +80,7 @@ test.describe("customer accounts", () => {
     await expect(page).toHaveURL("http://localhost:3100/");
     await page.goto("/account/register");
     await page.getByLabel("Full name").fill("Someone Else");
-    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Email", { exact: true }).fill(email);
     await page.getByLabel("Password", { exact: true }).fill("secret123");
     await page.getByLabel("Confirm password").fill("secret123");
     await page.getByRole("button", { name: "Create account" }).click();
@@ -92,7 +92,7 @@ test.describe("customer accounts", () => {
     await registerVia(page, email);
     await page.context().clearCookies();
     await page.goto("/account/login?next=https://evil.example");
-    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Email", { exact: true }).fill(email);
     await page.getByLabel("Password", { exact: true }).fill("wrongpass1");
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page.getByRole("alert").filter({ hasText: "Email or password is incorrect." })).toBeVisible();
@@ -103,7 +103,7 @@ test.describe("customer accounts", () => {
 
   test("forgot password never reveals whether the email exists", async ({ page }) => {
     await page.goto("/account/forgot-password");
-    await page.getByLabel("Email").fill("nobody-here@example.com");
+    await page.getByLabel("Email", { exact: true }).fill("nobody-here@example.com");
     await page.getByRole("button", { name: "Send reset link" }).click();
     await expect(page.getByRole("status")).toContainText("If an account exists for that email");
   });
@@ -116,11 +116,9 @@ test.describe("customer accounts", () => {
     await page.goto("/checkout");
     await expect(page.getByLabel("Full name")).toHaveValue("Kasun Perera");
     await expect(page.getByLabel("Phone number")).toHaveValue("0771234567");
-    await page.getByRole("button", { name: "Continue" }).click();
     await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
     await page.getByLabel("City", { exact: true }).fill("Colombo");
     await page.getByLabel("District").selectOption("Colombo");
-    await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "Place order" }).click();
     await expect(page).toHaveURL(/order-confirmation\/(VLK-[A-Z0-9-]+)/);

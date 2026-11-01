@@ -21,15 +21,13 @@ async function addEarbuds(page: Page, qty = 1) {
   await expect(page.getByRole("link", { name: "View cart" })).toBeVisible();
 }
 
-/** Walks the 3-step checkout up to the review step (the Place order button is then ready). */
+/** Fills the one-page checkout (the Place order button is then ready). */
 async function fillCheckout(page: Page) {
   await page.getByLabel("Full name").fill("Kasun Perera");
   await page.getByLabel("Phone number").fill("0771234567");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
   await page.getByLabel("City", { exact: true }).fill("Colombo");
   await page.getByLabel("District").selectOption("Colombo");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("checkbox").check();
 }
 
@@ -59,11 +57,11 @@ test.describe("browse", () => {
   test("catalogue sorting and pagination", async ({ page }) => {
     await page.goto("/products?sort=price-asc");
     await expect(page.locator("article").first()).toContainText("Glide Tempered Glass");
-    // 20 products, page size 15: the first page is full and has a pager, the second holds the other five
-    await expect(page.locator("main article")).toHaveCount(15);
+    // 20 products, page size 12: the first page is full and has a pager, the second holds the other eight
+    await expect(page.locator("main article")).toHaveCount(12);
     await expect(page.getByRole("navigation", { name: "Pagination" })).toHaveCount(1);
     await page.goto("/products?sort=price-asc&page=2");
-    await expect(page.locator("main article")).toHaveCount(5);
+    await expect(page.locator("main article")).toHaveCount(8);
   });
 
   test("product page: previous / next product in the category (A to Z), and the category between them", async ({ page }) => {
@@ -116,7 +114,7 @@ test.describe("cart + checkout + tracking", () => {
 
     await expect(page).toHaveURL(/order-confirmation\/VLK-/);
     const ref = (await page.getByTestId("order-ref").textContent())!;
-    await expect(page.getByText(/payment is pending/)).toBeVisible();
+    await expect(page.getByTestId("payment-status")).toHaveText("Cash on delivery");
     await expect(page.getByTestId("cart-count")).toHaveCount(0);
     expect((await control({})).orders).toBe(1);
 
@@ -157,44 +155,27 @@ test.describe("cart + checkout + tracking", () => {
     await expect(page.locator("#ref-err")).toContainText("could not find");
   });
 
-  test("checkout validation shows helpful messages step by step and sends nothing", async ({ page }) => {
+  test("checkout validation shows helpful messages on one page and sends nothing", async ({ page }) => {
     await addEarbuds(page);
     await page.goto("/checkout");
-    // step 1: details
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Place order" }).click();
     await expect(page.getByText("Please enter your full name")).toBeVisible();
     await expect(page.getByText("Enter a valid Sri Lankan phone number")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Your details" })).toBeVisible(); // did not advance
-    await page.getByLabel("Full name").fill("Kasun Perera");
-    await page.getByLabel("Phone number").fill("12345");
-    await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page.getByText("Enter a valid Sri Lankan phone number")).toBeVisible();
-    await page.getByLabel("Phone number").fill("0771234567");
-    await page.getByRole("button", { name: "Continue" }).click();
-    // step 2: delivery
-    await expect(page.getByRole("heading", { name: "Delivery address" })).toBeVisible();
-    await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByText("Please select a district")).toBeVisible();
     await expect(page.getByText("Please enter your delivery address")).toBeVisible();
+    await expect(page.getByText("Please accept the terms to continue")).toBeVisible();
+    await expect(page.getByLabel("Full name")).toBeFocused(); // the first problem gets focus
+    await page.getByLabel("Full name").fill("Kasun Perera");
+    await page.getByLabel("Phone number").fill("12345");
     await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
     await page.getByLabel("City", { exact: true }).fill("Colombo");
     await page.getByLabel("District").selectOption("Colombo");
-    await page.getByRole("button", { name: "Continue" }).click();
-    // step 3: review, terms are required
-    await expect(page.getByRole("heading", { name: "Review and place your order" })).toBeVisible();
-    await expect(page.getByTestId("recap")).toContainText("Kasun Perera");
-    await expect(page.getByTestId("recap")).toContainText("12 Galle Road, Colombo, Colombo");
+    await page.getByRole("checkbox").check();
     await page.getByRole("button", { name: "Place order" }).click();
-    await expect(page.getByText("Please accept the terms to continue")).toBeVisible();
+    await expect(page.getByText("Enter a valid Sri Lankan phone number")).toBeVisible();
+    await expect(page.getByLabel("Phone number")).toBeFocused();
+    await expect(page.getByLabel("Full name")).toHaveValue("Kasun Perera"); // nothing typed is lost
     expect((await control({})).orderPosts).toBe(0);
-
-    // going back keeps what was typed, and the review shows the change
-    await page.getByRole("button", { name: /Change contact details/ }).click();
-    await expect(page.getByLabel("Full name")).toHaveValue("Kasun Perera");
-    await page.getByLabel("Full name").fill("Nimal Silva");
-    await page.getByRole("button", { name: "Continue" }).click();
-    await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page.getByTestId("recap")).toContainText("Nimal Silva");
   });
 
   test("price change is surfaced and no order is created", async ({ page }) => {

@@ -46,11 +46,11 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
   }, [open]);
 
   return (
-    <div ref={rootRef} className="lg:sticky lg:top-28 xl:top-32 lg:self-start lg:w-[236px] xl:w-[240px]">
+    <div ref={rootRef} className="lg:sticky lg:top-[calc(var(--hdr-sticky,7rem)+1rem)] lg:self-start lg:w-full">
       {/* Mobile filter trigger button */}
       <button
         type="button"
-        className="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-border/80 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink shadow-soft transition-colors hover:border-brand-500 hover:text-brand-600 lg:hidden"
+        className="mb-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-control border border-border bg-bg px-4 text-sm font-semibold text-ink transition-colors hover:border-ink lg:hidden"
         aria-expanded={open}
         aria-controls="catalogue-filters"
         onClick={() => setOpen(true)}
@@ -84,7 +84,7 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
           open
             ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain rounded-l-panel border-l-[3px] border-brand-500 bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl [scrollbar-width:thin]"
             : "hidden"
-        } lg:static lg:z-auto lg:block lg:max-h-[calc(100vh-8.5rem)] xl:max-h-[calc(100vh-9.5rem)] lg:w-full lg:overflow-y-auto lg:overscroll-contain lg:rounded-2xl lg:border lg:border-border/80 lg:bg-white lg:p-3.5 xl:p-4 lg:shadow-soft [scrollbar-width:thin]`}
+        } lg:static lg:z-auto lg:block lg:max-h-[calc(100vh-var(--hdr-sticky,7rem)-2rem)] lg:w-full lg:overflow-y-auto lg:overscroll-contain lg:pr-2 [scrollbar-width:thin]`}
       >
         <div className="mb-4 flex items-center justify-between border-b border-border/70 pb-3 lg:hidden">
           <div className="flex items-center gap-2">

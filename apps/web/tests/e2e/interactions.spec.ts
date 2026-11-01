@@ -18,7 +18,7 @@ async function register(page: Page) {
   const email = `ui${Date.now()}${Math.floor(Math.random() * 1e6)}@example.com`;
   await page.goto("/account/register");
   await page.getByLabel("Full name").fill("Nimal Silva");
-  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("secret123");
   await page.getByLabel("Confirm password").fill("secret123");
   await page.getByRole("button", { name: "Create account" }).click();
@@ -63,7 +63,7 @@ test.describe("product page controls", () => {
 test.describe("catalogue controls", () => {
   test("sort, brand and price filters, active-filter chips, and filters keep the chosen sort", async ({ page }) => {
     await page.goto("/products");
-    await page.getByRole("navigation", { name: "Sort" }).getByRole("link", { name: "Price: low to high" }).click();
+    await page.getByLabel("Sort products").selectOption("price-asc");
     await expect(page).toHaveURL(/sort=price-asc/);
     await expect(page.locator("main article").first()).toContainText("Glide Tempered Glass");
 
@@ -78,7 +78,7 @@ test.describe("catalogue controls", () => {
     // the chip removes the brand filter
     await page.getByRole("link", { name: /^Pulse/ }).filter({ has: page.locator("svg") }).first().click();
     await expect(page).not.toHaveURL(/brand=/);
-    await expect(page.locator("main article")).toHaveCount(15);
+    await expect(page.locator("main article")).toHaveCount(12);
 
     await page.getByPlaceholder("Min").fill("10000");
     await page.getByPlaceholder("Max").fill("30000");
@@ -101,7 +101,7 @@ test.describe("catalogue controls", () => {
     // one product per row: the card is much wider than it is tall
     const box = (await page.locator("main article").first().boundingBox())!;
     expect(box.width).toBeGreaterThan(box.height * 2);
-    await page.getByRole("navigation", { name: "Sort" }).getByRole("link", { name: "Name" }).click();
+    await page.getByLabel("Sort products").selectOption("name");
     await expect(page).toHaveURL(/view=list/);
     await layout.getByRole("link", { name: "Grid view" }).click();
     await expect(page).not.toHaveURL(/view=list/);
@@ -176,6 +176,7 @@ test.describe("cart actions", () => {
 test.describe("account page actions", () => {
   test("profile details save, the header follows, and Sign out on the account page signs out", async ({ page }) => {
     await register(page);
+    await page.goto("/account/profile");
     await page.getByLabel("Full name").fill("Nimal Fernando");
     await page.getByRole("button", { name: "Save details" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Your details are saved." })).toBeVisible();
@@ -190,7 +191,7 @@ test.describe("account page actions", () => {
 
   test("forgot password answers the same for any email, and an invalid reset link is refused", async ({ page }) => {
     await page.goto("/account/forgot-password");
-    await page.getByLabel("Email").fill("nobody@example.com");
+    await page.getByLabel("Email", { exact: true }).fill("nobody@example.com");
     await page.getByRole("button", { name: /send|reset/i }).click();
     await expect(page.getByText(/reset link/i)).toBeVisible();
     await page.goto("/account/reset-password?token=not-a-real-token");
@@ -335,17 +336,17 @@ test.describe("store features", () => {
     await expect(page.getByRole("status").filter({ hasText: "Showing 1–2 of 2 results" })).toBeVisible();
 
     await page.goto("/products");
-    await page.getByLabel("On sale only").check();
+    await page.getByLabel("On sale").check();
     await page.getByRole("button", { name: "Apply filters" }).click();
     await expect(page).toHaveURL(/sale=1/);
     await expect(page.locator("main article")).toHaveCount(1); // Orbit Pro is the only reduced product
 
     await page.goto("/products");
     const per = page.getByRole("navigation", { name: "Products per page" });
-    await expect(per.getByRole("link", { name: "Show 15 per page" })).toHaveAttribute("aria-current", "true");
-    await per.getByRole("link", { name: "Show 30 per page" }).click();
-    await expect(page).toHaveURL(/per=30/);
-    await expect(per.getByRole("link", { name: "Show 30 per page" })).toHaveAttribute("aria-current", "true");
+    await expect(per.getByRole("link", { name: "Show 12 per page" })).toHaveAttribute("aria-current", "true");
+    await per.getByRole("link", { name: "Show 24 per page" }).click();
+    await expect(page).toHaveURL(/per=24/);
+    await expect(per.getByRole("link", { name: "Show 24 per page" })).toHaveAttribute("aria-current", "true");
   });
 
   test("recently viewed lists the products opened in this browser and can be cleared", async ({ page }) => {

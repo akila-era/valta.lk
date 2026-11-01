@@ -10,8 +10,7 @@ import { Stars } from "./stars";
 export function ProductReviews({ productId, productName, summary, reviews }: { productId: string; productName: string; summary: RatingSummary | null; reviews: PublicReview[] }) {
   return (
     <section id="reviews" aria-labelledby="reviews-title" className="mt-8 scroll-mt-40 rounded-panel border border-border bg-bg p-6 sm:p-8">
-      <p className="kicker"><span className="text-brand-600">Details</span> / What buyers say</p>
-      <h2 id="reviews-title" className="statement mt-1 text-xl sm:text-2xl">Customer reviews</h2>
+      <h2 id="reviews-title" className="statement text-xl sm:text-2xl">Customer reviews</h2>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-12">
         <div>

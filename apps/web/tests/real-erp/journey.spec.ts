@@ -7,11 +7,9 @@ const erpBase = () => process.env.HX_API_BASE ?? "http://127.0.0.1:3101/api/v1/s
 async function fillCheckout(page: Page) {
   await page.getByLabel("Full name").fill("Real ERP Tester");
   await page.getByLabel("Phone number").fill("0771234567");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
   await page.getByLabel("City", { exact: true }).fill("Colombo");
   await page.getByLabel("District").selectOption("Colombo");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("checkbox").check();
 }
 

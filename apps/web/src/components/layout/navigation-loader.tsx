@@ -54,7 +54,8 @@ export function NavigationLoader() {
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || pending.current) return;
       const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
-      if (!a || a.hasAttribute("download") || a.hasAttribute("data-no-loader")) return;
+      // A link that opens a popup on the page (the cart drawer) handles its own click; a modified click still follows it.
+      if (!a || a.hasAttribute("download") || a.hasAttribute("data-no-loader") || a.hasAttribute("aria-haspopup")) return;
       if (a.target && a.target !== "_self") return;
       const url = new URL(a.href, location.href);
       if (url.origin !== location.origin || url.pathname === location.pathname) return;

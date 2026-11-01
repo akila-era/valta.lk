@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Loader2, Smartphone } from "lucide-react";
+import { Banknote, Loader2, Smartphone } from "lucide-react";
 import { useLiveCart } from "@/components/cart/cart-view";
 import { EmptyState } from "@/components/ui/states";
 import { addMoney, formatLkr, fromCents, multiplyMoney, toCents } from "@/lib/utils/money";
@@ -35,23 +35,10 @@ const resetRef = () => {
 };
 
 type Errors = Record<string, string>;
-type Step = 1 | 2 | 3;
 
-const STEPS: { n: Step; label: string }[] = [
-  { n: 1, label: "Your details" },
-  { n: 2, label: "Delivery" },
-  { n: 3, label: "Review & place" },
-];
-const STEP_FIELDS: Record<Step, string[]> = {
-  1: ["name", "phone", "email"],
-  2: ["address", "city", "district", "postalCode", "notes"],
-  3: ["acceptTerms"],
-};
-const stepOfField = (f: string): Step => (STEP_FIELDS[1].includes(f) ? 1 : STEP_FIELDS[2].includes(f) ? 2 : 3);
-
-function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: React.ReactNode }) {
+function Field({ id, label, error, hint, required = false, className = "", children }: { id: string; label: string; error?: string; hint?: string; required?: boolean; className?: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div className={className}>
       <label htmlFor={id} className="label">{label}</label>
       {children}
       {hint && !error && <p id={`${id}-hint`} className="mt-1.5 text-xs text-muted">{hint}</p>}
@@ -60,29 +47,24 @@ function Field({ id, label, error, hint, children }: { id: string; label: string
   );
 }
 
+/**
+ * Checkout on one page: the delivery details on the left (two fields to a row, so no input runs the full width of the
+ * screen) and the order with payment, terms and Place order on the right. Everything is checked when Place order is
+ * pressed; the first field with a problem gets focus.
+ */
 export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: number; prefill?: { name: string; email: string; phone: string | null } }) {
   const router = useRouter();
   const { lines, subtotal } = useCart();
   const { live } = useLiveCart();
   const formRef = useRef<HTMLFormElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const [step, setStep] = useState<Step>(1);
-  const [reached, setReached] = useState<Step>(1);
   const [errors, setErrors] = useState<Errors>({});
   const [banner, setBanner] = useState<{ kind: "error" | "warn"; text: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [summaryOpen, setSummaryOpen] = useState(false);
-  const [recap, setRecap] = useState<Record<string, string>>({});
   const inFlight = useRef(false);
-  const moved = useRef(false);
   const openedTotal = useRef<number | null>(null);
   const [priceAck, setPriceAck] = useState(false);
   const total = addMoney(subtotal, deliveryCharge);
 
-  // Move keyboard/screen-reader focus to the new step's heading whenever the step changes.
-  useEffect(() => {
-    if (moved.current) headingRef.current?.focus();
-  }, [step]);
   useEffect(() => {
     if (openedTotal.current == null && lines.length) openedTotal.current = total;
   }, [lines.length, total]);
@@ -102,37 +84,31 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
   }, 0);
   const unavailable = lines.filter((l) => live?.find((d) => d.productId === l.productId && d.variantKey === l.variantKey)?.available === false);
   const offers = [...new Set(lines.map((l) => live?.find((d) => d.productId === l.productId && d.variantKey === l.variantKey)?.offerName).filter((name): name is string => Boolean(name)))];
+  const items = lines.reduce((n, l) => n + l.quantity, 0);
   const err = (k: string) => errors[k];
   const aria = (k: string) => ({ "aria-invalid": err(k) ? true : undefined, "aria-describedby": err(k) ? `${k}-err` : undefined });
   const values = () => Object.fromEntries([...new FormData(formRef.current!).entries()].map(([k, v]) => [k, String(v)])) as Record<string, string>;
 
-  /** Validates the fields of one step; returns the errors found (also shown inline). */
-  function validate(which: Step): Errors {
+  /** Checks every field; returns the problems found (also shown under the fields). */
+  function validate(): Errors {
     const v = values();
     const found: Errors = {};
-    if (which === 1) {
-      const c = customerSchema.safeParse({ name: v.name ?? "", phone: v.phone ?? "", email: v.email ?? "" });
-      if (!c.success) for (const i of c.error.issues) found[String(i.path[0])] ??= i.message;
-    }
-    if (which === 2) {
-      const d = deliverySchema.safeParse({ address: v.address ?? "", city: v.city ?? "", district: v.district ?? "", postalCode: v.postalCode ?? "", notes: v.notes ?? "" });
-      if (!d.success) for (const i of d.error.issues) found[String(i.path[0])] ??= i.message;
-    }
-    if (which === 3 && v.acceptTerms !== "on") found.acceptTerms = "Please accept the terms to continue";
+    const c = customerSchema.safeParse({ name: v.name ?? "", phone: v.phone ?? "", email: v.email ?? "" });
+    if (!c.success) for (const i of c.error.issues) found[String(i.path[0])] ??= i.message;
+    const d = deliverySchema.safeParse({ address: v.address ?? "", city: v.city ?? "", district: v.district ?? "", postalCode: v.postalCode ?? "", notes: v.notes ?? "" });
+    if (!d.success) for (const i of d.error.issues) found[String(i.path[0])] ??= i.message;
+    if (v.acceptTerms !== "on") found.acceptTerms = "Please accept the terms to continue";
     return found;
   }
 
-  function goTo(next: Step) {
-    if (next === 3) setRecap(values()); // the review always shows what is currently typed
-    moved.current = true;
-    setStep(next);
-    setReached((r) => (next > r ? next : r));
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-  }
-
   function focusFirstError() {
-    requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-invalid=true]")?.focus());
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>("[aria-invalid=true]");
+      if (!el) return;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+      el.focus({ preventScroll: true });
+    });
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -140,20 +116,9 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
     if (inFlight.current) return; // duplicate-submit guard
     setBanner(null);
 
-    if (step < 3) {
-      const found = validate(step);
-      setErrors(found);
-      if (Object.keys(found).length) return focusFirstError();
-      return goTo((step + 1) as Step);
-    }
-
-    // Final step: validate everything again, then place the order.
-    const found = { ...validate(1), ...validate(2), ...validate(3) };
+    const found = validate();
     setErrors(found);
-    if (Object.keys(found).length) {
-      goTo(Math.min(...Object.keys(found).map(stepOfField)) as Step);
-      return focusFirstError();
-    }
+    if (Object.keys(found).length) return focusFirstError();
     if (openedTotal.current != null && openedTotal.current !== total && !priceAck) {
       setPriceAck(true);
       setBanner({ kind: "warn", text: "Some prices changed. We have refreshed your cart, so please review the new total." });
@@ -194,7 +159,6 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         resetRef(); // nothing was sent to the ERP
         setErrors(data.error.fields);
         setBanner({ kind: "error", text: data.error.message });
-        goTo(Math.min(...Object.keys(data.error.fields).map(stepOfField)) as Step);
         focusFirstError();
       } else if (code === "PRICE_CHANGED" || code === "INSUFFICIENT_STOCK") {
         resetRef(); // definitive rejection: a corrected order gets a new reference
@@ -217,194 +181,119 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
     }
   }
 
-  const hide = (n: Step) => ({ hidden: step !== n, "aria-hidden": step !== n || undefined });
+  const panel = "rounded-panel border border-border bg-bg p-5 sm:p-7";
+  const heading = "font-display text-lg font-extrabold uppercase tracking-[0.02em] text-ink";
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]" aria-busy={submitting}>
-      <div className="min-w-0 space-y-6">
-        <nav aria-label="Checkout progress" className="rounded-panel border border-border bg-bg p-3 sm:p-4">
-          <ol className="grid grid-cols-3 gap-2 text-sm">
-            {STEPS.map((s) => {
-              const done = s.n < step;
-              const current = s.n === step;
-              const canGo = s.n <= reached && s.n !== step && !submitting;
-              const inner = (
-                <>
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-on-brand ring-4 ring-brand-500/20" : done ? "border-brand-500 bg-brand-500 text-white" : "border-border bg-surface text-muted"}`}>
-                    {done ? <Check className="h-4 w-4" aria-hidden /> : s.n}
-                  </span>
-                  <span className={`min-w-0 text-[11px] leading-tight [overflow-wrap:anywhere] xs:text-xs sm:text-sm ${current ? "font-bold text-ink" : done ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
-                </>
-              );
-              return (
-                <li key={s.n} className="min-w-0" aria-current={current ? "step" : undefined}>
-                  {canGo ? (
-                    <button type="button" onClick={() => goTo(s.n)} className="flex min-h-11 w-full flex-col items-center gap-1 rounded-lg px-1 text-center xs:flex-row xs:gap-2 xs:text-left" aria-label={`Go to step ${s.n}: ${s.label}`}>{inner}</button>
-                  ) : (
-                    <span className="flex min-h-11 w-full flex-col items-center gap-1 px-1 text-center xs:flex-row xs:gap-2 xs:text-left"><span className="sr-only">Step {s.n}: {s.label}{current ? " (current)" : ""}</span>{inner}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-          {/* How far along: a third per step. */}
-          <div aria-hidden className="mt-3 h-1 overflow-hidden rounded-full bg-surface">
-            <div className="h-full rounded-full bg-brand-500 transition-[width] duration-500 ease-out motion-reduce:transition-none" style={{ width: `${(step / STEPS.length) * 100}%` }} />
-          </div>
-        </nav>
+    <form
+      ref={formRef}
+      onSubmit={onSubmit}
+      noValidate
+      className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] lg:gap-8"
+      aria-busy={submitting}
+    >
+      <section aria-labelledby="billing" className={panel}>
+        <h2 id="billing" className={heading}>Billing &amp; delivery</h2>
 
         {banner && (
-          <div role="alert" className={`rounded-lg p-4 text-sm ${banner.kind === "warn" ? "bg-warn-bg text-warn" : "bg-danger-bg text-danger"}`}>
+          <div role="alert" className={`mt-4 rounded-control p-4 text-sm ${banner.kind === "warn" ? "bg-warn-bg text-warn" : "bg-danger-bg text-danger"}`}>
             {banner.text}{" "}
             {banner.kind === "warn" && <Link href="/cart" className="font-semibold underline">Review cart</Link>}
           </div>
         )}
 
-        {/* All three steps stay in the page (inactive ones are hidden) so nothing the customer typed is ever lost. */}
-        <section {...hide(1)} className="space-y-4 rounded-3xl border border-border/80 bg-white p-6 shadow-soft" aria-labelledby="step-1">
-          <h2 id="step-1" ref={step === 1 ? headingRef : undefined} tabIndex={-1} className="text-base font-bold text-ink outline-none">Your details</h2>
-          <Field id="name" label="Full name" error={err("name")}>
+        <div className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+          <Field id="name" label="Full name" required error={err("name")}>
             <input id="name" name="name" autoComplete="name" defaultValue={prefill?.name} className="input" {...aria("name")} maxLength={100} />
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="phone" label="Phone number" error={err("phone")} hint="e.g. 0771234567">
-              <input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={prefill?.phone?.replace(/^\+94/, "0") ?? undefined} className="input" {...aria("phone")} />
-            </Field>
-            <Field id="email" label="Email (optional)" error={err("email")}>
-              <input id="email" name="email" type="email" autoComplete="email" defaultValue={prefill?.email} className="input" {...aria("email")} maxLength={200} />
-            </Field>
-          </div>
-        </section>
-
-        <section {...hide(2)} className="space-y-4 rounded-3xl border border-border/80 bg-white p-6 shadow-soft" aria-labelledby="step-2">
-          <h2 id="step-2" ref={step === 2 ? headingRef : undefined} tabIndex={-1} className="text-base font-bold text-ink outline-none">Delivery address</h2>
-          <Field id="address" label="Address" error={err("address")}>
+          <Field id="phone" label="Phone number" required error={err("phone")} hint="e.g. 0771234567">
+            <input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={prefill?.phone?.replace(/^\+94/, "0") ?? undefined} className="input" {...aria("phone")} />
+          </Field>
+          <Field id="email" label="Email (optional)" error={err("email")}>
+            <input id="email" name="email" type="email" autoComplete="email" defaultValue={prefill?.email} className="input" {...aria("email")} maxLength={200} />
+          </Field>
+          <Field id="district" label="District" required error={err("district")}>
+            <select id="district" name="district" defaultValue="" className="select" {...aria("district")}>
+              <option value="" disabled>Select district</option>
+              {DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </Field>
+          <Field id="address" label="Address" required error={err("address")} hint="House number and street" className="sm:col-span-2">
             <input id="address" name="address" autoComplete="street-address" className="input" {...aria("address")} maxLength={250} />
           </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="city" label="City" error={err("city")}>
-              <input id="city" name="city" autoComplete="address-level2" className="input" {...aria("city")} maxLength={100} />
-            </Field>
-            <Field id="district" label="District" error={err("district")}>
-              <select id="district" name="district" defaultValue="" className="select" {...aria("district")}>
-                <option value="" disabled>Select district</option>
-                {DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </Field>
-            <Field id="postalCode" label="Postal code (optional)" error={err("postalCode")}>
-              <input id="postalCode" name="postalCode" inputMode="numeric" autoComplete="postal-code" className="input" {...aria("postalCode")} maxLength={5} />
-            </Field>
-          </div>
-          <Field id="notes" label="Delivery notes (optional)" error={err("notes")}>
-            <textarea id="notes" name="notes" rows={2} maxLength={300} className="textarea" />
+          <Field id="city" label="City" required error={err("city")}>
+            <input id="city" name="city" autoComplete="address-level2" className="input" {...aria("city")} maxLength={100} />
           </Field>
-        </section>
-
-        <section {...hide(3)} className="space-y-6" aria-labelledby="step-3">
-          <h2 id="step-3" ref={step === 3 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Review and place your order</h2>
-
-          <div className="card divide-y divide-border text-sm" data-testid="recap">
-            <div className="flex items-start justify-between gap-4 p-4">
-              <div>
-                <p className="font-semibold">Contact</p>
-                <p className="mt-1 text-muted">{recap.name}<br />{recap.phone}{recap.email ? <><br />{recap.email}</> : null}</p>
-              </div>
-              <button type="button" className="font-semibold text-brand-600 hover:underline" onClick={() => goTo(1)}>Change<span className="sr-only"> contact details</span></button>
-            </div>
-            <div className="flex items-start justify-between gap-4 p-4">
-              <div>
-                <p className="font-semibold">Deliver to</p>
-                <p className="mt-1 text-muted">{recap.address}, {recap.city}, {recap.district}{recap.postalCode ? ` ${recap.postalCode}` : ""}{recap.notes ? <><br />Note: {recap.notes}</> : null}</p>
-              </div>
-              <button type="button" className="font-semibold text-brand-600 hover:underline" onClick={() => goTo(2)}>Change<span className="sr-only"> delivery address</span></button>
-            </div>
-          </div>
-
-          <fieldset className="card p-5">
-            <legend className="px-1 text-base font-semibold">Payment method</legend>
-            <label className="flex items-start gap-3 text-sm">
-              <input type="radio" name="payment" value="COD" defaultChecked readOnly className="mt-1 h-4 w-4 accent-brand-600" />
-              <span>
-                <span className="font-semibold">Cash on delivery</span>
-                <span className="block text-muted">Pay in cash when your order is delivered. Your order is not marked as paid until the cash is collected.</span>
-              </span>
-            </label>
-          </fieldset>
-
-          <div>
-            <label className="flex items-start gap-3 text-sm">
-              <input type="checkbox" name="acceptTerms" className="mt-1 h-4 w-4 accent-brand-600" aria-invalid={err("acceptTerms") ? true : undefined} aria-describedby={err("acceptTerms") ? "acceptTerms-err" : undefined} />
-              <span>I agree to the <Link href="/terms" className="font-semibold text-brand-600 underline" target="_blank">terms and conditions</Link> and <Link href="/privacy-policy" className="font-semibold text-brand-600 underline" target="_blank">privacy policy</Link>.</span>
-            </label>
-            {err("acceptTerms") && <p id="acceptTerms-err" className="field-error" role="alert">{err("acceptTerms")}</p>}
-          </div>
-        </section>
-
-        <div className="flex items-center justify-between gap-3">
-          {step > 1 ? (
-            <button type="button" className="btn-secondary" onClick={() => goTo((step - 1) as Step)} disabled={submitting}>Back</button>
-          ) : (
-            <Link href="/cart" className="btn-secondary">Back to cart</Link>
-          )}
-          {step < 3 ? (
-            <button type="submit" className="btn-primary min-w-40">Continue</button>
-          ) : (
-            <button type="submit" className="btn-primary min-w-40" disabled={submitting}>
-              {submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : "Place order"}
-            </button>
-          )}
+          <Field id="postalCode" label="Postal code (optional)" error={err("postalCode")}>
+            <input id="postalCode" name="postalCode" inputMode="numeric" autoComplete="postal-code" className="input" {...aria("postalCode")} maxLength={5} />
+          </Field>
+          <Field id="notes" label="Delivery notes (optional)" error={err("notes")} className="sm:col-span-2">
+            <textarea id="notes" name="notes" rows={2} maxLength={300} className="textarea" placeholder="Landmark, best time to call…" />
+          </Field>
         </div>
-      </div>
+      </section>
 
-      <aside className="order-first h-fit rounded-3xl border border-border/80 bg-white p-4 shadow-soft sm:p-6 lg:sticky lg:top-28 xl:top-32 lg:order-none" aria-label="Order summary">
-        <h2 className="hidden text-base font-bold text-ink lg:block">Order Summary</h2>
-        {/* Phones: the summary sits above the form, so it starts collapsed to the total and opens on demand. */}
-        <button
-          type="button"
-          className="flex w-full items-center justify-between gap-3 text-left lg:hidden"
-          aria-expanded={summaryOpen}
-          aria-controls="checkout-summary-details"
-          onClick={() => setSummaryOpen((o) => !o)}
-        >
-          <span className="min-w-0">
-            <span className="block text-base font-semibold text-ink sm:text-lg">Order summary</span>
-            <span className="block text-xs text-muted">{lines.length} {lines.length === 1 ? "item" : "items"} · {summaryOpen ? "Hide details" : "Show details"}</span>
-          </span>
-          <span className="flex shrink-0 items-center gap-2">
-            <span className="whitespace-nowrap font-display text-base font-bold tracking-[-0.02em] tabular-nums text-ink sm:text-lg">{formatLkr(total)}</span>
-            <ChevronDown className={`h-5 w-5 text-muted transition-transform ${summaryOpen ? "rotate-180" : ""}`} aria-hidden />
-          </span>
-        </button>
+      <aside aria-label="Your order" className={`${panel} lg:sticky lg:top-[calc(var(--hdr-sticky,7rem)+1.5rem)]`}>
+        <h2 className={`${heading} flex items-baseline justify-between`}>
+          Your order <span className="text-sm font-normal normal-case tracking-normal text-muted">{items} {items === 1 ? "item" : "items"}</span>
+        </h2>
+
         {unavailable.length > 0 && (
-          <p role="alert" className="mt-3 rounded-lg bg-danger-bg p-3 text-sm text-danger">
+          <p role="alert" className="mt-4 rounded-control bg-danger-bg p-3 text-sm text-danger">
             {unavailable.map((l) => l.name).join(", ")} {unavailable.length === 1 ? "is" : "are"} not available in the requested quantity. Update the cart before placing the order.
           </p>
         )}
-        <div id="checkout-summary-details" className={summaryOpen ? "" : "max-lg:hidden"}>
-        <ul className="mt-4 space-y-3 text-sm">
+
+        <ul className="mt-4 divide-y divide-border border-y border-border text-sm">
           {lines.map((l) => (
-            <li key={lineKey(l)} className="flex items-center gap-3">
-              <span className="thumb-stage relative h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+            <li key={lineKey(l)} className="flex items-center gap-3 py-3">
+              <span className="thumb-stage relative h-14 w-14 shrink-0 overflow-hidden rounded-control border border-border">
                 {l.image ? <Image src={l.image} alt="" fill sizes="56px" className="object-contain p-1" /> : <Smartphone className="m-auto h-full w-6 text-muted" aria-hidden />}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-medium text-ink">{l.name}</span>
+                <span className="line-clamp-2 font-medium leading-5 text-ink">{l.name}</span>
                 <span className="block text-xs text-muted">{l.variantLabel ? `${l.variantLabel} · ` : ""}Qty {l.quantity}</span>
               </span>
               <span className="shrink-0 font-semibold tabular-nums">{formatLkr(multiplyMoney(l.unitPrice, l.quantity))}</span>
             </li>
           ))}
         </ul>
-        <dl className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
-          <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatLkr(subtotal)}</dd></div>
-          {savings > 0 && <div className="flex justify-between text-success"><dt>Catalogue savings included</dt><dd>{formatLkr(fromCents(savings))}</dd></div>}
+
+        <dl className="mt-4 space-y-2 text-sm">
+          <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd className="tabular-nums">{formatLkr(subtotal)}</dd></div>
+          {savings > 0 && <div className="flex justify-between text-success"><dt>Savings included</dt><dd className="tabular-nums">{formatLkr(fromCents(savings))}</dd></div>}
           {offers.map((name) => <div key={name} className="text-xs text-muted">{name}</div>)}
-          <div className="flex justify-between"><dt>Delivery</dt><dd data-testid="delivery">{formatLkr(deliveryCharge)}</dd></div>
-          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">Pay on delivery</dt><dd className="font-display text-2xl font-bold tracking-[-0.02em] tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd></div>
+          <div className="flex justify-between"><dt className="text-muted">Delivery</dt><dd className="tabular-nums" data-testid="delivery">{formatLkr(deliveryCharge)}</dd></div>
+          <div className="flex items-baseline justify-between border-t border-border pt-3">
+            <dt className="font-semibold">Total</dt>
+            <dd className="text-2xl font-bold tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd>
+          </div>
         </dl>
-        <p className="mt-3 text-xs text-muted">The store has one delivery charge. No other delivery method is offered.</p>
-        <p className="mt-4 text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>
+
+        <fieldset className="mt-5">
+          <legend className="text-sm font-semibold text-ink">Payment</legend>
+          <label className="mt-2 flex items-start gap-3 rounded-control border border-brand-500 bg-brand-50/40 p-3 text-sm">
+            <input type="radio" name="payment" value="COD" defaultChecked readOnly className="mt-0.5 h-4 w-4 accent-brand-600" />
+            <span className="min-w-0">
+              <span className="flex items-center gap-1.5 font-semibold text-ink"><Banknote className="h-4 w-4" aria-hidden /> Cash on delivery</span>
+              <span className="mt-0.5 block text-xs leading-5 text-muted">Pay in cash when your order arrives.</span>
+            </span>
+          </label>
+        </fieldset>
+
+        <div className="mt-4">
+          <label className="flex items-start gap-3 text-sm">
+            <input type="checkbox" name="acceptTerms" className="mt-0.5 h-4 w-4 accent-brand-600" aria-invalid={err("acceptTerms") ? true : undefined} aria-describedby={err("acceptTerms") ? "acceptTerms-err" : undefined} />
+            <span>I agree to the <Link href="/terms" className="font-semibold text-ink underline" target="_blank">terms and conditions</Link> and <Link href="/privacy-policy" className="font-semibold text-ink underline" target="_blank">privacy policy</Link>.</span>
+          </label>
+          {err("acceptTerms") && <p id="acceptTerms-err" className="field-error" role="alert">{err("acceptTerms")}</p>}
         </div>
+
+        <button type="submit" className="btn-primary mt-5 min-h-12 w-full text-[15px]" disabled={submitting}>
+          {submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : "Place order"}
+        </button>
+        <p className="mt-3 text-center text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>
+        <Link href="/cart" className="mt-2 block text-center text-sm font-semibold text-muted hover:text-ink">Back to cart</Link>
       </aside>
     </form>
   );

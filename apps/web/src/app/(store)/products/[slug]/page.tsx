@@ -71,12 +71,11 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 const FEATURE_ICON: Record<string, LucideIcon> = { zap: Zap, shield: ShieldCheck, battery: Battery, wifi: Wifi, cpu: Cpu, camera: Camera, smartphone: Smartphone, headphones: Headphones };
 
-/** A detail card: kicker, bold heading, on a plain bordered panel. */
-const Section = ({ id, title, kicker, children, className = "" }: { id: string; title: string; kicker: string; children: React.ReactNode; className?: string }) => (
+/** A detail card: a bold heading on a plain bordered panel. */
+const Section = ({ id, title, children, className = "" }: { id: string; title: string; children: React.ReactNode; className?: string }) => (
   <section aria-labelledby={id} className={`relative min-w-0 scroll-mt-40 overflow-hidden rounded-panel border border-border bg-bg p-6 sm:p-8 ${className}`}>
-    <p className="kicker relative"><span className="text-brand-600">Details</span> / {kicker}</p>
-    <h2 id={id} className="statement relative mt-1 text-xl sm:text-2xl">{title}</h2>
-    <div className="relative mt-6">{children}</div>
+    <h2 id={id} className="statement relative text-xl sm:text-2xl">{title}</h2>
+    <div className="relative mt-5">{children}</div>
   </section>
 );
 
@@ -318,12 +317,12 @@ export default async function ProductPage({ params, searchParams }: Props) {
       {/* Two columns on wide screens (description beside specifications) so the page has no empty right half. */}
       <div className={`${jumps.length > 1 ? "mt-8" : "mt-12"} grid items-start gap-6 lg:grid-cols-2 lg:gap-8`}>
         {(descHtml || product.description) && (
-          <Section id="desc" title="Description" kicker="Overview">
+          <Section id="desc" title="Description">
             {descHtml ? <div className="rich" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>}
           </Section>
         )}
         {(siteSpecGroups.length > 0 || erpSpecs.length > 0) && (
-          <Section id="specs" title="Specifications" kicker="Tech specs">
+          <Section id="specs" title="Specifications">
             <div className="space-y-5">
               {siteSpecGroups.map((g) => (
                 <div key={g.group}>
@@ -342,12 +341,12 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </Section>
         )}
         {!hasWarranty && product.specs.Warranty && (
-          <Section id="warranty" title="Warranty" kicker="Cover">
+          <Section id="warranty" title="Warranty">
             <p className="flex gap-3 rounded-xl border border-border p-4 text-sm"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span className="font-medium">{product.specs.Warranty}</span></p>
           </Section>
         )}
         {hasWarranty && c && (
-          <Section id="warranty" title="Warranty" kicker="Cover">
+          <Section id="warranty" title="Warranty">
             <div className="flex gap-3 rounded-xl border border-border p-4 text-sm">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
               <div className="min-w-0">
@@ -361,7 +360,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </Section>
         )}
         {hasDelivery && c && (
-          <Section id="delivery" title="Delivery & pickup" kicker="Getting it to you">
+          <Section id="delivery" title="Delivery & pickup">
             <ul className="space-y-3 rounded-xl border border-border p-4 text-sm">
               <li className="flex gap-3"><Truck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Delivery{settings ? ` · ${formatLkr(settings.deliveryCharge)}` : ""}</span>{c.delivery.estimate && <span className="block text-muted">{c.delivery.estimate}</span>}{c.delivery.notes && <span className="block text-muted">{c.delivery.notes}</span>}</span></li>
               {c.delivery.pickup && <li className="flex gap-3"><Store className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Store pickup</span><span className="block whitespace-pre-line text-muted">{c.delivery.pickup}</span></span></li>}
@@ -377,13 +376,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
       {related.length > 0 && (
         <section aria-labelledby="related" className="mt-20">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-2 sm:mb-8">
-            <div>
-              <p className="kicker"><span className="text-brand-600">More</span> / To explore</p>
-              <h2 id="related" className="statement mt-1 text-title-section">Related products</h2>
-            </div>
+            <h2 id="related" className="statement text-title-section">Related products</h2>
             <p className="max-w-sm text-sm leading-6 text-muted">{chosen.length ? "Handpicked additions for this item." : product.category ? `More from ${product.category.name}.` : null}</p>
           </div>
-          <ProductGrid products={related} columns={5} />
+          <ProductGrid products={related} columns={4} />
         </section>
       )}
       <RecordView item={{ productId: product.id, slug: product.slug, name: title, image: product.images[0] }} />

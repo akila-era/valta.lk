@@ -511,11 +511,9 @@ test.describe("ERP ownership", () => {
     await p.goto("/checkout");
     await p.getByLabel("Full name").fill("Kasun Perera");
     await p.getByLabel("Phone number").fill("0771234567");
-    await p.getByRole("button", { name: "Continue" }).click();
     await p.getByLabel("Address", { exact: true }).fill("12 Galle Road");
     await p.getByLabel("City", { exact: true }).fill("Colombo");
     await p.getByLabel("District").selectOption("Colombo");
-    await p.getByRole("button", { name: "Continue" }).click();
     await p.getByRole("checkbox").check();
     await p.getByRole("button", { name: /place order/i }).click();
     await expect(p).toHaveURL(/order-confirmation/);

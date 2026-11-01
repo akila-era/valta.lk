@@ -33,7 +33,7 @@ export default async function CheckoutPage() {
       {a.enabled && a.settings ? (
         <>
           {!customer && accountsEnabled() && (
-            <p className="mb-5 text-sm text-muted">
+            <p className="mx-auto mb-5 max-w-6xl text-sm text-muted">
               Have an account? <Link href="/account/login?next=/checkout" className="font-semibold text-brand-600 hover:underline">Sign in</Link> to fill in your details and see this order in your account. Guest checkout works too.
             </p>
           )}
