@@ -1,7 +1,7 @@
 import {
   Award, Banknote, BarChart3, Ghost, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon,
   Inbox, KeyRound, LayoutDashboard, Mail, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw,
-  RotateCcw, Scale, ScrollText, Settings, Settings2, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
+  RotateCcw, Scale, ScrollText, Settings, Settings2, Store, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -107,6 +107,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Admin Users", href: "/admin/users" },
       { label: "General Settings", href: "/admin/settings" },
+      { label: "Store Details", href: "/admin/settings/store" },
       { label: "Payment Settings", href: "/admin/settings/payment" },
       { label: "Shipping Settings", href: "/admin/settings/shipping" },
       { label: "ERP Settings", href: "/admin/settings/erp" },
@@ -129,7 +130,7 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
   "Product Reviews": Star,
   "Homepage Content": House, "Promotional Banners": ImageIcon, "Seasonal Theme": Ghost, "Promotions & Discounts": Percent,
   "Sales Reports": TrendingUp, "Conversion Analytics": Funnel,"Order Reports": ClipboardList, "Product Reports": PackageSearch, "Payment Reports": Wallet, "ERP Sync Reports": RefreshCw,
-  "Admin Users": UserCog, "Roles & Permissions": KeyRound, "Audit Logs": ScrollText, "General Settings": Settings, "Payment Settings": CreditCard, "Shipping Settings": Truck, "ERP Settings": Plug,
+  "Admin Users": UserCog, "Roles & Permissions": KeyRound, "Audit Logs": ScrollText, "General Settings": Settings, "Store Details": Store, "Payment Settings": CreditCard, "Shipping Settings": Truck, "ERP Settings": Plug,
 };
 export const iconFor = (label: string): LucideIcon => ITEM_ICONS[label] ?? Package;
 

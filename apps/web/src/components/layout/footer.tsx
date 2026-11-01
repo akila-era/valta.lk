@@ -7,7 +7,7 @@ import {
 import { listProducts } from "@/lib/erp/catalogue";
 import { getCheckoutAvailability } from "@/lib/erp/settings";
 import { formatLkr } from "@/lib/utils/money";
-import { socialLinks } from "@/lib/home-config";
+import { PAYMENT_BADGES, getStoreInfo, socialFrom, telHref } from "@/lib/store-info";
 import { siteConfig } from "@/lib/site-config";
 import { BackToTop } from "./back-to-top";
 import { HalloweenSkyline } from "./halloween";
@@ -77,6 +77,7 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
     listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []),
     getCheckoutAvailability().catch(() => null),
   ]);
+  const info = await getStoreInfo();
   // The service row at the top, as on ugreen.lk: only what the live ERP settings confirm, plus tracking and support.
   const cod = Boolean(checkout?.enabled && checkout.settings?.paymentMethods.COD);
   const charge = checkout?.enabled ? (checkout.settings?.deliveryCharge ?? null) : null;
@@ -86,8 +87,9 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
     { icon: PackageSearch, title: "Track your order", text: "Follow it with your reference." },
     { icon: Headset, title: "Customer support", text: "We are here to help." },
   ];
-  const social = socialLinks();
-  const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
+  const social = socialFrom(info);
+  const phones = [info.phone, info.phone2].filter(Boolean);
+  const hasContact = phones.length > 0 || info.whatsapp || info.email || info.address || info.hours.length > 0;
 
   return (
     <footer className={`on-dark relative bg-ink pb-16 text-white/80 md:pb-0 ${halloween ? "mt-32 sm:mt-40" : "mt-16"}`}>
@@ -142,12 +144,17 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
         <div className={hasContact ? "col-span-2 md:col-span-3 lg:col-span-1" : "lg:col-span-1"}>
           <h2 className={colHead}>Contact</h2>
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            {siteConfig.phone && <ContactRow icon={Phone} label="Customer support"><a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="inline-flex items-center py-1 hover:text-brand-500 hover:underline pointer-coarse:min-h-11">{siteConfig.phone}</a></ContactRow>}
-            {siteConfig.email && <ContactRow icon={Mail} label="Email us"><a href={`mailto:${siteConfig.email}`} className="hover:text-brand-500 hover:underline">{siteConfig.email}</a></ContactRow>}
-            {siteConfig.address && <ContactRow icon={MapPin} label="Visit our store">{siteConfig.address}</ContactRow>}
-            {siteConfig.hours.length > 0 && (
+            {phones.length > 0 && (
+              <ContactRow icon={Phone} label="Call us">
+                {phones.map((n) => <a key={n} href={telHref(n)} className="mr-3 inline-flex items-center py-1 hover:text-brand-500 hover:underline pointer-coarse:min-h-11">{n}</a>)}
+              </ContactRow>
+            )}
+            {info.whatsapp && <ContactRow icon={MessageSquare} label="WhatsApp"><a href={`https://wa.me/${info.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="hover:text-brand-500 hover:underline">{info.whatsapp}</a></ContactRow>}
+            {info.email && <ContactRow icon={Mail} label="Email us"><a href={`mailto:${info.email}`} className="hover:text-brand-500 hover:underline">{info.email}</a></ContactRow>}
+            {info.address && <ContactRow icon={MapPin} label="Visit us at">{info.address}</ContactRow>}
+            {info.hours.length > 0 && (
               <ContactRow icon={Clock} label="Business hours">
-                {siteConfig.hours.map((h) => <span key={h} className="block text-sm font-normal text-white/80">{h}</span>)}
+                {info.hours.map((h) => <span key={h} className="block text-sm font-normal text-white/80">{h}</span>)}
               </ContactRow>
             )}
             {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-brand-500" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
@@ -155,38 +162,45 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
         </div>
       </div>
 
-      {/* The orange bar: social links, shown only when the owner has set any. */}
-      {social.length > 0 && (
-        <div className="border-t border-white/10">
-          <div className="container-page flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-4">
-            {social.length > 0 && (
-              <div className="flex items-center gap-3 sm:ml-auto">
-                <span className="text-sm font-bold text-white">Follow us</span>
-                <ul className="flex flex-wrap gap-2" aria-label="Social media">
-                  {social.map((s) => {
-                    const Icon = SOCIAL_ICON[s.label] ?? Share2;
+      {/* As on ugreen.lk: a coloured bar (orange here) with the payment badges and the social links, then the small print. */}
+      <div className="bg-brand-500 text-on-brand">
+        {info.payments.length > 0 || social.length > 0 ? (
+          <div className="container-page flex flex-wrap items-center justify-between gap-x-10 gap-y-4 border-b border-white/25 py-4">
+            {info.payments.length > 0 ? (
+              <div>
+                <p className="text-sm font-bold">Payment System:</p>
+                <ul aria-label="Payment System" className="mt-2 flex flex-wrap gap-2">
+                  {info.payments.map((k) => (
+                    <li key={k} className="flex h-8 min-w-14 items-center justify-center rounded-[6px] bg-white px-2.5 text-[11px] font-extrabold tracking-wide text-ink">{PAYMENT_BADGES[k]}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {social.length > 0 ? (
+              <div>
+                <p className="text-sm font-bold">Our Social Links:</p>
+                <ul className="mt-2 flex flex-wrap gap-2" aria-label="Social media">
+                  {social.map((x) => {
+                    const Icon = SOCIAL_ICON[x.label] ?? Share2;
                     return (
-                      <li key={s.label}>
+                      <li key={x.label}>
                         <a
-                          href={s.href}
+                          href={x.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          aria-label={`${s.label} (opens in a new tab)`}
-                          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-brand-500 hover:text-on-brand"
+                          aria-label={`${x.label} (opens in a new tab)`}
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-white hover:text-ink"
                         >
-                          <Icon className="h-5 w-5" aria-hidden />
+                          <Icon className="h-[18px] w-[18px]" aria-hidden />
                         </a>
                       </li>
                     );
                   })}
                 </ul>
               </div>
-            )}
+            ) : null}
           </div>
-        </div>
-      )}
-
-      <div className="bg-brand-500 text-on-brand">
+        ) : null}
         <div className="container-page flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-5">
           <div className="text-sm font-semibold">
             <p>© {new Date().getFullYear()} VOLTA.LK. All rights reserved.</p>

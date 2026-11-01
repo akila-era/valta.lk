@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, MapPin, Package, Phone } from "lucide-react";
 import { PolicyPage } from "@/components/layout/policy-page";
-import { siteConfig } from "@/lib/site-config";
+import { getStoreInfo, telHref } from "@/lib/store-info";
 
 export const metadata: Metadata = {
   title: "Contact us",
   alternates: { canonical: "/contact" },
 };
 
-export default function ContactPage() {
-  const has = siteConfig.phone || siteConfig.email || siteConfig.address;
+export default async function ContactPage() {
+  const info = await getStoreInfo();
+  const has = info.phone || info.email || info.address;
 
   return (
     <PolicyPage
@@ -26,9 +27,9 @@ export default function ContactPage() {
 
         {has ? (
           <div className="!mt-6 grid gap-4 sm:grid-cols-2">
-            {siteConfig.phone && (
+            {info.phone && (
               <a
-                href={`tel:${siteConfig.phone.replace(/\s/g, "")}`}
+                href={telHref(info.phone)}
                 className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-bg p-4 !text-ink !no-underline transition-all hover:border-brand-500 hover:bg-brand-50/30 hover:shadow-soft"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-500 group-hover:text-white">
@@ -39,7 +40,7 @@ export default function ContactPage() {
                     Phone Support
                   </span>
                   <span className="mt-1 block text-base font-bold text-ink underline-offset-4 group-hover:text-brand-600 group-hover:underline">
-                    {siteConfig.phone}
+                    {info.phone}
                   </span>
                   <span className="mt-0.5 block text-xs text-muted">
                     Mon–Sat, 9:00 AM – 7:00 PM
@@ -48,9 +49,9 @@ export default function ContactPage() {
               </a>
             )}
 
-            {siteConfig.email && (
+            {info.email && (
               <a
-                href={`mailto:${siteConfig.email}`}
+                href={`mailto:${info.email}`}
                 className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-bg p-4 !text-ink !no-underline transition-all hover:border-brand-500 hover:bg-brand-50/30 hover:shadow-soft"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-500 group-hover:text-white">
@@ -61,7 +62,7 @@ export default function ContactPage() {
                     Email Inquiries
                   </span>
                   <span className="mt-1 block text-base font-bold text-ink underline-offset-4 group-hover:text-brand-600 group-hover:underline">
-                    {siteConfig.email}
+                    {info.email}
                   </span>
                   <span className="mt-0.5 block text-xs text-muted">
                     Typically replies within 2 hours
@@ -70,7 +71,7 @@ export default function ContactPage() {
               </a>
             )}
 
-            {siteConfig.address && (
+            {info.address && (
               <div className="flex items-start gap-4 rounded-2xl border border-border/80 bg-bg p-4 sm:col-span-2">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
                   <MapPin className="h-5 w-5" />
@@ -80,7 +81,7 @@ export default function ContactPage() {
                     Store Location
                   </span>
                   <span className="mt-1 block text-sm font-medium text-ink">
-                    {siteConfig.address}
+                    {info.address}
                   </span>
                 </div>
               </div>

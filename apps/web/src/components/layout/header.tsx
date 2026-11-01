@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { Headset, Phone, Truck, Wallet } from "lucide-react";
+import { Headset, MapPin, Phone, PhoneCall } from "lucide-react";
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
 import { activeSeason } from "@/lib/season";
 import { Pumpkin } from "./halloween";
 import { siteConfig } from "@/lib/site-config";
-import { formatLkr } from "@/lib/utils/money";
+import { getStoreInfo, telHref } from "@/lib/store-info";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
 import { AccountMenu } from "./account-menu";
 import { CartDrawer } from "@/components/cart/cart-drawer";
@@ -39,47 +39,45 @@ export { Wordmark };
 
 export async function Header() {
   const accounts = accountsEnabled();
-  const [{ categories, hasDeals, quick }, customer, settings, season] = await Promise.all([
+  const [{ categories, hasDeals, quick }, customer, settings, season, info] = await Promise.all([
     loadNavData(),
     accounts ? getCurrentCustomer() : null,
     getSettings().catch(() => null),
     activeSeason(),
+    getStoreInfo(),
   ]);
   const cod = settings?.paymentMethods.COD === true;
-  // A seasonal theme (admin switch) brings its own line; otherwise the owner's announcement or the welcome line.
+  // As on ugreen.lk: the store's line on the left (a seasonal theme brings its own), and the phone numbers and Store
+  // Locator on the right. All of it is set in the admin (Settings, Store details).
   const halloween = season?.season === "halloween";
-  const announcement = season?.message || siteConfig.announcement || `Welcome to ${siteConfig.name}`;
+  const announcement = season?.message || info.topLine || `${siteConfig.name} Sri Lanka Official Store`;
+  const phones = [info.phone, info.phone2].filter(Boolean);
   return (
     <>
-      {/* Black top bar (neon orange accents): a welcome line (or the owner's SITE_ANNOUNCEMENT) plus facts from live ERP settings only. It scrolls away. */}
-      <div role="region" aria-label="Store information" className={`on-dark text-white/85 ${halloween ? "bg-[#1d0f29]" : "bg-ink"}`}>
+      <div role="region" aria-label="Store information" className={`on-dark text-white ${halloween ? "bg-[#1d0f29]" : "bg-ink"}`}>
         <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
-          <ul className="flex min-w-0 flex-1 items-center gap-4 divide-white/15 sm:divide-x [&>li+li]:pl-4">
-            <li className="marquee flex min-w-0 flex-1 items-center gap-2 font-bold uppercase tracking-[0.08em] text-white">
-              {halloween ? <Pumpkin className="h-4 w-4 shrink-0" /> : null}
-              <AnnouncementLine text={announcement} />
-            </li>
-            {settings ? (
-              <li className="hidden shrink-0 items-center gap-1.5 sm:flex md:hidden lg:flex">
-                <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Delivery {formatLkr(settings.deliveryCharge)}
-              </li>
-            ) : null}
-            {cod ? (
-              <li className="hidden shrink-0 items-center gap-1.5 xl:flex">
-                <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Cash on Delivery Available
-              </li>
-            ) : null}
-          </ul>
-          <nav aria-label="Help" className="hidden shrink-0 items-center gap-4 divide-x divide-white/15 font-semibold md:flex [&>*+*]:pl-4">
-            {siteConfig.phone ? (
-              <a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="hidden h-7 items-center gap-1.5 rounded-sm hover:text-brand-500 lg:inline-flex">
-                <Phone className="h-3.5 w-3.5 text-brand-500" aria-hidden /> {siteConfig.phone}
-              </a>
-            ) : null}
-            <Link href="/track-order" className="inline-flex h-7 items-center rounded-sm hover:text-brand-500">Track order</Link>
-            <Link href="/contact" className="inline-flex h-7 items-center rounded-sm hover:text-brand-500">Help</Link>
-            <Link href="/about" className="inline-flex h-7 items-center rounded-sm hover:text-brand-500">About Us</Link>
-          </nav>
+          <div className="marquee flex min-w-0 flex-1 items-center gap-2 font-bold uppercase tracking-[0.04em]">
+            {halloween ? <Pumpkin className="h-4 w-4 shrink-0" /> : null}
+            <AnnouncementLine text={announcement} />
+          </div>
+          {phones.length || info.mapUrl ? (
+            <ul aria-label="Contact" className="hidden shrink-0 items-center gap-3 divide-x divide-white/40 font-bold md:flex [&>li+li]:pl-3">
+              {phones.map((n, k) => (
+                <li key={n}>
+                  <a href={telHref(n)} className="inline-flex h-7 items-center gap-1.5 hover:text-brand-500">
+                    {k === 0 ? <Phone className="h-3.5 w-3.5" aria-hidden /> : <PhoneCall className="h-3.5 w-3.5" aria-hidden />} {n}
+                  </a>
+                </li>
+              ))}
+              {info.mapUrl ? (
+                <li>
+                  <a href={info.mapUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-7 items-center gap-1.5 hover:text-brand-500">
+                    <MapPin className="h-3.5 w-3.5" aria-hidden /> Store Locator<span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
         </div>
       </div>
       <HeaderShell>
