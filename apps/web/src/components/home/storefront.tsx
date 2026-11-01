@@ -43,15 +43,15 @@ export function heroSlides(categories: Category[]): HeroSlide[] {
   return [opener, ...rest];
 }
 
-/** Section heading, centred as on large brand stores: a small orange label, a bold title, an accent bar and a line. */
-export function SectionHead({ id, eyebrow, title, children }: { id: string; eyebrow?: string; title: string; children?: ReactNode }) {
+/**
+ * Section heading as on ugreen.lk: one plain, bold, centred title. The old label and line props are still accepted so
+ * callers need not change, but they are not shown.
+ */
+export function SectionHead({ id, title }: { id: string; eyebrow?: string; title: string; children?: ReactNode }) {
   return (
-    <div className="mb-7 text-center sm:mb-9">
-      {eyebrow ? <p className="eyebrow mb-1.5">{eyebrow}</p> : null}
-      <h2 id={id} className="font-display text-[clamp(1.6rem,1.15rem+1.5vw,2.4rem)] font-extrabold leading-tight tracking-title text-ink">{title}</h2>
-      <span aria-hidden className="mx-auto mt-3 block h-[3px] w-12 rounded-full bg-brand-500" />
-      {children ? <p className="mx-auto mt-3 max-w-xl text-sm text-muted sm:text-[15px]">{children}</p> : null}
-    </div>
+    <h2 id={id} className="mb-6 text-center font-display text-[clamp(1.5rem,1.1rem+1.3vw,2.1rem)] font-bold leading-tight tracking-title text-ink sm:mb-8">
+      {title}
+    </h2>
   );
 }
 
@@ -97,29 +97,34 @@ export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
     { icon: Headset, title: "Customer Support", text: "We are here to help", href: "/contact" },
   ];
   return (
-    <section aria-label={`Shopping with ${siteConfig.name}`} className="border-b border-border bg-bg">
-      <ul className="container-page grid grid-cols-2 lg:grid-cols-4">
-        {items.map(({ icon: I, title, text, href }, i) => {
-          const body = (
-            <>
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon sm:h-11 sm:w-11"><I className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} aria-hidden /></span>
-              <span className="min-w-0">
-                <span className="block text-[13px] font-bold leading-tight text-ink sm:text-sm">{title}</span>
-                <span className="hidden text-xs text-muted sm:block">{text}</span>
-              </span>
-            </>
-          );
-          return (
-            <li key={title} className={`border-border ${i % 2 ? "border-l" : ""} ${i >= 2 ? "border-t lg:border-t-0" : ""} ${i === 2 ? "lg:border-l" : ""}`}>
-              {href ? (
-                <Link href={href} className="flex h-full items-center gap-2.5 p-3 transition-colors hover:bg-brand-50 sm:gap-3 sm:p-4 sm:px-6">{body}</Link>
-              ) : (
-                <div className="flex h-full items-center gap-2.5 p-3 sm:gap-3 sm:p-4 sm:px-6">{body}</div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+    // As on ugreen.lk: a black bar under the banner with neon orange words moving slowly across. The words are
+    // written twice so the line loops without a gap; the copy is hidden from screen readers and the keyboard.
+    // With reduced motion it stands still.
+    <section aria-label={`Shopping with ${siteConfig.name}`} className="group/strip overflow-hidden bg-ink">
+      <div className="flex w-max animate-[marquee_40s_linear_infinite] group-hover/strip:[animation-play-state:paused] group-focus-within/strip:[animation-play-state:paused] motion-reduce:w-full motion-reduce:animate-none">
+        {[0, 1].map((copy) => (
+          <ul key={copy} aria-hidden={copy === 1 || undefined} className={`flex shrink-0 items-center ${copy === 1 ? "motion-reduce:hidden" : "motion-reduce:w-full motion-reduce:flex-wrap motion-reduce:justify-center"}`}>
+            {items.map(({ icon: I, title, text, href }) => {
+              const body = (
+                <>
+                  <I className="h-4 w-4 shrink-0 text-brand-500" strokeWidth={2} aria-hidden />
+                  <span className="whitespace-nowrap text-sm font-bold text-brand-500">{title}</span>
+                  <span className="whitespace-nowrap text-xs text-white/60">{text}</span>
+                </>
+              );
+              return (
+                <li key={title} className="px-6 sm:px-10">
+                  {href ? (
+                    <Link href={href} tabIndex={copy === 1 ? -1 : undefined} className="flex min-h-10 items-center gap-2 hover:underline hover:decoration-brand-500 hover:underline-offset-4">{body}</Link>
+                  ) : (
+                    <div className="flex min-h-10 items-center gap-2">{body}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ))}
+      </div>
     </section>
   );
 }
@@ -138,39 +143,34 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
 }
 
 /**
- * Spotlight: the two largest categories that have studio art, as two equal side-by-side tiles with a title, a line,
- * one action and the category photo, the way large brand stores feature their key ranges.
+ * Spotlight, laid out as on ugreen.lk: up to four of the largest categories with studio art as light grey tiles in two
+ * rows of a narrow and a wide tile (wide first on the second row). Each has a small orange line, the name, a Shop now
+ * button and the category photo on the right.
  */
 export function Spotlight({ categories }: { categories: Category[] }) {
-  const picks = [...categories].filter((c) => categoryVisual(c.name)).sort((a, b) => b.count - a.count).slice(0, 2);
+  const picks = [...categories].filter((c) => categoryVisual(c.name)).sort((a, b) => b.count - a.count).slice(0, 4);
   if (picks.length < 2) return null;
+  // 12-column grid: 5 + 7 on the first row, 7 + 5 on the second; two tiles share a row equally; a third alone is full width
+  const span = (i: number) => (picks.length === 2 ? "lg:col-span-6" : i === 0 || i === 3 ? "lg:col-span-5" : i === 2 && picks.length === 3 ? "sm:col-span-2 lg:col-span-12" : "lg:col-span-7");
   return (
     <section aria-label="Featured ranges" className="container-page mt-14 sm:mt-20">
-      {/* Side by side from laptops; stacked full-width below, so the title always has room next to the photo. */}
-      <ul className="grid gap-4 lg:grid-cols-2">
-        {picks.map((c, i) => {
-          // Two tiles with the same layout (text left, photo on a white disc right) in the store's colours: the first
-          // black with white text, the second neon orange with black text.
-          const dark = i === 0;
-          return (
-            <li key={c.slug}>
-              <Link
-                href={`/categories/${c.slug}`}
-                className={`group grid h-full min-h-52 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 overflow-hidden rounded-panel p-5 sm:min-h-64 sm:gap-6 sm:p-8 ${dark ? "bg-ink text-white" : "bg-brand-500 text-white"}`}
-              >
-                <span className="flex min-w-0 flex-col items-start text-left">
-                  <span className={`text-xs font-bold uppercase tracking-[0.14em] ${dark ? "text-brand-500" : "text-white"}`}>{c.count} {c.count === 1 ? "product" : "products"}</span>
-                  <span className="mt-2 font-display text-xl font-extrabold leading-tight tracking-title xs:text-2xl sm:text-3xl">{c.name}</span>
-                  <span className={`mt-2 max-w-xs text-sm leading-6 ${dark ? "text-white/75" : "text-white/90"}`}>{collectionLine(c.name, c.count)}</span>
-                  <span className={`btn mt-5 min-h-10 rounded-full px-6 text-[13px] ${dark ? "bg-brand-500 text-on-brand group-hover:bg-white group-hover:text-ink" : "bg-ink text-white group-hover:bg-white group-hover:text-ink"}`}>Shop now</span>
-                </span>
-                <span aria-hidden className={`relative aspect-square w-24 overflow-hidden rounded-full bg-white ring-4 xs:w-32 transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none sm:w-44 lg:w-52 ${dark ? "ring-brand-500" : "ring-ink"}`}>
-                  <Image src={categoryVisual(c.name)!} alt="" fill sizes="(min-width:1024px) 208px, (min-width:640px) 176px, 128px" className="object-cover" />
-                </span>
-              </Link>
-            </li>
-          );
-        })}
+      <h2 className="mb-6 text-center font-display text-[clamp(1.5rem,1.1rem+1.3vw,2.1rem)] font-bold leading-tight tracking-title text-ink sm:mb-8">{siteConfig.name} Products Sri Lanka</h2>
+      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-12">
+        {picks.map((c, i) => (
+          <li key={c.slug} className={span(i)}>
+            <Link href={`/categories/${c.slug}`} className="group relative flex h-full min-h-52 overflow-hidden rounded-card bg-[#f4f4f4] text-ink sm:min-h-60">
+              <span aria-hidden className="absolute inset-y-0 right-0 w-[55%]">
+                <Image src={categoryVisual(c.name)!} alt="" fill sizes="(min-width:1024px) 400px, 55vw" className="object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" />
+                <span className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#f4f4f4] to-transparent" />
+              </span>
+              <span className="relative flex max-w-[55%] flex-col items-start p-5 text-left sm:p-6">
+                <span className="text-xs font-semibold text-brand-600">{c.count} {c.count === 1 ? "product" : "products"}</span>
+                <span className="mt-1 font-display text-2xl font-bold leading-tight tracking-title sm:text-[1.9rem]">{c.name}</span>
+                <span className="btn mt-4 min-h-9 rounded-control bg-brand-500 px-4 text-xs font-bold uppercase text-on-brand transition-colors group-hover:bg-ink group-hover:text-white">Shop now</span>
+              </span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </section>
   );
@@ -218,7 +218,7 @@ export function PromoTiles({ banners }: { banners: ResolvedBanner[] }) {
 }
 
 /** A product section: heading, then up to ten cards in centred rows (two rows at every width: 2, 3, 4 or 5 per row). */
-export function ProductSection({ id, eyebrow, title, text, href, products, priority = false, tinted = false, aside }: {
+export function ProductSection({ id, eyebrow, title, text, href, products, priority = false, aside }: {
   id: string;
   eyebrow?: string;
   title: string;
@@ -226,6 +226,7 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
   href: string;
   products: ErpProduct[];
   priority?: boolean;
+  /** Grey band (no longer used: every section sits on white, as on ugreen.lk). */
   tinted?: boolean;
   /** Shown between the heading and the products (the Hot Deals countdown). */
   aside?: ReactNode;
@@ -239,13 +240,7 @@ export function ProductSection({ id, eyebrow, title, text, href, products, prior
       <ViewAll href={href} />
     </>
   );
-  return tinted ? (
-    <section id={id} aria-labelledby={`${id}-title`} className="mt-12 scroll-mt-40 border-y border-border bg-surface py-10 sm:mt-16 sm:py-14">
-      <div className="container-page">{grid}</div>
-    </section>
-  ) : (
-    <section id={id} aria-labelledby={`${id}-title`} className="container-page mt-12 scroll-mt-40 sm:mt-16">{grid}</section>
-  );
+  return <section id={id} aria-labelledby={`${id}-title`} className="container-page mt-12 scroll-mt-40 sm:mt-16">{grid}</section>;
 }
 
 /** Up to ten product cards in centred rows (two rows at every width: 2, 3, 4 or 5 per row). */
@@ -271,16 +266,16 @@ type Rail = HomeData["rails"][number];
  * "Explore Our Range": New Arrivals and the larger categories as tabs of one block (instead of one long section each).
  * Each tab keeps its section id (new-arrivals, c-<category>) and its own "View all" link.
  */
-export function RangeTabs({ newArrivals, rails, tinted = false }: { newArrivals: ErpProduct[]; rails: Rail[]; tinted?: boolean }) {
+export function RangeTabs({ newArrivals, rails }: { newArrivals: ErpProduct[]; rails: Rail[]; tinted?: boolean }) {
   const tabs = [
     ...(newArrivals.length ? [{ id: "new-arrivals", label: "New Arrivals", href: "/products", view: "View all new arrivals", products: newArrivals }] : []),
     ...rails.map((r) => ({ id: `c-${r.slug}`, label: r.name, href: `/categories/${r.slug}`, view: `View all ${r.name}`, products: r.products })),
   ];
   if (!tabs.length) return null;
   return (
-    <section aria-labelledby="range-title" className={`mt-12 scroll-mt-40 sm:mt-16 ${tinted ? "border-y border-border bg-surface py-10 sm:py-14" : ""}`}>
+    <section aria-labelledby="range-title" className="mt-12 scroll-mt-40 sm:mt-16">
       <div className="container-page">
-        <SectionHead id="range-title" eyebrow="Just in & by category" title="Explore Our Range">The newest products, then each of our larger ranges. Prices and stock are live.</SectionHead>
+        <SectionHead id="range-title" title={`${siteConfig.name} New Arrivals`}>The newest products, then each of our larger ranges. Prices and stock are live.</SectionHead>
         <ProductTabs
           label="Product ranges"
           tabs={tabs.map((t) => ({
@@ -323,8 +318,7 @@ export async function FeatureSplit({ rail }: { rail: Rail }) {
           <Image src={art.src} alt="" fill sizes="(min-width:1024px) 33vw, 100vw" className="-z-10 object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none" />
           <span aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
           <span className="mt-auto flex flex-col items-start p-6 sm:p-8">
-            <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-500">{rail.count} {rail.count === 1 ? "product" : "products"}</span>
-            <h2 id="feature-title" className="mt-2 font-display text-2xl font-extrabold leading-tight tracking-title sm:text-3xl">{rail.name}</h2>
+            <h2 id="feature-title" className="font-display text-2xl font-extrabold leading-tight tracking-title sm:text-3xl">{rail.name}</h2>
             <span className="mt-2 max-w-xs text-sm leading-6 text-white/80">{art.title}</span>
             <span className="btn mt-5 min-h-10 rounded-full bg-brand-500 px-6 text-[13px] text-on-brand transition-colors group-hover:bg-white group-hover:text-ink">Shop {rail.name}</span>
           </span>
@@ -395,7 +389,7 @@ export function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
 export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
   if (!brands.length) return null;
   return (
-    <section aria-labelledby="brands" className="mt-12 border-y border-border bg-surface py-10 sm:mt-16 sm:py-14">
+    <section aria-labelledby="brands" className="mt-12 sm:mt-16">
       <div className="container-page">
         <SectionHead id="brands" eyebrow={`Brands at ${siteConfig.name}`} title="Shop by Brand">The brands in our catalogue, all in one place.</SectionHead>
         <BrandGrid brands={brands.slice(0, 12)} />
@@ -419,25 +413,18 @@ export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
     { icon: Headset, title: "Real People to Help", text: "Questions about an order or a product? Our team answers." },
   ];
   return (
-    <section aria-labelledby="why" className="relative mt-14 overflow-hidden bg-ink py-14 text-white sm:mt-20 sm:py-20">
-      <div className="container-page relative">
-        <div className="mb-9 text-center">
-          <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.14em] text-brand-500">Why choose us</p>
-          <h2 id="why" className="font-display text-[clamp(1.6rem,1.15rem+1.5vw,2.4rem)] font-extrabold leading-tight tracking-title">Why Choose {siteConfig.name}</h2>
-          <span aria-hidden className="mx-auto mt-3 block h-[3px] w-12 rounded-full bg-brand-500" />
-        </div>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {reasons.map(({ icon: I, title, text }) => (
-            <li key={title} className="group rounded-card border border-white/10 bg-white/[0.04] p-5 transition-[border-color,background-color,box-shadow] duration-300 hover:border-brand-500 hover:bg-white/[0.07] sm:p-6">
-              <span className="flex h-12 w-12 items-center justify-center rounded-control bg-brand-500 text-on-brand shadow-neon">
-                <I className="h-6 w-6" strokeWidth={1.75} aria-hidden />
-              </span>
-              <h3 className="mt-4 text-base font-bold">{title}</h3>
-              <p className="mt-1.5 text-sm leading-6 text-white/70">{text}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
+    // As on ugreen.lk: a plain centred title, then light grey cards with an outline icon, a title and a short line.
+    <section aria-labelledby="why" className="container-page mt-14 sm:mt-20">
+      <SectionHead id="why" title={`Why Choose ${siteConfig.name}`} />
+      <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        {reasons.slice(0, 4).map(({ icon: I, title, text }) => (
+          <li key={title} className="rounded-card bg-[#f6f6f6] px-4 py-6 text-center sm:px-6 sm:py-8">
+            <I className="mx-auto h-9 w-9 text-brand-500 sm:h-10 sm:w-10" strokeWidth={1.4} aria-hidden />
+            <h3 className="mt-3 text-[15px] font-bold leading-snug text-ink sm:text-lg">{title}</h3>
+            <p className="mt-1.5 text-[13px] leading-6 text-muted sm:text-sm">{text}</p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

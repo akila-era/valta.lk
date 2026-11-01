@@ -38,7 +38,6 @@ export function Faq({ checkout }: { checkout: HomeData["checkout"] }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-12">
         <div>
-          <p className="eyebrow mb-1">FAQ</p>
           <h2 id="faq-title" className="section-title">Questions, answered</h2>
           <p className="type-meta mt-2 max-w-sm">Quick answers about paying, delivery, stock, tracking and returns.</p>
           <Link href="/contact" className="btn-secondary mt-5">

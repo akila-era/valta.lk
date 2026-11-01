@@ -67,13 +67,15 @@ export function CompactProductCard({ product, priority, row = false, instalments
 
   return (
     <article className={`group/card relative flex h-full overflow-hidden rounded-card ${row ? "flex-row" : "flex-col"} border border-border bg-bg p-2.5 text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift sm:p-3`}>
+      {/* As on ugreen.lk: "New" above the stock pill at the top left; the stock pill in the brand colour. */}
       <div className="pointer-events-none absolute left-3.5 top-3.5 z-10 flex flex-col items-start gap-1 sm:left-4 sm:top-4">
+        {fresh ? <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">New</span> : null}
         {!product.available ? (
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-bold text-white">Sold out</span>
         ) : low ? (
-          <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">Only {product.purchasableQuantity} left</span>
+          <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">Only {product.purchasableQuantity} left</span>
         ) : (
-          <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">In stock</span>
+          <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">In stock</span>
         )}
       </div>
       <div className="absolute right-3.5 top-3.5 z-10 flex flex-col gap-1.5 sm:right-4 sm:top-4">
@@ -117,11 +119,10 @@ export function CompactProductCard({ product, priority, row = false, instalments
             ) : null}
           </span>
         </Link>
-        {pct || fresh ? (
-          // One row at the bottom-left of the photo, so badges never pile up over the picture.
+        {pct ? (
+          // The discount at the bottom-left of the photo, so badges never pile up over the picture.
           <div className="pointer-events-none absolute bottom-1.5 left-1.5 z-10 flex flex-wrap items-end gap-1 transition-opacity duration-200 group-hover/card:opacity-0 [@media(hover:none)]:group-hover/card:opacity-100">
-            {pct ? <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span> : null}
-            {fresh ? <span className="rounded-full border border-ink bg-bg px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-ink">New</span> : null}
+            <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span>
           </div>
         ) : null}
         {!row ? (

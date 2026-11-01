@@ -29,8 +29,8 @@ test.describe("homepage", () => {
     // staff promo cards only appear once staff create banners in the admin
     await expect(page.getByRole("region", { name: "Offers" })).toHaveCount(0);
     const bar = page.getByRole("region", { name: "Shopping with VOLTA.LK" });
-    await expect(bar.getByText("Delivery LKR 450")).toBeVisible(); // from ERP settings, not hardcoded
-    await expect(bar.getByText("Cash on Delivery", { exact: true })).toBeVisible();
+    await expect(bar.getByText("Delivery LKR 450").first()).toBeVisible(); // from ERP settings, not hardcoded
+    await expect(bar.getByText("Cash on Delivery", { exact: true }).first()).toBeVisible();
 
     // No dead links: every internal link on the page resolves
     const hrefs = await page.$$eval("a[href^='/']", (as) => [...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!))]);
@@ -196,8 +196,8 @@ test.describe("hero", () => {
     await expect(banner.getByRole("img", { name: /Smartphone and wireless earbuds/ })).toBeVisible();
     // only the visible slide can be reached
     await expect(banner.getByRole("link", { name: "Shop now" })).toHaveCount(0);
-    // numbered markers show the position
-    await expect(banner.getByRole("button", { name: "Go to slide 2" })).toHaveText(/02/);
+    // the dot of the current slide is marked
+    await expect(banner.getByRole("button", { name: "Go to slide 2" })).toHaveAttribute("aria-current", "true");
   });
 
   test("wishlist: heart on a card saves the product and the wishlist page lists it", async ({ page }) => {
@@ -221,9 +221,9 @@ test.describe("hero", () => {
     expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
 
     const bar = page.getByRole("region", { name: "Shopping with VOLTA.LK" });
-    await expect(bar.getByText("Cash on Delivery", { exact: true })).toBeVisible();
-    await expect(bar.getByText("Delivery LKR 450")).toBeVisible(); // live from ERP settings
-    await expect(bar.getByText("Track Your Order")).toBeVisible();
+    await expect(bar.getByText("Cash on Delivery", { exact: true }).first()).toBeVisible();
+    await expect(bar.getByText("Delivery LKR 450").first()).toBeVisible(); // live from ERP settings
+    await expect(bar.getByText("Track Your Order").first()).toBeVisible();
     // no unverified service claims anywhere in the header, hero or service strip
     const text = await page.locator("header, section[aria-labelledby=home-title], [aria-label=\"Shopping with VOLTA.LK\"]").allInnerTexts();
     expect(text.join(" ")).not.toMatch(/islandwide|nationwide|secure payments|free|warranty|guarantee|genuine/i);
@@ -266,7 +266,7 @@ test.describe("storefront sections", () => {
   });
 
   test("category row: moved by hand with arrows on both sides, each category once, nothing overflows", async ({ browser }) => {
-    // wide screens: six tiles, exactly five in view; Previous is disabled at the start, Next brings in the sixth
+    // wide screens: six tiles in view at once (as on ugreen.lk), so the row is centred and needs no arrows
     const wide = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     let page = await wide.newPage();
     await page.goto("/");
@@ -276,11 +276,8 @@ test.describe("storefront sections", () => {
       const ul = els[0].parentElement!.getBoundingClientRect();
       return els.filter((e) => { const r = e.getBoundingClientRect(); return r.left >= ul.left - 2 && r.right <= ul.right + 2; }).length;
     });
-    expect(await inView()).toBe(5);
-    await expect(cats.getByRole("button", { name: "Previous categories" })).toBeDisabled();
-    await cats.getByRole("button", { name: "Next categories" }).click();
-    await expect(cats.getByRole("button", { name: "Next categories" })).toBeDisabled();
-    await expect(cats.getByRole("button", { name: "Previous categories" })).toBeEnabled();
+    expect(await inView()).toBe(6);
+    await expect(cats.getByRole("button", { name: /categories$/ })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
     await wide.close();
 

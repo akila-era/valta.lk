@@ -45,7 +45,7 @@ function useReducedMotion() {
 
 /**
  * The homepage banner carousel: staff banner pictures shown as uploaded, then studio photographs with a short caption
- * and one call to action on the left. Numbered markers (01, 02, 03) show the position. Slides move on their own (paused on hover, focus, with the pause button or reduced motion), and
+ * and one call to action on the left. Dots show the position, as on ugreen.lk. Slides move on their own (paused on hover, focus, with the pause button or reduced motion), and
  * can be changed with the arrows, the dots, the arrow keys or a swipe.
  */
 /** Photo: slightly zoomed while its slide is away, settling to full size over 1.8 s when it becomes the current one. */
@@ -120,7 +120,7 @@ export function HeroBanner({ slides, bleed = false }: { slides: HeroSlide[]; ble
             <Image src={s.src} alt={s.alt} fill priority={idx === 0} sizes="100vw" className={`${ZOOM} object-[72%_50%]`} />
             {/* A wash from the left keeps the caption legible over the photograph. */}
             <span aria-hidden className={`absolute inset-0 ${s.dark ? "bg-gradient-to-r from-black/80 via-black/55 to-black/10 sm:via-black/40 sm:to-transparent" : "bg-gradient-to-r from-white/95 via-white/80 to-white/20 sm:from-white/90 sm:via-white/40 sm:to-transparent"}`} />
-            <div className={`relative flex h-full flex-col justify-center pb-16 pt-8 ${bleed ? "container-page" : "px-6 sm:px-10 lg:px-14"} ${s.dark ? "text-white" : "text-ink"}`}>
+            <div className={`relative flex h-full flex-col justify-center pb-16 pt-8 ${bleed ? "container-page sm:px-14" : "px-6 sm:px-14"} ${s.dark ? "text-white" : "text-ink"}`}>
               <div className="max-w-[34rem]">
               <p className={`${RISE} text-xs font-bold uppercase tracking-[0.16em] ${s.dark ? "text-brand-400" : "text-brand-600"}`} style={{ transitionDelay: "280ms" }}>{s.eyebrow}</p>
               <p className={`${RISE} mt-3 font-display text-[clamp(1.9rem,1.2rem+2.8vw,3.75rem)] font-extrabold leading-[1.05] tracking-title`} style={{ transitionDelay: "400ms" }}>{s.title}</p>
@@ -140,8 +140,8 @@ export function HeroBanner({ slides, bleed = false }: { slides: HeroSlide[]; ble
 
       {n > 1 && (
         <>
-          {/* Numbered markers on a dark glass strip, so they read on light and dark pictures alike. */}
-          <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-control bg-black/45 px-2 py-1 text-white backdrop-blur-sm">
+          {/* As on ugreen.lk: small dots at the bottom centre, and plain arrows at the middle of each side. */}
+          <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center">
             {slides.map((s, idx) => (
               <button
                 key={s.src}
@@ -149,29 +149,26 @@ export function HeroBanner({ slides, bleed = false }: { slides: HeroSlide[]; ble
                 onClick={() => go(idx)}
                 aria-label={`Go to slide ${idx + 1}`}
                 aria-current={idx === i ? "true" : undefined}
-                className="group/dot flex h-8 items-center gap-1.5 px-1.5 text-xs font-bold tabular-nums"
+                className="group/dot flex h-8 w-6 items-center justify-center"
               >
-                <span aria-hidden className={idx === i ? "text-white" : "text-white/55 group-hover/dot:text-white"}>{String(idx + 1).padStart(2, "0")}</span>
-                <span aria-hidden className={`block h-0.5 rounded-full transition-all duration-300 ${idx === i ? "w-8 bg-brand-500" : "w-3 bg-white/40"}`} />
+                <span aria-hidden className={`block h-2.5 w-2.5 rounded-full border transition-colors ${idx === i ? "border-brand-500 bg-brand-500" : "border-ink/40 bg-white/80 group-hover/dot:border-brand-500"}`} />
               </button>
             ))}
             <button
               type="button"
               onClick={() => setPaused((p) => !p)}
               aria-label={paused ? "Play slideshow" : "Pause slideshow"}
-              className="ml-0.5 flex h-8 w-8 items-center justify-center rounded-control text-white/75 transition-colors hover:text-white"
+              className="ml-1 flex h-8 w-8 items-center justify-center rounded-full text-ink/60 transition-colors hover:text-brand-600"
             >
-              {paused ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
+              {paused ? <Play className="h-3 w-3" aria-hidden /> : <Pause className="h-3 w-3" aria-hidden />}
             </button>
           </div>
-          <div className="absolute bottom-4 right-4 z-10 hidden gap-2 sm:flex lg:right-8">
-            <button type="button" onClick={() => go(i - 1)} aria-label="Previous slide" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-card transition-colors hover:bg-brand-500 hover:text-on-brand">
-              <ChevronLeft className="h-5 w-5" aria-hidden />
-            </button>
-            <button type="button" onClick={() => go(i + 1)} aria-label="Next slide" className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-ink shadow-card transition-colors hover:bg-brand-500 hover:text-on-brand">
-              <ChevronRight className="h-5 w-5" aria-hidden />
-            </button>
-          </div>
+          <button type="button" onClick={() => go(i - 1)} aria-label="Previous slide" className="absolute left-1 top-1/2 z-10 hidden h-12 w-10 -translate-y-1/2 items-center justify-center text-ink/70 transition-colors hover:text-brand-600 sm:flex lg:left-3">
+            <ChevronLeft className="h-8 w-8" strokeWidth={1.25} aria-hidden />
+          </button>
+          <button type="button" onClick={() => go(i + 1)} aria-label="Next slide" className="absolute right-1 top-1/2 z-10 hidden h-12 w-10 -translate-y-1/2 items-center justify-center text-ink/70 transition-colors hover:text-brand-600 sm:flex lg:right-3">
+            <ChevronRight className="h-8 w-8" strokeWidth={1.25} aria-hidden />
+          </button>
         </>
       )}
     </div>

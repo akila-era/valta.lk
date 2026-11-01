@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -14,7 +13,7 @@ export interface CategoryTile {
 }
 
 /**
- * "Shop by Category" as a row moved by hand, never automatically: five tiles show at a time on laptops and wider (three
+ * "Shop by Category" as a row moved by hand, never automatically: six tiles show at a time on laptops and wider (three
  * on tablets, two and a bit on phones), and round previous / next buttons on both sides move it one tile at a time, as on the banner.
  * Swiping works on touch screens and Tab walks through the tiles. The buttons only exist when there is more than fits;
  * at either end the matching button is disabled. When everything fits, the row is centred.
@@ -57,8 +56,8 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
     "absolute top-[34%] z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-ink shadow-card ring-1 ring-ink/10 transition-[background-color,color,opacity] hover:bg-brand-500 hover:text-on-brand disabled:cursor-default disabled:opacity-35 disabled:hover:bg-white disabled:hover:text-ink sm:h-11 sm:w-11";
 
   return (
-    // capped width on laptops and wider, so the five tiles sit close together instead of spreading across a huge screen
-    <div className="relative mx-auto lg:max-w-[62rem]">
+    // capped width on laptops and wider, so the six tiles sit close together instead of spreading across a huge screen
+    <div className="relative mx-auto lg:max-w-[72rem]">
       <ul
         ref={track}
         aria-label="Categories"
@@ -68,18 +67,14 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
           const Icon = categoryIcon(c.name);
           const count = `${c.count} ${c.count === 1 ? "product" : "products"}`;
           return (
-            // 2 and a bit tiles on phones (so it is clear the row moves), 3 on tablets, exactly 5 from laptops.
-            <li key={c.slug} className="w-[calc((100%-var(--gap)*1.4)/2.4)] shrink-0 snap-start sm:w-[calc((100%-var(--gap)*2)/3)] lg:w-[calc((100%-var(--gap)*4)/5)]">
+            // 2 and a bit tiles on phones (so it is clear the row moves), 3 on tablets, exactly 6 from laptops.
+            <li key={c.slug} className="w-[calc((100%-var(--gap)*2.4)/3.4)] shrink-0 snap-start sm:w-[calc((100%-var(--gap)*2)/3)] lg:w-[calc((100%-var(--gap)*5)/6)]">
               <Link href={`/categories/${c.slug}`} aria-label={`${c.name}, ${count}`} className="group relative flex h-full flex-col items-center p-2 text-center">
-                <span aria-hidden className="relative mb-3 flex aspect-square w-full max-w-36 items-center justify-center overflow-hidden rounded-full bg-surface ring-2 ring-transparent ring-offset-4 transition-[box-shadow] duration-300 group-hover:ring-brand-500">
-                  {c.art ? (
-                    <Image src={c.art} alt="" fill sizes="176px" className="object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none" />
-                  ) : (
-                    <Icon className="h-12 w-12 text-ink/70" strokeWidth={1.2} />
-                  )}
+                {/* As on ugreen.lk: a thin black line icon for the category (no photo, circle or frame), the name under it. */}
+                <span aria-hidden className="mb-3 flex h-20 items-center justify-center sm:h-24">
+                  <Icon className="h-14 w-14 text-ink transition-[color,transform] duration-300 group-hover:-translate-y-1 group-hover:text-brand-500 motion-reduce:transition-none sm:h-16 sm:w-16" strokeWidth={1} />
                 </span>
-                <span className="text-[13px] font-bold leading-tight text-ink sm:text-[15px]">{c.name}</span>
-                <span className="mt-1.5 rounded-full bg-surface px-2.5 py-0.5 text-[11px] font-semibold text-ink ring-1 ring-border transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">{count}</span>
+                <span className="text-[13px] font-semibold leading-tight text-ink transition-colors group-hover:text-brand-600 sm:text-sm">{c.name}</span>
               </Link>
             </li>
           );

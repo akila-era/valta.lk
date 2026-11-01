@@ -1,10 +1,12 @@
 import { NewsletterForm } from "./newsletter-form";
 import Link from "next/link";
 import {
-  Building2, ChevronRight, Clock, FileText, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck,
+  Banknote, Building2, ChevronRight, Clock, FileText, Headset, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck,
   type LucideIcon,
 } from "lucide-react";
 import { listProducts } from "@/lib/erp/catalogue";
+import { getCheckoutAvailability } from "@/lib/erp/settings";
+import { formatLkr } from "@/lib/utils/money";
 import { socialLinks } from "@/lib/home-config";
 import { siteConfig } from "@/lib/site-config";
 import { BackToTop } from "./back-to-top";
@@ -37,14 +39,12 @@ const SOCIAL_ICON: Record<string, (p: IconProps) => React.ReactElement> = {
 };
 
 const colHead = "text-sm font-bold uppercase tracking-[0.1em] text-white";
-const accentBar = "mt-2.5 block h-0.5 w-8 bg-brand-500";
 const rowLink = "group inline-flex min-h-8 items-center gap-2 rounded-sm text-sm text-white/75 transition-colors hover:text-brand-500";
 
 function LinkList({ items, label }: { items: typeof support; label: string }) {
   return (
     <nav aria-label={label}>
       <h2 className={colHead}>{label}</h2>
-      <span className={accentBar} aria-hidden />
       <ul className="mt-4 space-y-0.5">
         {items.map(({ href, label: l, icon: Icon }) => (
           <li key={href}>
@@ -73,13 +73,37 @@ function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: 
 
 /** Dark footer in the style of large brand stores (ugreen.lk): newsletter, link columns, then an orange social bar (when set). */
 export async function Footer({ halloween = false }: { halloween?: boolean }) {
-  const categories = await listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []);
+  const [categories, checkout] = await Promise.all([
+    listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []),
+    getCheckoutAvailability().catch(() => null),
+  ]);
+  // The service row at the top, as on ugreen.lk: only what the live ERP settings confirm, plus tracking and support.
+  const cod = Boolean(checkout?.enabled && checkout.settings?.paymentMethods.COD);
+  const charge = checkout?.enabled ? (checkout.settings?.deliveryCharge ?? null) : null;
+  const services: { icon: LucideIcon; title: string; text: string }[] = [
+    ...(cod ? [{ icon: Banknote, title: "Cash on delivery", text: "Pay when your order arrives." }] : []),
+    ...(charge != null ? [{ icon: Truck, title: `Delivery ${formatLkr(charge)}`, text: "Shown before you order." }] : []),
+    { icon: PackageSearch, title: "Track your order", text: "Follow it with your reference." },
+    { icon: Headset, title: "Customer support", text: "We are here to help." },
+  ];
   const social = socialLinks();
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className={`on-dark relative border-t-[3px] border-brand-500 bg-ink pb-16 text-white/80 md:pb-0 ${halloween ? "mt-32 sm:mt-40" : "mt-16"}`}>
+    <footer className={`on-dark relative bg-ink pb-16 text-white/80 md:pb-0 ${halloween ? "mt-32 sm:mt-40" : "mt-16"}`}>
       {halloween ? <HalloweenSkyline /> : null}
+      <ul aria-label="Our service" className="container-page grid grid-cols-2 border-b border-white/10 lg:grid-cols-4">
+        {services.map(({ icon: I, title, text }, i) => (
+          <li key={title} className={`flex items-center gap-3 py-6 sm:gap-4 sm:px-4 ${i > 0 ? "lg:border-l lg:border-white/10" : ""}`}>
+            <I className="h-9 w-9 shrink-0 text-brand-500 sm:h-11 sm:w-11" strokeWidth={1.2} aria-hidden />
+            <span className="min-w-0">
+              <span className="block text-sm font-bold text-white">{title}</span>
+              <span className="block text-xs text-white/65 sm:text-sm">{text}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
       {/* Newsletter: new arrivals and price drops by email. */}
       <div className="border-b border-white/10">
         <div className="container-page flex flex-col gap-5 py-9 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
@@ -103,7 +127,6 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
 
         <nav aria-label="Shop categories">
           <h2 className={colHead}>Shop</h2>
-          <span className={accentBar} aria-hidden />
           <ul className="mt-4 space-y-0.5">
             <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />All products</Link></li>
             <li><Link className={rowLink} href="/brands"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />Shop by brand</Link></li>
@@ -118,7 +141,6 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
 
         <div className={hasContact ? "col-span-2 md:col-span-3 lg:col-span-1" : "lg:col-span-1"}>
           <h2 className={colHead}>Contact</h2>
-          <span className={accentBar} aria-hidden />
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             {siteConfig.phone && <ContactRow icon={Phone} label="Customer support"><a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="inline-flex items-center py-1 hover:text-brand-500 hover:underline pointer-coarse:min-h-11">{siteConfig.phone}</a></ContactRow>}
             {siteConfig.email && <ContactRow icon={Mail} label="Email us"><a href={`mailto:${siteConfig.email}`} className="hover:text-brand-500 hover:underline">{siteConfig.email}</a></ContactRow>}
@@ -135,11 +157,11 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
 
       {/* The orange bar: social links, shown only when the owner has set any. */}
       {social.length > 0 && (
-        <div className="bg-brand-500 text-on-brand">
+        <div className="border-t border-white/10">
           <div className="container-page flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-4">
             {social.length > 0 && (
               <div className="flex items-center gap-3 sm:ml-auto">
-                <span className="text-sm font-bold">Follow us</span>
+                <span className="text-sm font-bold text-white">Follow us</span>
                 <ul className="flex flex-wrap gap-2" aria-label="Social media">
                   {social.map((s) => {
                     const Icon = SOCIAL_ICON[s.label] ?? Share2;
@@ -150,7 +172,7 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`${s.label} (opens in a new tab)`}
-                          className="flex h-10 w-10 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-white hover:text-ink"
+                          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-brand-500 hover:text-on-brand"
                         >
                           <Icon className="h-5 w-5" aria-hidden />
                         </a>
@@ -164,15 +186,15 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
         </div>
       )}
 
-      <div className="border-t border-white/10">
+      <div className="bg-brand-500 text-on-brand">
         <div className="container-page flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-5">
-          <div className="text-sm">
+          <div className="text-sm font-semibold">
             <p>© {new Date().getFullYear()} VOLTA.LK. All rights reserved.</p>
-            <p className="mt-1 text-xs text-white/60">Prices and availability are subject to change without notice.</p>
+            <p className="mt-1 text-xs font-medium">Prices and availability are subject to change without notice.</p>
           </div>
-          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold md:ml-auto md:mr-2">
-            <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:text-brand-500 pointer-coarse:min-h-11">Privacy policy</Link></li>
-            <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:text-brand-500 pointer-coarse:min-h-11">Terms & conditions</Link></li>
+          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold md:ml-auto md:mr-2">
+            <li><Link href="/privacy-policy" className="inline-flex min-h-6 items-center hover:underline pointer-coarse:min-h-11">Privacy policy</Link></li>
+            <li><Link href="/terms" className="inline-flex min-h-6 items-center hover:underline pointer-coarse:min-h-11">Terms & conditions</Link></li>
           </ul>
           <BackToTop />
         </div>

@@ -409,7 +409,6 @@ test.describe("most popular", () => {
     await page.goto("/");
     const popular = page.locator("#popular");
     await expect(popular.getByRole("heading", { name: "Most Popular" })).toBeVisible();
-    await expect(popular.getByText("The products ordered most on VOLTA.LK in the last 90 days.")).toBeVisible();
     const titles = await popular.locator("article h3").allInnerTexts();
     expect(titles.filter((t) => picks.some((p) => p.name === t))).toEqual(picks.map((p) => p.name));
   });

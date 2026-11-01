@@ -178,7 +178,7 @@ test.describe("ERP connection form", () => {
     await expect(main.getByLabel("API credential")).toHaveValue("");
 
     // the site still works with it, then remove falls back to the environment
-    await page.goto("/admin/products");
+    await page.goto("/admin/products?q=Nova%20X1"); // the table is paged, so search for it
     await expect(page.getByRole("table").getByText("Nova X1 Smartphone")).toBeVisible();
     await page.goto("/admin/settings/erp");
     page.once("dialog", (d) => d.accept());

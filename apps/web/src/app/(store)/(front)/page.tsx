@@ -45,25 +45,25 @@ export default async function HomePage() {
       </div>
       {data.catalogueOk ? (
         <>
+          {/* In the order of ugreen.lk's homepage: categories, new arrivals (tabs), customer reviews, the range tiles,
+              the feature block, why choose us and most popular; then our own deals, brands and offers. */}
           <CategoryGrid categories={data.categories} />
+          <RangeTabs newArrivals={data.newArrivals} rails={tabRails} />
+          <Reviews title={data.reviews.title} reviews={data.reviews.items} />
           <Spotlight categories={data.categories} />
-          <ProductSection id="popular" eyebrow="Customer favourites" title="Most Popular" text="The products ordered most on VOLTA.LK in the last 90 days." href="/products" products={data.popular} />
-          <BrandWall brands={data.brands} />
-          {data.staffBanners ? <PromoTiles banners={data.banners.slice(0, 4)} /> : null}
+          {featured ? <FeatureSplit rail={featured} /> : null}
+          <WhyChoose checkout={data.checkout} />
+          <ProductSection id="popular" title="Most Popular Products" href="/products" products={data.popular} />
           <ProductSection
             id="deals"
-            eyebrow="Price drops"
             title="Hot Deals"
-            text={data.hotDealsCurated ? "Picked by the VOLTA team. Prices and stock are live from our catalogue." : "Current price reductions in our catalogue."}
             href="/products?sale=1"
             products={deals}
             priority
             aside={data.hotDealsEndAt ? <DealCountdown endsAt={data.hotDealsEndAt} /> : null}
           />
-          {featured ? <FeatureSplit rail={featured} /> : null}
-          <RangeTabs newArrivals={data.newArrivals} rails={tabRails} tinted />
-          <WhyChoose checkout={data.checkout} />
-          <Reviews title={data.reviews.title} reviews={data.reviews.items} />
+          <BrandWall brands={data.brands} />
+          {data.staffBanners ? <PromoTiles banners={data.banners.slice(0, 4)} /> : null}
           <div className="container-page">
             <VideoShowcase title={data.videos.title} videos={data.videos.items} />
           </div>
