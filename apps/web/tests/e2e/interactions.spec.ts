@@ -61,34 +61,29 @@ test.describe("product page controls", () => {
 });
 
 test.describe("catalogue controls", () => {
-  test("sort, brand and price filters, active-filter chips, and filters keep the chosen sort", async ({ page }) => {
+  test("sort, a brand page and the stock status links (as on ugreen.lk) work together and keep the chosen sort", async ({ page }) => {
     await page.goto("/products");
     await page.getByLabel("Sort products").selectOption("price-asc");
     await expect(page).toHaveURL(/sort=price-asc/);
     await expect(page.locator("main article").first()).toContainText("Glide Tempered Glass");
 
-    await page.getByLabel("Brand").selectOption("Pulse");
-    await page.getByRole("button", { name: "Apply filters" }).click();
-    await expect(page).toHaveURL(/brand=Pulse/);
-    await expect(page).toHaveURL(/sort=price-asc/); // applying filters keeps the sort
+    // a brand's products (the brand pages and Shop by Brand link here), cheapest first
+    await page.goto("/products?brand=Pulse&sort=price-asc");
     await expect(page.locator("main article")).toHaveCount(2);
-    // cheapest Pulse product first
     await expect(page.locator("main article").first()).toContainText("Pulse Wireless Earbuds");
 
-    // the chip removes the brand filter
-    await page.getByRole("link", { name: /^Pulse/ }).filter({ has: page.locator("svg") }).first().click();
-    await expect(page).not.toHaveURL(/brand=/);
-    await expect(page.locator("main article")).toHaveCount(12);
-
-    await page.getByPlaceholder("Min").fill("10000");
-    await page.getByPlaceholder("Max").fill("30000");
-    await page.getByRole("button", { name: "Apply filters" }).click();
-    await expect(page).toHaveURL(/min=10000/);
-    const prices = await page.locator("main article").evaluateAll((els) =>
-      els.map((e) => Number((e.textContent ?? "").match(/LKR ([\d,]+)/)?.[1].replace(/,/g, "") ?? 0)),
-    );
-    expect(prices.length).toBeGreaterThan(0);
-    for (const p of prices) expect(p >= 10000 && p <= 30000, `price ${p}`).toBe(true);
+    // Stock status: closed until opened; each choice is a link that applies at once and keeps the sort
+    await page.goto("/products?sort=price-asc");
+    await page.locator("summary", { hasText: "Stock status" }).click();
+    const stock = page.getByRole("list", { name: "Stock status" });
+    await stock.getByRole("link", { name: "In stock" }).click();
+    await expect(page).toHaveURL(/stock=1/);
+    await expect(page).toHaveURL(/sort=price-asc/);
+    await expect(stock.getByRole("link", { name: "In stock" })).toHaveAttribute("aria-current", "true");
+    await expect(page.locator("main article", { hasText: "Limited Case (sold out)" })).toHaveCount(0);
+    // the same link switches it off again
+    await stock.getByRole("link", { name: "In stock" }).click();
+    await expect(page).not.toHaveURL(/stock=1/);
   });
 
   test("grid and list layouts switch, are marked as current and survive sorting", async ({ page }) => {
@@ -109,7 +104,7 @@ test.describe("catalogue controls", () => {
     expect(grid.width).toBeLessThan(grid.height);
   });
 
-  test("on phones the filter drawer opens, closes and applies", async ({ browser }) => {
+  test("on phones the filter drawer opens, closes and its categories work", async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const page = await ctx.newPage();
     await page.goto("/products");
@@ -117,12 +112,11 @@ test.describe("catalogue controls", () => {
     const close = page.getByRole("button", { name: "Close filters" }).last();
     await expect(close).toBeVisible();
     await close.click();
-    await expect(page.getByLabel("Brand")).toBeHidden();
+    await expect(page.getByRole("navigation", { name: "Filter by category" })).toBeHidden();
     await page.getByRole("button", { name: "Filters" }).click();
-    await page.getByLabel("Brand").selectOption("Echo");
-    await page.getByRole("button", { name: "Apply filters" }).click();
-    await expect(page).toHaveURL(/brand=Echo/);
-    await expect(page.locator("main article")).toHaveCount(2);
+    await page.getByRole("navigation", { name: "Filter by category" }).getByRole("link", { name: "Audio", exact: true }).click();
+    await expect(page).toHaveURL(/\/categories\/audio$/);
+    await expect(page.locator("main article")).toHaveCount(4);
     await ctx.close();
   });
 });
@@ -336,8 +330,8 @@ test.describe("store features", () => {
     await expect(page.getByRole("status").filter({ hasText: "Showing 1–2 of 2 results" })).toBeVisible();
 
     await page.goto("/products");
-    await page.getByLabel("On sale").check();
-    await page.getByRole("button", { name: "Apply filters" }).click();
+    await page.locator("summary", { hasText: "Stock status" }).click(); // closed until used, as on ugreen.lk
+    await page.getByRole("list", { name: "Stock status" }).getByRole("link", { name: "On sale" }).click();
     await expect(page).toHaveURL(/sale=1/);
     await expect(page.locator("main article")).toHaveCount(1); // Orbit Pro is the only reduced product
 

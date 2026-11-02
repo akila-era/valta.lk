@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Battery, Camera, Check, ChevronLeft, ChevronRight, LayoutGrid, Cpu, Headphones, ShieldCheck, Smartphone, Store, Truck, Wifi, Zap, type LucideIcon } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, LayoutGrid, ShieldCheck } from "lucide-react";
 import { Notice } from "@/components/ui/notice";
 import { ErpUnavailable } from "@/components/ui/states";
 import { AccessoryRail } from "@/components/products/accessory-rail";
@@ -26,9 +26,9 @@ import { effectivePrice, productOffer } from "@/lib/erp/product-utils";
 import { quotePricedLines } from "@/lib/promotions/quote";
 import type { PricedLine } from "@/lib/promotions/evaluate";
 import { getSettings } from "@/lib/erp/settings";
+import { PAYMENT_BADGES, getStoreInfo } from "@/lib/store-info";
 import type { ErpProduct } from "@/lib/erp/types";
 import { siteConfig } from "@/lib/site-config";
-import { formatLkr } from "@/lib/utils/money";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ preview?: string }> };
 
@@ -69,12 +69,10 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   };
 }
 
-const FEATURE_ICON: Record<string, LucideIcon> = { zap: Zap, shield: ShieldCheck, battery: Battery, wifi: Wifi, cpu: Cpu, camera: Camera, smartphone: Smartphone, headphones: Headphones };
-
 /** A detail card: a bold heading on a plain bordered panel. */
 const Section = ({ id, title, children, className = "" }: { id: string; title: string; children: React.ReactNode; className?: string }) => (
-  <section aria-labelledby={id} className={`relative min-w-0 scroll-mt-40 overflow-hidden rounded-panel border border-border bg-bg p-6 sm:p-8 ${className}`}>
-    <h2 id={id} className="statement relative text-xl sm:text-2xl">{title}</h2>
+  <section aria-labelledby={id} className={`relative min-w-0 scroll-mt-40 overflow-hidden rounded-card bg-bg p-5 sm:p-7 ${className}`}>
+    <h2 id={id} className="relative text-xl font-semibold text-ink sm:text-2xl">{title}</h2>
     <div className="relative mt-5">{children}</div>
   </section>
 );
@@ -114,6 +112,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
     ? product.variants.map((v) => ({ productId: product.id, variantKey: v.key, quantity: 1, listPrice: v.price, erpPrice: effectivePrice(v), categoryName: product.category?.name ?? null }))
     : [{ productId: product.id, variantKey: "", quantity: 1, listPrice: product.price, erpPrice: effectivePrice(product), categoryName: product.category?.name ?? null }];
   const [quote, accessories, settings, rev] = await Promise.all([quotePricedLines(priced), offersForSources([product.id]), getSettings().catch(() => null), productReviews(product.id)]);
+  const store = await getStoreInfo();
   // In-page links, only to the sections this product really has.
   const jumps = [
     ...(descHtml || product.description ? [{ id: "desc", label: "Description" }] : []),
@@ -154,13 +153,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
       {/* Breadcrumbs */}
       <div className="mb-6 flex items-start justify-between gap-4">
       <nav aria-label="Breadcrumb" className="w-fit min-w-0">
-        <ol className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
+        <ol className="flex flex-wrap items-center gap-2 text-sm text-muted">
           <li>
             <Link href="/" className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
               Home
             </Link>
           </li>
-          <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+          <li aria-hidden className="text-muted/70">/</li>
           <li>
             <Link href="/products" className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
               All products
@@ -168,7 +167,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </li>
           {product.category && (
             <>
-              <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+              <li aria-hidden className="text-muted/70">/</li>
               <li>
                 <Link href={`/categories/${product.category.slug}`} className="inline-flex min-h-6 items-center transition-colors hover:text-ink">
                   {product.category.name}
@@ -178,7 +177,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           )}
           {product.category && product.subCategory && (
             <>
-              <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+              <li aria-hidden className="text-muted/70">/</li>
               <li>
                 <Link
                   href={`/categories/${product.category.slug}?sub=${product.subCategory.slug}`}
@@ -189,9 +188,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
               </li>
             </>
           )}
-          <ChevronRight className="h-3 w-3 text-muted/60" aria-hidden />
+          <li aria-hidden className="text-muted/70">/</li>
           <li>
-            <span className="font-semibold text-brand-600 truncate max-w-[20ch] sm:max-w-[32ch] inline-block align-bottom" aria-current="page">
+            <span className="inline-block max-w-[24ch] truncate align-bottom font-semibold text-ink sm:max-w-[60ch]" aria-current="page">
               {title}
             </span>
           </li>
@@ -207,9 +206,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
           ].map(({ p, label, Icon, href }) => {
             const to = href ?? (p ? `/products/${p.slug}` : null);
             const name = p ? `${label}: ${p.content?.displayTitle || p.name}` : label;
-            const cls = "flex h-9 w-9 items-center justify-center rounded-full border border-border text-ink transition-colors";
+            const cls = "flex h-9 w-8 items-center justify-center text-ink transition-colors";
             return to ? (
-              <Link key={label} href={to} aria-label={name} title={name} className={`${cls} hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand`}>
+              <Link key={label} href={to} aria-label={name} title={name} className={`${cls} hover:text-brand-600`}>
                 <Icon className="h-4 w-4" aria-hidden />
               </Link>
             ) : (
@@ -226,14 +225,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
         <Gallery images={product.images} alt={title} alts={c?.gallery.length ? c.gallery.map((g) => g.alt) : undefined} captions={c?.gallery.length ? c.gallery.map((g) => g.caption) : undefined} />
         <div>
-          {(product.brand || product.category) && (
-            <p className="kicker flex flex-wrap items-center gap-x-2">
-              {product.brand && <span className="text-brand-600">{product.brand}</span>}
-              {product.brand && product.category && <span aria-hidden className="h-1 w-1 rounded-full bg-border" />}
-              {product.category && <Link href={`/categories/${product.category.slug}`} className="py-1 hover:text-ink">{product.category.name}</Link>}
-            </p>
-          )}
-          <h1 className="statement mt-2 text-[clamp(1.5rem,1.2rem+1vw,2.125rem)] leading-tight">{title}</h1>
+          <h1 className="text-[clamp(1.4rem,1.15rem+0.9vw,1.9rem)] font-semibold leading-tight tracking-[-0.01em] text-ink">{title}</h1>
           {rev.summary ? (
             <a href="#reviews" className="mt-2 inline-flex items-center gap-2 text-sm hover:underline">
               <Stars rating={rev.summary.average} label={`Rated ${rev.summary.average} out of 5`} />
@@ -241,25 +233,44 @@ export default async function ProductPage({ params, searchParams }: Props) {
               <span className="text-muted">({rev.summary.count} {rev.summary.count === 1 ? "review" : "reviews"})</span>
             </a>
           ) : null}
-          {(showModel || c?.subtitle) && (
-            <p className="mt-2 text-base text-muted">
-              {c?.subtitle}
-              {c?.subtitle && showModel ? " · " : ""}
-              {showModel ? `Model ${model}` : ""}
-            </p>
-          )}
-          {badges.length > 0 && (
-            <ul className="mt-4 flex flex-wrap gap-2" aria-label="Highlights">
-              {badges.map((b) => <li key={b} className="badge rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">{b}</li>)}
-            </ul>
-          )}
-          {c?.shortDescription && <p className="mt-4 max-w-prose text-[15px] leading-7 text-muted">{c.shortDescription}</p>}
-          <div className="relative mt-6 rounded-3xl border border-border/80 bg-white p-6 shadow-soft ring-1 ring-ink/[0.04] sm:p-7">
+          {c?.subtitle && <p className="mt-2 text-base text-muted">{c.subtitle}</p>}
+          {/* "✓ In stock" under the title, as on ugreen.lk. */}
+          <p className={`mt-2 inline-flex items-center gap-1.5 text-lg font-bold ${product.available ? "text-brand-500" : "text-muted"}`}>
+            {product.available ? <Check className="h-5 w-5" strokeWidth={2.5} aria-hidden /> : null}
+            {product.available ? "In stock" : "Sold out"}
+          </p>
+          <div className="mt-4 border-t border-border pt-4">
+            {/* The key points as one bullet list ("Model : …", then "Title: description"), as on ugreen.lk. */}
+            {showModel || (c && c.features.length > 0) ? (
+              <ul aria-label="Key points" className="list-disc space-y-1.5 pl-5 text-[15px] leading-6 text-ink/85 marker:text-ink">
+                {showModel ? (
+                  <li>
+                    <span className="font-semibold text-ink">Model :</span> {model}
+                  </li>
+                ) : null}
+                {c?.features.map((f, i) => (
+                  <li key={i}>
+                    <span className="font-semibold text-ink">{f.title}{f.description ? ":" : ""}</span>
+                    {f.description ? ` ${f.description}` : ""}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {c?.shortDescription && <p className="mt-3 max-w-prose text-[15px] leading-7 text-muted">{c.shortDescription}</p>}
+            {badges.length > 0 && (
+              <ul className="mt-4 flex flex-wrap gap-2" aria-label="Highlights">
+                {badges.map((b) => <li key={b} className="rounded-control bg-brand-500 px-3 py-1 text-xs font-bold text-on-brand">{b}</li>)}
+              </ul>
+            )}
+          </div>
+          <div className="mt-6">
             <PurchasePanel
               offerNames={offerNames}
               deliveryCharge={settings?.deliveryCharge}
               cod={settings?.paymentMethods.COD === true}
               warranty={[c?.warranty.duration, c?.warranty.provider].filter(Boolean).join(" · ") || product.specs.Warranty || null}
+              payments={store.payments.map((k) => PAYMENT_BADGES[k])}
+              pickup={hasDelivery && c ? { estimate: c.delivery.estimate || undefined, pickup: c.delivery.pickup || undefined, notes: c.delivery.notes || undefined } : undefined}
               product={{
                 id: product.id,
                 slug: product.slug,
@@ -277,35 +288,17 @@ export default async function ProductPage({ params, searchParams }: Props) {
               <ShareButtons url={`${siteConfig.url}/products/${product.slug}`} title={title} />
             </div>
           </div>
-          {c && c.features.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Key features</h2>
-              <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
-                {c.features.map((f, i) => {
-                  const Icon = FEATURE_ICON[f.icon] ?? Check;
-                  return (
-                  <li key={i} className="flex gap-3 rounded-2xl border border-border/80 bg-bg p-3.5 text-sm shadow-soft">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                      <Icon className="h-4 w-4" aria-hidden />
-                    </span>
-                    <span className="min-w-0"><span className="block font-semibold leading-5 text-ink">{f.title}</span>{f.description && <span className="mt-0.5 block text-xs leading-5 text-muted">{f.description}</span>}</span>
-                  </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
         </div>
       </div>
 
       <AccessoryRail productIds={[product.id]} initial={accessories} intro="Only accessories linked to this product. Prices are the catalogue prices. You can continue without them." />
 
       {jumps.length > 1 && (
-        <nav aria-label="On this page" className="sticky top-[var(--hdr-sticky,7.5rem)] z-20 mt-10 max-w-full overflow-x-auto rounded-full border border-border/80 bg-white/95 px-4 py-1.5 shadow-soft backdrop-blur">
+        <nav aria-label="On this page" className="mt-12 max-w-full overflow-x-auto border-b border-border">
           <ul className="flex w-max gap-4 sm:gap-6">
             {jumps.map((j) => (
               <li key={j.id}>
-                <a href={`#${j.id}`} className="inline-flex min-h-9 items-center text-xs font-bold text-muted transition-colors hover:text-brand-600">
+                <a href={`#${j.id}`} className="inline-flex min-h-11 items-center border-b-2 border-transparent text-[15px] font-semibold uppercase text-muted transition-colors hover:border-brand-500 hover:text-ink">
                   {j.label}
                 </a>
               </li>
@@ -315,7 +308,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
       )}
 
       {/* Two columns on wide screens (description beside specifications) so the page has no empty right half. */}
-      <div className={`${jumps.length > 1 ? "mt-8" : "mt-12"} grid items-start gap-6 lg:grid-cols-2 lg:gap-8`}>
+      <div className={`${jumps.length > 1 ? "mt-6" : "mt-12"} grid items-start gap-5 rounded-panel bg-surface p-3 sm:p-5 lg:grid-cols-2`}>
         {(descHtml || product.description) && (
           <Section id="desc" title="Description">
             {descHtml ? <div className="rich" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>}
@@ -357,14 +350,6 @@ export default async function ProductPage({ params, searchParams }: Props) {
               {c.warranty.notes && <p className="mt-3 text-xs text-muted">{c.warranty.notes}</p>}
               </div>
             </div>
-          </Section>
-        )}
-        {hasDelivery && c && (
-          <Section id="delivery" title="Delivery & pickup">
-            <ul className="space-y-3 rounded-xl border border-border p-4 text-sm">
-              <li className="flex gap-3"><Truck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Delivery{settings ? ` · ${formatLkr(settings.deliveryCharge)}` : ""}</span>{c.delivery.estimate && <span className="block text-muted">{c.delivery.estimate}</span>}{c.delivery.notes && <span className="block text-muted">{c.delivery.notes}</span>}</span></li>
-              {c.delivery.pickup && <li className="flex gap-3"><Store className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span><span className="font-semibold">Store pickup</span><span className="block whitespace-pre-line text-muted">{c.delivery.pickup}</span></span></li>}
-            </ul>
           </Section>
         )}
       </div>

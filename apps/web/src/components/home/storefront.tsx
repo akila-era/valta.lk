@@ -19,7 +19,7 @@ type Category = HomeData["categories"][number];
 
 /** Campaign photographs for the banner, each tied to the kind of category it shows. Only kinds the catalogue has are used. */
 const SLIDE_ART: { test: RegExp; src: string; alt: string; eyebrow: string; title: string; text: string; dark?: boolean }[] = [
-  { test: /phone|mobile|smartphone/i, src: "/images/home/volta-hero-electronics.webp", alt: "Smartphone and wireless earbuds in a studio", eyebrow: "Smartphones", title: "The latest phones, in one place.", text: "Compare smartphones and their prices in LKR, with live stock from our catalogue." },
+  { test: /(?<!head|ear)phone|mobile|smartphone/i, src: "/images/home/volta-hero-electronics.webp", alt: "Smartphone and wireless earbuds in a studio", eyebrow: "Smartphones", title: "The latest phones, in one place.", text: "Compare smartphones and their prices in LKR, with live stock from our catalogue." },
   { test: /audio|earbud|headphone|speaker/i, src: "/images/home/volta-hero-audio.webp", alt: "Wireless earbuds and charging case", eyebrow: "Audio", title: "Sound for every day.", text: "Earbuds, headphones and speakers for work, travel and play." },
   { test: /wear|watch/i, src: "/images/home/volta-hero-watch.webp", alt: "Smartwatch on a stone surface", eyebrow: "Wearables", title: "Smart on your wrist.", text: "Smartwatches and bands that keep up with your day." },
   { test: /accessor|charg|cable|gadget/i, src: "/images/home/volta-hero-accessories.webp", alt: "Backpack, power bank, chargers and cables", eyebrow: "Accessories", title: "Power up and stay connected.", text: "Chargers, cables, power banks and the everyday essentials that go with your devices.", dark: true },
@@ -337,7 +337,7 @@ export async function FeatureSplit({ rail }: { rail: Rail }) {
 
 /** One descriptive line per kind of collection. Descriptive only: no claims about quality, speed or warranty. */
 const COLLECTION_LINE: { test: RegExp; line: string }[] = [
-  { test: /phone|mobile|smartphone/i, line: "Smartphones from the brands in our catalogue, with live prices and stock." },
+  { test: /(?<!head|ear)phone|mobile|smartphone/i, line: "Smartphones from the brands in our catalogue, with live prices and stock." },
   { test: /audio|earbud|headphone|speaker/i, line: "Earbuds, headphones and speakers for music, calls and travel." },
   { test: /accessor|charg|cable/i, line: "Chargers, cables, power banks and the everyday essentials for your devices." },
   { test: /wear|watch/i, line: "Smartwatches and fitness bands for every day." },

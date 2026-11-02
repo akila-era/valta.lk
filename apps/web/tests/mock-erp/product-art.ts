@@ -63,6 +63,26 @@ export function renderProductSvg(it?: ItemInfo): string {
   `;
 
   // 1. Smartphones
+  if (/power bank/i.test(name)) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+      ${defs}
+      <g filter="url(#softShadow)">
+        <rect x="125" y="70" width="150" height="270" rx="28" fill="#1e2430" stroke="#334155" stroke-width="2"/>
+        <path d="M 125 70 L 275 70 L 125 240 Z" fill="url(#glassReflection)"/>
+        <rect x="135" y="80" width="130" height="40" rx="10" fill="#0a0d14"/>
+        <rect x="145" y="92" width="28" height="14" rx="3" fill="#ff5c00"/>
+        <rect x="186" y="94" width="26" height="10" rx="5" fill="#38bdf8"/>
+        <rect x="225" y="92" width="28" height="14" rx="3" fill="#ff5c00"/>
+        <circle cx="170" cy="150" r="4" fill="#22c55e"/>
+        <circle cx="190" cy="150" r="4" fill="#22c55e"/>
+        <circle cx="210" cy="150" r="4" fill="#22c55e"/>
+        <circle cx="230" cy="150" r="4" fill="#22c55e"/>
+        <text x="200" y="270" text-anchor="middle" fill="#ffffff" font-size="22" font-family="-apple-system, sans-serif" font-weight="700">10,000</text>
+        <text x="200" y="290" text-anchor="middle" fill="#ff5c00" font-size="11" font-family="-apple-system, sans-serif" font-weight="600" letter-spacing="1">mAh FAST CHARGE</text>
+      </g>
+    </svg>`;
+  }
+
   if (/nova x1/i.test(name)) {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
       ${defs}
@@ -101,7 +121,7 @@ export function renderProductSvg(it?: ItemInfo): string {
     </svg>`;
   }
 
-  if (/nova lite/i.test(name) || /phone|mobile/i.test(cat)) {
+  if (/nova lite/i.test(name) || /mobile/i.test(cat)) {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
       ${defs}
       <g filter="url(#softShadow)">
@@ -295,25 +315,6 @@ export function renderProductSvg(it?: ItemInfo): string {
   }
 
   // 11. Power Banks
-  if (/power bank/i.test(name)) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
-      ${defs}
-      <g filter="url(#softShadow)">
-        <rect x="125" y="70" width="150" height="270" rx="28" fill="#1e2430" stroke="#334155" stroke-width="2"/>
-        <path d="M 125 70 L 275 70 L 125 240 Z" fill="url(#glassReflection)"/>
-        <rect x="135" y="80" width="130" height="40" rx="10" fill="#0a0d14"/>
-        <rect x="145" y="92" width="28" height="14" rx="3" fill="#ff5c00"/>
-        <rect x="186" y="94" width="26" height="10" rx="5" fill="#38bdf8"/>
-        <rect x="225" y="92" width="28" height="14" rx="3" fill="#ff5c00"/>
-        <circle cx="170" cy="150" r="4" fill="#22c55e"/>
-        <circle cx="190" cy="150" r="4" fill="#22c55e"/>
-        <circle cx="210" cy="150" r="4" fill="#22c55e"/>
-        <circle cx="230" cy="150" r="4" fill="#22c55e"/>
-        <text x="200" y="270" text-anchor="middle" fill="#ffffff" font-size="22" font-family="-apple-system, sans-serif" font-weight="700">10,000</text>
-        <text x="200" y="290" text-anchor="middle" fill="#ff5c00" font-size="11" font-family="-apple-system, sans-serif" font-weight="600" letter-spacing="1">mAh FAST CHARGE</text>
-      </g>
-    </svg>`;
-  }
 
   // Fallback
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">

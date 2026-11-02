@@ -181,8 +181,8 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
     }
   }
 
-  const panel = "rounded-panel border border-border bg-bg p-5 sm:p-7";
-  const heading = "font-display text-lg font-extrabold uppercase tracking-[0.02em] text-ink";
+  const panel = "rounded-card bg-[#f7f7f7] p-5 sm:p-7";
+  const heading = "text-xl font-semibold uppercase tracking-[0.01em] text-ink";
 
   return (
     <form
@@ -234,8 +234,8 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
       </section>
 
       <aside aria-label="Your order" className={`${panel} lg:sticky lg:top-[calc(var(--hdr-sticky,7rem)+1.5rem)]`}>
-        <h2 className={`${heading} flex items-baseline justify-between`}>
-          Your order <span className="text-sm font-normal normal-case tracking-normal text-muted">{items} {items === 1 ? "item" : "items"}</span>
+        <h2 className={`${heading} text-center`}>
+          Your order <span className="sr-only">({items} {items === 1 ? "item" : "items"})</span>
         </h2>
 
         {unavailable.length > 0 && (
@@ -244,39 +244,41 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           </p>
         )}
 
-        <ul className="mt-4 divide-y divide-border border-y border-border text-sm">
+        {/* As on ugreen.lk: a small PRODUCT / SUBTOTAL table. */}
+        <p aria-hidden className="mt-5 flex justify-between border-b-2 border-border pb-2.5 text-[13px] font-semibold uppercase text-ink"><span>Product</span><span>Subtotal</span></p>
+        <ul className="divide-y divide-border border-b border-border text-sm">
           {lines.map((l) => (
             <li key={lineKey(l)} className="flex items-center gap-3 py-3">
-              <span className="thumb-stage relative h-14 w-14 shrink-0 overflow-hidden rounded-control border border-border">
+              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-control bg-bg">
                 {l.image ? <Image src={l.image} alt="" fill sizes="56px" className="object-contain p-1" /> : <Smartphone className="m-auto h-full w-6 text-muted" aria-hidden />}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="line-clamp-2 font-medium leading-5 text-ink">{l.name}</span>
+                <span className="line-clamp-2 leading-5 text-muted">{l.name}</span>
                 <span className="block text-xs text-muted">{l.variantLabel ? `${l.variantLabel} · ` : ""}Qty {l.quantity}</span>
               </span>
-              <span className="shrink-0 font-semibold tabular-nums">{formatLkr(multiplyMoney(l.unitPrice, l.quantity))}</span>
+              <span className="shrink-0 tabular-nums text-muted">{formatLkr(multiplyMoney(l.unitPrice, l.quantity))}</span>
             </li>
           ))}
         </ul>
 
-        <dl className="mt-4 space-y-2 text-sm">
-          <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd className="tabular-nums">{formatLkr(subtotal)}</dd></div>
+        <dl className="divide-y divide-border text-sm [&>div]:py-3.5">
+          <div className="flex justify-between"><dt className="font-semibold text-ink">Subtotal</dt><dd className="font-semibold tabular-nums text-brand-600">{formatLkr(subtotal)}</dd></div>
           {savings > 0 && <div className="flex justify-between text-success"><dt>Savings included</dt><dd className="tabular-nums">{formatLkr(fromCents(savings))}</dd></div>}
           {offers.map((name) => <div key={name} className="text-xs text-muted">{name}</div>)}
-          <div className="flex justify-between"><dt className="text-muted">Delivery</dt><dd className="tabular-nums" data-testid="delivery">{formatLkr(deliveryCharge)}</dd></div>
-          <div className="flex items-baseline justify-between border-t border-border pt-3">
-            <dt className="font-semibold">Total</dt>
-            <dd className="text-2xl font-bold tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd>
+          <div className="flex justify-between"><dt className="font-semibold text-ink">Shipment</dt><dd className="tabular-nums text-muted">Flat rate: <span className="font-semibold text-brand-600" data-testid="delivery">{formatLkr(deliveryCharge)}</span></dd></div>
+          <div className="flex items-baseline justify-between">
+            <dt className="font-semibold text-ink">Total</dt>
+            <dd className="text-2xl font-bold tabular-nums text-brand-500" data-testid="total">{formatLkr(total)}</dd>
           </div>
         </dl>
 
         <fieldset className="mt-5">
-          <legend className="text-sm font-semibold text-ink">Payment</legend>
-          <label className="mt-2 flex items-start gap-3 rounded-control border border-brand-500 bg-brand-50/40 p-3 text-sm">
+          <legend className="sr-only">Payment</legend>
+          <label className="flex items-start gap-3 text-[15px]">
             <input type="radio" name="payment" value="COD" defaultChecked readOnly className="mt-0.5 h-4 w-4 accent-brand-600" />
             <span className="min-w-0">
-              <span className="flex items-center gap-1.5 font-semibold text-ink"><Banknote className="h-4 w-4" aria-hidden /> Cash on delivery</span>
-              <span className="mt-0.5 block text-xs leading-5 text-muted">Pay in cash when your order arrives.</span>
+              <span className="flex items-center gap-1.5 text-ink"><Banknote className="h-4 w-4 text-brand-600" aria-hidden /> Cash on delivery</span>
+              <span className="mt-2 block rounded-control bg-bg p-3 text-sm leading-6 text-muted">Pay in cash when your order arrives.</span>
             </span>
           </label>
         </fieldset>
@@ -289,7 +291,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           {err("acceptTerms") && <p id="acceptTerms-err" className="field-error" role="alert">{err("acceptTerms")}</p>}
         </div>
 
-        <button type="submit" className="btn-primary mt-5 min-h-12 w-full text-[15px]" disabled={submitting}>
+        <button type="submit" className="btn-primary mt-5 min-h-12 w-full rounded-control text-[13px] font-bold uppercase tracking-[0.04em]" disabled={submitting}>
           {submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : "Place order"}
         </button>
         <p className="mt-3 text-center text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>

@@ -41,7 +41,7 @@ export function resolveBanners(categories: Category[]): ResolvedBanner[] {
       .map((b) => ({ ...b, image: b.categorySlug ? bySlug.get(b.categorySlug)?.image : undefined }));
   }
 
-  const phones = categories.find((c) => /phone|mobile/i.test(c.name));
+  const phones = categories.find((c) => /(?<!head|ear)phone|mobile/i.test(c.name));
   const gadgets = categories.find((c) => c !== phones && /gadget|accessor|wearable|watch|audio|smart/i.test(c.name));
   const out: ResolvedBanner[] = [];
   if (phones) {
@@ -186,7 +186,7 @@ export async function getHomeData(): Promise<HomeData> {
     wideBanners,
     rails,
     budget: prices ? budgetBands(prices) : null,
-    phonesSlug: categories.find((c) => /phone|mobile/i.test(c.name))?.slug,
+    phonesSlug: categories.find((c) => /(?<!head|ear)phone|mobile/i.test(c.name))?.slug,
     checkout: {
       cod: Boolean(settings?.enabled && settings.settings?.paymentMethods.COD),
       deliveryCharge: settings?.enabled ? (settings.settings?.deliveryCharge ?? null) : null,

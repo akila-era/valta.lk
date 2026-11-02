@@ -16,7 +16,7 @@ export async function ProductGrid({
   layout = "grid",
 }: {
   products: ErpProduct[];
-  columns?: 3 | 4 | 5;
+  columns?: 2 | 3 | 4 | 5;
   /** "list": one product per row, photo on the left (the catalogue's List view). */
   layout?: "grid" | "list";
 }) {
@@ -35,7 +35,9 @@ export async function ProductGrid({
       ? "grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
       : columns === 4
         ? "grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4"
-        : "grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3";
+        : columns === 3
+          ? "grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
+          : "grid-cols-2 gap-3 sm:gap-5";
 
   return (
     <div className={`grid ${colClasses}`}>

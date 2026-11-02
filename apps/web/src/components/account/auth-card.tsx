@@ -1,13 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Package, ShoppingBag, Truck, UserRound } from "lucide-react";
-import { siteConfig } from "@/lib/site-config";
-
-/** What a customer account really does on this site: checkout prefill, the order list, and tracking from it. */
-const BENEFITS = [
-  { icon: ShoppingBag, title: "Faster checkout", text: "Your name, phone and email are filled in for you." },
-  { icon: Package, title: "All your orders in one place", text: "See every order you placed while signed in." },
-  { icon: Truck, title: "Track deliveries", text: "Follow each order's status from your account." },
-];
+import { ChevronRight, UserRound } from "lucide-react";
 
 /**
  * Account pages (sign in, register, password reset, admin sign in): breadcrumbs, then the form on a plain card. With
@@ -74,29 +66,38 @@ export function AuthCard({
       </nav>
 
       {tabs ? (
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-8">
-          <aside className="relative order-2 self-start overflow-hidden rounded-panel bg-brand-500 p-6 text-on-brand shadow-neon sm:p-8 lg:order-1">
-            <span aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border-[18px] border-white/20" />
-            <p className="relative text-xs font-bold uppercase tracking-[0.14em]">{siteConfig.name} account</p>
-            <h2 className="relative mt-2 font-display text-2xl font-extrabold leading-tight sm:text-3xl">Shop faster, keep track of every order.</h2>
-            <ul className="relative mt-6 space-y-4">
-              {BENEFITS.map(({ icon: Icon, title: t, text }) => (
-                <li key={t} className="flex gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-600"><Icon className="h-5 w-5" aria-hidden /></span>
-                  <span>
-                    <span className="block text-sm font-bold">{t}</span>
-                    <span className="block text-sm">{text}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="relative mt-6 border-t border-ink/15 pt-4 text-sm">
-              Prefer not to sign up? You can still <Link href="/products" className="font-bold underline">shop as a guest</Link>.
+        // As on ugreen.lk: the form on the left; on the right, separated by a thin line, the other choice (Register or
+        // Login) with a short line and one button. No card around them.
+        <div className="grid gap-10 md:grid-cols-2 md:gap-0">
+          <div className="md:border-r md:border-border md:pr-12">
+            <h1 className="text-2xl font-semibold text-ink">{title}</h1>
+            {intro && <p className="mt-1.5 text-sm leading-6 text-muted">{intro}</p>}
+            <div className="mt-5">{children}</div>
+            {footer && <p className="mt-4 text-sm leading-5 text-muted">{footer}</p>}
+          </div>
+          <div className="border-t border-border pt-10 text-center md:border-t-0 md:pl-12 md:pt-0">
+            {tabs.active === "login" ? (
+              <>
+                <h2 className="text-2xl font-semibold text-ink">Register</h2>
+                <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-muted">
+                  Registering for this site lets you see your order status and history, and fills in your details at checkout. Just fill in a few fields and your account is ready.
+                </p>
+                <Link href={"/account/register" + query} className="mt-6 inline-flex min-h-10 items-center rounded-full bg-surface px-6 text-xs font-bold uppercase tracking-[0.04em] text-ink transition-colors hover:bg-ink hover:text-white">
+                  Register
+                </Link>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-semibold text-ink">Login</h2>
+                <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-muted">Already have an account? Sign in to see your orders and check out faster.</p>
+                <Link href={"/account/login" + query} className="mt-6 inline-flex min-h-10 items-center rounded-full bg-surface px-6 text-xs font-bold uppercase tracking-[0.04em] text-ink transition-colors hover:bg-ink hover:text-white">
+                  Login
+                </Link>
+              </>
+            )}
+            <p className="mt-8 text-sm text-muted">
+              Prefer not to sign up? You can still <Link href="/products" className="font-semibold text-brand-600 underline underline-offset-2">shop as a guest</Link>.
             </p>
-          </aside>
-          <div className="order-1 lg:order-2">
-            {card}
-            {footer && <p className="mt-4 text-center text-sm leading-5 text-muted">{footer}</p>}
           </div>
         </div>
       ) : (

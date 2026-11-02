@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BadgeCheck, Check, Minus, Plus, RefreshCw, ShieldCheck, ShoppingCart, Truck, Wallet, type LucideIcon } from "lucide-react";
+import { BadgeCheck, Check, Clock, Minus, Plus, RefreshCw, ShieldCheck, ShoppingCart, Store, Truck, Wallet, type LucideIcon } from "lucide-react";
 import { effectivePrice, quantityCap, variantChoiceRequired } from "@/lib/erp/product-utils";
 import { addedNotice } from "@/store/added-notice";
 import { cartActions } from "@/store/cart";
@@ -41,7 +41,7 @@ function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: s
 }
 
 /** `warranty`: the product's warranty in a few words (from its content or ERP specs), shown as a trust tile when set. */
-export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, warranty }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; warranty?: string | null }) {
+export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, warranty, payments = [], pickup }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; warranty?: string | null; /** Payment badges (Admin, Store details) shown under the price, as on ugreen.lk. */ payments?: string[]; /** Store pickup / delivery time from the product content. */ pickup?: { estimate?: string; pickup?: string; notes?: string } }) {
   const router = useRouter();
   const mustChoose = variantChoiceRequired(product.variants.length);
   const only = product.variants.length === 1 ? product.variants[0].key : "";
@@ -124,6 +124,13 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <Price price={price} salePrice={salePrice} large offerName={offerNames[variantKey] ?? offerNames[""]} />
         <WishlistButton className="shrink-0" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.image, price: unit }} />
       </div>
+      {payments.length > 0 ? (
+        <ul aria-label="Ways to pay" className="flex flex-wrap gap-2">
+          {payments.map((name) => (
+            <li key={name} className="flex h-8 min-w-14 items-center justify-center rounded-[6px] border border-border bg-bg px-2.5 text-[11px] font-extrabold tracking-wide text-ink">{name}</li>
+          ))}
+        </ul>
+      ) : null}
 
       {product.variants.length > 0 && (
         <fieldset>
@@ -149,7 +156,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         </fieldset>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-border py-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <p
           className={`inline-flex items-center gap-2 font-semibold ${purchasable ? "text-success" : mustChoose && !variant ? "text-ink" : "text-danger"}`}
           data-testid="availability"
@@ -162,22 +169,22 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       </div>
 
       <div ref={actionsRef} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="flex w-fit items-center rounded-full border border-border/80 bg-white p-0.5 shadow-soft" role="group" aria-label="Quantity">
-          <button type="button" className="btn-ghost min-w-11 rounded-full px-3" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
+        <div className="flex h-12 w-fit items-center rounded-control border border-border bg-white" role="group" aria-label="Quantity">
+          <button type="button" className="btn-ghost h-full min-w-10 rounded-none px-2" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
             <Minus className="h-4 w-4" aria-hidden />
           </button>
           <span className="w-10 text-center text-base font-semibold tabular-nums" aria-live="polite" data-testid="qty">{qty}</span>
-          <button type="button" className="btn-ghost min-w-11 rounded-full px-3" aria-label="Increase quantity" disabled={qty >= maxQty} onClick={() => setQty((q) => Math.min(maxQty, q + 1))}>
+          <button type="button" className="btn-ghost h-full min-w-10 rounded-none px-2" aria-label="Increase quantity" disabled={qty >= maxQty} onClick={() => setQty((q) => Math.min(maxQty, q + 1))}>
             <Plus className="h-4 w-4" aria-hidden />
           </button>
         </div>
         <div className="flex flex-1 flex-wrap gap-3">
-          <button type="button" className="btn-primary btn-lg rounded-full shine min-w-0 flex-1 basis-[8.5rem] whitespace-nowrap px-4 shadow-soft transition-all hover:shadow-lift sm:px-6" disabled={!purchasable || added} onClick={() => add()}>
+          <button type="button" className="btn-primary min-h-12 min-w-0 flex-1 basis-[8.5rem] whitespace-nowrap rounded-control px-4 text-[13px] font-bold uppercase tracking-[0.04em] sm:px-6" disabled={!purchasable || added} onClick={() => add()}>
             {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : <><ShoppingCart className="h-4 w-4" aria-hidden /> Add to cart</>}
           </button>
           <button
             type="button"
-            className="btn-dark btn-lg rounded-full min-w-0 flex-1 basis-[8.5rem] whitespace-nowrap px-4 shadow-soft transition-all hover:shadow-lift sm:px-6"
+            className="btn-dark min-h-12 min-w-0 flex-1 basis-[8.5rem] whitespace-nowrap rounded-control px-4 text-[13px] font-bold uppercase tracking-[0.04em] sm:px-6"
             disabled={!purchasable || added}
             onClick={() => {
               if (add(true)) router.push("/checkout");
@@ -187,7 +194,11 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>
         </div>
       </div>
+      <div className="rounded-card bg-surface p-4 sm:p-5">
+      <p className="mb-2 text-[15px] font-semibold text-ink">Delivery Information</p>
       <ul className="grid gap-2 text-sm sm:grid-cols-2" aria-label="Delivery and payment">
+        {pickup?.pickup ? <Assurance icon={Store} title="Store pickup"><span className="whitespace-pre-line">{pickup.pickup}</span></Assurance> : null}
+        {pickup?.estimate ? <Assurance icon={Clock} title="Delivery time">{pickup.estimate}{pickup.notes ? <span className="block">{pickup.notes}</span> : null}</Assurance> : null}
         {deliveryCharge != null ? (
           <Assurance icon={Truck} title={`Delivery ${formatLkr(deliveryCharge)}`}>
             <Link href="/shipping-policy" className="inline-block py-1 underline underline-offset-2 hover:text-ink">Shipping policy</Link>
@@ -204,6 +215,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         ) : null}
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>
+      </div>
       {showBar ? (
         <div className="fixed inset-x-0 bottom-16 z-40 border-t md:bottom-0 border-border/80 bg-white/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">

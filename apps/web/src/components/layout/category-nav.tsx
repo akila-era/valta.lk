@@ -17,7 +17,7 @@ export function CategoryNav({ categories, showDeals }: { categories: NavCategory
   const close = useCallback(() => setOpenedAt(null), []);
 
   const iconFor = (name: string): LucideIcon | null => {
-    if (/phone|mobile/i.test(name)) return Smartphone;
+    if (/(?<!head|ear)phone|mobile/i.test(name)) return Smartphone;
     if (/audio|headphone|earbud/i.test(name)) return Headphones;
     if (/wearable|watch/i.test(name)) return Watch;
     if (/tablet/i.test(name)) return Tablet;

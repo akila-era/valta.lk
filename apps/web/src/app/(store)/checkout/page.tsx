@@ -33,8 +33,8 @@ export default async function CheckoutPage() {
       {a.enabled && a.settings ? (
         <>
           {!customer && accountsEnabled() && (
-            <p className="mx-auto mb-5 max-w-6xl text-sm text-muted">
-              Have an account? <Link href="/account/login?next=/checkout" className="font-semibold text-brand-600 hover:underline">Sign in</Link> to fill in your details and see this order in your account. Guest checkout works too.
+            <p className="mx-auto mb-5 max-w-6xl text-[15px] font-medium text-ink">
+              Returning customer? <Link href="/account/login?next=/checkout" className="font-semibold text-brand-600 underline underline-offset-2">Click here to login</Link>
             </p>
           )}
           <CheckoutForm deliveryCharge={a.settings.deliveryCharge} prefill={customer ?? undefined} />

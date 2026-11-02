@@ -1,3 +1,4 @@
+import { DEMO_CATALOGUE } from "./demo-catalogue";
 import { renderProductSvg } from "./product-art";
 /**
  * Mock HEXALYTE store-api for local development and automated tests ONLY.
@@ -11,6 +12,8 @@ const PORT = Number(process.env.MOCK_ERP_PORT ?? 4010);
 // Demo deployments: browsers cannot reach the Docker-internal address, so product image URLs can be made absolute on a
 // public address that serves /uploads (see docs/DEPLOYMENT.md, "Demo deployment"). Unset: relative paths, as the tests expect.
 const PUBLIC_ORIGIN = (process.env.MOCK_PUBLIC_ORIGIN ?? "").replace(/\/+$/, "");
+/** MOCK_ERP_DEMO=1: serve the larger demo catalogue (local demos only; the tests use the small one). */
+const DEMO = process.env.MOCK_ERP_DEMO === "1";
 const BASE = "/api/v1/store-api";
 const CREDENTIAL = "hxs_test.testsecret";
 const itemId = (n: number) => `cm0item${String(n).padStart(8, "0")}`;
@@ -20,6 +23,8 @@ interface Item {
   subCategory?: string;
   id: string; sku: string; name: string; brand: string; category: string; price: string; salePrice: string | null;
   discountActive: boolean; stock: number; updatedAt: string; variants: Variant[]; model?: string;
+  /** Demo catalogue only: published in the last few days (shows the New badge), and the warranty in months. */
+  fresh?: boolean; warrantyMonths?: number;
 }
 
 const mk = (n: number, name: string, category: string, brand: string, price: number, extra: Partial<Item> = {}): Item => ({
@@ -27,7 +32,15 @@ const mk = (n: number, name: string, category: string, brand: string, price: num
   stock: 20, updatedAt: `2026-10-${String(10 + (n % 9)).padStart(2, "0")}T08:00:00.000Z`, variants: [], ...extra,
 });
 
-const initialItems = (): Item[] => [
+const demoItems = (): Item[] =>
+  DEMO_CATALOGUE.map((d, i) =>
+    mk(i + 1, d.name, d.category, d.brand, d.price, {
+      subCategory: d.subCategory, model: d.model, stock: d.stock ?? 25, fresh: d.fresh, warrantyMonths: d.warrantyMonths,
+      ...(d.sale ? { salePrice: d.sale.toFixed(2), discountActive: true } : {}),
+    }),
+  );
+
+const initialItems = (): Item[] => DEMO ? demoItems() : [
   mk(1, "Nova X1 Smartphone", "Mobile Phones", "Nova", 129900, {
     model: "X1",
     variants: [
@@ -99,13 +112,13 @@ const qty = (stock: number) => Math.min(stock, 20);
 
 const wireItem = (i: Item) => ({
   id: i.id, externalId: null, sku: i.sku, name: i.name, description: `${i.name} by ${i.brand}.`, brand: i.brand,
-  category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: null, warrantyNote: null,
-  images: i.sku === "SKU-6" || i.sku === "SKU-7" ? [] : [PUBLIC_ORIGIN ? { url: `${PUBLIC_ORIGIN}/uploads/${i.id}.svg` } : { url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
+  category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: i.warrantyMonths ?? null, warrantyNote: null,
+  images: !DEMO && (i.sku === "SKU-6" || i.sku === "SKU-7") ? [] : [PUBLIC_ORIGIN ? { url: `${PUBLIC_ORIGIN}/uploads/${i.id}.svg` } : { url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
   salePrice: i.salePrice, discountActive: i.discountActive, discountEndsAt: null, hasVariants: i.variants.length > 0,
   variants: i.variants.map((v) => ({ key: v.key, sku: v.sku, storage: v.storage, color: v.color, colorHex: null, price: v.price, salePrice: null, discountActive: false, availability: avail(v.stock), purchasableQuantity: qty(v.stock) })),
   availability: i.variants.length ? avail(i.variants.reduce((a, v) => a + v.stock, 0)) : avail(i.stock),
   purchasableQuantity: i.variants.length ? qty(i.variants.reduce((a, v) => a + v.stock, 0)) : qty(i.stock),
-  publishedAt: i.sku === "SKU-3" || i.sku === "SKU-8" ? new Date(Date.now() - 3 * 86400_000).toISOString() : new Date(Date.now() - (60 + Number(i.id.slice(-8))) * 86400_000).toISOString(), updatedAt: i.updatedAt,
+  publishedAt: (DEMO ? i.fresh : i.sku === "SKU-3" || i.sku === "SKU-8") ? new Date(Date.now() - 3 * 86400_000).toISOString() : new Date(Date.now() - (60 + Number(i.id.slice(-8))) * 86400_000).toISOString(), updatedAt: i.updatedAt,
 });
 
 const unitPriceOf = (it: Item, variantKey?: string | null) => {
