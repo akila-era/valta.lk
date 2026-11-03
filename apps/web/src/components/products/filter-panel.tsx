@@ -82,7 +82,7 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
         aria-modal={open ? true : undefined}
         className={`${
           open
-            ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain rounded-l-panel border-l-[3px] border-brand-500 bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl [scrollbar-width:thin]"
+            ? "fixed inset-y-0 left-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-left_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl [scrollbar-width:thin]"
             : "hidden"
         } lg:static lg:z-auto lg:block lg:max-h-[calc(100vh-var(--hdr-sticky,7rem)-2rem)] lg:w-full lg:overflow-y-auto lg:overscroll-contain lg:pr-2 [scrollbar-width:thin]`}
       >
