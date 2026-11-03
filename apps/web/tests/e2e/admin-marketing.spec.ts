@@ -47,7 +47,7 @@ test.describe("admin marketing", () => {
     await expect(page.getByRole("region", { name: "Featured" }).getByRole("button", { name: "Go to slide 6" })).toHaveCount(0);
   });
 
-  test("a brand logo uploaded in the admin shows in Shop by Brand, and removing it brings back the monogram", async ({ page }) => {
+  test("a brand logo uploaded in the admin shows in Explore our brands, and removing it brings back the wordmark", async ({ page }) => {
     await signInAsAdmin(page);
     await page.goto("/admin/brands");
     await page.getByLabel("Upload logo for Pulse").setInputFiles({ name: "pulse.png", mimeType: "image/png", buffer: PNG });
@@ -56,7 +56,7 @@ test.describe("admin marketing", () => {
     await page.goto("/");
     const pulse = page.locator("section[aria-labelledby=brands]").getByRole("link", { name: /^Pulse, / });
     await expect(pulse.locator("img")).toHaveCount(1);
-    await expect(pulse.getByText("P", { exact: true })).toHaveCount(0); // no monogram once a logo exists
+    await expect(pulse.locator("[data-wordmark]")).toHaveCount(0); // no wordmark once a logo exists
     await expect(pulse.getByText("Pulse", { exact: true })).toBeVisible(); // the name stays under the logo
 
     await page.goto("/admin/brands");
@@ -65,6 +65,6 @@ test.describe("admin marketing", () => {
     await page.goto("/");
     const again = page.locator("section[aria-labelledby=brands]").getByRole("link", { name: /^Pulse, / });
     await expect(again.locator("img")).toHaveCount(0);
-    await expect(again.getByText("P", { exact: true })).toBeVisible(); // the orange monogram is back
+    await expect(again.locator("[data-wordmark]")).toBeVisible(); // the name in the brand's colour is back
   });
 });

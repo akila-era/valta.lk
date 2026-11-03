@@ -143,11 +143,11 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-control border-2 border-brand-500 bg-bg py-2.5 pl-11 pr-28 text-[15px] focus:border-brand-hover focus:shadow-[0_0_0_4px_rgb(255_92_0/0.28)]" : "pl-11 pr-16"}`}
+          className={`input outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-control border border-border-strong/50 bg-bg py-2.5 pl-11 pr-28 text-[15px] focus:border-ink" : "pl-11 pr-16"}`}
         />
         {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute inset-y-0 right-0 flex w-14 items-center justify-center rounded-r-control bg-brand-500 text-on-brand transition-colors hover:bg-brand-hover" aria-label="Search">
+          <button type="submit" className="absolute inset-y-0 right-0 flex w-14 items-center justify-center rounded-r-control bg-ink text-white transition-colors hover:bg-ink/85" aria-label="Search">
             <Search className="h-[18px] w-[18px]" strokeWidth={2.5} aria-hidden />
           </button>
         ) : (

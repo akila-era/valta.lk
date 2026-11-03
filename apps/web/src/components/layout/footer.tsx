@@ -39,7 +39,7 @@ const SOCIAL_ICON: Record<string, (p: IconProps) => React.ReactElement> = {
 };
 
 const colHead = "text-sm font-bold uppercase tracking-[0.1em] text-white";
-const rowLink = "group inline-flex min-h-8 items-center gap-2 rounded-sm text-sm text-white/75 transition-colors hover:text-brand-500";
+const rowLink = "group inline-flex min-h-8 items-center gap-2 rounded-sm text-sm text-white/75 transition-colors hover:text-white";
 
 function LinkList({ items, label }: { items: typeof support; label: string }) {
   return (
@@ -49,7 +49,7 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
         {items.map(({ href, label: l, icon: Icon }) => (
           <li key={href}>
             <Link href={href} className={rowLink}>
-              <Icon className="h-4 w-4 shrink-0 text-brand-500" strokeWidth={1.75} aria-hidden />
+              <Icon className="h-4 w-4 shrink-0 text-white/45" strokeWidth={1.75} aria-hidden />
               {l}
             </Link>
           </li>
@@ -62,7 +62,7 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
 function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon"><Icon className="h-[18px] w-[18px]" aria-hidden /></span>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white"><Icon className="h-[18px] w-[18px]" aria-hidden /></span>
       <span className="min-w-0 text-sm">
         <span className="block text-xs text-white/60">{label}</span>
         <span className="block break-words font-semibold text-white">{children}</span>
@@ -97,7 +97,7 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
       <ul aria-label="Our service" className="container-page grid grid-cols-2 border-b border-white/10 lg:grid-cols-4">
         {services.map(({ icon: I, title, text }, i) => (
           <li key={title} className={`flex items-center gap-3 py-6 sm:gap-4 sm:px-4 ${i > 0 ? "lg:border-l lg:border-white/10" : ""}`}>
-            <I className="h-9 w-9 shrink-0 text-brand-500 sm:h-11 sm:w-11" strokeWidth={1.2} aria-hidden />
+            <I className="h-9 w-9 shrink-0 text-white/80 sm:h-11 sm:w-11" strokeWidth={1.2} aria-hidden />
             <span className="min-w-0">
               <span className="block text-sm font-bold text-white">{title}</span>
               <span className="block text-xs text-white/65 sm:text-sm">{text}</span>
@@ -111,7 +111,7 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
         <div className="container-page flex flex-col gap-5 py-9 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
           <div className="max-w-md">
             <h2 className="font-display text-xl font-extrabold text-white sm:text-2xl">
-              Get the <span className="text-brand-500">deals</span> first
+              Get the deals first
             </h2>
             <p className="mt-1.5 text-sm leading-6 text-white/70">New arrivals and price drops in your inbox, about twice a month. Unsubscribe any time.</p>
           </div>
@@ -130,10 +130,10 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
         <nav aria-label="Shop categories">
           <h2 className={colHead}>Shop</h2>
           <ul className="mt-4 space-y-0.5">
-            <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />All products</Link></li>
-            <li><Link className={rowLink} href="/brands"><ChevronRight className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />Shop by brand</Link></li>
+            <li><Link className={rowLink} href="/products"><ChevronRight className="h-4 w-4 shrink-0 text-white/45" aria-hidden />All products</Link></li>
+            <li><Link className={rowLink} href="/brands"><ChevronRight className="h-4 w-4 shrink-0 text-white/45" aria-hidden />Shop by brand</Link></li>
             {categories.slice(0, 7).map((c) => (
-              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-brand-500" aria-hidden />{c.name}</Link></li>
+              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><ChevronRight className="h-4 w-4 shrink-0 text-white/45" aria-hidden />{c.name}</Link></li>
             ))}
           </ul>
         </nav>
@@ -146,24 +146,24 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             {phones.length > 0 && (
               <ContactRow icon={Phone} label="Call us">
-                {phones.map((n) => <a key={n} href={telHref(n)} className="mr-3 inline-flex items-center py-1 hover:text-brand-500 hover:underline pointer-coarse:min-h-11">{n}</a>)}
+                {phones.map((n) => <a key={n} href={telHref(n)} className="mr-3 inline-flex items-center py-1 hover:text-white hover:underline pointer-coarse:min-h-11">{n}</a>)}
               </ContactRow>
             )}
-            {info.whatsapp && <ContactRow icon={MessageSquare} label="WhatsApp"><a href={`https://wa.me/${info.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="hover:text-brand-500 hover:underline">{info.whatsapp}</a></ContactRow>}
-            {info.email && <ContactRow icon={Mail} label="Email us"><a href={`mailto:${info.email}`} className="hover:text-brand-500 hover:underline">{info.email}</a></ContactRow>}
+            {info.whatsapp && <ContactRow icon={MessageSquare} label="WhatsApp"><a href={`https://wa.me/${info.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">{info.whatsapp}</a></ContactRow>}
+            {info.email && <ContactRow icon={Mail} label="Email us"><a href={`mailto:${info.email}`} className="hover:text-white hover:underline">{info.email}</a></ContactRow>}
             {info.address && <ContactRow icon={MapPin} label="Visit us at">{info.address}</ContactRow>}
             {info.hours.length > 0 && (
               <ContactRow icon={Clock} label="Business hours">
                 {info.hours.map((h) => <span key={h} className="block text-sm font-normal text-white/80">{h}</span>)}
               </ContactRow>
             )}
-            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-brand-500" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
+            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-4 w-4 text-white/45" strokeWidth={1.75} aria-hidden />Contact details</Link></li>}
           </ul>
         </div>
       </div>
 
       {/* As on ugreen.lk: a coloured bar (orange here) with the payment badges and the social links, then the small print. */}
-      <div className="bg-brand-500 text-on-brand">
+      <div className="border-t border-white/10 bg-black text-white">
         {info.payments.length > 0 || social.length > 0 ? (
           <div className="container-page flex flex-wrap items-center justify-between gap-x-10 gap-y-4 border-b border-white/25 py-4">
             {info.payments.length > 0 ? (
@@ -189,7 +189,7 @@ export async function Footer({ halloween = false }: { halloween?: boolean }) {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`${x.label} (opens in a new tab)`}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-white hover:text-ink"
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white hover:text-ink"
                         >
                           <Icon className="h-[18px] w-[18px]" aria-hidden />
                         </a>

@@ -5,10 +5,10 @@ import type { ReactNode } from "react";
 /* Dashboard building blocks (server components, no client JS). */
 
 const TONES = {
-  orange: { box: "bg-brand-500 text-white", stroke: "#ff5c00", glow: "from-brand-500/10" },
+  orange: { box: "bg-brand-500 text-white", stroke: "#ff7a33", glow: "from-brand-500/10" },
   green: { box: "bg-success-bg text-success", stroke: "#067647", glow: "from-success/10" },
   blue: { box: "bg-ink text-white", stroke: "#111111", glow: "from-ink/5" },
-  purple: { box: "bg-ink text-brand-500", stroke: "#ff5c00", glow: "from-brand-500/10" },
+  purple: { box: "bg-ink text-brand-500", stroke: "#ff7a33", glow: "from-brand-500/10" },
   red: { box: "bg-danger-bg text-danger", stroke: "#b42318", glow: "from-danger/10" },
 } as const;
 export type DashTone = keyof typeof TONES;

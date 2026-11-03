@@ -323,7 +323,7 @@ test.describe("storefront sections", () => {
   test("shop by brand: one grid cell per catalogue brand, opening that brand's products", async ({ page }) => {
     await page.goto("/");
     const brands = page.locator("section[aria-labelledby=brands]");
-    await expect(brands.getByRole("heading", { name: "Shop by Brand" })).toBeVisible();
+    await expect(brands.getByRole("heading", { name: "Explore our brands" })).toBeVisible();
     const pulse = brands.getByRole("link", { name: /^Pulse, \d+ products?$/ });
     await expect(pulse).toHaveAttribute("href", "/products?brand=Pulse");
     await pulse.click();

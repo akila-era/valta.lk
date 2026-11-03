@@ -29,7 +29,7 @@ export function DotSpinner({ size = 56, className = "" }: { size?: number; class
               height: d,
               marginLeft: -d / 2,
               marginTop: -d / 2,
-              background: "#ff5c00",
+              background: "#ff7a33",
               opacity: dot.o,
               // each dot sits on the ring, 45 degrees behind the previous one, so the eight close the circle
               transform: `rotate(${-i * 45}deg) translateY(${-r}px)`,

@@ -90,7 +90,7 @@ export async function Header() {
           </div>
           <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
             <Link href="/contact" className="hidden items-center gap-2.5 px-3 hover:text-brand-600 xl:inline-flex">
-              <Headset className="h-7 w-7 text-brand-500" strokeWidth={1.5} aria-hidden />
+              <Headset className="h-7 w-7 text-ink" strokeWidth={1.5} aria-hidden />
               <span className="leading-tight">
                 <span className="block text-[11px] text-muted">Need help?</span>
                 <span className="block text-sm font-semibold">Support</span>

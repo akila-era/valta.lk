@@ -6,6 +6,7 @@ import { CompactProductCard } from "@/components/products/compact-product-card";
 import type { HomeData, ResolvedBanner } from "@/lib/home-data";
 import type { ErpProduct } from "@/lib/erp/types";
 import { instalmentLine } from "@/lib/instalments";
+import { brandColor } from "@/lib/brand-colors";
 import { cardRatings } from "@/lib/reviews";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
@@ -108,7 +109,7 @@ export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
               const body = (
                 <>
                   <I className="h-4 w-4 shrink-0 text-brand-500" strokeWidth={2} aria-hidden />
-                  <span className="whitespace-nowrap text-sm font-bold text-brand-500">{title}</span>
+                  <span className="whitespace-nowrap text-sm font-bold text-white">{title}</span>
                   <span className="whitespace-nowrap text-xs text-white/60">{text}</span>
                 </>
               );
@@ -351,32 +352,34 @@ export function collectionLine(name: string, count: number): string {
 }
 
 /**
- * Brand tiles: the staff-uploaded logo (Admin, Brands), or an orange monogram badge until one is uploaded, then the
- * name and the product count. Each opens that brand's products. A short last row stays centred.
+ * Brand tiles: a white tile with the staff-uploaded logo (Admin, Brands), or the
+ * brand's name as a wordmark in its own colour until a logo is uploaded, and the name underneath. Each opens that
+ * brand's page, which is shown in the brand's colour.
  */
-export function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
+export async function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
+  const colors = await Promise.all(brands.map((b) => brandColor(b.name)));
   return (
-    <ul className="flex flex-wrap justify-center gap-3 sm:gap-4">
-      {brands.map((b) => {
+    <ul className="flex flex-wrap justify-center gap-2.5 sm:gap-3">
+      {brands.map((b, i) => {
         const count = `${b.count} ${b.count === 1 ? "product" : "products"}`;
         return (
-          <li key={b.name} className="w-[calc((100%-1.5rem)/3)] sm:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-5rem)/6)]">
+          <li key={b.name} className="w-[calc((100%-1.25rem)/3)] xs:w-28 sm:w-32">
             <Link
               href={`/products?brand=${encodeURIComponent(b.name)}`}
               aria-label={`${b.name}, ${count}`}
-              className="group relative flex h-32 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-card border border-brand-100 bg-bg px-2 text-center transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-brand-500 hover:shadow-neon-lift motion-reduce:hover:translate-y-0 sm:h-36"
+              className="group flex h-full flex-col items-center gap-2 rounded-card border border-brand-500/15 bg-white px-2 pb-2.5 pt-3 text-center transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-neon-lift motion-reduce:hover:translate-y-0"
             >
-              {b.logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={b.logo} alt="" loading="lazy" className="h-11 max-w-[75%] object-contain transition-transform duration-300 group-hover:scale-105 sm:h-12" />
-              ) : (
-                <span aria-hidden className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-500 font-display text-xl font-extrabold text-on-brand shadow-neon transition-transform duration-300 group-hover:scale-110 sm:h-12 sm:w-12">
-                  {b.name.trim().charAt(0).toUpperCase()}
-                </span>
-              )}
-              <span className="max-w-full truncate text-[13px] font-bold uppercase tracking-[0.06em] text-ink transition-colors group-hover:text-brand-600 sm:text-sm">{b.name}</span>
-              <span className="text-[11px] font-medium text-muted transition-colors group-hover:text-brand-700">{count}</span>
-              <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-brand-500 transition-transform duration-300 group-hover:scale-x-100" />
+              <span className="flex h-12 w-full items-center justify-center">
+                {b.logo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={b.logo} alt="" loading="lazy" className="max-h-11 max-w-[88%] object-contain" />
+                ) : (
+                  <span aria-hidden data-wordmark className="max-w-full truncate font-display text-[15px] font-extrabold uppercase tracking-[0.04em]" style={{ color: colors[i] }}>
+                    {b.name}
+                  </span>
+                )}
+              </span>
+              <span className="max-w-full truncate text-xs font-medium text-ink/80 group-hover:text-ink">{b.name}</span>
             </Link>
           </li>
         );
@@ -385,15 +388,20 @@ export function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
   );
 }
 
-/** "Shop by Brand" on the homepage: up to 12 brands on a light orange band, then a link to every brand. */
+/** "Explore our brands" on the homepage: every brand as a white tile on a light neon-orange panel, then a link to all. */
 export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
   if (!brands.length) return null;
   return (
-    <section aria-labelledby="brands" className="mt-12 sm:mt-16">
-      <div className="container-page">
-        <SectionHead id="brands" eyebrow={`Brands at ${siteConfig.name}`} title="Shop by Brand">The brands in our catalogue, all in one place.</SectionHead>
-        <BrandGrid brands={brands.slice(0, 12)} />
-        <ViewAll href="/brands" label="View all brands" />
+    <section aria-labelledby="brands" className="container-page mt-12 sm:mt-16">
+      <div className="rounded-panel border border-brand-500/20 bg-[#fff3ea] px-4 py-9 sm:px-8 sm:py-12">
+        <h2 id="brands" className="text-center font-display text-[clamp(1.5rem,1.1rem+1.3vw,2.1rem)] font-bold leading-tight tracking-title text-ink">Explore our brands</h2>
+        <p className="mb-7 mt-2 text-center text-sm text-ink/70">Tap a brand to see its complete {siteConfig.name} collection.</p>
+        <BrandGrid brands={brands.slice(0, 30)} />
+        <div className="mt-8 flex justify-center">
+          <Link href="/brands" className="btn-primary min-h-11 rounded-full px-6">
+            View all brands <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -419,7 +427,7 @@ export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
       <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {reasons.slice(0, 4).map(({ icon: I, title, text }) => (
           <li key={title} className="rounded-card bg-[#f6f6f6] px-4 py-6 text-center sm:px-6 sm:py-8">
-            <I className="mx-auto h-9 w-9 text-brand-500 sm:h-10 sm:w-10" strokeWidth={1.4} aria-hidden />
+            <I className="mx-auto h-9 w-9 text-ink sm:h-10 sm:w-10" strokeWidth={1.4} aria-hidden />
             <h3 className="mt-3 text-[15px] font-bold leading-snug text-ink sm:text-lg">{title}</h3>
             <p className="mt-1.5 text-[13px] leading-6 text-muted sm:text-sm">{text}</p>
           </li>

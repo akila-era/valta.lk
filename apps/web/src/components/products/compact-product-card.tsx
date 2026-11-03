@@ -75,7 +75,7 @@ export function CompactProductCard({ product, priority, row = false, instalments
         ) : low ? (
           <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">Only {product.purchasableQuantity} left</span>
         ) : (
-          <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">In stock</span>
+          <span className="rounded-full border border-ink/20 bg-white px-2.5 py-0.5 text-[11px] font-bold text-ink">In stock</span>
         )}
       </div>
       <div className="absolute right-3.5 top-3.5 z-10 flex flex-col gap-1.5 sm:right-4 sm:top-4">

@@ -117,7 +117,7 @@ export function FunnelBars({ data }: { data: FunnelData }) {
 const SERIES: { key: keyof Omit<FunnelDay, "day">; label: string; color: string }[] = [
   { key: "visits", label: "Visits", color: "#94a3b8" },
   { key: "views", label: "Product views", color: "#0ea5e9" },
-  { key: "adds", label: "Add to cart", color: "#ff5c00" },
+  { key: "adds", label: "Add to cart", color: "#ff7a33" },
   { key: "checkouts", label: "Checkout", color: "#7c3aed" },
   { key: "orders", label: "Orders", color: "#067647" },
 ];

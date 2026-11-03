@@ -250,7 +250,7 @@ export function BarChart({ data, format, label }: { data: { label: string; value
   );
 }
 
-export const SLICE_COLORS = ["#ff5c00", "#111111", "#ff9f66", "#6b7280", "#ffd2b8", "#c4c8ce"];
+export const SLICE_COLORS = ["#ff7a33", "#111111", "#ff9f66", "#6b7280", "#ffd2b8", "#c4c8ce"];
 
 export function Donut({ slices, centre, label }: { slices: { label: string; value: number }[]; centre: { big: string; small: string }; label: string }) {
   const total = slices.reduce((a, s) => a + s.value, 0);
