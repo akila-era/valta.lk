@@ -5,10 +5,13 @@
  * Fills the website's own data: Store Details (top bar, contact, hours, social links, payment badges), the KOKO /
  * Mintpay line, Hot Deals (the demo items on sale) and approved sample product reviews.
  *
- * Refuses any database that is not on this computer: the reviews and contact details are samples and must never
- * reach the live store. Run again at any time; it replaces what it wrote before.
+ * Refuses any database that is not on this computer unless run with --server. With --server (a public demo site) it
+ * writes only the KOKO / Mintpay line and Hot Deals: the sample reviews would look like real customers' words and the
+ * sample phone numbers could belong to real people, so staff enter real contact details in the admin instead.
+ * Run again at any time; it replaces what it wrote before.
  *
  *   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5498/postgres?sslmode=disable npx tsx scripts/seed-demo.ts
+ *   docker compose run --rm --no-deps web npx tsx scripts/seed-demo.ts --server      (on the demo server)
  */
 import { Client } from "pg";
 import { DEMO_CATALOGUE } from "../tests/mock-erp/demo-catalogue";
@@ -40,8 +43,10 @@ const REVIEWS: [number, string, string][] = [
 async function main() {
   const url = process.env.DATABASE_URL ?? "";
   const host = (() => { try { return new URL(url).hostname; } catch { return ""; } })();
-  if (!["127.0.0.1", "localhost", "::1"].includes(host)) {
-    console.error("Refusing to seed: DATABASE_URL must point to a database on this computer (127.0.0.1 or localhost).");
+  const server = process.argv.includes("--server");
+  const local = ["127.0.0.1", "localhost", "::1"].includes(host);
+  if (!local && !server) {
+    console.error("Refusing to seed: DATABASE_URL must point to a database on this computer (127.0.0.1 or localhost), or pass --server.");
     process.exit(1);
   }
   const db = new Client({ connectionString: url });
@@ -53,7 +58,7 @@ async function main() {
       [key, JSON.stringify(value), BY],
     );
 
-  await setting("store-info", STORE_INFO);
+  if (local) await setting("store-info", STORE_INFO);
   await setting("instalments", { enabled: true, providers: ["koko", "mintpay"], parts: 3 });
 
   // Hot Deals: the demo items that are on sale, cheapest saving last.
@@ -69,9 +74,10 @@ async function main() {
   }
 
   // Approved sample reviews on every third demo product (two or three each), so stars show on cards and pages.
+  // Local previews only; on a server any reviews this script wrote before are removed.
   await db.query(`DELETE FROM "ProductReview" WHERE "moderatedBy" = $1`, [BY]);
   let count = 0;
-  for (let i = 0; i < DEMO_CATALOGUE.length; i += 3) {
+  for (let i = 0; local && i < DEMO_CATALOGUE.length; i += 3) {
     const picks = REVIEWS.slice(i % 3, (i % 3) + 2 + (i % 2));
     for (const [k, [rating, name, body]] of picks.entries()) {
       await db.query(
@@ -84,7 +90,9 @@ async function main() {
   }
 
   await db.end();
-  console.log(`Demo data ready: store details, KOKO / Mintpay line, ${onSale.length} hot deals, ${count} reviews.`);
+  console.log(local
+    ? `Demo data ready: store details, KOKO / Mintpay line, ${onSale.length} hot deals, ${count} reviews.`
+    : `Demo data ready: KOKO / Mintpay line and ${onSale.length} hot deals (no sample reviews or contact details on a server).`);
 }
 
 main().catch((e) => {
