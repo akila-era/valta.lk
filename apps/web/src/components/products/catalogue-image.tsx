@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ImageOff } from "lucide-react";
 
 function EmptyPhoto({ alt }: { alt: string }) {
@@ -16,9 +16,16 @@ function EmptyPhoto({ alt }: { alt: string }) {
   );
 }
 
+const noSubscribe = () => () => {};
+
 /** Shows a catalogue image, or a quiet empty state when the ERP has none or the file fails to load. */
 export function CatalogueImage({ src, alt, sizes, priority, contain = true, padding = "p-4", onError }: { src?: string; alt: string; sizes: string; priority?: boolean; contain?: boolean; padding?: string; onError?: () => void }) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  // false on the server and while hydrating (so the server picture is shown as is), true afterwards: only pictures that
+  // load after the page is live fade in, and a priority picture (the first ones on screen) never waits for a fade.
+  const live = useSyncExternalStore(noSubscribe, () => true, () => false);
+  const fade = live && !priority;
   if (!src || failed) return <EmptyPhoto alt={alt} />;
   return (
     <Image
@@ -27,11 +34,12 @@ export function CatalogueImage({ src, alt, sizes, priority, contain = true, padd
       fill
       sizes={sizes}
       priority={priority}
+      onLoad={() => setLoaded(true)}
       onError={() => {
         setFailed(true);
         onError?.();
       }}
-      className={contain ? `object-contain ${padding}` : "object-cover"}
+      className={`${contain ? `object-contain ${padding}` : "object-cover"} ${fade ? `transition-[opacity,scale] duration-500 ease-out motion-reduce:transition-none ${loaded ? "scale-100 opacity-100" : "scale-[0.97] opacity-0"}` : ""}`}
     />
   );
 }

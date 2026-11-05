@@ -202,10 +202,31 @@
 @utility animate-marquee { animation: marquee var(--marquee-dur, 40s) linear infinite; }
 
 /* Scroll reveal: content is visible by default; the Reveal component hides below-the-fold blocks only after hydration. */
-[data-reveal] { transition: opacity 0.4s ease-out; transition-delay: var(--d, 0ms); }
-/* Blocks rise gently into place; cards in a row follow one another (Reveal delay). */
-[data-reveal="hidden"] { opacity: 0; }
-[data-reveal="shown"] { opacity: 1; }
+[data-reveal] { transition: opacity 0.55s ease-out, translate 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: var(--d, 0ms); }
+/* Cards rise a little into place; cards in a row follow one another (Reveal delay). */
+[data-reveal="hidden"] { opacity: 0; translate: 0 14px; }
+[data-reveal="shown"] { opacity: 1; translate: none; }
+
+/* Scroll reveal for every page: each top-level section of the page fades and rises a little as it scrolls into view.
+   Pure CSS (scroll-driven animation), so there is no JavaScript and nothing is ever hidden: sections already on screen
+   are at their end state, and browsers without support (or visitors who prefer reduced motion) simply see the page. */
+@keyframes section-in { from { opacity: 0; translate: 0 28px; } to { opacity: 1; translate: none; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    main section:not(section section, [data-no-scroll-reveal]) {
+      animation: section-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 260px;
+    }
+  }
+}
+
+/* Loading placeholders: a soft band of light passes over the grey shapes. */
+@utility skeleton-shimmer {
+  background: linear-gradient(90deg, var(--color-surface) 25%, color-mix(in srgb, var(--color-surface) 35%, white) 50%, var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
 .marquee:hover .animate-marquee, .marquee:focus-within .animate-marquee { animation-play-state: paused; }
 
 @keyframes shimmer { to { background-position: -200% 0; } }
@@ -351,7 +372,7 @@
 @keyframes page-in { from { opacity: 0; } }
 /* Browsers that cannot do view transitions (below) get this CSS fade-in instead. */
 @supports not (view-transition-name: none) {
-  .animate-page-in { animation: page-in 0.2s ease-out backwards; }
+  .animate-page-in { animation: page-in 0.24s ease-out backwards; }
 }
 
 /* ---------- Page-to-page view transitions (React <ViewTransition> in the route templates) ----------
@@ -360,7 +381,7 @@
 @keyframes vt-out { to { opacity: 0; } }
 @keyframes vt-in { from { opacity: 0; } }
 ::view-transition-old(.page-exit) { animation: 120ms ease-out both vt-out; }
-::view-transition-new(.page-enter) { animation: 180ms ease-out both vt-in; }
+::view-transition-new(.page-enter) { animation: 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both vt-in; }
 /* Everything that is not the page (header, footer, tab bar) simply stays: no cross-fade of identical pixels. */
 ::view-transition-group(root) { animation: none; }
 ::view-transition-old(root) { display: none; }

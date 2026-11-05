@@ -127,7 +127,7 @@ export function CompactProductCard({ product, priority, row = false, instalments
         ) : null}
         {!row ? (
           // Mouse devices: the action is a bar over the bottom of the photo, shown on hover or keyboard focus.
-          <div className="absolute inset-x-2 bottom-2 z-10 opacity-0 transition-opacity duration-200 group-hover/card:opacity-100 group-focus-within/card:opacity-100 [@media(hover:none)]:hidden">
+          <div className="absolute inset-x-2 bottom-2 z-10 translate-y-2 opacity-0 transition-[opacity,translate] duration-250 ease-out group-hover/card:translate-y-0 group-hover/card:opacity-100 group-focus-within/card:translate-y-0 group-focus-within/card:opacity-100 motion-reduce:translate-y-0 [@media(hover:none)]:hidden">
             {canAdd ? (
               <AddToCartButton bar line={line} />
             ) : (

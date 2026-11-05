@@ -67,7 +67,7 @@ export function PageSkeleton({ label = "Loading page" }: { label?: string }) {
 }
 
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div aria-hidden className={`animate-pulse rounded-lg bg-surface ${className}`} />;
+  return <div aria-hidden className={`skeleton-shimmer rounded-lg ${className}`} />;
 }
 
 export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
