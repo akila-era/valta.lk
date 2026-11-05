@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { InfoLayout } from "./info-layout";
 
 /** Text pages (about, contact, policies), as on ugreen.lk. `eyebrow` is still accepted from older callers but not shown. */
 export function PolicyPage({
@@ -13,9 +14,11 @@ export function PolicyPage({
   eyebrow?: string;
   children: ReactNode;
 }) {
-  // As on ugreen.lk: a plain page. Breadcrumb, a bold title, then the text with simple headings; no cards or decoration.
+  // A plain page across the full width: the information pages listed on the left (chips on phones), then the
+  // breadcrumb, a bold title and the text with simple headings; no cards or decoration.
   return (
-    <article className="mx-auto max-w-4xl">
+    <InfoLayout>
+    <article className="max-w-4xl">
       <nav aria-label="Breadcrumb">
         <ol className="flex flex-wrap items-center gap-2 text-sm text-muted">
           <li>
@@ -33,5 +36,6 @@ export function PolicyPage({
         {children}
       </div>
     </article>
+    </InfoLayout>
   );
 }

@@ -14,7 +14,7 @@ export function WishlistLink() {
           <span key={count} className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] animate-pop items-center justify-center rounded-full bg-brand-500 px-1 text-[11px] font-bold text-on-brand" data-testid="wishlist-count">{count}</span>
         )}
       </span>
-      <span className="hidden lg:inline">Wishlist</span>
+      <span className="hidden 2xl:inline">Wishlist</span>
     </Link>
   );
 }

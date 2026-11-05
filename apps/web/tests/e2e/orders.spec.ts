@@ -42,7 +42,7 @@ async function placeOrder(page: Page, name = "Kasun Perera") {
   await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
   await page.getByLabel("City", { exact: true }).fill("Colombo");
   await page.getByLabel("District").selectOption("Colombo");
-  await page.getByRole("checkbox").check();
+  await page.getByRole("checkbox", { name: /I agree/ }).check();
   await page.getByRole("button", { name: "Place order" }).click();
   await expect(page).toHaveURL(/order-confirmation\/VLK-/);
   return page.url().split("/").pop()!;

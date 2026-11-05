@@ -28,7 +28,7 @@ async function fillCheckout(page: Page) {
   await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
   await page.getByLabel("City", { exact: true }).fill("Colombo");
   await page.getByLabel("District").selectOption("Colombo");
-  await page.getByRole("checkbox").check();
+  await page.getByRole("checkbox", { name: /I agree/ }).check();
 }
 
 test.describe("browse", () => {
@@ -170,7 +170,7 @@ test.describe("cart + checkout + tracking", () => {
     await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
     await page.getByLabel("City", { exact: true }).fill("Colombo");
     await page.getByLabel("District").selectOption("Colombo");
-    await page.getByRole("checkbox").check();
+    await page.getByRole("checkbox", { name: /I agree/ }).check();
     await page.getByRole("button", { name: "Place order" }).click();
     await expect(page.getByText("Enter a valid Sri Lankan phone number")).toBeVisible();
     await expect(page.getByLabel("Phone number")).toBeFocused();

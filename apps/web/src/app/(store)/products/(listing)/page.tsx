@@ -50,7 +50,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       <div style={brandThemeStyle(color) as React.CSSProperties}>
         <BrandHero name={known?.name ?? brand} color={color} logo={logos.get(brandKey(brand))} count={known?.count} categories={categories} current={params.category} />
         <div id="brand-products" className="scroll-mt-40">
-          <CatalogueView basePath="/products" params={params} />
+          <CatalogueView basePath="/products" params={params} brand={{ name: known?.name ?? brand, categories }} />
         </div>
         <RecentlyViewed />
       </div>

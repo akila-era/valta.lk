@@ -82,7 +82,7 @@ test.describe("store extras", () => {
     await page.getByLabel("City", { exact: true }).fill("Colombo");
     await page.getByLabel("District").selectOption("Colombo");
     await page.getByRole("radio", { name: /Direct bank transfer/ }).check();
-    await page.getByRole("checkbox").check();
+    await page.getByRole("checkbox", { name: /I agree/ }).check();
     await page.getByRole("button", { name: "Place order" }).click();
 
     await expect(page).toHaveURL(/order-confirmation\/VLK-/);
@@ -143,7 +143,7 @@ test.describe("store extras", () => {
     await page.goto("/about");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("About our store");
     await expect(page.getByRole("heading", { name: "Who we are" })).toBeVisible();
-    await expect(page.locator("main").getByRole("link", { name: "FAQs" })).toHaveAttribute("href", "/faqs");
+    await expect(page.getByRole("article").getByRole("link", { name: "FAQs" })).toHaveAttribute("href", "/faqs");
     await page.goto("/p/audit-terms");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Audit terms");
     await expect((await page.request.get("/p/no-such-page")).status()).toBe(404);

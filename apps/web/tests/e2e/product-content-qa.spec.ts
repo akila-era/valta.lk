@@ -514,7 +514,7 @@ test.describe("ERP ownership", () => {
     await p.getByLabel("Address", { exact: true }).fill("12 Galle Road");
     await p.getByLabel("City", { exact: true }).fill("Colombo");
     await p.getByLabel("District").selectOption("Colombo");
-    await p.getByRole("checkbox").check();
+    await p.getByRole("checkbox", { name: /I agree/ }).check();
     await p.getByRole("button", { name: /place order/i }).click();
     await expect(p).toHaveURL(/order-confirmation/);
     await expect(p.getByText("Glide Tempered Glass").first()).toBeVisible();

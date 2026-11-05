@@ -29,10 +29,16 @@ const MENU_LINKS = [
   { href: "/track-order", label: "Track Order" },
   { href: "/wishlist", label: "Wishlist" },
   { href: "/cart", label: "Cart" },
+  { href: "/compare", label: "Compare" },
+  { href: "/wholesale", label: "Apply for Wholesale" },
   { href: "/about", label: "About Us" },
+  { href: "/faqs", label: "FAQs" },
   { href: "/contact", label: "Contact Us" },
   { href: "/shipping-policy", label: "Shipping Policy" },
   { href: "/returns-policy", label: "Returns Policy" },
+  { href: "/warranty-policy", label: "Warranty & Refund Policy" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms & Conditions" },
 ];
 
 /** One flat drawer row: full width, 50px tall, divider underneath. */

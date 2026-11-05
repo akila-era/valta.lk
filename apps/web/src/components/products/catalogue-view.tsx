@@ -91,6 +91,7 @@ export async function CatalogueView({
   fixedCategory,
   showCategories = true,
   fresh = false,
+  brand,
 }: {
   basePath: string;
   params: RawParams;
@@ -98,6 +99,8 @@ export async function CatalogueView({
   showCategories?: boolean;
   /** Only recently published products (the New Arrivals page). */
   fresh?: boolean;
+  /** A brand's page: the category list shows only that brand's categories and keeps the brand when one is chosen. */
+  brand?: { name: string; categories: { slug: string; name: string; count: number }[] };
 }) {
   const query = parseParams(params, fixedCategory, fresh);
   let result;
@@ -158,7 +161,30 @@ export async function CatalogueView({
           </ul>
         </details>
 
-        {showCategories && result.categories.length > 0 && (
+        {brand && brand.categories.length > 0 ? (
+          <nav aria-label="Filter by category">
+            <h2 className={`${summary} mb-2 cursor-default`}>Product categories</h2>
+            <ul className="text-sm">
+              {[{ slug: "", name: `All ${brand.name}`, count: brand.categories.reduce((n, c) => n + c.count, 0) }, ...brand.categories].map((c) => {
+                const on = (params.category ?? "") === c.slug;
+                return (
+                  <li key={c.slug || "all"}>
+                    <Link
+                      href={href(basePath, params, { category: c.slug, sub: "", page: "" })}
+                      aria-current={on ? "page" : undefined}
+                      scroll={false}
+                      className={`flex items-center justify-between gap-2 py-2 transition-colors pointer-coarse:py-2.5 ${on ? "font-semibold text-ink" : "text-ink/80 hover:text-brand-600"}`}
+                    >
+                      <span className="truncate">{c.name}</span>
+                      <span className="shrink-0 text-xs text-muted">{c.count}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        ) : null}
+        {!brand && showCategories && result.categories.length > 0 && (
           <nav aria-label="Filter by category">
             <h2 className={`${summary} mb-2 cursor-default`}>Product categories</h2>
             <ul className="text-sm">

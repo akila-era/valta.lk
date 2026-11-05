@@ -134,7 +134,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
             if (items.length) setOpen(true);
           }}
           onKeyDown={onKeyDown}
-          placeholder={size === "lg" ? "Search for mobile phones, accessories, electronics..." : "Search name, brand or model"}
+          placeholder={size === "lg" ? "Search for products" : "Search name, brand or model"}
           maxLength={100}
           autoFocus={autoFocus}
           autoComplete="off"
@@ -143,12 +143,11 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-[3.25rem] rounded-control border border-[#f2c5b3] bg-[#fde9e2] py-3 pl-12 pr-32 text-base placeholder:text-[#292929]/60 focus:border-brand-500 focus:bg-white" : "pl-11 pr-16"}`}
+          className={`input outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "h-[46px] min-h-0 rounded-[5px] border border-black/10 bg-white py-2 pl-[15px] pr-24 text-sm placeholder:text-[#767676] focus:border-brand-500" : "pl-11 pr-16"}`}
         />
-        {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#292929]" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute inset-y-0 right-0 flex w-16 items-center justify-center rounded-r-control bg-[#fe752d] text-on-brand transition-colors hover:bg-[#e86c2e]" aria-label="Search">
-            <Search className="h-[18px] w-[18px]" strokeWidth={2.5} aria-hidden />
+          <button type="submit" className="absolute right-1 top-1 flex h-[38px] w-[38px] items-center justify-center rounded-[5px] bg-[#fe752d] text-on-brand transition-colors hover:bg-[#e86c2e]" aria-label="Search">
+            <Search className="h-[18px] w-[18px]" strokeWidth={2.25} aria-hidden />
           </button>
         ) : (
           <button type="submit" className="absolute left-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink" aria-label="Search">
@@ -160,12 +159,12 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
             type="button"
             onClick={clear}
             aria-label="Clear search"
-            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[4.5rem]" : "right-1"}`}
+            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[2.75rem]" : "right-1"}`}
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
         )}
-        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[5rem]" : "right-10"}`} aria-hidden />}
+        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[3.25rem]" : "right-10"}`} aria-hidden />}
       </form>
 
       {hint && term.length === 0 && popular.length > 0 && (

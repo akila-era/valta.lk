@@ -12,6 +12,7 @@ import { generateOrderRef } from "@/lib/utils/order-ref";
 import { lineKey } from "@/lib/utils/cart-math";
 import { customerSchema, deliverySchema, DISTRICTS } from "@/lib/validation/checkout";
 import { cartActions, useCart } from "@/store/cart";
+import { clearDetails, loadDetails, rememberOrder, saveDetails } from "@/store/customer-memory";
 
 const REF_KEY = "volta.checkout.ref";
 
@@ -61,6 +62,25 @@ export function CheckoutForm({ deliveryCharge, prefill, bank = false }: { delive
   const [banner, setBanner] = useState<{ kind: "error" | "warn"; text: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [payment, setPayment] = useState<"COD" | "BANK_TRANSFER">("COD");
+  // Details from the last checkout on this device (localStorage only), filled in so a returning shopper types nothing.
+  const [remember, setRemember] = useState(true);
+  const [filledFromLast, setFilledFromLast] = useState(false);
+  // The form only exists once the cart (kept in this browser) has loaded, so fill it in then.
+  const hasLines = lines.length > 0;
+  useEffect(() => {
+    const saved = loadDetails();
+    const form = formRef.current;
+    if (!saved || !form) return;
+    let filled = false;
+    for (const [k, v] of Object.entries(saved)) {
+      const el = form.elements.namedItem(k) as HTMLInputElement | HTMLSelectElement | null;
+      if (el && v && !el.value) {
+        el.value = v;
+        filled = true;
+      }
+    }
+    setFilledFromLast(filled);
+  }, [hasLines]);
   const inFlight = useRef(false);
   const openedTotal = useRef<number | null>(null);
   const [priceAck, setPriceAck] = useState(false);
@@ -151,6 +171,9 @@ export function CheckoutForm({ deliveryCharge, prefill, bank = false }: { delive
       // 201 = confirmed by the ERP, 202 = saved on the website and being confirmed: both are a successful order.
       if (res.ok) {
         resetRef();
+        if (remember) saveDetails({ name: v.name, phone: v.phone, email: v.email, district: v.district, address: v.address, city: v.city, postalCode: v.postalCode });
+        else clearDetails();
+        rememberOrder({ ref: externalRef, at: new Date().toISOString(), total });
         cartActions.clear();
         router.push(`/order-confirmation/${externalRef}`);
         return;
@@ -232,6 +255,30 @@ export function CheckoutForm({ deliveryCharge, prefill, bank = false }: { delive
           <Field id="notes" label="Delivery notes (optional)" error={err("notes")} className="sm:col-span-2">
             <textarea id="notes" name="notes" rows={2} maxLength={300} className="textarea" placeholder="Landmark, best time to call…" />
           </Field>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border pt-4 text-sm">
+          <label className="flex cursor-pointer items-center gap-2.5 text-ink">
+            <input type="checkbox" name="rememberDetails" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="h-4 w-4 accent-brand-600" />
+            Save my details on this device for next time
+          </label>
+          {filledFromLast ? (
+            <span className="text-muted">
+              Filled in from your last order.{" "}
+              <button
+                type="button"
+                className="font-semibold text-ink underline underline-offset-2"
+                onClick={() => {
+                  clearDetails();
+                  formRef.current?.reset();
+                  setFilledFromLast(false);
+                  setRemember(false);
+                }}
+              >
+                Not you? Clear
+              </button>
+            </span>
+          ) : null}
         </div>
       </section>
 

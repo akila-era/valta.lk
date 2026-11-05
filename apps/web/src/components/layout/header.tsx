@@ -85,11 +85,11 @@ export async function Header() {
         </div>
       </div>
       <HeaderShell>
-        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0">
+        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
           <Wordmark shine pumpkin={halloween} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
-          <div className="hidden md:mx-auto md:block md:w-full md:max-w-4xl">
+          <div className="hidden md:mx-auto md:block md:w-full md:max-w-[47.5rem]">
             <SearchBox size="lg" popular={quick} />
           </div>
           <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
