@@ -143,11 +143,11 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-control border border-border-strong/50 bg-bg py-2.5 pl-11 pr-28 text-[15px] focus:border-ink" : "pl-11 pr-16"}`}
+          className={`input outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-[3.25rem] rounded-control border border-[#f2c5b3] bg-[#fde9e2] py-3 pl-12 pr-32 text-base placeholder:text-[#292929]/60 focus:border-brand-500 focus:bg-white" : "pl-11 pr-16"}`}
         />
-        {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
+        {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#292929]" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute inset-y-0 right-0 flex w-14 items-center justify-center rounded-r-control bg-ink text-white transition-colors hover:bg-ink/85" aria-label="Search">
+          <button type="submit" className="absolute inset-y-0 right-0 flex w-16 items-center justify-center rounded-r-control bg-[#fe752d] text-on-brand transition-colors hover:bg-[#e86c2e]" aria-label="Search">
             <Search className="h-[18px] w-[18px]" strokeWidth={2.5} aria-hidden />
           </button>
         ) : (
@@ -160,12 +160,12 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "
             type="button"
             onClick={clear}
             aria-label="Clear search"
-            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[3.75rem]" : "right-1"}`}
+            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[4.5rem]" : "right-1"}`}
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
         )}
-        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[4.25rem]" : "right-10"}`} aria-hidden />}
+        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[5rem]" : "right-10"}`} aria-hidden />}
       </form>
 
       {hint && term.length === 0 && popular.length > 0 && (

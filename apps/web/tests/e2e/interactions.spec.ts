@@ -231,7 +231,7 @@ test.describe("phone tab bar and contact", () => {
 test.describe("shop by brand", () => {
   test("the Brands page lists every brand; a brand opens its own shop page with only its products", async ({ page }) => {
     await page.goto("/");
-    await page.locator("header").getByRole("navigation", { name: "Categories" }).getByRole("link", { name: "Brands" }).click();
+    await page.locator("footer").getByRole("link", { name: "Shop by brand" }).click(); // the header bar keeps only top categories (as on ugreen.lk)
     await expect(page).toHaveURL(/\/brands$/);
     await expect(page.getByRole("heading", { name: "Shop by Brand", level: 1 })).toBeVisible();
     await expect(page.locator("main").getByRole("link", { name: /, \d+ products?$/ })).toHaveCount(12); // every brand in the ERP data

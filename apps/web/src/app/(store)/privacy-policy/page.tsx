@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { EditablePage } from "@/components/layout/editable-page";
 import { PolicyPage } from "@/components/layout/policy-page";
 
 export const metadata: Metadata = { title: "Privacy policy", alternates: { canonical: "/privacy-policy" } };
 
 export default function PrivacyPage() {
   return (
+    <EditablePage slug="privacy-policy">
     <PolicyPage title="Privacy policy" intro="What we collect when you order from VOLTA.LK and how it is used.">
       <section>
         <h2>Information we collect</h2>
@@ -26,5 +28,6 @@ export default function PrivacyPage() {
         <p>Contact us using the details on the Contact page to ask about your data. This policy should be reviewed by the business owner and legal adviser before launch.</p>
       </section>
     </PolicyPage>
+    </EditablePage>
   );
 }

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EditablePage } from "@/components/layout/editable-page";
 import { PolicyPage } from "@/components/layout/policy-page";
 
 export const metadata: Metadata = { title: "Returns policy", alternates: { canonical: "/returns-policy" } };
 
 export default function ReturnsPage() {
   return (
+    <EditablePage slug="returns-policy">
     <PolicyPage title="Returns policy" intro="How returns are handled.">
       <section>
         <h2>How returns work</h2>
@@ -16,5 +18,6 @@ export default function ReturnsPage() {
         <p>Return eligibility periods and conditions are set by the business and must be added here before launch.</p>
       </section>
     </PolicyPage>
+    </EditablePage>
   );
 }

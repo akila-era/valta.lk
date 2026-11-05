@@ -24,7 +24,7 @@ const subscribe = (cb: () => void) => {
 function Badge({ n, tone, onActive = false }: { n: number; tone: "new" | "pending" | "failed"; onActive?: boolean }) {
   if (!n) return null;
   return (
-    <span className={`ml-auto min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-bold ${onActive ? "bg-white text-brand-600" : tone === "failed" ? "bg-danger text-white" : "bg-brand-500 text-white"}`} aria-label={`${n} ${tone}`}>
+    <span className={`ml-auto min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-bold ${onActive ? "bg-white text-brand-600" : tone === "failed" ? "bg-danger text-on-brand" : "bg-brand-500 text-on-brand"}`} aria-label={`${n} ${tone}`}>
       {n}
     </span>
   );
@@ -56,7 +56,7 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               aria-label={collapsed ? g.label : undefined}
               aria-current={groupActive && single ? "page" : undefined}
               className={`mt-1 flex min-h-12 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors ${
-                groupActive ? "bg-brand-500 font-semibold text-white" : "text-ink/75 hover:bg-surface hover:text-ink"
+                groupActive ? "bg-brand-500 font-semibold text-on-brand" : "text-ink/75 hover:bg-surface hover:text-ink"
               } ${collapsed ? "justify-center px-0" : ""}`}
             >
               <Icon className="h-5 w-5 shrink-0" aria-hidden />
@@ -89,7 +89,7 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
                         onClick={onNavigate}
                         aria-current={active ? "page" : undefined}
                         className={`flex min-h-11 items-center gap-3 rounded-xl py-1.5 pl-3 pr-2.5 text-[15px] font-medium transition-colors ${
-                          active ? "bg-brand-500 font-semibold text-white" : "text-ink/70 hover:bg-surface hover:text-ink"
+                          active ? "bg-brand-500 font-semibold text-on-brand" : "text-ink/70 hover:bg-surface hover:text-ink"
                         }`}
                       >
                         {(() => { const ItemIcon = iconFor(i.label); return <ItemIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />; })()}
@@ -179,13 +179,13 @@ function Brand({ collapsed }: { collapsed: boolean }) {
   return (
     <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2.5 px-5 text-ink" aria-label="VOLTA.LK admin home">
       {collapsed ? (
-        <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 font-display text-lg font-extrabold text-white">V</span>
+        <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 font-display text-lg font-extrabold text-on-brand">V</span>
       ) : (
         <>
           <span className="font-display text-[1.45rem] font-extrabold leading-none tracking-[-0.02em]">
             V<span className="text-brand-500">O</span>LTA<span className="text-[0.82em]">.LK</span>
           </span>
-          <span className="rounded-md bg-brand-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-white">Admin</span>
+          <span className="rounded-md bg-brand-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-on-brand">Admin</span>
         </>
       )}
     </Link>
@@ -198,14 +198,14 @@ function SidebarUser({ user, collapsed }: { user: { name: string; email: string 
   if (collapsed) {
     return (
       <div className="flex shrink-0 justify-center border-t border-border py-3">
-        <span title={`${user.name} (${user.email})`} className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">{initial}</span>
+        <span title={`${user.name} (${user.email})`} className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-on-brand">{initial}</span>
       </div>
     );
   }
   return (
     <div className="shrink-0 border-t border-border p-3">
       <div className="flex items-center gap-3 rounded-xl bg-surface p-2.5">
-        <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">{initial}</span>
+        <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-on-brand">{initial}</span>
         <span className="min-w-0 flex-1 leading-tight">
           <span className="block truncate text-[15px] font-semibold text-ink">{user.name}</span>
           <span className="block truncate text-xs text-muted">{user.email}</span>

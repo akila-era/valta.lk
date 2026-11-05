@@ -32,11 +32,11 @@ const contrast = (a: string, b: string) => {
 };
 
 describe("design system tokens", () => {
-  // White text on the neon orange is the owner's choice (about 3.1:1): it meets the 3:1 level for large / bold text and
-  // UI parts, not 4.5:1 for small normal text, which is why text on orange fills is kept bold.
-  it("keeps white text on the orange fills at least at the large-text level, at rest and on hover", () => {
-    expect(token("brand-500").toLowerCase()).toBe("#ff5c00");
-    expect(token("on-brand").toLowerCase()).toBe("#ffffff");
+  // Black text on the owner's orange (#FE7B33): about 7:1. White on this lighter orange was only 2.6:1, below even the
+  // 3:1 large-text level, so the owner chose black text on orange fills.
+  it("keeps the text on the orange fills readable, at rest and on hover", () => {
+    expect(token("brand-500").toLowerCase()).toBe("#fe7b33");
+    expect(token("on-brand").toLowerCase()).toBe("#171717");
     expect(contrast("on-brand", "brand-500")).toBeGreaterThanOrEqual(3);
     expect(contrast("on-brand", "brand-hover")).toBeGreaterThanOrEqual(3);
   });
@@ -89,8 +89,9 @@ describe("design system tokens", () => {
 });
 
 describe("three-colour palette", () => {
-  it("uses one neon orange, white and black only: no light orange tints", () => {
-    for (const name of ["brand-400", "brand-500", "brand-hover"]) expect(token(name).toLowerCase()).toBe("#ff5c00");
+  it("uses the owner's orange (#FE7B33, hover #FE752D), white and black / greys for the theme tokens", () => {
+    for (const name of ["brand-400", "brand-500"]) expect(token(name).toLowerCase()).toBe("#fe7b33");
+    expect(token("brand-hover").toLowerCase()).toBe("#fe752d");
     expect(token("bg")).toBe("#ffffff");
     // every other storefront colour is white, black or a grey (equal red, green and blue)
     for (const name of ["surface", "border", "border-strong", "ink", "muted", "brand-50", "brand-100", "brand-600", "brand-700", "on-brand"]) {

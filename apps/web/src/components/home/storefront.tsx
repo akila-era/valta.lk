@@ -7,7 +7,10 @@ import type { HomeData, ResolvedBanner } from "@/lib/home-data";
 import type { ErpProduct } from "@/lib/erp/types";
 import { instalmentLine } from "@/lib/instalments";
 import { brandColor } from "@/lib/brand-colors";
+import { categoryTaglines } from "@/lib/category-taglines";
 import { cardRatings } from "@/lib/reviews";
+import { getContent } from "@/lib/site-content";
+import { getStoreInfo } from "@/lib/store-info";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { categoryVisual } from "./category-art";
@@ -27,14 +30,17 @@ const SLIDE_ART: { test: RegExp; src: string; alt: string; eyebrow: string; titl
 ];
 
 /** The banner slides: a store-wide opener, then one slide per known kind of category that exists in the catalogue. */
-export function heroSlides(categories: Category[]): HeroSlide[] {
+/** The first banner slide's words, unless staff wrote their own (Admin, Content, Homepage). */
+export const OPENER_DEFAULT = { eyebrow: siteConfig.name, title: "Technology that moves you.", text: "Mobile phones, electronics and accessories, with prices in LKR.", cta: "Shop now" };
+
+export function heroSlides(categories: Category[], words: { eyebrow: string; title: string; text: string; cta: string } = OPENER_DEFAULT): HeroSlide[] {
   const opener: HeroSlide = {
     src: "/images/home/volta-hero-match.webp",
     alt: "Smartphones, earbuds, a smartwatch and headphones on a studio stand",
-    eyebrow: siteConfig.name,
-    title: "Technology that moves you.",
-    text: "Mobile phones, electronics and accessories, with prices in LKR.",
-    cta: "Shop now",
+    eyebrow: words.eyebrow,
+    title: words.title,
+    text: words.text,
+    cta: words.cta,
     href: "/products",
   };
   const rest = SLIDE_ART.flatMap(({ test, ...art }) => {
@@ -71,10 +77,11 @@ export function ViewAll({ href, label = "View all" }: { href: string; label?: st
  * The banner row: one full-width slider with the staff banner pictures first (shown exactly as uploaded), then the
  * studio photographs with captions for the kinds of category the catalogue has.
  */
-export function HomeHero({ categories, banners }: { categories: Category[]; banners: HomeData["wideBanners"] }) {
+export async function HomeHero({ categories, banners }: { categories: Category[]; banners: HomeData["wideBanners"] }) {
+  const words = await getContent("hero-opener");
   const slides: HeroSlide[] = [
     ...banners.map((b) => ({ kind: "image" as const, src: b.image, alt: b.alt, href: b.href || undefined })),
-    ...heroSlides(categories),
+    ...heroSlides(categories, words ?? OPENER_DEFAULT),
   ];
   return (
     <section aria-labelledby="home-title" className="flex flex-1 flex-col">
@@ -90,13 +97,22 @@ export function HomeHero({ categories, banners }: { categories: Category[]; bann
 }
 
 /** The service strip under the banner: only facts the store can stand behind (checkout rules come from the live ERP). */
-export function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
-  const items: { icon: LucideIcon; title: string; text: string; href?: string }[] = [
+/** The strip's built-in items (facts from the live ERP settings); staff can replace them (Admin, Content, Homepage). */
+export function defaultStripItems(checkout: HomeData["checkout"]): { icon: LucideIcon; title: string; text: string; href?: string }[] {
+  return [
     ...(checkout.cod ? [{ icon: Banknote, title: "Cash on Delivery", text: "Pay when your order arrives" }] : []),
     ...(checkout.deliveryCharge != null ? [{ icon: Truck, title: `Delivery ${formatLkr(checkout.deliveryCharge)}`, text: "Shown before you order", href: "/shipping-policy" }] : []),
     { icon: PackageSearch, title: "Track Your Order", text: "Follow it with your reference", href: "/track-order" },
     { icon: Headset, title: "Customer Support", text: "We are here to help", href: "/contact" },
   ];
+}
+const ICON_CYCLE: LucideIcon[] = [Banknote, Truck, PackageSearch, Headset, RefreshCw, BadgeCheck];
+
+export async function ServiceStrip({ checkout }: { checkout: HomeData["checkout"] }) {
+  const saved = await getContent("service-strip");
+  const items: { icon: LucideIcon; title: string; text: string; href?: string }[] = saved
+    ? saved.items.map((x, i) => ({ icon: ICON_CYCLE[i % ICON_CYCLE.length], title: x.title, text: x.text }))
+    : defaultStripItems(checkout);
   return (
     // As on ugreen.lk: a black bar under the banner with neon orange words moving slowly across. The words are
     // written twice so the line loops without a gap; the copy is hidden from screen readers and the keyboard.
@@ -148,8 +164,9 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
  * rows of a narrow and a wide tile (wide first on the second row). Each has a small orange line, the name, a Shop now
  * button and the category photo on the right.
  */
-export function Spotlight({ categories }: { categories: Category[] }) {
+export async function Spotlight({ categories }: { categories: Category[] }) {
   const picks = [...categories].filter((c) => categoryVisual(c.name)).sort((a, b) => b.count - a.count).slice(0, 4);
+  const taglines = await categoryTaglines();
   if (picks.length < 2) return null;
   // 12-column grid: 5 + 7 on the first row, 7 + 5 on the second; two tiles share a row equally; a third alone is full width
   const span = (i: number) => (picks.length === 2 ? "lg:col-span-6" : i === 0 || i === 3 ? "lg:col-span-5" : i === 2 && picks.length === 3 ? "sm:col-span-2 lg:col-span-12" : "lg:col-span-7");
@@ -165,7 +182,7 @@ export function Spotlight({ categories }: { categories: Category[] }) {
                 <span className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#f4f4f4] to-transparent" />
               </span>
               <span className="relative flex max-w-[55%] flex-col items-start p-5 text-left sm:p-6">
-                <span className="text-xs font-semibold text-brand-600">{c.count} {c.count === 1 ? "product" : "products"}</span>
+                <span className="text-xs font-semibold text-brand-600">{taglines[c.slug] || `${c.count} ${c.count === 1 ? "product" : "products"}`}</span>
                 <span className="mt-1 font-display text-2xl font-bold leading-tight tracking-title sm:text-[1.9rem]">{c.name}</span>
                 <span className="btn mt-4 min-h-9 rounded-control bg-brand-500 px-4 text-xs font-bold uppercase text-on-brand transition-colors group-hover:bg-ink group-hover:text-white">Shop now</span>
               </span>
@@ -269,7 +286,7 @@ type Rail = HomeData["rails"][number];
  */
 export function RangeTabs({ newArrivals, rails }: { newArrivals: ErpProduct[]; rails: Rail[]; tinted?: boolean }) {
   const tabs = [
-    ...(newArrivals.length ? [{ id: "new-arrivals", label: "New Arrivals", href: "/products", view: "View all new arrivals", products: newArrivals }] : []),
+    ...(newArrivals.length ? [{ id: "new-arrivals", label: "New Arrivals", href: "/new-arrivals", view: "View all new arrivals", products: newArrivals }] : []),
     ...rails.map((r) => ({ id: `c-${r.slug}`, label: r.name, href: `/categories/${r.slug}`, view: `View all ${r.name}`, products: r.products })),
   ];
   if (!tabs.length) return null;
@@ -393,7 +410,7 @@ export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
   if (!brands.length) return null;
   return (
     <section aria-labelledby="brands" className="container-page mt-12 sm:mt-16">
-      <div className="rounded-panel border border-brand-500/20 bg-[#fff3ea] px-4 py-9 sm:px-8 sm:py-12">
+      <div className="rounded-panel border border-brand-500/20 bg-[#fff3eb] px-4 py-9 sm:px-8 sm:py-12">
         <h2 id="brands" className="text-center font-display text-[clamp(1.5rem,1.1rem+1.3vw,2.1rem)] font-bold leading-tight tracking-title text-ink">Explore our brands</h2>
         <p className="mb-7 mt-2 text-center text-sm text-ink/70">Tap a brand to see its complete {siteConfig.name} collection.</p>
         <BrandGrid brands={brands.slice(0, 30)} />
@@ -411,8 +428,8 @@ export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
  * "Why Choose VOLTA.LK" on a black band: only things the store really does (checkout rules come from the live ERP
  * settings). No warranty, authorised-dealer or delivery-time promises, because none are verified.
  */
-export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
-  const reasons: { icon: LucideIcon; title: string; text: string }[] = [
+export function defaultWhyChoose(checkout: HomeData["checkout"]): { icon: LucideIcon; title: string; text: string }[] {
+  return [
     ...(checkout.cod ? [{ icon: Banknote, title: "Cash on Delivery", text: "Pay in cash when your order arrives. No card needed to order." }] : []),
     ...(checkout.deliveryCharge != null ? [{ icon: Truck, title: "One Clear Delivery Charge", text: `A flat ${formatLkr(checkout.deliveryCharge)}, shown before you place your order.` }] : []),
     { icon: RefreshCw, title: "Live Prices & Stock", text: "Every price and stock level comes from our live catalogue and is checked again at checkout." },
@@ -420,6 +437,12 @@ export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
     { icon: BadgeCheck, title: "Shop by Brand", text: "Every brand in our catalogue in one place, with its own shop page." },
     { icon: Headset, title: "Real People to Help", text: "Questions about an order or a product? Our team answers." },
   ];
+}
+
+export async function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
+  // Staff can write their own cards (Admin, Content, Homepage); otherwise the built-in, verifiable ones.
+  const saved = await getContent("why-choose");
+  const reasons = saved ? saved.items.map((x, i) => ({ icon: ICON_CYCLE[(i + 1) % ICON_CYCLE.length], title: x.title, text: x.text })) : defaultWhyChoose(checkout);
   return (
     // As on ugreen.lk: a plain centred title, then light grey cards with an outline icon, a title and a short line.
     <section aria-labelledby="why" className="container-page mt-14 sm:mt-20">
@@ -441,12 +464,36 @@ export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
  * Customer reviews configured by the owner (HOME_REVIEWS): real reviews only, each with its rating and, when given,
  * where it was posted. Hidden until reviews are configured, so the page never shows invented praise.
  */
-export function Reviews({ title, reviews }: { title: string; reviews: HomeData["reviews"]["items"] }) {
-  if (!reviews.length) return null;
+export async function Reviews({ title, reviews }: { title: string; reviews: HomeData["reviews"]["items"] }) {
+  // The store's real Google rating (Admin, Store details), shown beside the reviews as on ugreen.lk.
+  const info = await getStoreInfo();
+  const rating = info.googleRating ? Number(info.googleRating) : null;
+  if (!reviews.length && rating == null) return null;
+  const summary =
+    rating != null ? (
+      <div className="flex flex-col justify-center rounded-card border border-border bg-bg p-5 sm:p-6">
+        <p className="text-sm font-bold text-ink">{siteConfig.name} on Google</p>
+        <p className="mt-2 flex items-center gap-2">
+          <span className="text-2xl font-extrabold tabular-nums text-ink">{rating.toFixed(1)}</span>
+          <span className="flex gap-0.5" aria-label={`Rated ${rating.toFixed(1)} out of 5 on Google`}>
+            {Array.from({ length: 5 }, (_, k) => (
+              <Star key={k} aria-hidden className={`h-4 w-4 ${k < Math.round(rating) ? "fill-brand-500 text-brand-500" : "text-border-strong/40"}`} />
+            ))}
+          </span>
+        </p>
+        {info.googleReviewCount ? <p className="mt-1 text-sm text-muted">Based on {Number(info.googleReviewCount).toLocaleString("en-US")} reviews</p> : null}
+        {info.googleUrl ? (
+          <a href={info.googleUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex w-fit min-h-9 items-center rounded-full border border-border px-4 text-sm font-semibold text-ink hover:border-ink">
+            Review us on Google<span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        ) : null}
+      </div>
+    ) : null;
   return (
     <section aria-labelledby="reviews" className="container-page mt-14 sm:mt-20">
       <SectionHead id="reviews" eyebrow="Reviews" title={title} />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className={`grid gap-4 sm:grid-cols-2 ${summary ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+        {summary ? <li>{summary}</li> : null}
         {reviews.map((r, i) => (
           <li key={i} className="flex flex-col rounded-card border border-border bg-bg p-5 transition-[border-color,box-shadow] hover:border-brand-500 hover:shadow-neon-lift sm:p-6">
             <p className="flex gap-0.5" aria-label={`Rated ${r.rating} out of 5`}>
@@ -465,6 +512,20 @@ export function Reviews({ title, reviews }: { title: string; reviews: HomeData["
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+/** The strip banner (as on ugreen.lk): one full-width staff picture, rounded, optionally a link. */
+export function StripBanner({ banner }: { banner: HomeData["stripBanner"] }) {
+  if (!banner) return null;
+  const img = (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={banner.image} alt={banner.alt} loading="lazy" className="block h-auto w-full rounded-panel object-cover" />
+  );
+  return (
+    <section aria-label="Promotion" className="container-page mt-10 sm:mt-14">
+      {banner.href ? <Link href={banner.href} className="block overflow-hidden rounded-panel">{img}</Link> : img}
     </section>
   );
 }

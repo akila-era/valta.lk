@@ -25,8 +25,8 @@ export interface RawParams {
   per?: string;
 }
 
-/** Page sizes offered, as on ugreen.lk ("Show: 9 / 12 / 18 / 24"); 12 is the default. */
-const PER_PAGE = [9, 12, 18, 24] as const;
+/** Page sizes offered, as on ugreen.lk ("Show: 9 / 12 / 18 / 24 / 48"); 12 is the default. */
+const PER_PAGE = [9, 12, 18, 24, 48] as const;
 const DEFAULT_PER = 12;
 
 /** The layouts offered next to "Show", as on ugreen.lk: a list, then grids of 2, 3 and 4 per row (4 is the default). */
@@ -59,7 +59,7 @@ const SORTS: { value: SortKey; label: string }[] = [
 
 const num = (v?: string) => (v && /^\d{1,9}(\.\d{1,2})?$/.test(v) ? Number(v) : undefined);
 
-export function parseParams(p: RawParams, fixedCategory?: string): ProductQuery {
+export function parseParams(p: RawParams, fixedCategory?: string, fresh = false): ProductQuery {
   const sort = SORTS.some((s) => s.value === p.sort) ? (p.sort as SortKey) : "newest";
   const page = /^\d{1,4}$/.test(p.page ?? "") ? Number(p.page) : 1;
   return {
@@ -73,6 +73,7 @@ export function parseParams(p: RawParams, fixedCategory?: string): ProductQuery 
     maxPrice: num(p.max),
     inStockOnly: p.stock === "1",
     onSale: p.sale === "1",
+    fresh: fresh || undefined,
     pageSize: PER_PAGE.find((n) => String(n) === p.per) ?? DEFAULT_PER,
   };
 }
@@ -89,13 +90,16 @@ export async function CatalogueView({
   params,
   fixedCategory,
   showCategories = true,
+  fresh = false,
 }: {
   basePath: string;
   params: RawParams;
   fixedCategory?: string;
   showCategories?: boolean;
+  /** Only recently published products (the New Arrivals page). */
+  fresh?: boolean;
 }) {
-  const query = parseParams(params, fixedCategory);
+  const query = parseParams(params, fixedCategory, fresh);
   let result;
   try {
     result = await listProducts(query);

@@ -2,8 +2,9 @@
  * Demo data for a LOCAL preview, laid out like a big accessories store (ugreen.lk). Pair it with the mock ERP's demo
  * catalogue (MOCK_ERP_DEMO=1), which supplies the products, prices and stock.
  *
- * Fills the website's own data: Store Details (top bar, contact, hours, social links, payment badges), the KOKO /
- * Mintpay line, Hot Deals (the demo items on sale) and approved sample product reviews.
+ * Fills the website's own data: Store Details (top bar, contact, hours, social links, payment badges, delivery lines),
+ * the KOKO / Mintpay line, short lines for the categories, Hot Deals (the demo items on sale) and approved sample
+ * product reviews. The Google rating is left empty: only the store's real rating belongs there.
  *
  * Refuses any database that is not on this computer unless run with --server. With --server (a public demo site) it
  * writes only the KOKO / Mintpay line and Hot Deals: the sample reviews would look like real customers' words and the
@@ -30,6 +31,23 @@ const STORE_INFO = {
   hours: ["Mon - Sat: 9:00 AM - 7:00 PM", "Sunday: 10:00 AM - 4:00 PM"],
   social: { facebook: "https://www.facebook.com/", instagram: "https://www.instagram.com/", tiktok: "https://www.tiktok.com/", youtube: "https://www.youtube.com/" },
   payments: ["koko", "mintpay", "visa", "mastercard", "bank", "cod"],
+  deliveryTime: "Islandwide delivery in 3 to 4 working days",
+  pickupInfo: "Store pickup orders are ready within 1 to 2 hours during business hours",
+  // Local preview only (never seeded on a server): a sample account so Direct bank transfer appears at checkout.
+  bankName: "Demo Bank",
+  bankBranch: "Colombo 03",
+  bankAccountName: "VOLTA.LK Demo",
+  bankAccountNumber: "0000 1111 2222",
+};
+
+/** Short lines for the homepage range tiles (category slug -> line). */
+const TAGLINES: Record<string, string> = {
+  "power-banks": "Power up anywhere",
+  "charging-adapters": "Power up fast",
+  cables: "Strong and durable",
+  "headphones-earphones": "Sound for every day",
+  "hubs-docks": "More ports, less clutter",
+  "wireless-chargers": "Just put it down",
 };
 
 const REVIEWS: [number, string, string][] = [
@@ -59,6 +77,7 @@ async function main() {
     );
 
   if (local) await setting("store-info", STORE_INFO);
+  await setting("category-taglines", TAGLINES);
   await setting("instalments", { enabled: true, providers: ["koko", "mintpay"], parts: 3 });
 
   // Hot Deals: the demo items that are on sale, cheapest saving last.
@@ -91,8 +110,8 @@ async function main() {
 
   await db.end();
   console.log(local
-    ? `Demo data ready: store details, KOKO / Mintpay line, ${onSale.length} hot deals, ${count} reviews.`
-    : `Demo data ready: KOKO / Mintpay line and ${onSale.length} hot deals (no sample reviews or contact details on a server).`);
+    ? `Demo data ready: store details, KOKO / Mintpay line, category lines, ${onSale.length} hot deals, ${count} reviews.`
+    : `Demo data ready: KOKO / Mintpay line, category lines and ${onSale.length} hot deals (no sample reviews or contact details on a server).`);
 }
 
 main().catch((e) => {

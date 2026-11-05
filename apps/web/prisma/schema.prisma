@@ -338,6 +338,25 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 }
 
+/// A business asking to buy wholesale ("Apply Wholesale" in the header, /wholesale). Staff see the list in the admin
+/// (Customers, Wholesale Applications) and mark each one as contacted. Nothing is sent to the ERP.
+model WholesaleApplication {
+  id        String   @id @default(cuid())
+  business  String
+  name      String
+  phone     String
+  email     String?
+  city      String?
+  /// What they want to buy and roughly how much.
+  message   String?
+  /// NEW until staff contact them, then CONTACTED.
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
 enum ReviewStatus {
   PENDING
   APPROVED

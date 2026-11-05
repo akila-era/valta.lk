@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Banknote, Loader2, Smartphone } from "lucide-react";
+import { Banknote, Landmark, Loader2, Smartphone } from "lucide-react";
 import { useLiveCart } from "@/components/cart/cart-view";
 import { EmptyState } from "@/components/ui/states";
 import { addMoney, formatLkr, fromCents, multiplyMoney, toCents } from "@/lib/utils/money";
@@ -52,7 +52,7 @@ function Field({ id, label, error, hint, required = false, className = "", child
  * screen) and the order with payment, terms and Place order on the right. Everything is checked when Place order is
  * pressed; the first field with a problem gets focus.
  */
-export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: number; prefill?: { name: string; email: string; phone: string | null } }) {
+export function CheckoutForm({ deliveryCharge, prefill, bank = false }: { deliveryCharge: number; prefill?: { name: string; email: string; phone: string | null }; /** The store has a bank account set (Store details), so Direct bank transfer is offered. */ bank?: boolean }) {
   const router = useRouter();
   const { lines, subtotal } = useCart();
   const { live } = useLiveCart();
@@ -60,6 +60,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
   const [errors, setErrors] = useState<Errors>({});
   const [banner, setBanner] = useState<{ kind: "error" | "warn"; text: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [payment, setPayment] = useState<"COD" | "BANK_TRANSFER">("COD");
   const inFlight = useRef(false);
   const openedTotal = useRef<number | null>(null);
   const [priceAck, setPriceAck] = useState(false);
@@ -142,6 +143,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           delivery,
           expectedTotal: total,
           acceptTerms: true,
+          paymentMethod: payment,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -272,15 +274,41 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           </div>
         </dl>
 
+        {/* Ways to pay, as on ugreen.lk. Cash on delivery and (when the store's account is set) direct bank transfer work
+            today; card, KOKO and Mintpay need a payment gateway and ERP support, so they are shown as coming soon. */}
         <fieldset className="mt-5">
           <legend className="sr-only">Payment</legend>
-          <label className="flex items-start gap-3 text-[15px]">
-            <input type="radio" name="payment" value="COD" defaultChecked readOnly className="mt-0.5 h-4 w-4 accent-brand-600" />
-            <span className="min-w-0">
-              <span className="flex items-center gap-1.5 text-ink"><Banknote className="h-4 w-4 text-brand-600" aria-hidden /> Cash on delivery</span>
-              <span className="mt-2 block rounded-control bg-bg p-3 text-sm leading-6 text-muted">Pay in cash when your order arrives.</span>
-            </span>
-          </label>
+          <div className="space-y-3">
+            <label className="flex cursor-pointer items-start gap-3 text-[15px]">
+              <input type="radio" name="payment" value="COD" checked={payment === "COD"} onChange={() => setPayment("COD")} className="mt-1 h-4 w-4 accent-brand-600" />
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5 text-ink"><Banknote className="h-4 w-4 text-brand-600" aria-hidden /> Cash on delivery</span>
+                {payment === "COD" ? <span className="mt-2 block rounded-control bg-bg p-3 text-sm leading-6 text-muted">Pay in cash when your order arrives.</span> : null}
+              </span>
+            </label>
+            {bank ? (
+              <label className="flex cursor-pointer items-start gap-3 text-[15px]">
+                <input type="radio" name="payment" value="BANK_TRANSFER" checked={payment === "BANK_TRANSFER"} onChange={() => setPayment("BANK_TRANSFER")} className="mt-1 h-4 w-4 accent-brand-600" />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5 text-ink"><Landmark className="h-4 w-4 text-brand-600" aria-hidden /> Direct bank transfer</span>
+                  {payment === "BANK_TRANSFER" ? (
+                    <span className="mt-2 block rounded-control bg-bg p-3 text-sm leading-6 text-muted">
+                      Pay into our bank account and use your order reference as the payment reference. We send your order once the money arrives. The account details are on the next page.
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+            ) : null}
+            {([["Card payment", "Visa / Mastercard"], ["KOKO", "Buy now, pay later in 3"], ["Mintpay", "Buy now, pay later in 3"]] as const).map(([label, note]) => (
+              <p key={label} className="flex items-start gap-3 text-[15px] text-muted" aria-disabled="true">
+                <input type="radio" name="payment" disabled aria-label={`${label} (coming soon)`} className="mt-1 h-4 w-4" />
+                <span className="min-w-0 flex-1">
+                  {label} <span className="text-xs">({note})</span>{" "}
+                  <span className="ml-1 rounded-full bg-bg px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink/60">Coming soon</span>
+                </span>
+              </p>
+            ))}
+          </div>
         </fieldset>
 
         <div className="mt-4">

@@ -35,7 +35,7 @@ function QuickLink({ href, icon: Icon, title, text }: { href: string; icon: Luci
   return (
     <li>
       <Link href={href} className="group flex h-full items-center gap-3 rounded-card border border-border bg-bg p-3 transition-[border-color,box-shadow] hover:border-brand-500 hover:shadow-neon-lift sm:p-4">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-ink text-white transition-colors group-hover:bg-brand-500">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-ink text-white transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">
           <Icon className="h-5 w-5" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
@@ -69,7 +69,7 @@ export default async function AccountPage() {
         <span aria-hidden className="pointer-events-none absolute -bottom-24 right-24 h-48 w-48 rounded-full border border-white/10" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-            <span aria-hidden className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-500 font-display text-2xl font-extrabold uppercase text-white shadow-neon sm:h-20 sm:w-20 sm:text-3xl">
+            <span aria-hidden className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-500 font-display text-2xl font-extrabold uppercase text-on-brand shadow-neon sm:h-20 sm:w-20 sm:text-3xl">
               {first.charAt(0)}
             </span>
             <div className="min-w-0">

@@ -5,7 +5,7 @@ import { PumpkinO } from "./halloween";
 const Letters = ({ pumpkin = false, overlay = false }: { pumpkin?: boolean; overlay?: boolean }) => (
   <>
     <span>V</span>
-    {pumpkin ? <PumpkinO className={overlay ? "invisible" : ""} /> : <span className="text-brand-500">O</span>}
+    {pumpkin ? <PumpkinO className={overlay ? "invisible" : ""} /> : <span className="text-[#e86c2e]">O</span>}
     <span>LTA</span>
     <span className="text-[0.82em] font-extrabold">.LK</span>
   </>

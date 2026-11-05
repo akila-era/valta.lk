@@ -1,6 +1,6 @@
 import { featuredReviews } from "./reviews";
 import "server-only";
-import { activeBanners, activeWideBanners, type WideBanner } from "./banners";
+import { activeBanners, activeStripBanner, activeWideBanners, type WideBanner } from "./banners";
 import { brandKey, brandLogoMap } from "./brand-logos";
 import { budgetBands, getSnapshot, listBrands, listPrices, listProducts, type ProductListResult } from "./erp/catalogue";
 import { isOnSale } from "./erp/product-utils";
@@ -9,6 +9,7 @@ import type { ErpProduct } from "./erp/types";
 import { configuredHotDealsWithEnd } from "./hot-deals-store";
 import { getDb } from "./db";
 import { configuredBanners, configuredReviews, configuredVideos, type BannerConfig, type ReviewConfig, type VideoConfig } from "./home-config";
+import { getContent } from "./site-content";
 
 export interface ResolvedBanner extends BannerConfig {
   image?: string;
@@ -90,6 +91,8 @@ export interface HomeData {
   staffBanners: boolean;
   /** Banner pictures uploaded by staff; they open the homepage banner slider, in order. */
   wideBanners: WideBanner[];
+  /** The full-width picture under "Shop by Category" (Admin, Promotions, a strip banner), if any. */
+  stripBanner: WideBanner | null;
   /** Further products beyond the ones already shown in "New Arrivals": same catalogue, next in line. */
   more: ErpProduct[];
   videos: { title: string; items: VideoConfig[] };
@@ -137,7 +140,7 @@ export async function getHomeData(): Promise<HomeData> {
     safe(() => getCheckoutAvailability()),
     safe(() => listPrices()),
   ]);
-  const [logos, staffBanners, wideBanners, snapshot] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners(), safe(() => getSnapshot())]);
+  const [logos, staffBanners, wideBanners, stripBanner, snapshot] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners(), activeStripBanner(), safe(() => getSnapshot())]);
   // Staff-picked Hot Deals, matched against the same ERP snapshot as every other section (real prices and stock).
   const curated = await configuredHotDealsWithEnd(snapshot?.products ?? null);
   const curatedDeals = curated?.deals ?? null;
@@ -163,13 +166,17 @@ export async function getHomeData(): Promise<HomeData> {
     categories,
     newArrivals: all.slice(0, 10),
     more: all.slice(10).filter((p) => p.available).slice(0, 15),
-    videos: (() => {
+    // Videos and reviews saved in the admin (Content, Homepage) first, then the HOME_VIDEOS / HOME_REVIEWS settings.
+    videos: await (async () => {
       const v = configuredVideos();
-      return { title: v.title, items: v.videos };
+      const saved = await getContent("home-videos");
+      return saved ? { title: saved.title || v.title, items: saved.items } : { title: v.title, items: v.videos };
     })(),
-    // The owner's own reviews (HOME_REVIEWS) when set; otherwise the best approved customer reviews from product pages.
+    // The owner's own reviews when set; otherwise the best approved customer reviews from product pages.
     reviews: await (async () => {
       const r = configuredReviews();
+      const saved = await getContent("home-reviews");
+      if (saved?.items.length) return { title: saved.title || r.title, items: saved.items };
       if (r.reviews.length) return { title: r.title, items: r.reviews };
       return { title: process.env.HOME_REVIEWS_TITLE?.trim().slice(0, 80) || "What Our Customers Say", items: await featuredReviews().catch(() => []) };
     })(),
@@ -184,6 +191,7 @@ export async function getHomeData(): Promise<HomeData> {
     banners: staffBanners.length ? staffBanners : resolveBanners(categories),
     staffBanners: staffBanners.length > 0,
     wideBanners,
+    stripBanner,
     rails,
     budget: prices ? budgetBands(prices) : null,
     phonesSlug: categories.find((c) => /(?<!head|ear)phone|mobile/i.test(c.name))?.slug,

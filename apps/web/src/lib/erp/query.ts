@@ -1,5 +1,5 @@
 import type { ErpProduct } from "./types";
-import { effectivePrice, isOnSale, matchesBrand, matchesSearch } from "./product-utils";
+import { effectivePrice, isNewArrival, isOnSale, matchesBrand, matchesSearch } from "./product-utils";
 
 export type SortKey = "newest" | "price-asc" | "price-desc" | "name";
 
@@ -17,6 +17,8 @@ export interface ProductQuery {
   maxPrice?: number;
   inStockOnly?: boolean;
   onSale?: boolean;
+  /** Only products published recently (the New badge window): the New Arrivals page. */
+  fresh?: boolean;
   /** Published website content marked Featured. Absent content never matches. */
   featured?: boolean;
 }
@@ -88,6 +90,7 @@ export function queryProducts(all: ErpProduct[], query: ProductQuery = {}): Prod
     if (!matchesBrand(p.brand, query.brand)) return false;
     if (query.inStockOnly && !p.available) return false;
     if (query.onSale && !isOnSale(p)) return false;
+    if (query.fresh && !isNewArrival(p.publishedAt)) return false;
     if (query.featured && !p.content?.badges.includes("featured")) return false;
     const price = effectivePrice(p);
     if (query.minPrice != null && price < query.minPrice) return false;

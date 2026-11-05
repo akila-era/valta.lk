@@ -1,7 +1,7 @@
 import { NewsletterForm } from "./newsletter-form";
 import Link from "next/link";
 import {
-  Banknote, Building2, ChevronRight, Clock, FileText, Headset, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck,
+  Banknote, Building2, Handshake, Map as MapIcon, ChevronRight, Clock, FileText, Headset, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck,
   type LucideIcon,
 } from "lucide-react";
 import { listProducts } from "@/lib/erp/catalogue";
@@ -18,12 +18,15 @@ const support: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/contact", label: "Contact us", icon: MessageSquare },
   { href: "/shipping-policy", label: "Shipping policy", icon: Truck },
   { href: "/returns-policy", label: "Returns policy", icon: RefreshCw },
-  { href: "/#faq", label: "Frequently asked questions", icon: HelpCircle },
+  { href: "/faqs", label: "Frequently asked questions", icon: HelpCircle },
+  { href: "/wholesale", label: "Apply for wholesale", icon: Handshake },
 ];
 const company: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/about", label: "About us", icon: Building2 },
   { href: "/privacy-policy", label: "Privacy policy", icon: ShieldCheck },
   { href: "/terms", label: "Terms & conditions", icon: FileText },
+  { href: "/warranty-policy", label: "Warranty & refund policy", icon: ShieldCheck },
+  { href: "/site-map", label: "Sitemap", icon: MapIcon },
 ];
 
 /** Brand glyphs as simple outlines (the icon library has no brand logos). */

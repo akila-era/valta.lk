@@ -33,7 +33,7 @@ export function Panel({ title, action, children, className = "", id }: { title?:
 }
 
 const TONES = {
-  orange: "bg-brand-500 text-white",
+  orange: "bg-brand-500 text-on-brand",
   green: "bg-success-bg text-success",
   blue: "bg-ink text-white",
   purple: "bg-ink text-brand-500",
@@ -129,7 +129,7 @@ export function Segmented({ label, options, current }: { label: string; options:
   return (
     <nav aria-label={label} className="inline-flex flex-wrap rounded-control border border-border bg-bg p-1 text-sm shadow-card">
       {options.map((o) => (
-        <Link key={o.value} href={o.href} aria-current={o.value === current ? "true" : undefined} className={`rounded-[4px] px-3.5 py-1.5 font-semibold transition-colors ${o.value === current ? "bg-brand-500 text-white shadow-sm" : "text-muted hover:bg-surface hover:text-ink"}`}>
+        <Link key={o.value} href={o.href} aria-current={o.value === current ? "true" : undefined} className={`rounded-[4px] px-3.5 py-1.5 font-semibold transition-colors ${o.value === current ? "bg-brand-500 text-on-brand shadow-sm" : "text-muted hover:bg-surface hover:text-ink"}`}>
           {o.label}
         </Link>
       ))}
@@ -194,7 +194,7 @@ export function Pager({ page, pageCount, href, total, pageSize, defaultSize = DE
           {page > 1 && <Link className={step} rel="prev" href={href(page - 1)}>Previous</Link>}
           {pageList(page, pageCount).map((n, i) =>
             n === "gap" ? <span key={`g${i}`} className="px-2 text-muted" aria-hidden>…</span> : (
-              <Link key={n} href={href(n)} aria-current={n === page ? "page" : undefined} aria-label={`Page ${n}`} className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 font-medium ${n === page ? "border-brand-500 bg-brand-500 text-white shadow-sm" : "border-border bg-bg hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700"}`}>{n}</Link>
+              <Link key={n} href={href(n)} aria-current={n === page ? "page" : undefined} aria-label={`Page ${n}`} className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-2 font-medium ${n === page ? "border-brand-500 bg-brand-500 text-on-brand shadow-sm" : "border-border bg-bg hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700"}`}>{n}</Link>
             ),
           )}
           {page < pageCount && <Link className={step} rel="next" href={href(page + 1)}>Next</Link>}
@@ -250,7 +250,7 @@ export function BarChart({ data, format, label }: { data: { label: string; value
   );
 }
 
-export const SLICE_COLORS = ["#ff7a33", "#111111", "#ff9f66", "#6b7280", "#ffd2b8", "#c4c8ce"];
+export const SLICE_COLORS = ["#fe7b33", "#111111", "#ff9f66", "#6b7280", "#ffd2b8", "#c4c8ce"];
 
 export function Donut({ slices, centre, label }: { slices: { label: string; value: number }[]; centre: { big: string; small: string }; label: string }) {
   const total = slices.reduce((a, s) => a + s.value, 0);

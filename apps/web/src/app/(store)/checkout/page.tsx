@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
+import { getStoreInfo } from "@/lib/store-info";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
 import { getCheckoutAvailability } from "@/lib/erp/settings";
 import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
@@ -37,7 +38,7 @@ export default async function CheckoutPage() {
               Returning customer? <Link href="/account/login?next=/checkout" className="font-semibold text-brand-600 underline underline-offset-2">Click here to login</Link>
             </p>
           )}
-          <CheckoutForm deliveryCharge={a.settings.deliveryCharge} prefill={customer ?? undefined} />
+          <CheckoutForm deliveryCharge={a.settings.deliveryCharge} prefill={customer ?? undefined} bank={Boolean((await getStoreInfo()).bankAccountNumber)} />
         </>
       ) : (
         <div role="alert" className="rounded-3xl border border-warn/30 bg-warn-bg p-8 text-center shadow-soft">

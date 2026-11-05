@@ -48,7 +48,9 @@ test.describe("homepage", () => {
     await expect(cards.first().getByText("-9%")).toBeVisible();
     await expect(cards.first().getByText("LKR 199,900")).toBeVisible();
     await expect(page.locator("#deals").getByRole("link", { name: "View all" })).toHaveAttribute("href", "/products?sale=1");
-    await expect(page.locator("header").getByRole("link", { name: "Deals" })).toBeVisible();
+    // the header bar keeps only top categories (as on ugreen.lk); deals are in the All Categories drawer
+    await page.locator("header").getByRole("button", { name: "All Categories" }).click();
+    await expect(page.getByRole("dialog").getByRole("link", { name: "Hot Deals" })).toHaveAttribute("href", "/products?sale=1");
 
     // products without a discount never show a badge
     await page.goto("/products?q=earbuds");
@@ -337,12 +339,13 @@ test.describe("storefront sections", () => {
     const footer = page.locator("footer");
     await footer.scrollIntoViewIfNeeded();
     const links = await footer.getByRole("link").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-    for (const h of ["/track-order", "/contact", "/shipping-policy", "/returns-policy", "/#faq", "/about", "/privacy-policy", "/terms", "/products"]) expect(links).toContain(h);
+    for (const h of ["/track-order", "/contact", "/shipping-policy", "/returns-policy", "/faqs", "/wholesale", "/warranty-policy", "/site-map", "/about", "/privacy-policy", "/terms", "/products"]) expect(links).toContain(h);
     expect(links.filter((h) => h && !h.startsWith("/") && !h.startsWith("tel:") && !h.startsWith("mailto:") && !h.startsWith("https://"))).toEqual([]);
     for (const heading of ["Shop", "Support", "Company", "Contact"]) await expect(footer.getByRole("heading", { name: heading, level: 2 })).toBeVisible();
     await expect(footer.getByText("Delivery LKR 450")).toBeVisible(); // the ERP's real charge
     await expect(footer.getByText("Cash on delivery").first()).toBeVisible();
-    await expect(footer.getByText(/visa|mastercard|amex|koko|mintpay|genuine|warranty|islandwide/i)).toHaveCount(0); // nothing unverified
+    // nothing unverified (the "Warranty & refund policy" link is only the name of a policy page, not a promise)
+    await expect(footer.getByText(/visa|mastercard|amex|koko|mintpay|genuine|warranty|islandwide/i).filter({ hasNotText: "Warranty & refund policy" })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
     await footer.getByRole("button", { name: "Back to top" }).click();
     await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 }).toBeLessThan(5);
@@ -403,7 +406,7 @@ test.describe("more homepage sections", () => {
     await page.goto("/");
     const section = page.locator("#new-arrivals");
     await expect(page.getByRole("tab", { name: "New Arrivals" })).toHaveAttribute("aria-selected", "true");
-    await expect(section.getByRole("link", { name: "View all new arrivals" })).toHaveAttribute("href", "/products");
+    await expect(section.getByRole("link", { name: "View all new arrivals" })).toHaveAttribute("href", "/new-arrivals");
 
     const cards = section.locator("article");
     expect(await cards.count()).toBeGreaterThanOrEqual(8);

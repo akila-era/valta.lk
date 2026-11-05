@@ -10,7 +10,7 @@ export function Pumpkin({ className = "" }: { className?: string }) {
       <path d="M47 24c0-9 4-15 12-19l4 5c-6 3-8 8-8 14z" fill="#111111" />
       <ellipse cx="29" cy="62" rx="25" ry="35" fill="#e04e00" />
       <ellipse cx="71" cy="62" rx="25" ry="35" fill="#e04e00" />
-      <ellipse cx="50" cy="61" rx="25" ry="37" fill="#ff7a33" />
+      <ellipse cx="50" cy="61" rx="25" ry="37" fill="#fe7b33" />
       <path d="M26 52h13l-6.5-11zM61 52h13l-6.5-11zM47 62h6l-3-5z" fill="#111111" />
       <path d="M24 68c9 19 43 19 52 0l-7 3-4 6-6-5-6 7-6-7-6 5-4-6z" fill="#111111" />
     </svg>
@@ -101,7 +101,7 @@ export function HalloweenSkyline() {
     <g transform={`translate(${x} ${y}) scale(${s})`}>
       <ellipse cx="-9" cy="0" rx="11" ry="10" fill="#e04e00" />
       <ellipse cx="9" cy="0" rx="11" ry="10" fill="#e04e00" />
-      <ellipse cx="0" cy="0" rx="11" ry="10.5" fill="#ff7a33" />
+      <ellipse cx="0" cy="0" rx="11" ry="10.5" fill="#fe7b33" />
       <path d="M-1 -10c0-4 2-6 5-7l1 2c-2 1-3 3-3 5z" fill="#111111" />
       <path d="M-9 -2h5l-2.5-4zM4 -2h5l-2.5-4zM-9 3c4 5 14 5 18 0l-3 1-2 2-2-2-2 2-2-2-2 2-2-2z" fill="#111111" />
     </g>

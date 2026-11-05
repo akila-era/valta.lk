@@ -35,6 +35,18 @@ export const storeInfoSchema = z.object({
   hours: z.array(z.string().trim().min(1).max(60)).max(4).default([]),
   social: z.object({ facebook: link, instagram: link, tiktok: link, youtube: link }).default({ facebook: "", instagram: "", tiktok: "", youtube: "" }),
   payments: z.array(z.enum(Object.keys(PAYMENT_BADGES) as [PaymentBadge, ...PaymentBadge[]])).max(7).default([]),
+  /** Shown in every product page's Delivery Information box unless the product has its own (product content). */
+  deliveryTime: text(120),
+  pickupInfo: text(200),
+  /** The store's real Google rating, copied from its Google Business profile; all three empty = not shown. */
+  googleRating: z.union([z.literal(""), z.string().trim().regex(/^[1-5](\.\d)?$/, "Rating like 4.9")]).default(""),
+  googleReviewCount: z.union([z.literal(""), z.string().trim().regex(/^\d{1,7}$/, "A whole number")]).default(""),
+  googleUrl: link,
+  /** Bank account for "Direct bank transfer" at checkout; the option is offered only when the account number is set. */
+  bankName: text(80),
+  bankAccountName: text(100),
+  bankAccountNumber: text(40),
+  bankBranch: text(80),
 });
 export type StoreInfo = z.infer<typeof storeInfoSchema>;
 
@@ -55,6 +67,16 @@ export const DEMO_STORE_INFO: StoreInfo = {
     youtube: "https://www.youtube.com/",
   },
   payments: ["koko", "mintpay", "visa", "mastercard", "bank", "cod"],
+  deliveryTime: "Islandwide delivery in 3 to 4 working days",
+  pickupInfo: "Store pickup orders are ready within 1 to 2 hours during business hours",
+  // Never a made-up rating: staff copy the real one from the store's Google profile.
+  googleRating: "",
+  googleReviewCount: "",
+  googleUrl: "",
+  bankName: "",
+  bankAccountName: "",
+  bankAccountNumber: "",
+  bankBranch: "",
 };
 
 const KEY = "store-info";
@@ -77,6 +99,15 @@ const fromEnv = (): StoreInfo => ({
     youtube: process.env.SITE_SOCIAL_YOUTUBE?.trim() ?? "",
   },
   payments: siteConfig.paymentMethods.filter((p): p is PaymentBadge => p in PAYMENT_BADGES),
+  deliveryTime: "",
+  pickupInfo: "",
+  googleRating: "",
+  googleReviewCount: "",
+  googleUrl: "",
+  bankName: "",
+  bankAccountName: "",
+  bankAccountNumber: "",
+  bankBranch: "",
 });
 
 const g = globalThis as unknown as { __voltaStoreInfo?: { at: number; value: StoreInfo } };

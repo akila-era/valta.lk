@@ -6,7 +6,7 @@ import { ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
 
 export interface BannerRow {
   id: string;
-  placement: "CARDS" | "WIDE";
+  placement: "CARDS" | "WIDE" | "STRIP";
   eyebrow: string;
   headline: string;
   text: string;
@@ -93,14 +93,14 @@ export function BannerManager({ rows, max, shown }: { rows: BannerRow[]; max: nu
                 ) : (
                   <span className="flex flex-col items-center gap-1 text-xs text-muted"><ImageIcon className="h-6 w-6" aria-hidden />Stock photo</span>
                 )}
-                <span className={`badge absolute left-3 top-3 ${r.active ? "bg-success-bg text-success" : "bg-surface text-muted ring-1 ring-border"}`}>{r.active ? "Shown" : "Hidden"} · {r.placement === "WIDE" ? "Wide banner" : "Promo card"}</span>
+                <span className={`badge absolute left-3 top-3 ${r.active ? "bg-success-bg text-success" : "bg-surface text-muted ring-1 ring-border"}`}>{r.active ? "Shown" : "Hidden"} · {r.placement === "WIDE" ? "Wide banner" : r.placement === "STRIP" ? "Strip banner" : "Promo card"}</span>
                 <span className="badge absolute right-3 top-3 bg-bg text-ink ring-1 ring-border">Order {r.sortOrder}</span>
               </div>
               <div className="p-4">
                 {r.eyebrow && <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">{r.eyebrow}</p>}
                 <p className="mt-0.5 font-semibold">{r.headline}</p>
                 {r.text && <p className="mt-1 text-sm text-muted">{r.text}</p>}
-                {r.placement === "WIDE" ? (
+                {r.placement !== "CARDS" ? (
                   <p className="mt-2 text-xs text-muted">Link: <span className="font-mono">{r.href || "none"}</span></p>
                 ) : (
                   <p className="mt-2 text-xs text-muted">Button: <b className="text-ink">{r.ctaLabel}</b> → <span className="font-mono">{r.href}</span></p>
@@ -121,8 +121,8 @@ export function BannerManager({ rows, max, shown }: { rows: BannerRow[]; max: nu
 function BannerForm({ initial, busy, error, onCancel, onSubmit }: { initial: BannerRow | null; busy: boolean; error: string | null; onCancel: () => void; onSubmit: (fd: FormData) => void | Promise<void> }) {
   const v = initial ?? { ...blank, id: "", imageUrl: null as string | null };
   const fileRef = useRef<HTMLInputElement>(null);
-  const [placement, setPlacement] = useState<"CARDS" | "WIDE">(v.placement);
-  const wide = placement === "WIDE";
+  const [placement, setPlacement] = useState<"CARDS" | "WIDE" | "STRIP">(v.placement);
+  const wide = placement !== "CARDS";
   const [preview, setPreview] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
   const shownImage = preview ?? (removeImage ? null : v.imageUrl);
@@ -141,7 +141,7 @@ function BannerForm({ initial, busy, error, onCancel, onSubmit }: { initial: Ban
       <fieldset className="lg:col-span-2">
         <legend className="label">Banner type</legend>
         <div className="flex flex-wrap gap-2">
-          {([["CARDS", "Promo card (picture + text + button)"], ["WIDE", "Wide banner (full-width picture, slides)"]] as const).map(([val, text]) => (
+          {([["CARDS", "Promo card (picture + text + button)"], ["WIDE", "Wide banner (full-width picture, slides)"], ["STRIP", "Strip banner (one full-width picture under Shop by Category)"]] as const).map(([val, text]) => (
             <label key={val} className={`cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium ${placement === val ? "border-brand-500 bg-brand-50 text-brand-700" : "border-border"}`}>
               <input type="radio" name="placement" value={val} checked={placement === val} onChange={() => setPlacement(val)} className="sr-only" /> {text}
             </label>

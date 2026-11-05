@@ -35,7 +35,7 @@ export default async function ReportKindPage({ params, searchParams }: Props) {
   const rangeNav = (
     <nav aria-label="Date range" className="flex flex-wrap rounded-control border border-border bg-bg p-1 text-sm shadow-card">
       {RANGES.map((r) => (
-        <Link key={r} href={`/admin/reports/${kind}?range=${r}`} aria-current={r === range ? "true" : undefined} className={`rounded-[4px] px-3.5 py-1.5 font-semibold transition-colors ${r === range ? "bg-brand-500 text-white shadow-sm" : "text-muted hover:bg-surface hover:text-ink"}`}>Last {r} days</Link>
+        <Link key={r} href={`/admin/reports/${kind}?range=${r}`} aria-current={r === range ? "true" : undefined} className={`rounded-[4px] px-3.5 py-1.5 font-semibold transition-colors ${r === range ? "bg-brand-500 text-on-brand shadow-sm" : "text-muted hover:bg-surface hover:text-ink"}`}>Last {r} days</Link>
       ))}
     </nav>
   );

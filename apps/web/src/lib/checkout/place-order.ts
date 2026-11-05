@@ -1,6 +1,7 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import { getDb } from "../db";
+import { getStoreInfo } from "../store-info";
 import { checkAvailability, type LineRequest } from "../erp/availability";
 import { getSnapshot } from "../erp/catalogue";
 import { ErpError } from "../erp/errors";
@@ -26,7 +27,7 @@ export interface RefreshedLine {
 
 export class CheckoutConflict extends Error {
   constructor(
-    public readonly code: "PRICE_CHANGED" | "INSUFFICIENT_STOCK",
+    public readonly code: "PRICE_CHANGED" | "INSUFFICIENT_STOCK" | "PAYMENT_UNAVAILABLE",
     public readonly refreshed: RefreshedLine[],
     public readonly newTotal?: number,
   ) {
@@ -62,6 +63,9 @@ function toRefreshed(lines: LineRequest[], avail: AvailabilityLine[]): Refreshed
  * browser sent about money is used only to detect that the customer saw a stale total.
  * Calling this again with the same externalRef is safe: the ERP idempotency key prevents duplicates.
  */
+/** Put at the start of the ERP order note for a bank transfer order. */
+export const BANK_NOTE = "PAYMENT: BANK TRANSFER - dispatch after the money arrives.";
+
 export function placeOrder(input: PlaceOrderInput, ctx: PlaceOrderContext = { accessToken: "" }): Promise<PlaceOrderResult> {
   const existing = inflight.get(input.externalRef);
   if (existing) return existing; // duplicate submit while the first is still running
@@ -99,6 +103,12 @@ async function doPlaceOrder(input: PlaceOrderInput, ctx: PlaceOrderContext): Pro
     throw new CheckoutConflict("PRICE_CHANGED", toRefreshed(lines, avail), total);
   }
 
+  // Direct bank transfer: the ERP takes only cash on delivery, so the order reaches it as COD with a note at the front
+  // that tells staff to wait for the transfer before dispatch. The website keeps the customer's real choice.
+  const bank = input.paymentMethod === "BANK_TRANSFER";
+  if (bank && !(await getStoreInfo()).bankAccountNumber) throw new CheckoutConflict("PAYMENT_UNAVAILABLE", toRefreshed(lines, avail));
+  const notes = [bank ? BANK_NOTE : "", input.delivery.notes].filter(Boolean).join(" ");
+
   // No reservationRef: the ERP creates and owns the stock hold atomically with the order, so there is nothing to
   // clean up if the order fails and no separate hold that can expire between steps.
   const request: CreateOrderRequest = {
@@ -114,7 +124,7 @@ async function doPlaceOrder(input: PlaceOrderInput, ctx: PlaceOrderContext): Pro
       city: input.delivery.city,
       district: input.delivery.district,
       ...(input.delivery.postalCode ? { postalCode: input.delivery.postalCode } : {}),
-      ...(input.delivery.notes ? { notes: input.delivery.notes } : {}),
+      ...(notes ? { notes } : {}),
     },
   };
 
@@ -163,6 +173,7 @@ async function doPlaceOrder(input: PlaceOrderInput, ctx: PlaceOrderContext): Pro
     customerId: ctx.customerId,
     accessToken: ctx.accessToken,
     priceBreakdown: breakdownJson(quote) as Prisma.InputJsonValue,
+    paymentChoice: input.paymentMethod ?? "COD",
   });
   if (created) await recordAdvertisedRedemptions(db, row.externalRef, ctx.customerId ?? null, quote).catch(() => undefined);
 

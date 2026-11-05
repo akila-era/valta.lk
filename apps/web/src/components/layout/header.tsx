@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Headset, MapPin, Phone, PhoneCall } from "lucide-react";
+import { MapPin, Phone, PhoneCall } from "lucide-react";
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
 import { activeSeason } from "@/lib/season";
 import { Pumpkin } from "./halloween";
 import { siteConfig } from "@/lib/site-config";
+import { getContent } from "@/lib/site-content";
 import { getStoreInfo, telHref } from "@/lib/store-info";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
 import { AccountMenu } from "./account-menu";
@@ -39,13 +40,16 @@ export { Wordmark };
 
 export async function Header() {
   const accounts = accountsEnabled();
-  const [{ categories, hasDeals, quick }, customer, settings, season, info] = await Promise.all([
+  const [{ categories, hasDeals, quick: autoQuick }, customer, settings, season, info, searches] = await Promise.all([
     loadNavData(),
     accounts ? getCurrentCustomer() : null,
     getSettings().catch(() => null),
     activeSeason(),
     getStoreInfo(),
+    getContent("popular-searches"),
   ]);
+  // Popular searches set by staff (Admin, Content, Search); otherwise the biggest brands and categories.
+  const quick = searches?.items.length ? searches.items.map((x) => ({ label: x.label, href: `/search?q=${encodeURIComponent(x.label)}` })) : autoQuick;
   const cod = settings?.paymentMethods.COD === true;
   // As on ugreen.lk: the store's line on the left (a seasonal theme brings its own), and the phone numbers and Store
   // Locator on the right. All of it is set in the admin (Settings, Store details).
@@ -81,20 +85,17 @@ export async function Header() {
         </div>
       </div>
       <HeaderShell>
-        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
+        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
           <Wordmark shine pumpkin={halloween} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
           {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
-          <div className="hidden md:mx-auto md:block md:w-full md:max-w-3xl">
+          <div className="hidden md:mx-auto md:block md:w-full md:max-w-4xl">
             <SearchBox size="lg" popular={quick} />
           </div>
           <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
-            <Link href="/contact" className="hidden items-center gap-2.5 px-3 hover:text-brand-600 xl:inline-flex">
-              <Headset className="h-7 w-7 text-ink" strokeWidth={1.5} aria-hidden />
-              <span className="leading-tight">
-                <span className="block text-[11px] text-muted">Need help?</span>
-                <span className="block text-sm font-semibold">Support</span>
-              </span>
+            {/* As on ugreen.lk: businesses can apply to buy wholesale. */}
+            <Link href="/wholesale" className="hidden min-h-8 items-center rounded-full bg-ink px-3.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white hover:bg-ink/85 lg:inline-flex">
+              Apply wholesale
             </Link>
             {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
             <MobileSearch popular={quick} />

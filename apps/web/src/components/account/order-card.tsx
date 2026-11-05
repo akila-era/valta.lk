@@ -63,7 +63,7 @@ export function OrderProgress({ status }: { status: string }) {
         return (
           <li key={s.key} aria-hidden className="relative flex flex-col items-center text-center">
             {i > 0 ? <span className={`absolute right-1/2 top-4 h-[3px] w-full -translate-y-1/2 ${i <= at ? "bg-brand-500" : "bg-border"}`} /> : null}
-            <span className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 ${done ? "border-brand-500 bg-brand-500 text-white" : "border-border bg-bg text-muted"} ${i === at ? "ring-4 ring-brand-500/20" : ""}`}>
+            <span className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 ${done ? "border-brand-500 bg-brand-500 text-on-brand" : "border-border bg-bg text-muted"} ${i === at ? "ring-4 ring-brand-500/20" : ""}`}>
               <s.icon className="h-4 w-4" />
             </span>
             <span className={`mt-1.5 text-[11px] font-semibold sm:text-xs ${done ? "text-ink" : "text-muted"}`}>{s.label}</span>
@@ -122,7 +122,7 @@ export function OrderCard({ orderRef, order }: { orderRef: string; order: Public
 export function NoOrders() {
   return (
     <div className="flex flex-col items-center gap-3 rounded-panel border border-dashed border-border bg-bg px-6 py-12 text-center">
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-500 text-white shadow-neon">
+      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-neon">
         <Package className="h-7 w-7" aria-hidden />
       </span>
       <p className="mt-1 font-display text-lg font-extrabold text-ink">No orders yet</p>

@@ -1,7 +1,7 @@
 import { DealCountdown } from "@/components/home/deal-countdown";
 import type { Metadata } from "next";
 import { Faq } from "@/components/home/more-sections";
-import { BrandWall, CategoryGrid, FeatureSplit, HomeHero, ProductSection, PromoTiles, RangeTabs, Reviews, ServiceStrip, Spotlight, WhyChoose, featureArt } from "@/components/home/storefront";
+import { BrandWall, CategoryGrid, StripBanner, FeatureSplit, HomeHero, ProductSection, PromoTiles, RangeTabs, Reviews, ServiceStrip, Spotlight, WhyChoose, featureArt } from "@/components/home/storefront";
 import { categoryVisual } from "@/components/home/category-art";
 import { VideoShowcase } from "@/components/home/video-showcase";
 import { ErpUnavailable } from "@/components/ui/states";
@@ -48,6 +48,7 @@ export default async function HomePage() {
           {/* In the order of ugreen.lk's homepage: categories, new arrivals (tabs), customer reviews, the range tiles,
               the feature block, why choose us and most popular; then our own deals, brands and offers. */}
           <CategoryGrid categories={data.categories} />
+          <StripBanner banner={data.stripBanner} />
           <RangeTabs newArrivals={data.newArrivals} rails={tabRails} />
           <Reviews title={data.reviews.title} reviews={data.reviews.items} />
           <Spotlight categories={data.categories} />

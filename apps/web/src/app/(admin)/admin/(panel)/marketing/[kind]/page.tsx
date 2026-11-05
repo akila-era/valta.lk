@@ -52,7 +52,7 @@ export default async function Page({ params }: Props) {
           .catch(() => null)
       : null;
     const rows: BannerRow[] = (found ?? []).map((b) => ({
-      id: b.id, placement: b.placement === "WIDE" ? "WIDE" : "CARDS", eyebrow: b.eyebrow ?? "", headline: b.headline, text: b.text ?? "", ctaLabel: b.ctaLabel, href: b.href, active: b.active, sortOrder: b.sortOrder,
+      id: b.id, placement: b.placement === "WIDE" || b.placement === "STRIP" ? b.placement : "CARDS", eyebrow: b.eyebrow ?? "", headline: b.headline, text: b.text ?? "", ctaLabel: b.ctaLabel, href: b.href, active: b.active, sortOrder: b.sortOrder,
       imageUrl: b.imageType ? bannerImageUrl(b.id, b.updatedAt) : null,
     }));
     return (

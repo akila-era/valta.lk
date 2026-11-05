@@ -13,6 +13,7 @@ import { ErpError } from "@/lib/erp/errors";
 import type { CreateOrderRequest } from "@/lib/erp/types";
 import { accessTokensFor } from "@/lib/orders/access-cookie";
 import { canSeeOrderDetails, loadOrderView } from "@/lib/orders/public";
+import { getStoreInfo } from "@/lib/store-info";
 import { addMoney, formatLkr, multiplyMoney } from "@/lib/utils/money";
 import { isValidOrderRef } from "@/lib/utils/order-ref";
 
@@ -68,7 +69,10 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
   const placedOn = order.createdAt ? new Date(order.createdAt).toLocaleDateString("en-LK", { day: "numeric", month: "long", year: "numeric" }) : null;
   const items = order.lines.reduce((n, l) => n + l.quantity, 0);
   const subtotal = addMoney(...order.lines.map((l) => multiplyMoney(l.unitPrice, l.quantity)));
-  const cod = order.paymentMethod === "COD";
+  // Bank transfer orders reach the ERP as COD; the website's own record keeps what the customer chose.
+  const bankTransfer = local?.paymentMethod === "BANK_TRANSFER";
+  const cod = order.paymentMethod === "COD" && !bankTransfer;
+  const bank = bankTransfer ? await getStoreInfo() : null;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -119,7 +123,7 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
               <div>
                 <dt className="text-muted">Payment</dt>
                 <dd className={`mt-0.5 font-semibold ${order.codCollected ? "text-success" : "text-ink"}`} data-testid="payment-status">
-                  {order.codCollected ? "Paid (cash collected)" : cod ? "Cash on delivery" : order.paymentMethod}
+                  {order.codCollected ? (bankTransfer ? "Paid" : "Paid (cash collected)") : bankTransfer ? "Bank transfer (waiting for payment)" : cod ? "Cash on delivery" : order.paymentMethod}
                 </dd>
               </div>
             </dl>
@@ -142,8 +146,21 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
               <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-ink marker:font-semibold marker:text-muted">
                 <li>We check stock and confirm your order.</li>
                 <li>We pack it and send it to your address. You can follow it with your order reference.</li>
-                <li>{cod ? `You pay ${formatLkr(order.total)} in cash when it arrives.` : `Payment: ${order.paymentMethod}.`}</li>
+                <li>{bankTransfer ? `Transfer ${formatLkr(order.total)} to the account below. We send your order once the money arrives.` : cod ? `You pay ${formatLkr(order.total)} in cash when it arrives.` : `Payment: ${order.paymentMethod}.`}</li>
               </ol>
+            </Block>
+          ) : null}
+
+          {bankTransfer && bank?.bankAccountNumber && !cancelled && !order.codCollected ? (
+            <Block title="Bank transfer details" label="Bank transfer details">
+              <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2 sm:max-w-xl" data-testid="bank-details">
+                {bank.bankName ? <div><dt className="text-muted">Bank</dt><dd className="mt-0.5 font-semibold text-ink">{bank.bankName}{bank.bankBranch ? `, ${bank.bankBranch}` : ""}</dd></div> : null}
+                {bank.bankAccountName ? <div><dt className="text-muted">Account name</dt><dd className="mt-0.5 font-semibold text-ink">{bank.bankAccountName}</dd></div> : null}
+                <div><dt className="text-muted">Account number</dt><dd className="mt-0.5 font-mono text-base font-bold text-ink">{bank.bankAccountNumber}</dd></div>
+                <div><dt className="text-muted">Amount</dt><dd className="mt-0.5 font-semibold text-ink">{formatLkr(order.total)}</dd></div>
+                <div className="sm:col-span-2"><dt className="text-muted">Payment reference</dt><dd className="mt-0.5 font-mono text-base font-bold text-ink">{order.ref}</dd></div>
+              </dl>
+              <p className="mt-3 text-sm text-muted">Please use your order reference as the payment reference so we can match your transfer.</p>
             </Block>
           ) : null}
 

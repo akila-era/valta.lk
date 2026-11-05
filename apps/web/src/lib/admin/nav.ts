@@ -1,7 +1,5 @@
 import {
-  Award, Banknote, BarChart3, Ghost, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon,
-  Inbox, KeyRound, LayoutDashboard, Mail, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw,
-  RotateCcw, Scale, ScrollText, Settings, Settings2, Store, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
+  Briefcase, CircleHelp, FileText, Search, Award, Banknote, BarChart3, Ghost, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon, Inbox, KeyRound, LayoutDashboard, Mail, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw, RotateCcw, Scale, ScrollText, Settings, Settings2, Store, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -56,6 +54,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "All Customers", href: "/admin/customers", deep: true },
       { label: "Customer Order History", href: "/admin/customers/history" },
+      { label: "Wholesale Applications", href: "/admin/customers/wholesale" },
     ],
   },
   {
@@ -79,6 +78,15 @@ export const NAV: NavGroup[] = [
       { label: "Inventory Sync", href: "/admin/erp/inventory" },
       { label: "Order Sync", href: "/admin/erp/orders" },
       { label: "Failed Sync Jobs", href: "/admin/erp/failed", badge: "failed" },
+    ],
+  },
+  {
+    id: "content", label: "Content", icon: FileText,
+    items: [
+      { label: "Pages", href: "/admin/content/pages" },
+      { label: "FAQs", href: "/admin/content/faqs" },
+      { label: "Homepage Content", href: "/admin/content/homepage" },
+      { label: "Search", href: "/admin/content/search" },
     ],
   },
   {
@@ -122,7 +130,7 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
   "Stock Overview": Boxes, "Low Stock": TriangleAlert, "Out of Stock": PackageX, "ERP Stock Sync": RefreshCw, "Stock Sync Errors": CircleAlert,
   "All Orders": ClipboardList, "New Orders": Inbox, "Pending Orders": Clock, Processing: Settings2, "Ready for Dispatch": PackageCheck,
   Dispatched: Truck, Completed: CheckCircle2, Cancelled: XCircle, "Returns & Refunds": Undo2,
-  "All Customers": Users, "Customer Order History": History,
+  "All Customers": Users, "Customer Order History": History, "Wholesale Applications": Briefcase, Pages: FileText, FAQs: CircleHelp, Search: Search,
   Transactions: Receipt, "Pending Payments": Clock, "Failed Payments": CircleAlert, Refunds: RotateCcw, "Cash on Delivery": Banknote, "Payment Reconciliation": Scale,
   Shipments: Truck, "Delivery Tracking": MapPin, "Delivery Partners": Handshake,
   "ERP Overview": Gauge, "Product Sync": Package, "Inventory Sync": Boxes, "Order Sync": ShoppingBag, "Failed Sync Jobs": TriangleAlert, "Integration Logs": ScrollText, "Connection Settings": Plug,

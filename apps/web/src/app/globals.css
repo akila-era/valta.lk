@@ -7,22 +7,22 @@
 
   /* VOLTA.LK storefront: neon orange, white and black only. White canvas, black text and black sections, neon orange
      for fills, icons and lines; greys are tints of black for hairlines and muted text. The admin console keeps its
-     own neutral theme (see .admin-theme). "on-brand" is the white text used on orange fills (the owner's choice; bold text keeps it readable).
+     own neutral theme (see .admin-theme). "on-brand" is the black text used on orange fills (white on this lighter orange was too faint to read).
      muted passes 4.5:1 on bg, surface and brand-50 alike, because text-muted is used on all three.
      border is for decorative separators; border-strong (>= 3:1 on bg and surface) outlines form controls. */
   --color-bg: #ffffff;
   --color-surface: #f5f5f5;
   --color-border: #e5e5e5;
   --color-border-strong: #868686;
-  --color-ink: #111111;
+  --color-ink: #171717;
   --color-muted: #616161;
-  --color-dark: #111111;
-  --color-night: #111111;
+  --color-dark: #171717;
+  --color-night: #171717;
   --color-night-2: #1c1c1c;
   --color-media: #ffffff;
-  --color-on-brand: #ffffff;
+  --color-on-brand: #171717;
 
-  /* The storefront uses three colours: a light neon orange #ff7a33 (lightened from #ff5c00 at the owner's request),
+  /* The storefront uses three colours: the owner's orange #FE7B33 (buttons #FE752D, logo #E86C2E, light backgrounds #FFF3EB),
      white and black (with black's grey tints for hairlines, muted text and quiet fills).
      - brand-500 / brand-400 / brand-hover: the one neon orange, for fills (with black text), icons, lines and badges.
        Orange fills turn black on hover (see btn-primary), so the hover never needs a second orange.
@@ -31,11 +31,11 @@
      - brand-50 / brand-100: quiet neutral fills and rings (no orange). */
   --color-brand-50: #f5f5f5;
   --color-brand-100: #e5e5e5;
-  --color-brand-400: #ff7a33;
-  --color-brand-500: #ff7a33;
-  --color-brand-hover: #ff7a33;
-  --color-brand-600: #111111;
-  --color-brand-700: #111111;
+  --color-brand-400: #fe7b33;
+  --color-brand-500: #fe7b33;
+  --color-brand-hover: #fe752d;
+  --color-brand-600: #171717;
+  --color-brand-700: #171717;
 
   /* Status colours stay inside the white / neon orange / black palette: success and information are black on an
      orange tint, warnings are deep orange. Only errors keep red, so a problem is never mistaken for a highlight.
@@ -43,11 +43,11 @@
   --color-danger: #b42318;
   --color-danger-strong: #8f1c14;
   --color-danger-bg: #fef3f2;
-  --color-success: #111111;
+  --color-success: #171717;
   --color-success-bg: #f5f5f5;
-  --color-warn: #111111;
+  --color-warn: #171717;
   --color-warn-bg: #f5f5f5;
-  --color-info: #111111;
+  --color-info: #171717;
   --color-info-bg: #f5f5f5;
 
   /* Admin navigation uses the same charcoal, not a second brand colour */
@@ -63,10 +63,10 @@
   --shadow-float: 0 8px 24px -8px rgb(16 24 40 / 0.12);
   --shadow-lift: 0 12px 28px -12px rgb(16 24 40 / 0.22);
   --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
-  --shadow-glow: 0 0 0 1px #ff7a33;
+  --shadow-glow: 0 0 0 1px #fe7b33;
   /* "Neon" accents: a crisp neon orange edge with a black shadow (no orange haze). */
-  --shadow-neon: 0 0 0 1px #ff7a33, 0 6px 16px -8px rgb(0 0 0 / 0.35);
-  --shadow-neon-lift: 0 0 0 1px #ff7a33, 0 14px 30px -14px rgb(0 0 0 / 0.35);
+  --shadow-neon: 0 0 0 1px #fe7b33, 0 6px 16px -8px rgb(0 0 0 / 0.35);
+  --shadow-neon-lift: 0 0 0 1px #fe7b33, 0 14px 30px -14px rgb(0 0 0 / 0.35);
 
   /* Named radii (Tailwind's rounded-sm..4xl defaults stay as they are): controls, cards, panels, feature blocks, pills.
      Kept small for a crisp retail look. */
@@ -128,7 +128,8 @@
     transition-[background-color,color,border-color,box-shadow,transform] duration-200 active:scale-[0.98]
     disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
 }
-@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-ink hover:text-white; }
+/* Primary buttons in the owner's button orange #FE752D (a touch deeper than the main #FE7B33). */
+@utility btn-primary { @apply btn bg-[#fe752d] text-on-brand hover:bg-ink hover:text-white; }
 @utility btn-secondary { @apply btn border border-brand-500/40 bg-bg text-ink hover:border-brand-500 hover:text-brand-700 hover:shadow-neon; }
 @utility btn-outline { @apply btn border border-brand-500/40 bg-bg text-ink hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand hover:shadow-neon; }
 @utility btn-ghost { @apply btn text-ink hover:bg-brand-50 hover:text-brand-700; }
@@ -244,7 +245,7 @@
    The band ends off the letters, so with reduced motion (one instant run) nothing is left showing. */
 @keyframes wordmark-shine { 0% { background-position: 100% 0; } 35%, 100% { background-position: 0% 0; } }
 .wordmark-shine {
-  background: linear-gradient(110deg, transparent 38%, rgb(255 122 51 / 0.95) 50%, transparent 62%) no-repeat;
+  background: linear-gradient(110deg, transparent 38%, rgb(254 123 51 / 0.95) 50%, transparent 62%) no-repeat;
   background-size: 250% 100%;
   background-position: 0% 0;
   -webkit-background-clip: text;

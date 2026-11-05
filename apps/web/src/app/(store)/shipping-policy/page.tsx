@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { EditablePage } from "@/components/layout/editable-page";
 import { PolicyPage } from "@/components/layout/policy-page";
 
 export const metadata: Metadata = { title: "Shipping policy", alternates: { canonical: "/shipping-policy" } };
 
 export default function ShippingPage() {
   return (
+    <EditablePage slug="shipping-policy">
     <PolicyPage title="Shipping policy" intro="How delivery works for VOLTA.LK orders.">
       <section>
         <h2>Delivery charge</h2>
@@ -19,5 +21,6 @@ export default function ShippingPage() {
         <p>Please have the payment ready when your order arrives.</p>
       </section>
     </PolicyPage>
+    </EditablePage>
   );
 }

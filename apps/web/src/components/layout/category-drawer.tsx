@@ -25,7 +25,7 @@ const MENU_LINKS = [
   { href: "/", label: "Home" },
   { href: "/products", label: "All Products" },
   { href: "/brands", label: "Shop by Brand" },
-  { href: "/#new-arrivals", label: "New Arrivals" },
+  { href: "/new-arrivals", label: "New Arrivals" },
   { href: "/track-order", label: "Track Order" },
   { href: "/wishlist", label: "Wishlist" },
   { href: "/cart", label: "Cart" },

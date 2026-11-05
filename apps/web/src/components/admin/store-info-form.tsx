@@ -15,6 +15,15 @@ export type StoreInfoValue = {
   hours: string[];
   social: { facebook: string; instagram: string; tiktok: string; youtube: string };
   payments: Payment[];
+  deliveryTime: string;
+  pickupInfo: string;
+  googleRating: string;
+  googleReviewCount: string;
+  googleUrl: string;
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNumber: string;
+  bankBranch: string;
 };
 
 const PAYMENTS: { key: Payment; label: string }[] = [
@@ -113,6 +122,28 @@ export function StoreInfoForm({ initial, demo }: { initial: StoreInfoValue; demo
           <textarea id="si-hours" rows={3} className="input min-h-24 py-2" value={hours} onChange={(e) => setHours(e.target.value)} />
           <p className="mt-1 text-xs text-muted">One line each, up to four lines.</p>
         </div>
+      </fieldset>
+
+      <fieldset className="grid gap-4 sm:grid-cols-2">
+        <legend className="mb-2 font-semibold text-ink">Delivery information (product pages)</legend>
+        <div className="sm:col-span-2">{field("deliveryTime", "Delivery time", "e.g. “Islandwide delivery in 3 to 4 working days”. Shown on every product page unless the product has its own.")}</div>
+        <div className="sm:col-span-2">{field("pickupInfo", "Store pickup", "e.g. “Ready within 1 to 2 hours during business hours”. Leave empty if there is no pickup.")}</div>
+      </fieldset>
+
+      <fieldset className="grid gap-4 sm:grid-cols-3">
+        <legend className="mb-2 font-semibold text-ink">Google rating (homepage reviews)</legend>
+        {field("googleRating", "Rating", "Copy it from your Google Business profile, e.g. 4.9")}
+        {field("googleReviewCount", "Number of reviews", "e.g. 2512")}
+        {field("googleUrl", "Google reviews link", "https://…", "url")}
+        <p className="text-xs text-muted sm:col-span-3">Only enter your real Google rating. Leave all three empty to hide it.</p>
+      </fieldset>
+
+      <fieldset className="grid gap-4 sm:grid-cols-2">
+        <legend className="mb-2 font-semibold text-ink">Bank account (Direct bank transfer at checkout)</legend>
+        {field("bankName", "Bank")}
+        {field("bankBranch", "Branch")}
+        {field("bankAccountName", "Account name")}
+        {field("bankAccountNumber", "Account number", "Checkout offers Direct bank transfer only when this is filled in.")}
       </fieldset>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">

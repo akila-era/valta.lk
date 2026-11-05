@@ -119,6 +119,8 @@ export interface PersistInput {
   customerId?: string | null;
   accessToken: string;
   priceBreakdown?: Prisma.InputJsonValue;
+  /** What the customer chose ("COD" or "BANK_TRANSFER"); the ERP request itself always says COD. */
+  paymentChoice?: string;
 }
 
 /**
@@ -140,7 +142,7 @@ export async function persistOrder(db: PrismaClient, input: PersistInput) {
       data: {
         externalRef: r.externalRef,
         customerId: input.customerId ?? null,
-        paymentMethod: r.paymentMethod,
+        paymentMethod: input.paymentChoice ?? r.paymentMethod,
         currency: r.currency,
         subtotal: input.subtotal.toFixed(2),
         deliveryCharge: r.deliveryCharge.toFixed(2),

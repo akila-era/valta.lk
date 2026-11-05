@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 import type { HomeData } from "@/lib/home-data";
+import { getContent } from "@/lib/site-content";
 import { formatLkr } from "@/lib/utils/money";
 
 /** Answers describe only behaviour the site really has; money values come from live ERP settings. */
@@ -26,8 +27,11 @@ export function faqItems(checkout: HomeData["checkout"]): { q: string; a: string
   ];
 }
 
-export function Faq({ checkout }: { checkout: HomeData["checkout"] }) {
-  const items = faqItems(checkout);
+/** The FAQ block: on the homepage (h2), or as the whole /faqs page (`page`: h1 and its own title). */
+export async function Faq({ checkout, page = false }: { checkout: HomeData["checkout"]; page?: boolean }) {
+  const Heading = page ? "h1" : "h2";
+  // Staff can write their own questions (Admin, Content, FAQs); otherwise the built-in ones above.
+  const items = (await getContent("faq"))?.items ?? faqItems(checkout);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -38,7 +42,7 @@ export function Faq({ checkout }: { checkout: HomeData["checkout"] }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-12">
         <div>
-          <h2 id="faq-title" className="section-title">Questions, answered</h2>
+          <Heading id="faq-title" className="section-title">{page ? "Frequently asked questions" : "Questions, answered"}</Heading>
           <p className="type-meta mt-2 max-w-sm">Quick answers about paying, delivery, stock, tracking and returns.</p>
           <Link href="/contact" className="btn-secondary mt-5">
             Contact us <ArrowRight className="h-4 w-4" aria-hidden />

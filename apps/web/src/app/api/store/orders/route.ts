@@ -45,7 +45,9 @@ export async function POST(req: Request) {
       const message =
         e.code === "PRICE_CHANGED"
           ? "Some prices changed. We have refreshed your cart, so please review the new total."
-          : "Some items are no longer available in the requested quantity.";
+          : e.code === "PAYMENT_UNAVAILABLE"
+            ? "Bank transfer is not available right now. Please choose cash on delivery."
+            : "Some items are no longer available in the requested quantity.";
       return errorResponse(409, e.code, message, { refreshed: e.refreshed, newTotal: e.newTotal ?? null });
     }
     const m = mapErpError(e);

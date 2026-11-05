@@ -1,4 +1,5 @@
 import { bannerFront, parseBannerForm } from "@/lib/admin/banner-api";
+import { isPicture } from "@/lib/banners";
 import { errorResponse, json } from "@/lib/security/api";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const parsed = await parseBannerForm(req);
   if (!parsed.ok) return parsed.response;
   const { data, image, removeImage, placement } = parsed.form;
-  if (placement === "WIDE" && removeImage && !image) return errorResponse(422, "NO_FILE", "A wide banner needs a picture.");
+  if (isPicture(placement) && removeImage && !image) return errorResponse(422, "NO_FILE", "A wide or strip banner needs a picture.");
   const picture = image ? { imageType: image.type, imageData: Buffer.from(image.bytes) } : removeImage ? { imageType: null, imageData: null } : {};
   const done = await ctx.db.banner.update({ where: { id }, data: { ...data, placement, ...picture, updatedBy: ctx.email }, select: { id: true } }).catch(() => null);
   if (!done) return errorResponse(404, "NOT_FOUND", "Banner not found.");

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Check, ChevronLeft, ChevronRight, LayoutGrid, ShieldCheck } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, LayoutGrid, MessageCircle, ShieldCheck } from "lucide-react";
+import { CompareButton } from "@/components/products/compare-button";
 import { Notice } from "@/components/ui/notice";
 import { ErpUnavailable } from "@/components/ui/states";
 import { AccessoryRail } from "@/components/products/accessory-rail";
@@ -113,6 +114,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
     : [{ productId: product.id, variantKey: "", quantity: 1, listPrice: product.price, erpPrice: effectivePrice(product), categoryName: product.category?.name ?? null }];
   const [quote, accessories, settings, rev] = await Promise.all([quotePricedLines(priced), offersForSources([product.id]), getSettings().catch(() => null), productReviews(product.id)]);
   const store = await getStoreInfo();
+  // The warranty in a few words: from the product's content, else the ERP ("12 months").
+  const warrantyText = [c?.warranty.duration, c?.warranty.provider].filter(Boolean).join(" · ") || product.specs.Warranty || null;
   // In-page links, only to the sections this product really has.
   const jumps = [
     ...(descHtml || product.description ? [{ id: "desc", label: "Description" }] : []),
@@ -263,14 +266,24 @@ export default async function ProductPage({ params, searchParams }: Props) {
               </ul>
             )}
           </div>
+          {warrantyText ? (
+            // As on ugreen.lk: the warranty as a badge before the price.
+            <p className="mt-5 inline-flex items-center gap-2 rounded-control border-2 border-ink px-3 py-1.5 text-sm font-extrabold uppercase tracking-[0.04em] text-ink">
+              <ShieldCheck className="h-5 w-5" aria-hidden /> {warrantyText} warranty
+            </p>
+          ) : null}
           <div className="mt-6">
             <PurchasePanel
               offerNames={offerNames}
               deliveryCharge={settings?.deliveryCharge}
               cod={settings?.paymentMethods.COD === true}
-              warranty={[c?.warranty.duration, c?.warranty.provider].filter(Boolean).join(" · ") || product.specs.Warranty || null}
+              warranty={warrantyText}
               payments={store.payments.map((k) => PAYMENT_BADGES[k])}
-              pickup={hasDelivery && c ? { estimate: c.delivery.estimate || undefined, pickup: c.delivery.pickup || undefined, notes: c.delivery.notes || undefined } : undefined}
+              pickup={{
+                estimate: (hasDelivery && c?.delivery.estimate) || store.deliveryTime || undefined,
+                pickup: (hasDelivery && c?.delivery.pickup) || store.pickupInfo || undefined,
+                notes: (hasDelivery && c?.delivery.notes) || undefined,
+              }}
               product={{
                 id: product.id,
                 slug: product.slug,
@@ -284,7 +297,18 @@ export default async function ProductPage({ params, searchParams }: Props) {
                 variants: product.variants,
               }}
             />
-            <div className="mt-5 border-t border-border pt-4">
+            {store.whatsapp ? (
+              <a
+                href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Hi, I would like more information about ${title}: ${siteConfig.url}/products/${product.slug}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full bg-[#25d366] px-4 text-sm font-bold text-white hover:bg-[#1ebe5b]"
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden /> For more info<span className="sr-only"> on WhatsApp (opens in a new tab)</span>
+              </a>
+            ) : null}
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+              <CompareButton item={{ productId: product.id, slug: product.slug, name: title }} />
               <ShareButtons url={`${siteConfig.url}/products/${product.slug}`} title={title} />
             </div>
           </div>

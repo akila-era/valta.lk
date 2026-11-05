@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /** A solid neon orange offset shadow behind the black numerals (the store's three colours only). */
-const EXTRUDE = "[text-shadow:6px_6px_0_#ff7a33]";
+const EXTRUDE = "[text-shadow:6px_6px_0_#fe7b33]";
 
 /**
  * The "page not found" body. It is not a <main>: both callers already sit inside the store shell's <main>
