@@ -52,7 +52,7 @@ export function AccountMenu({ customer, enabled }: { customer: { name: string } 
         className="inline-flex min-h-11 items-center gap-2 px-2 text-sm font-medium hover:text-brand-600 md:px-3"
       >
         <User className="h-6 w-6" strokeWidth={1.6} aria-hidden />
-        <span className="hidden max-w-[9rem] truncate lg:inline">{customer ? `Hi, ${first}` : "My Account"}</span>
+        <span className="hidden max-w-[9rem] truncate xl:inline">{customer ? `Hi, ${first}` : "My Account"}</span>
         <ChevronDown className={`hidden h-4 w-4 transition-transform lg:block ${open ? "rotate-180" : ""}`} aria-hidden />
       </button>
       {open && (

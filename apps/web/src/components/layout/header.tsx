@@ -94,7 +94,7 @@ export async function Header() {
           </div>
           <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
             {/* As on ugreen.lk: businesses can apply to buy wholesale. */}
-            <Link href="/wholesale" className="hidden min-h-8 items-center rounded-full bg-ink px-3.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white hover:bg-ink/85 lg:inline-flex">
+            <Link href="/wholesale" className="hidden min-h-8 items-center rounded-full bg-ink px-3.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white hover:bg-ink/85 xl:inline-flex">
               Apply wholesale
             </Link>
             {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}

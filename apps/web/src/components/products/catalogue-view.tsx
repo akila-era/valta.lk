@@ -236,7 +236,7 @@ export async function CatalogueView({
 
       <section aria-label="Products" className="min-w-0">
         {/* Toolbar: the count on the left; per page, layout and sort on the right. */}
-        <div className="mb-5 flex min-w-0 flex-col gap-3 border-b border-border pb-4 md:flex-row md:items-center md:justify-between">
+        <div className="mb-5 flex min-w-0 flex-col gap-3 border-b border-border pb-4 lg:flex-row lg:items-center lg:justify-between">
           <p className="text-sm text-muted" role="status">
             {result.total === 0
               ? "No products"

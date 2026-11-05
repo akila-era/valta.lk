@@ -82,10 +82,10 @@ export function CategoryCarousel({ tiles }: { tiles: CategoryTile[] }) {
       </ul>
       {!fits ? (
         <>
-          <button type="button" onClick={() => go(-1)} disabled={edge.start} aria-label="Previous categories" className={`${arrow} -left-2 lg:-left-14`}>
+          <button type="button" onClick={() => go(-1)} disabled={edge.start} aria-label="Previous categories" className={`${arrow} -left-2 xl:-left-14`}>
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
-          <button type="button" onClick={() => go(1)} disabled={edge.end} aria-label="Next categories" className={`${arrow} -right-2 lg:-right-14`}>
+          <button type="button" onClick={() => go(1)} disabled={edge.end} aria-label="Next categories" className={`${arrow} -right-2 xl:-right-14`}>
             <ChevronRight className="h-5 w-5" aria-hidden />
           </button>
         </>
