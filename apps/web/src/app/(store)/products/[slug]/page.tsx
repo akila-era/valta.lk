@@ -71,8 +71,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 }
 
 /** One part of the product details (as on ugreen.lk): a plain heading and its content, divided by a hairline. */
-const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
-  <section aria-labelledby={id} className="min-w-0 scroll-mt-40 border-b border-border py-8 sm:py-10">
+const Section = ({ id, title, children, wide = false }: { id: string; title: string; children: React.ReactNode; wide?: boolean }) => (
+  <section aria-labelledby={id} className={`min-w-0 scroll-mt-40 border-b border-border py-8 sm:py-10 ${wide ? "xl:col-span-2" : ""}`}>
     <h2 id={id} className="text-lg font-bold text-ink sm:text-xl">{title}</h2>
     <div className="mt-4 sm:mt-5">{children}</div>
   </section>
@@ -224,7 +224,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
       </div>
 
       <VariantChoice initial={initialVariant}>
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[auto_minmax(0,1fr)] xl:gap-14">
         <Gallery images={product.images} alt={title} alts={c?.gallery.length ? c.gallery.map((g) => g.alt) : undefined} captions={c?.gallery.length ? c.gallery.map((g) => g.caption) : undefined} />
         <div>
           <h1 className="text-[clamp(1.4rem,1.15rem+0.9vw,1.9rem)] font-semibold leading-tight tracking-[-0.01em] text-ink">{title}</h1>
@@ -332,7 +332,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
         </nav>
       )}
 
-      <div className="mx-auto max-w-5xl">
+      {/* Description beside the specifications on wide screens when the product has both; otherwise one full-width column. */}
+      <div className={`grid gap-x-14 ${(descHtml || product.description) && (siteSpecGroups.length > 0 || erpSpecs.length > 0) ? "xl:grid-cols-2" : ""}`}>
         {(descHtml || product.description) && (
           <Section id="desc" title="Description">
             {descHtml ? <div className="rich max-w-none" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-[15px] leading-7 text-ink/85">{product.description}</p>}
@@ -362,12 +363,12 @@ export default async function ProductPage({ params, searchParams }: Props) {
           </Section>
         )}
         {!hasWarranty && product.specs.Warranty && (
-          <Section id="warranty" title="Warranty">
+          <Section id="warranty" title="Warranty" wide>
             <p className="flex items-center gap-2 text-[15px] text-ink"><ShieldCheck className="h-5 w-5 shrink-0" aria-hidden /><span className="font-semibold">{product.specs.Warranty}</span> warranty</p>
           </Section>
         )}
         {hasWarranty && c && (
-          <Section id="warranty" title="Warranty">
+          <Section id="warranty" title="Warranty" wide>
             <div className="text-[15px] leading-7">
               {c.warranty.duration && <p className="flex items-center gap-2 font-semibold text-ink"><ShieldCheck className="h-5 w-5 shrink-0" aria-hidden />{c.warranty.duration}{c.warranty.provider ? ` · ${c.warranty.provider}` : ""}</p>}
               {!c.warranty.duration && c.warranty.provider && <p className="font-semibold text-ink">{c.warranty.provider}</p>}
@@ -381,9 +382,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
       </VariantChoice>
 
-      <div className="mx-auto max-w-5xl">
-        <ProductReviews productId={product.id} productName={title} summary={rev.summary} reviews={rev.reviews} />
-      </div>
+      <ProductReviews productId={product.id} productName={title} summary={rev.summary} reviews={rev.reviews} />
 
       {related.length > 0 && (
         <section aria-labelledby="related" className="mt-20">

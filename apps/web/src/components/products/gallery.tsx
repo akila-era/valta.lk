@@ -66,7 +66,7 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
     <div className="lg:sticky lg:top-36 lg:self-start">
       <div className={many ? "lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-3" : undefined}>
         <div
-          className="group/stage relative mx-auto aspect-square w-full touch-pan-y overflow-hidden rounded-panel border border-border bg-white lg:order-2 lg:h-[min(36rem,calc(100svh-16rem))] lg:w-auto lg:max-w-full"
+          className="group/stage relative mx-auto aspect-square w-full touch-pan-y overflow-hidden rounded-panel border border-border bg-white lg:order-2 lg:h-[min(36rem,calc(100svh-16rem))] lg:w-auto lg:max-w-full xl:h-[min(40rem,calc(100svh-11rem))]"
           tabIndex={many ? 0 : undefined}
           role={many ? "group" : undefined}
           aria-label={many ? `${alt}. Image ${index + 1} of ${images.length}. Use the arrow keys to change image.` : undefined}
