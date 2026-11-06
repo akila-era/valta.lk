@@ -70,20 +70,20 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   };
 }
 
-/** A detail card: a bold heading on a plain bordered panel. */
-const Section = ({ id, title, children, className = "" }: { id: string; title: string; children: React.ReactNode; className?: string }) => (
-  <section aria-labelledby={id} className={`relative min-w-0 scroll-mt-40 overflow-hidden rounded-card bg-bg p-5 sm:p-7 ${className}`}>
-    <h2 id={id} className="relative text-xl font-semibold text-ink sm:text-2xl">{title}</h2>
-    <div className="relative mt-5">{children}</div>
+/** One part of the product details (as on ugreen.lk): a plain heading and its content, divided by a hairline. */
+const Section = ({ id, title, children }: { id: string; title: string; children: React.ReactNode }) => (
+  <section aria-labelledby={id} className="min-w-0 scroll-mt-40 border-b border-border py-8 sm:py-10">
+    <h2 id={id} className="text-lg font-bold text-ink sm:text-xl">{title}</h2>
+    <div className="mt-4 sm:mt-5">{children}</div>
   </section>
 );
 
-/** One label/value row of a specification list: label on the left, value on the right, on a hairline divider. */
+/** One row of the specifications table: the name in the shaded left column, the value beside it. */
 const SpecRow = ({ name, value }: { name: string; value: string }) => (
-  <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 px-4 py-3 text-xs sm:text-sm">
-    <dt className="text-muted">{name}</dt>
-    <dd className="break-words font-medium text-ink">{value}</dd>
-  </div>
+  <tr className="border-b border-border last:border-b-0">
+    <th scope="row" className="w-[40%] bg-surface px-3 py-3 text-left align-top font-semibold text-ink sm:w-[32%] sm:px-4">{name}</th>
+    <td className="break-words px-3 py-3 text-ink/85 sm:px-4">{value}</td>
+  </tr>
 );
 
 export default async function ProductPage({ params, searchParams }: Props) {
@@ -121,7 +121,6 @@ export default async function ProductPage({ params, searchParams }: Props) {
     ...(descHtml || product.description ? [{ id: "desc", label: "Description" }] : []),
     ...(siteSpecGroups.length > 0 || erpSpecs.length > 0 ? [{ id: "specs", label: "Specifications" }] : []),
     ...(hasWarranty || product.specs.Warranty ? [{ id: "warranty", label: "Warranty" }] : []),
-    ...(hasDelivery ? [{ id: "delivery", label: "Delivery & pickup" }] : []),
     { id: "reviews", label: rev.summary ? `Reviews (${rev.summary.count})` : "Reviews" },
   ];
   const offerNames = Object.fromEntries(quote.lines.flatMap((l) => (l.offerName ? [[l.variantKey, l.offerName]] : [])));
@@ -230,7 +229,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <div>
           <h1 className="text-[clamp(1.4rem,1.15rem+0.9vw,1.9rem)] font-semibold leading-tight tracking-[-0.01em] text-ink">{title}</h1>
           {rev.summary ? (
-            <a href="#reviews" className="mt-2 inline-flex items-center gap-2 text-sm hover:underline">
+            <a href="#reviews" className="mr-4 mt-2 inline-flex items-center gap-2 text-sm hover:underline">
               <Stars rating={rev.summary.average} label={`Rated ${rev.summary.average} out of 5`} />
               <span className="font-semibold text-ink">{rev.summary.average.toFixed(1)}</span>
               <span className="text-muted">({rev.summary.count} {rev.summary.count === 1 ? "review" : "reviews"})</span>
@@ -317,12 +316,14 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
       <AccessoryRail productIds={[product.id]} initial={accessories} intro="Only accessories linked to this product. Prices are the catalogue prices. You can continue without them." />
 
+      {/* The details as on ugreen.lk: a centred row of section links, then each part in turn on the page (nothing is
+          hidden behind a tab, so every detail is there when scrolling or searching the page). */}
       {jumps.length > 1 && (
-        <nav aria-label="On this page" className="mt-12 max-w-full overflow-x-auto border-b border-border">
-          <ul className="flex w-max gap-4 sm:gap-6">
+        <nav aria-label="On this page" className="mt-12 max-w-full overflow-x-auto border-y border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <ul className="mx-auto flex w-max gap-6 px-1 sm:gap-10">
             {jumps.map((j) => (
               <li key={j.id}>
-                <a href={`#${j.id}`} className="inline-flex min-h-11 items-center border-b-2 border-transparent text-[15px] font-semibold uppercase text-muted transition-colors hover:border-brand-500 hover:text-ink">
+                <a href={`#${j.id}`} className="inline-flex min-h-13 items-center border-b-2 border-transparent text-sm font-bold uppercase tracking-[0.04em] text-muted transition-colors hover:border-brand-500 hover:text-ink">
                   {j.label}
                 </a>
               </li>
@@ -331,48 +332,48 @@ export default async function ProductPage({ params, searchParams }: Props) {
         </nav>
       )}
 
-      {/* Two columns on wide screens (description beside specifications) so the page has no empty right half. */}
-      <div className={`${jumps.length > 1 ? "mt-6" : "mt-12"} grid items-start gap-5 rounded-panel bg-surface p-3 sm:p-5 lg:grid-cols-2`}>
+      <div className="mx-auto max-w-5xl">
         {(descHtml || product.description) && (
           <Section id="desc" title="Description">
-            {descHtml ? <div className="rich" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-sm leading-6 text-muted">{product.description}</p>}
+            {descHtml ? <div className="rich max-w-none" dangerouslySetInnerHTML={{ __html: descHtml }} /> : <p className="whitespace-pre-line text-[15px] leading-7 text-ink/85">{product.description}</p>}
           </Section>
         )}
         {(siteSpecGroups.length > 0 || erpSpecs.length > 0) && (
           <Section id="specs" title="Specifications">
-            <div className="space-y-5">
-              {siteSpecGroups.map((g) => (
-                <div key={g.group}>
-                  {siteSpecGroups.length > 1 || g.group !== "General" ? <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">{g.group}</h3> : null}
-                  <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-bg">
+            <div className="overflow-hidden rounded-control border border-border">
+              <table className="w-full table-fixed text-sm">
+                {erpSpecs.length > 0 && (
+                  <tbody>
+                    {erpSpecs.map(([k, v]) => <SpecRow key={k} name={k} value={v} />)}
+                  </tbody>
+                )}
+                {siteSpecGroups.map((g, gi) => (
+                  <tbody key={g.group} className={gi > 0 || erpSpecs.length > 0 ? "border-t border-border" : undefined}>
+                    {siteSpecGroups.length > 1 || g.group !== "General" ? (
+                      <tr className="border-b border-border">
+                        <th colSpan={2} scope="colgroup" className="px-3 py-2.5 text-left text-[13px] font-bold uppercase tracking-[0.04em] text-ink sm:px-4">{g.group}</th>
+                      </tr>
+                    ) : null}
                     {g.rows.map((s, i) => <SpecRow key={i} name={s.name} value={`${s.value}${s.unit ? ` ${s.unit}` : ""}`} />)}
-                  </dl>
-                </div>
-              ))}
-              {erpSpecs.length > 0 && (
-                <dl className="divide-y divide-border/70 overflow-hidden rounded-2xl border border-border/80 [&>div:nth-child(odd)]:bg-bg">
-                  {erpSpecs.map(([k, v]) => <SpecRow key={k} name={k} value={v} />)}
-                </dl>
-              )}
+                  </tbody>
+                ))}
+              </table>
             </div>
           </Section>
         )}
         {!hasWarranty && product.specs.Warranty && (
           <Section id="warranty" title="Warranty">
-            <p className="flex gap-3 rounded-xl border border-border p-4 text-sm"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden /><span className="font-medium">{product.specs.Warranty}</span></p>
+            <p className="flex items-center gap-2 text-[15px] text-ink"><ShieldCheck className="h-5 w-5 shrink-0" aria-hidden /><span className="font-semibold">{product.specs.Warranty}</span> warranty</p>
           </Section>
         )}
         {hasWarranty && c && (
           <Section id="warranty" title="Warranty">
-            <div className="flex gap-3 rounded-xl border border-border p-4 text-sm">
-              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" aria-hidden />
-              <div className="min-w-0">
-              {c.warranty.duration && <p className="font-semibold">{c.warranty.duration}{c.warranty.provider ? ` · ${c.warranty.provider}` : ""}</p>}
-              {!c.warranty.duration && c.warranty.provider && <p className="font-semibold">{c.warranty.provider}</p>}
-              {c.warranty.description && <p className="mt-1 text-muted">{c.warranty.description}</p>}
-              {c.warranty.terms && <details className="mt-3"><summary className="cursor-pointer font-medium">Warranty terms</summary><p className="mt-2 whitespace-pre-line text-muted">{c.warranty.terms}</p></details>}
-              {c.warranty.notes && <p className="mt-3 text-xs text-muted">{c.warranty.notes}</p>}
-              </div>
+            <div className="text-[15px] leading-7">
+              {c.warranty.duration && <p className="flex items-center gap-2 font-semibold text-ink"><ShieldCheck className="h-5 w-5 shrink-0" aria-hidden />{c.warranty.duration}{c.warranty.provider ? ` · ${c.warranty.provider}` : ""}</p>}
+              {!c.warranty.duration && c.warranty.provider && <p className="font-semibold text-ink">{c.warranty.provider}</p>}
+              {c.warranty.description && <p className="mt-1 text-ink/85">{c.warranty.description}</p>}
+              {c.warranty.terms && <details className="mt-3"><summary className="cursor-pointer font-semibold text-ink">Warranty terms</summary><p className="mt-2 whitespace-pre-line text-ink/85">{c.warranty.terms}</p></details>}
+              {c.warranty.notes && <p className="mt-3 text-sm text-muted">{c.warranty.notes}</p>}
             </div>
           </Section>
         )}
@@ -380,7 +381,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
       </VariantChoice>
 
-      <ProductReviews productId={product.id} productName={title} summary={rev.summary} reviews={rev.reviews} />
+      <div className="mx-auto max-w-5xl">
+        <ProductReviews productId={product.id} productName={title} summary={rev.summary} reviews={rev.reviews} />
+      </div>
 
       {related.length > 0 && (
         <section aria-labelledby="related" className="mt-20">

@@ -4,10 +4,11 @@
  *
  * Fills the website's own data: Store Details (top bar, contact, hours, social links, payment badges, delivery lines),
  * the KOKO / Mintpay line, short lines for the categories, Hot Deals (the demo items on sale) and approved sample
- * product reviews. The Google rating is left empty: only the store's real rating belongs there.
+ * product reviews, and product details (description, key points, specifications) for every demo product, saved as
+ * published website content; a product staff have edited in the admin is left as they made it. The Google rating is left empty: only the store's real rating belongs there.
  *
  * Refuses any database that is not on this computer unless run with --server. With --server (a public demo site) it
- * writes only the KOKO / Mintpay line and Hot Deals: the sample reviews would look like real customers' words and the
+ * writes only the KOKO / Mintpay line, Hot Deals and the product details: the sample reviews would look like real customers' words and the
  * sample phone numbers could belong to real people, so staff enter real contact details in the admin instead.
  * Run again at any time; it replaces what it wrote before.
  *
@@ -16,6 +17,8 @@
  */
 import { Client } from "pg";
 import { DEMO_CATALOGUE } from "../tests/mock-erp/demo-catalogue";
+import { contentDocSchema } from "../src/lib/content/schema";
+import { demoDetails } from "./demo-details";
 
 const itemId = (n: number) => `cm0item${String(n).padStart(8, "0")}`;
 const BY = "demo-seed";
@@ -92,6 +95,21 @@ async function main() {
     );
   }
 
+  // Product details for every demo product (the made-up demo items only). Rows staff have saved are never replaced.
+  let details = 0;
+  for (const [i, d] of DEMO_CATALOGUE.entries()) {
+    const doc = contentDocSchema.parse(demoDetails(d));
+    const r = await db.query(
+      `INSERT INTO "ProductContent" ("erpItemId", draft, published, "publishedAt", version, "updatedBy", "updatedAt")
+       VALUES ($1, $2, $2, now(), 1, $3, now())
+       ON CONFLICT ("erpItemId") DO UPDATE SET draft = EXCLUDED.draft, published = EXCLUDED.published, "publishedAt" = now(),
+         version = "ProductContent".version + 1, "updatedAt" = now()
+       WHERE "ProductContent"."updatedBy" = $3`,
+      [itemId(i + 1), JSON.stringify(doc), BY],
+    );
+    details += r.rowCount ?? 0;
+  }
+
   // Approved sample reviews on every third demo product (two or three each), so stars show on cards and pages.
   // Local previews only; on a server any reviews this script wrote before are removed.
   await db.query(`DELETE FROM "ProductReview" WHERE "moderatedBy" = $1`, [BY]);
@@ -110,8 +128,8 @@ async function main() {
 
   await db.end();
   console.log(local
-    ? `Demo data ready: store details, KOKO / Mintpay line, category lines, ${onSale.length} hot deals, ${count} reviews.`
-    : `Demo data ready: KOKO / Mintpay line, category lines and ${onSale.length} hot deals (no sample reviews or contact details on a server).`);
+    ? `Demo data ready: store details, KOKO / Mintpay line, category lines, ${onSale.length} hot deals, ${count} reviews, details for ${details} products.`
+    : `Demo data ready: KOKO / Mintpay line, category lines and ${onSale.length} hot deals, details for ${details} products (no sample reviews or contact details on a server).`);
 }
 
 main().catch((e) => {
