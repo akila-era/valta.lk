@@ -27,7 +27,7 @@ export default async function SiteMapPage() {
 
   return (
     <PolicyPage title="Sitemap">
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
         {col("Shop", [
           { href: "/products", label: "All products" },
           { href: "/new-arrivals", label: "New arrivals" },

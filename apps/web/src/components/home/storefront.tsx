@@ -373,8 +373,40 @@ export function collectionLine(name: string, count: number): string {
  * brand's name as a wordmark in its own colour until a logo is uploaded, and the name underneath. Each opens that
  * brand's page, which is shown in the brand's colour.
  */
-export async function BrandGrid({ brands }: { brands: HomeData["brands"] }) {
+/** Brand tiles. On the homepage panel: small tiles centred in rows. On the Brands page (`page`): a full-width grid of
+ * larger tiles with the product count, so the page is filled evenly. */
+export async function BrandGrid({ brands, page = false }: { brands: HomeData["brands"]; page?: boolean }) {
   const colors = await Promise.all(brands.map((b) => brandColor(b.name)));
+  if (page) {
+    return (
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+        {brands.map((b, i) => {
+          const count = `${b.count} ${b.count === 1 ? "product" : "products"}`;
+          return (
+            <li key={b.name}>
+              <Link
+                href={`/products?brand=${encodeURIComponent(b.name)}`}
+                aria-label={`${b.name}, ${count}`}
+                className="group flex h-full flex-col items-center justify-center gap-3 rounded-card border border-border bg-white px-4 py-7 text-center transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift sm:py-9"
+              >
+                <span className="flex h-14 w-full items-center justify-center">
+                  {b.logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.logo} alt="" loading="lazy" className="max-h-14 max-w-[70%] object-contain" />
+                  ) : (
+                    <span aria-hidden data-wordmark className="max-w-full truncate font-display text-2xl font-extrabold uppercase tracking-[0.04em] sm:text-3xl" style={{ color: colors[i] }}>
+                      {b.name}
+                    </span>
+                  )}
+                </span>
+                <span className="text-sm text-muted group-hover:text-ink">{count}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
   return (
     <ul className="flex flex-wrap justify-center gap-2.5 sm:gap-3">
       {brands.map((b, i) => {

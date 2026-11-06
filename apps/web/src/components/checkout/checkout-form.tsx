@@ -214,7 +214,7 @@ export function CheckoutForm({ deliveryCharge, prefill, bank = false }: { delive
       ref={formRef}
       onSubmit={onSubmit}
       noValidate
-      className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] lg:gap-8"
+      className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] lg:gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] xl:gap-10"
       aria-busy={submitting}
     >
       <section aria-labelledby="billing" className={panel}>
@@ -351,7 +351,7 @@ export function CheckoutForm({ deliveryCharge, prefill, bank = false }: { delive
                 <input type="radio" name="payment" disabled aria-label={`${label} (coming soon)`} className="mt-1 h-4 w-4" />
                 <span className="min-w-0 flex-1">
                   {label} <span className="text-xs">({note})</span>{" "}
-                  <span className="ml-1 rounded-full bg-bg px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink/60">Coming soon</span>
+                  <span className="ml-1 inline-block whitespace-nowrap rounded-full bg-bg px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink/60">Coming soon</span>
                 </span>
               </p>
             ))}

@@ -96,7 +96,7 @@ export function OrderTracker({ initialRef = "" }: { initialRef?: string }) {
   const stepIndex = order ? STEPS.findIndex((s) => s.status === order.status) : -1;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <form onSubmit={submit} className="rounded-3xl border border-border/80 bg-white p-6 shadow-soft" noValidate>
         <label htmlFor="ref" className="mb-2 block text-xs font-bold uppercase tracking-wider text-ink">
           Order reference code

@@ -32,12 +32,14 @@ export function CategoryTileRow({ label, items }: { label: string; items: TileIt
 
   if (!items.length) return null;
   return (
-    <nav ref={nav} aria-label={label} className="relative -mx-4 mt-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
-      <ul className="flex w-max gap-2 sm:grid sm:w-full sm:grid-cols-[repeat(auto-fill,minmax(9.5rem,11rem))] sm:gap-x-5 sm:gap-y-4">
+    <nav ref={nav} aria-label={label} className="relative -mx-4 mt-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mt-5 lg:mx-0 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
+      {/* Phones and tablets: one row that scrolls sideways. Desktop: one row spread evenly across the page (up to 10
+          tiles), or centred rows when there are more, so there is never a short last row on the left. */}
+      <ul className={`flex w-max gap-2 sm:gap-4 lg:w-full lg:flex-wrap lg:justify-center lg:gap-x-5 lg:gap-y-4 ${items.length <= 10 ? "lg:flex-nowrap lg:gap-x-2" : ""}`}>
         {items.map((t) => {
           const Icon = categoryIcon(t.name);
           return (
-            <li key={t.href} className="w-28 shrink-0 sm:w-auto">
+            <li key={t.href} className={`w-28 shrink-0 sm:w-32 lg:w-36 ${items.length <= 10 ? "lg:w-auto lg:min-w-0 lg:flex-1" : ""}`}>
               <Link
                 href={t.href}
                 aria-current={t.active ? "page" : undefined}

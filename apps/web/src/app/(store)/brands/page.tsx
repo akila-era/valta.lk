@@ -26,7 +26,7 @@ export default async function BrandsPage() {
       ) : brands.length === 0 ? (
         <EmptyState title="No brands yet" action={{ href: "/products", label: "Browse all products" }}>Brands will appear here once products are available.</EmptyState>
       ) : (
-        <BrandGrid brands={brands.map((b) => ({ ...b, logo: logos.get(brandKey(b.name)) }))} />
+        <BrandGrid page brands={brands.map((b) => ({ ...b, logo: logos.get(brandKey(b.name)) }))} />
       )}
     </>
   );

@@ -34,7 +34,7 @@ export default async function CheckoutPage() {
       {a.enabled && a.settings ? (
         <>
           {!customer && accountsEnabled() && (
-            <p className="mx-auto mb-5 max-w-6xl text-[15px] font-medium text-ink">
+            <p className="mb-5 text-[15px] font-medium text-ink">
               Returning customer? <Link href="/account/login?next=/checkout" className="font-semibold text-brand-600 underline underline-offset-2">Click here to login</Link>
             </p>
           )}
