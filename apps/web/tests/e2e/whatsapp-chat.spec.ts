@@ -100,6 +100,14 @@ test.describe("WhatsApp support chat", () => {
     await expect(a.chat.getByText("hacked")).toHaveCount(0);
     await expect(a.chat.getByText("unsigned")).toHaveCount(0);
 
+    // A plain staff message (no Reply, no code) answers the chat whose visitor wrote last: B
+    await webhook(request, reply(STAFF, "wamid.PLAIN1", "Plain answer for the latest chat"));
+    await expect(b.chat.getByText("Plain answer for the latest chat")).toBeVisible({ timeout: 10_000 });
+    await expect(a.chat.getByText("Plain answer for the latest chat")).toHaveCount(0);
+    // and the site's own copy of a visitor message, if it ever comes back, is never taken as an answer
+    await webhook(request, reply(STAFF, "wamid.ECHO1", `VOLTA.LK website chat #${code}\n\nOrder status`));
+    await expect(a.chat.getByText("Order status", { exact: true })).toHaveCount(1);
+
     // Delivery updates move the ticks forward
     await webhook(request, { entry: [{ changes: [{ value: { statuses: [{ id: out[0].id, status: "read" }] } }] }] });
     await expect(a.chat.getByLabel("Read")).toBeVisible({ timeout: 10_000 });
@@ -123,6 +131,46 @@ test.describe("WhatsApp support chat", () => {
     await b.ctx.close();
     // switch the chat off again so other tests see the plain site
     expect((await page.request.put("/api/admin/whatsapp", { headers: { Origin: SITE }, data: { mode: "off", notifyTo: "", cloud: {} } })).status()).toBe(200);
+  });
+
+  test("a pre-order sends the chosen template to the customer on WhatsApp, and the admin sees it was sent", async ({ page, request }) => {
+    await page.context().setExtraHTTPHeaders({ "x-forwarded-for": nextIp() });
+    await signInAsAdmin(page);
+    expect((await page.request.put("/api/admin/whatsapp", {
+      headers: { Origin: SITE },
+      data: { mode: "cloud", notifyTo: "0771234567", cloud: { phoneNumberId: "1234567890", verifyToken: "verify-token-123", accessToken: "test-access-token", appSecret: APP_SECRET } },
+    })).status()).toBe(200);
+
+    // Template 2 (Short), reworded by staff
+    await page.goto("/admin/orders/preorders");
+    await page.getByRole("radio", { name: "Template 2: Short" }).check();
+    await page.getByLabel("Template 2 text").fill("Hi {name}, {store} got your pre-order {ref} for {qty} x {product}.");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Saved." })).toBeVisible();
+
+    const res = await request.post("/api/store/preorders", {
+      headers: { Origin: SITE, "x-forwarded-for": nextIp() },
+      data: { productId: "cm0item00000013", name: "Nimal", phone: "0712345678", quantity: 2 },
+    });
+    expect(res.status()).toBe(201);
+    const { ref } = await res.json();
+    const sent = (await sentTo(request)).filter((m) => m.to === "94712345678");
+    expect(sent).toHaveLength(1);
+    expect(sent[0].body).toBe(`Hi Nimal, VOLTA.LK got your pre-order ${ref} for 2 x Limited Case (sold out).`);
+
+    await page.goto("/admin/orders/preorders");
+    await expect(page.getByRole("row", { name: new RegExp(ref) }).getByText("Sent", { exact: true })).toBeVisible();
+
+    // switched off: no message
+    await page.getByLabel("Send the customer a WhatsApp message when they send a pre-order").uncheck();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Saved." })).toBeVisible();
+    await request.post("/api/store/preorders", { headers: { Origin: SITE, "x-forwarded-for": nextIp() }, data: { productId: "cm0item00000013", name: "Off Test", phone: "0712345679" } });
+    expect((await sentTo(request)).filter((m) => m.to === "94712345679")).toHaveLength(0);
+
+    // back to the defaults so other tests see the site as before
+    await page.request.put("/api/admin/preorders/message", { headers: { Origin: SITE }, data: { enabled: true, selected: 0, templates: ["Hi {name}, thank you for your pre-order at {store}!", "{store}: pre-order {ref} received.", "Dear {name}, we have received your pre-order {ref}."] } });
+    await page.request.put("/api/admin/whatsapp", { headers: { Origin: SITE }, data: { mode: "off", notifyTo: "", cloud: {} } });
   });
 
   test("the chat window fits a phone screen and closes @mobile", async ({ page, browser }) => {

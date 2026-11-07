@@ -401,6 +401,9 @@ model PreOrderRequest {
   city        String?
   note        String?
   status      String   @default("NEW")
+  /// The WhatsApp confirmation to the customer: SENT, FAILED, or null when none was sent (switched off).
+  waStatus    String?
+  waError     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

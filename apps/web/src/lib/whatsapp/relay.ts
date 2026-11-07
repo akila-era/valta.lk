@@ -8,8 +8,9 @@ import { getCloudSecrets, getWaSettings, toWaDigits } from "./settings";
 
 /**
  * The website support chat. A visitor's message is stored, then a copy is sent to the staff WhatsApp chat with the
- * chat's code ("#K7P2Q"). When staff answer that copy (WhatsApp "Reply") or start a message with "#K7P2Q", the answer
- * is stored in that chat and the visitor sees it in the widget. Staff can also answer from the admin inbox.
+ * chat's code ("#K7P2Q"). A staff message in that WhatsApp chat is matched to a website chat by, in order: the copy it
+ * replies to (WhatsApp "Reply"), a "#K7P2Q" at the start, or else the website chat that wrote most recently (within
+ * a few hours). The visitor then sees the answer in the widget. Staff can also answer from the admin inbox.
  * Only the visitor holding the chat's cookie token can read it.
  */
 export const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
@@ -68,7 +69,7 @@ export async function forwardToWhatsApp(messageId: string) {
   const msg = await db.chatMessage.findUnique({ where: { id: messageId }, include: { conversation: true } });
   if (!msg || msg.direction !== "IN") return;
   const c = msg.conversation;
-  const text = `${siteConfig.name} website chat #${c.code}${c.name ? ` (${c.name})` : ""}\n\n${msg.body}\n\nReply to this message to answer the customer, or start your message with #${c.code}.`;
+  const text = `${siteConfig.name} website chat #${c.code}${c.name ? ` (${c.name})` : ""}\n\n${msg.body}\n\nReply to this message (or just type) to answer this customer. With several chats open, use Reply or start with #${c.code}.`;
   const s = await getWaSettings();
   let result: { ok: true; id: string } | { ok: false; error: string };
   if (s.mode === "qr") {
@@ -86,10 +87,18 @@ export async function forwardToWhatsApp(messageId: string) {
   });
 }
 
-/** A staff answer from WhatsApp: matched by the quoted copy, or by a "#CODE" at the start. Duplicates are dropped. */
+/** How long a plain (not quoted, no code) staff message still counts as an answer to the latest website chat. */
+const LATEST_CHAT_WINDOW_MS = 6 * 60 * 60 * 1000;
+const COPY_PREFIX = `${siteConfig.name} website chat #`;
+
+/**
+ * A staff answer from WhatsApp: matched by the quoted copy, by a "#CODE" at the start, or else to the website chat
+ * that wrote most recently. Duplicates and the copies the site itself sent are dropped.
+ */
 export async function storeStaffReply(m: { waId: string; text: string; quotedId: string | null }): Promise<boolean> {
   const db = getDb();
   if (!db) return false;
+  if (m.text.startsWith(COPY_PREFIX)) return false; // the site's own copy of a visitor message
   if (await db.chatMessage.findUnique({ where: { waMessageId: m.waId }, select: { id: true } })) return false; // seen already (or our own copy)
   let conversationId: string | null = null;
   let text = m.text;
@@ -104,6 +113,15 @@ export async function storeStaffReply(m: { waId: string; text: string; quotedId:
       conversationId = c.id;
       text = text.slice(code[0].length);
     }
+  }
+  if (!conversationId) {
+    // A plain message: it answers the website chat whose visitor wrote most recently (not too long ago).
+    const last = await db.chatMessage.findFirst({
+      where: { direction: "IN", createdAt: { gte: new Date(Date.now() - LATEST_CHAT_WINDOW_MS) } },
+      orderBy: { createdAt: "desc" },
+      select: { conversationId: true },
+    });
+    conversationId = last?.conversationId ?? null;
   }
   text = text.trim().slice(0, 2000);
   if (!conversationId || !text) return false;

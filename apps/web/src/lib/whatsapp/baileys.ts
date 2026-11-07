@@ -17,6 +17,7 @@ type Sock = {
   user?: { id: string; lid?: string };
   ev: { on: (event: string, cb: (arg: never) => void) => void };
   sendMessage: (jid: string, content: { text: string }) => Promise<{ key: { id?: string | null } } | undefined>;
+  onWhatsApp: (...jids: string[]) => Promise<{ jid: string; exists: boolean }[] | undefined>;
   logout: () => Promise<void>;
   end: (err?: Error) => void;
 };
@@ -192,15 +193,19 @@ export async function connectWhatsApp(): Promise<void> {
       }
     }) as never);
 
-    sock.ev.on("messages.upsert", ((u: { messages: { key: { id?: string | null; remoteJid?: string | null; fromMe?: boolean | null }; message?: { conversation?: string | null; extendedTextMessage?: { text?: string | null; contextInfo?: { stanzaId?: string | null } | null } | null } | null }[] }) => {
+    type Content = { conversation?: string | null; extendedTextMessage?: { text?: string | null; contextInfo?: { stanzaId?: string | null } | null } | null; ephemeralMessage?: { message?: Content | null } | null; viewOnceMessage?: { message?: Content | null } | null; viewOnceMessageV2?: { message?: Content | null } | null };
+    sock.ev.on("messages.upsert", ((u: { messages: { key: { id?: string | null; remoteJid?: string | null; fromMe?: boolean | null }; message?: Content | null }[] }) => {
       const handlers = h.__waHandlers;
       if (!handlers) return;
       for (const m of u.messages) {
         const id = m.key.id;
         const jid = m.key.remoteJid ?? "";
-        const text = (m.message?.conversation ?? m.message?.extendedTextMessage?.text ?? "").trim();
-        if (!id || !text) continue;
-        const quotedId = m.message?.extendedTextMessage?.contextInfo?.stanzaId ?? null;
+        if (!id || recentlySent().has(id)) continue; // a copy this server just sent, not a staff reply
+        // Chats with disappearing messages (or view once) wrap the real message one level down.
+        const c = m.message?.ephemeralMessage?.message ?? m.message?.viewOnceMessage?.message ?? m.message?.viewOnceMessageV2?.message ?? m.message ?? null;
+        const text = (c?.conversation ?? c?.extendedTextMessage?.text ?? "").trim();
+        if (!text) continue;
+        const quotedId = c?.extendedTextMessage?.contextInfo?.stanzaId ?? null;
         handlers.onIncoming({ id, jid, text, quotedId, allowed: isStaffChat(jid) }).catch(() => undefined);
       }
     }) as never);
@@ -242,9 +247,18 @@ export async function disconnectWhatsApp(unlink: boolean) {
 }
 
 /** The chat where visitor messages go: the configured staff number, or the linked number's own chat. */
-let notifyTarget = "";
+const t = globalThis as unknown as { __waNotify?: string; __waSent?: Set<string> };
 export function setNotifyTarget(phoneDigits: string) {
-  notifyTarget = phoneDigits;
+  t.__waNotify = phoneDigits;
+}
+/** Ids of messages this server sent in the last minutes (they come back as "new" messages and must be skipped). */
+function recentlySent(): Set<string> {
+  return (t.__waSent ??= new Set());
+}
+function rememberSent(id: string) {
+  const s = recentlySent();
+  s.add(id);
+  if (s.size > 500) s.delete(s.values().next().value as string);
 }
 function bare(jid: string) {
   return jid.replace(/:\d+(?=@)/, "");
@@ -255,6 +269,7 @@ function ownJids(): string[] {
 }
 function isStaffChat(jid: string): boolean {
   const j = bare(jid);
+  const notifyTarget = t.__waNotify ?? "";
   if (notifyTarget) return j === `${notifyTarget}@s.whatsapp.net`;
   return ownJids().includes(j);
 }
@@ -262,11 +277,30 @@ function isStaffChat(jid: string): boolean {
 export async function sendViaLinkedDevice(text: string): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const s = state();
   if (!s.sock || s.status !== "connected") return { ok: false, error: "WhatsApp is not connected." };
+  const notifyTarget = t.__waNotify ?? "";
   const to = notifyTarget ? `${notifyTarget}@s.whatsapp.net` : ownJids()[0];
   if (!to) return { ok: false, error: "WhatsApp is not connected." };
   try {
     const sent = await s.sock.sendMessage(to, { text });
     const id = sent?.key.id;
+    if (id) rememberSent(id);
+    return id ? { ok: true, id } : { ok: false, error: "WhatsApp did not accept the message." };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message.slice(0, 160) : "Sending failed." };
+  }
+}
+
+/** Sends a message from the linked number to any WhatsApp number (digits in international form, e.g. 94771234567). */
+export async function sendToNumberViaLinkedDevice(digits: string, text: string): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const s = state();
+  if (!s.sock || s.status !== "connected") return { ok: false, error: "WhatsApp is not connected." };
+  try {
+    const found = await s.sock.onWhatsApp(`${digits}@s.whatsapp.net`).catch(() => undefined);
+    const hit = found?.find((r) => r.exists);
+    if (found && !hit) return { ok: false, error: "This phone number is not on WhatsApp." };
+    const sent = await s.sock.sendMessage(hit?.jid ?? `${digits}@s.whatsapp.net`, { text });
+    const id = sent?.key.id;
+    if (id) rememberSent(id);
     return id ? { ok: true, id } : { ok: false, error: "WhatsApp did not accept the message." };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message.slice(0, 160) : "Sending failed." };

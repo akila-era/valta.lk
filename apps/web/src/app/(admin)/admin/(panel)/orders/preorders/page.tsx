@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarClock, Inbox } from "lucide-react";
+import { PreorderMessageSettings, ResendPreorderMessage } from "@/components/admin/preorder-message-settings";
 import { PreorderStatus } from "@/components/admin/preorder-status";
-import { Empty, ErrorNote, PageHeader, Pager, Stat, Table } from "@/components/admin/ui";
+import { Empty, ErrorNote, PageHeader, Pager, Panel, Stat, Table } from "@/components/admin/ui";
+import { getWaSettings } from "@/lib/whatsapp/settings";
 import { adminGate } from "@/lib/admin/gate";
 import { parseSize } from "@/lib/admin/paging";
 import { getDb } from "@/lib/db";
@@ -46,7 +48,10 @@ export default async function PreordersPage({ searchParams }: { searchParams: Pr
   ]);
   const pageCount = Math.max(1, Math.ceil(matching / size));
   const page = Math.min(pageCount, Math.max(1, Number(sp.page) || 1));
-  const rows = await db.preOrderRequest.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * size, take: size });
+  const [rows, wa] = await Promise.all([
+    db.preOrderRequest.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * size, take: size }),
+    getWaSettings().catch(() => null),
+  ]);
   const href = (n: number) => {
     const p = new URLSearchParams();
     if (status) p.set("status", status);
@@ -62,11 +67,14 @@ export default async function PreordersPage({ searchParams }: { searchParams: Pr
         <Stat icon={CalendarClock} tone="purple" label="Pre-orders" value={total} />
         <Stat icon={Inbox} tone={open ? "orange" : "grey"} label="Not contacted yet" value={open} href="/admin/orders/preorders?status=NEW" />
       </div>
+      <Panel title="WhatsApp message to the customer" className="mb-5">
+        <PreorderMessageSettings chatMode={wa?.mode ?? "off"} />
+      </Panel>
       {rows.length === 0 ? (
         <Empty>{status ? "No pre-orders with this status." : "No pre-orders yet. Customers can send one from the page of a product that is out of stock."}</Empty>
       ) : (
         <>
-          <Table dense label="Pre-orders" min="64rem" head={["Reference", "Product", "Customer", "Note", "Sent", "Status", { label: "Action", right: true }]}>
+          <Table dense label="Pre-orders" min="72rem" head={["Reference", "Product", "Customer", "WhatsApp message", "Note", "Sent", "Status", { label: "Action", right: true }]}>
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className="whitespace-nowrap px-3 py-3 font-mono text-sm font-semibold">{r.ref}</td>
@@ -82,6 +90,16 @@ export default async function PreordersPage({ searchParams }: { searchParams: Pr
                   <a href={whatsappLink(r.phone, r.ref, r.productName, r.quantity)} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block text-sm font-semibold text-[#128c4a] hover:underline">
                     Message on WhatsApp
                   </a>
+                </td>
+                <td className="px-3 py-3 text-sm">
+                  {r.waStatus === "SENT" ? (
+                    <span className="font-semibold text-stock-in">Sent</span>
+                  ) : r.waStatus === "FAILED" ? (
+                    <span className="block font-semibold text-danger" title={r.waError ?? undefined}>Not sent{r.waError ? `: ${r.waError}` : ""}</span>
+                  ) : (
+                    <span className="text-muted">Not sent</span>
+                  )}
+                  {r.waStatus !== "SENT" ? <ResendPreorderMessage id={r.id} /> : null}
                 </td>
                 <td className="max-w-xs px-3 py-3 text-sm text-muted">{r.note ?? "-"}</td>
                 <td className="whitespace-nowrap px-3 py-3 text-muted">{r.createdAt.toLocaleString("en-LK", { dateStyle: "medium", timeStyle: "short" })}</td>

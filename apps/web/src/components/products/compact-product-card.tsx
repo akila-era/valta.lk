@@ -68,7 +68,7 @@ export function CompactProductCard({ product, priority, row = false, instalments
     <article className={`group/card relative flex h-full overflow-hidden rounded-card ${row ? "flex-row" : "flex-col"} border border-border bg-bg p-2.5 text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift sm:p-3`}>
       {/* As on ugreen.lk: "New" above the stock pill at the top left; the stock pill in the brand colour. */}
       <div className="pointer-events-none absolute left-3.5 top-3.5 z-10 flex flex-col items-start gap-1 sm:left-4 sm:top-4">
-        {fresh ? <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">New</span> : null}
+        {fresh ? <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">New</span> : null}
         {/* Stock status: in stock green, out of stock red (no low-stock label). */}
         {product.available ? (
           <span className="rounded-full border border-stock-in/40 bg-white px-2.5 py-0.5 text-[11px] font-bold text-stock-in">In stock</span>

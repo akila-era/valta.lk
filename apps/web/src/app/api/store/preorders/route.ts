@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { getErpSnapshot } from "@/lib/erp/catalogue";
 import { getDb } from "@/lib/db";
+import { sendPreorderMessage } from "@/lib/whatsapp/preorder-message";
 import { errorResponse, guard, json, readJson } from "@/lib/security/api";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
       const ref = newRef();
       const exists = await db.preOrderRequest.findUnique({ where: { ref }, select: { id: true } });
       if (exists) continue;
-      await db.preOrderRequest.create({
+      const created = await db.preOrderRequest.create({
         data: {
           ref,
           erpItemId: product.id,
@@ -64,6 +65,8 @@ export async function POST(req: Request) {
           note: d.note || null,
         },
       });
+      // The customer's WhatsApp confirmation (Admin, Pre-orders): sent from the store's linked WhatsApp, if set up.
+      await sendPreorderMessage(created.id);
       return json({ ok: true, ref }, 201);
     }
     return errorResponse(500, "SERVER_ERROR", "Something went wrong. Please try again.");
