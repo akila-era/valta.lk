@@ -75,7 +75,7 @@ test.describe("homepage", () => {
   test("sold-out products cannot be added from a card", async ({ page }) => {
     await page.goto("/products?q=limited case");
     const card = page.locator("article", { hasText: "Limited Case" });
-    await expect(card.getByText("Sold out", { exact: true })).toBeVisible();
+    await expect(card.getByText("Out of stock", { exact: true })).toBeVisible();
     await expect(card.getByRole("button", { name: /add to cart/i })).toHaveCount(0);
   });
 

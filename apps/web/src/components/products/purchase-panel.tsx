@@ -1,5 +1,6 @@
 "use client";
 
+import { PreorderForm } from "./preorder-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -41,7 +42,7 @@ function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: s
 }
 
 /** `warranty`: the product's warranty in a few words (from its content or ERP specs), shown as a trust tile when set. */
-export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, warranty, payments = [], pickup }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; warranty?: string | null; /** Payment badges (Admin, Store details) shown under the price, as on ugreen.lk. */ payments?: string[]; /** Store pickup / delivery time from the product content. */ pickup?: { estimate?: string; pickup?: string; notes?: string } }) {
+export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, warranty, payments = [], pickup, whatsapp }: { /** The store's WhatsApp number, offered after a pre-order is sent. */ whatsapp?: string; product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; warranty?: string | null; /** Payment badges (Admin, Store details) shown under the price, as on ugreen.lk. */ payments?: string[]; /** Store pickup / delivery time from the product content. */ pickup?: { estimate?: string; pickup?: string; notes?: string } }) {
   const router = useRouter();
   const mustChoose = variantChoiceRequired(product.variants.length);
   const only = product.variants.length === 1 ? product.variants[0].key : "";
@@ -79,11 +80,15 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
     const main = document.body;
     if (!main) return;
     const narrow = window.matchMedia("(max-width: 1023px)").matches;
-    main.style.paddingBottom = showBar && narrow ? "6.5rem" : "";
+    const bar = showBar && narrow && product.available;
+    main.style.paddingBottom = bar ? "6.5rem" : "";
+    // Lets the floating WhatsApp button move up above the bar while it shows.
+    document.documentElement.toggleAttribute("data-buybar", bar);
     return () => {
       main.style.paddingBottom = "";
+      document.documentElement.removeAttribute("data-buybar");
     };
-  }, [showBar]);
+  }, [showBar, product.available]);
 
   function choose(key: string) {
     setVariantKey(key);
@@ -158,17 +163,18 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
         <p
-          className={`inline-flex items-center gap-2 font-semibold ${purchasable ? "text-success" : mustChoose && !variant ? "text-ink" : "text-danger"}`}
+          className={`inline-flex items-center gap-2 font-semibold ${purchasable ? "text-stock-in" : mustChoose && !variant ? "text-ink" : "text-stock-out"}`}
           data-testid="availability"
         >
-          <span aria-hidden className={`h-2 w-2 rounded-full ${purchasable ? "bg-success" : mustChoose && !variant ? "bg-muted" : "bg-danger"}`} />
+          <span aria-hidden className={`h-2 w-2 rounded-full ${purchasable ? "bg-stock-in" : mustChoose && !variant ? "bg-muted" : "bg-stock-out"}`} />
           {mustChoose && !variant ? "Select an option to continue" : purchasable ? "Available" : "Out of stock"}
         </p>
-        {purchasable && stock > 0 && stock < MAX_LINE_QTY && <p className="font-medium text-warn">Only {stock} available.</p>}
         {sku ? <p className="ml-auto text-xs text-muted">SKU: {sku}</p> : null}
       </div>
 
-      <div ref={actionsRef} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      {/* Out of stock: a pre-order request instead of the buy buttons (no online payment; staff confirm on WhatsApp). */}
+      {!product.available ? <PreorderForm productId={product.id} productName={product.name} whatsapp={whatsapp} /> : null}
+      <div ref={actionsRef} className={`flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center ${product.available ? "" : "hidden"}`}>
         <div className="flex h-12 w-fit items-center rounded-control border border-border bg-white" role="group" aria-label="Quantity">
           <button type="button" className="btn-ghost h-full min-w-10 rounded-none px-2" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
             <Minus className="h-4 w-4" aria-hidden />
@@ -216,7 +222,8 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>
       </div>
-      {showBar ? (
+      {/* The sticky buy bar is only for products that can be bought; an out-of-stock product offers a pre-order instead. */}
+      {showBar && product.available ? (
         <div className="fixed inset-x-0 bottom-16 z-40 border-t md:bottom-0 border-border/80 bg-white/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-[-0.02em] text-ink tabular-nums">{formatLkr(unit)}</p>

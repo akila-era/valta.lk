@@ -126,8 +126,8 @@ export async function CatalogueView({
       (!fixedCategory && query.category),
   );
 
-  // The filter column as on ugreen.lk: Stock status (a heading that opens and closes) and the category list. Every
-  // choice is a link that applies at once: no Apply button, no brand or price boxes, no filter chips.
+  // The filter column as on ugreen.lk: Stock status and Brand (headings that open and close) and the category list.
+  // Every choice is a link that applies at once: no Apply button, no price boxes, no filter chips.
   const summary = "flex min-h-9 cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold uppercase tracking-[0.02em] text-ink [&::-webkit-details-marker]:hidden";
   const view = VIEWS.find((v) => v.value === (params.view ?? ""))?.value ?? "";
   const stockLinks = [
@@ -160,6 +160,37 @@ export async function CatalogueView({
             ))}
           </ul>
         </details>
+
+        {/* Brand: the brands in the current category (or search), each with its product count. One brand at a time; the
+            chosen one again clears it. Not on a brand's own page, where the brand is already fixed. */}
+        {!brand && (result.brands.length > 1 || query.brand) ? (
+          <details className="group/f mb-3" open={query.brand ? true : undefined}>
+            <summary className={summary}>
+              Brand <ChevronDown className="h-4 w-4 shrink-0 text-muted transition-transform group-open/f:rotate-180" aria-hidden />
+            </summary>
+            <ul aria-label="Brand" className="mb-2 mt-1">
+              {result.brands.map((b) => {
+                const on = (query.brand ?? "").toLowerCase() === b.name.toLowerCase();
+                return (
+                  <li key={b.name}>
+                    <Link
+                      href={href(basePath, params, { brand: on ? "" : b.name, page: "" })}
+                      aria-current={on ? "true" : undefined}
+                      scroll={false}
+                      className={`flex items-center gap-2.5 py-1.5 text-sm transition-colors pointer-coarse:py-2.5 ${on ? "font-semibold text-brand-600" : "text-ink/80 hover:text-brand-600"}`}
+                    >
+                      <span aria-hidden className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border ${on ? "border-brand-500 bg-brand-500 text-on-brand" : "border-border-strong/60"}`}>
+                        {on ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
+                      </span>
+                      <span className="min-w-0 flex-1">{b.name}</span>
+                      <span className="text-xs text-muted">({b.count})</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
+        ) : null}
 
         {brand && brand.categories.length > 0 ? (
           <nav aria-label="Filter by category">

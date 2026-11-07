@@ -34,6 +34,8 @@ const nextConfig: NextConfig = {
   // E2E builds use their own folder so they never clobber a running dev server's .next
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  // The WhatsApp Web client (QR linking) and its logger run as plain Node packages, not bundled.
+  serverExternalPackages: ["@whiskeysockets/baileys", "pino"],
   // The dev-only "N" badge sat on top of the service bar; build errors still show in the overlay.
   devIndicators: false,
   images: {

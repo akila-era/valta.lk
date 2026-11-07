@@ -237,9 +237,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
           ) : null}
           {c?.subtitle && <p className="mt-2 text-base text-muted">{c.subtitle}</p>}
           {/* "✓ In stock" under the title, as on ugreen.lk. */}
-          <p className={`mt-2 inline-flex items-center gap-1.5 text-lg font-bold ${product.available ? "text-brand-500" : "text-muted"}`}>
+          <p className={`mt-2 inline-flex items-center gap-1.5 text-lg font-bold ${product.available ? "text-stock-in" : "text-stock-out"}`}>
             {product.available ? <Check className="h-5 w-5" strokeWidth={2.5} aria-hidden /> : null}
-            {product.available ? "In stock" : "Sold out"}
+            {product.available ? "In stock" : "Out of stock"}
           </p>
           <div className="mt-4 border-t border-border pt-4">
             {/* The key points as one bullet list ("Model : …", then "Title: description"), as on ugreen.lk. */}
@@ -277,6 +277,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
               deliveryCharge={settings?.deliveryCharge}
               cod={settings?.paymentMethods.COD === true}
               warranty={warrantyText}
+              whatsapp={store.whatsapp || undefined}
               payments={store.payments.map((k) => PAYMENT_BADGES[k])}
               pickup={{
                 estimate: (hasDelivery && c?.delivery.estimate) || store.deliveryTime || undefined,

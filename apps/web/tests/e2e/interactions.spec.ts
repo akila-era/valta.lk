@@ -254,7 +254,13 @@ test.describe("phone header", () => {
     const page = await ctx.newPage();
     await page.goto("/");
     expect((await page.locator("header").boundingBox())!.height).toBeLessThan(80);
-    await page.evaluate(() => window.scrollTo(0, 2000));
+    // At the top the page's own search bar shows, so the header button appears only once that bar has scrolled away.
+    await expect(page.locator(".splash-auto-out")).toHaveCount(0, { timeout: 10_000 }); // the opening splash has gone
+    await expect(page.getByRole("button", { name: "Open search" })).toBeHidden();
+    await expect(async () => {
+      await page.evaluate(() => window.scrollTo(0, 2000));
+      await expect(page.getByRole("button", { name: "Open search" })).toBeVisible({ timeout: 1000 });
+    }).toPass();
     await page.getByRole("button", { name: "Open search" }).click();
     const box = page.locator("header").getByRole("combobox", { name: "Search products" });
     await expect(box).toBeFocused();

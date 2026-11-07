@@ -40,6 +40,9 @@
   /* Status colours stay inside the white / neon orange / black palette: success and information are black on an
      orange tint, warnings are deep orange. Only errors keep red, so a problem is never mistaken for a highlight.
      The admin console pins its own green/amber/blue status colours (see .admin-theme). */
+  /* Stock status (client request): in stock green, out of stock red. Both pass 4.5:1 on white. */
+  --color-stock-in: #15803d;
+  --color-stock-out: #b42318;
   --color-danger: #b42318;
   --color-danger-strong: #8f1c14;
   --color-danger-bg: #fef3f2;
@@ -230,6 +233,12 @@
 .marquee:hover .animate-marquee, .marquee:focus-within .animate-marquee { animation-play-state: paused; }
 
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Floating WhatsApp button: above the phone tab bar (4rem), and above a product page's sticky buy bar while it shows. */
+.wa-float { bottom: calc(5.75rem + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .wa-float { bottom: 2.5rem; } }
+@media (max-width: 1023.98px) { html[data-buybar] .wa-float { bottom: calc(10.25rem + env(safe-area-inset-bottom)); } }
+@media (min-width: 768px) and (max-width: 1023.98px) { html[data-buybar] .wa-float { bottom: 6.25rem; } }
 
 /* A band of light that travels across a glass strip, pausing between passes. */
 @keyframes sweep { 0% { transform: translateX(-120%) skewX(-18deg); } 55%, 100% { transform: translateX(520%) skewX(-18deg); } }

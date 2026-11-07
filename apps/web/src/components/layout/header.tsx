@@ -108,7 +108,7 @@ export async function Header() {
           <CategoryNav categories={categories} showDeals={hasDeals} />
         </Suspense>
       </HeaderShell>
-      <div className="border-b border-border bg-bg px-3 py-2.5 md:hidden">
+      <div id="mobile-searchbar" className="border-b border-border bg-bg px-3 py-2.5 md:hidden">
         <SearchBox size="lg" popular={quick} />
       </div>
       {/* One cart drawer for the page, opened by the header cart and the phone tab bar. */}

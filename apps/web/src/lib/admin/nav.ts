@@ -1,5 +1,5 @@
 import {
-  Briefcase, CircleHelp, FileText, Search, Award, Banknote, BarChart3, Ghost, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon, Inbox, KeyRound, LayoutDashboard, Mail, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw, RotateCcw, Scale, ScrollText, Settings, Settings2, Store, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
+  Briefcase, CalendarClock, MessageCircle, CircleHelp, FileText, Search, Award, Banknote, BarChart3, Ghost, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon, Inbox, KeyRound, LayoutDashboard, Mail, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw, RotateCcw, Scale, ScrollText, Settings, Settings2, Store, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -47,6 +47,7 @@ export const NAV: NavGroup[] = [
       { label: "Dispatched", href: "/admin/orders?status=DISPATCHED" },
       { label: "Completed", href: "/admin/orders?status=DELIVERED" },
       { label: "Cancelled", href: "/admin/orders?status=CANCELLED" },
+      { label: "Pre-orders", href: "/admin/orders/preorders" },
     ],
   },
   {
@@ -55,6 +56,7 @@ export const NAV: NavGroup[] = [
       { label: "All Customers", href: "/admin/customers", deep: true },
       { label: "Customer Order History", href: "/admin/customers/history" },
       { label: "Wholesale Applications", href: "/admin/customers/wholesale" },
+      { label: "WhatsApp Chat", href: "/admin/whatsapp" },
     ],
   },
   {
@@ -129,8 +131,8 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
   Products: Package, "Add Product": PackagePlus, Categories: FolderTree, Brands: Award, "Featured Products": Star,
   "Stock Overview": Boxes, "Low Stock": TriangleAlert, "Out of Stock": PackageX, "ERP Stock Sync": RefreshCw, "Stock Sync Errors": CircleAlert,
   "All Orders": ClipboardList, "New Orders": Inbox, "Pending Orders": Clock, Processing: Settings2, "Ready for Dispatch": PackageCheck,
-  Dispatched: Truck, Completed: CheckCircle2, Cancelled: XCircle, "Returns & Refunds": Undo2,
-  "All Customers": Users, "Customer Order History": History, "Wholesale Applications": Briefcase, Pages: FileText, FAQs: CircleHelp, Search: Search,
+  Dispatched: Truck, Completed: CheckCircle2, Cancelled: XCircle, "Pre-orders": CalendarClock, "Returns & Refunds": Undo2,
+  "All Customers": Users, "Customer Order History": History, "Wholesale Applications": Briefcase, "WhatsApp Chat": MessageCircle, Pages: FileText, FAQs: CircleHelp, Search: Search,
   Transactions: Receipt, "Pending Payments": Clock, "Failed Payments": CircleAlert, Refunds: RotateCcw, "Cash on Delivery": Banknote, "Payment Reconciliation": Scale,
   Shipments: Truck, "Delivery Tracking": MapPin, "Delivery Partners": Handshake,
   "ERP Overview": Gauge, "Product Sync": Package, "Inventory Sync": Boxes, "Order Sync": ShoppingBag, "Failed Sync Jobs": TriangleAlert, "Integration Logs": ScrollText, "Connection Settings": Plug,

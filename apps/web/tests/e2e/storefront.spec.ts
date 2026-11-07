@@ -94,7 +94,9 @@ test.describe("browse", () => {
 
     await page.goto(`/products/limited-case-sold-out-${id(13)}`);
     await expect(page.getByTestId("availability")).toHaveText("Out of stock");
-    await expect(page.getByRole("button", { name: "Add to cart", exact: true })).toBeDisabled();
+    // Out of stock: no buy buttons; a pre-order request is offered instead.
+    await expect(page.getByRole("button", { name: "Add to cart", exact: true })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Pre-order" })).toBeVisible();
   });
 });
 

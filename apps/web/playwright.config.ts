@@ -12,6 +12,8 @@ export default defineConfig({
   ],
   webServer: [
     { command: "npx tsx tests/mock-erp/server.ts", port: 4011, reuseExistingServer: false, env: { MOCK_ERP_PORT: "4011" } },
+    // Stand-in for the WhatsApp Cloud API (Graph API), so chat messages never leave the machine.
+    { command: "npx tsx tests/mock-wa/server.ts", port: 4031, reuseExistingServer: false, env: { MOCK_WA_PORT: "4031" } },
     // Disposable in-memory Postgres (PGlite) for customer accounts. Never a real database.
     { command: "npx tsx tests/e2e-db/server.ts", port: 5499, reuseExistingServer: false, env: { E2E_DB_PORT: "5499" } },
     {
@@ -34,6 +36,7 @@ export default defineConfig({
         ADMIN_EMAILS: "admin@example.test",
         SETTINGS_ENCRYPTION_KEY: "e2e-settings-key-0123456789-abcdefghij",
         ORDER_SYNC_SECRET: "e2e-sync-secret-0123456789",
+        WA_GRAPH_BASE: "http://localhost:4031",
         ORDER_SYNC_BACKOFF_MS: "1500", // tests only: retry quickly instead of after minutes
         DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5499/postgres?sslmode=disable",
       },

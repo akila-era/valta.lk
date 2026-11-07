@@ -117,9 +117,9 @@ export function QuickView({ product }: { product: QuickViewProduct }) {
                   </p>
                   {product.save > 0 ? <p className="mt-1 text-sm font-bold text-success">You save {formatLkr(product.save)}</p> : null}
 
-                  <p className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold ${product.available ? "text-success" : "text-danger"}`}>
-                    <span aria-hidden className={`h-2 w-2 rounded-full ${product.available ? "bg-success" : "bg-danger"}`} />
-                    {!product.available ? "Out of stock" : product.low ? `In stock · only ${product.low} left` : "In stock"}
+                  <p className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold ${product.available ? "text-stock-in" : "text-stock-out"}`}>
+                    <span aria-hidden className={`h-2 w-2 rounded-full ${product.available ? "bg-stock-in" : "bg-stock-out"}`} />
+                    {product.available ? "In stock" : "Out of stock"}
                   </p>
 
                   {product.summary ? <p className="mt-4 line-clamp-4 text-[15px] leading-7 text-muted">{product.summary}</p> : null}

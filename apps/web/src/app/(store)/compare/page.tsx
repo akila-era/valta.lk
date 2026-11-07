@@ -90,7 +90,7 @@ export default async function ComparePage({ searchParams }: { searchParams: Prom
             </tr>
             <tr>
               <th scope="row" className={head}>Availability</th>
-              {products.map((x) => <td key={x.id} className={cell}>{x.available ? "In stock" : "Sold out"}</td>)}
+              {products.map((x) => <td key={x.id} className={cell}>{x.available ? "In stock" : "Out of stock"}</td>)}
             </tr>
             <tr>
               <th scope="row" className={head}>Brand</th>

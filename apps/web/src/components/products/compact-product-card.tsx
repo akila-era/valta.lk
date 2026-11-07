@@ -55,12 +55,11 @@ export function CompactProductCard({ product, priority, row = false, instalments
   const pct = discountPercent(product);
   const href = `/products/${product.slug}`;
   const fresh = product.available && isNewArrival(product.publishedAt);
-  const low = product.available && !product.hasVariants && product.purchasableQuantity > 0 && product.purchasableQuantity <= 5;
   const label = product.brand || product.category?.name;
   const details = row ? [] : cardHighlights(product);
   const canAdd = product.available && !product.hasVariants;
   const line = { productId: product.id, variantKey: "", slug: product.slug, name: product.name, sku: product.sku, image: product.images[0], unitPrice: current };
-  const otherLabel = product.available ? "Choose options" : "View details";
+  const otherLabel = product.available ? "Choose options" : "Pre-order";
   const save = current < product.price ? fromCents(toCents(product.price) - toCents(current)) : 0;
   // A second photo, shown on hover (mouse devices), so shoppers see another side without opening the product.
   const second = product.images[1];
@@ -70,12 +69,11 @@ export function CompactProductCard({ product, priority, row = false, instalments
       {/* As on ugreen.lk: "New" above the stock pill at the top left; the stock pill in the brand colour. */}
       <div className="pointer-events-none absolute left-3.5 top-3.5 z-10 flex flex-col items-start gap-1 sm:left-4 sm:top-4">
         {fresh ? <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">New</span> : null}
-        {!product.available ? (
-          <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-bold text-white">Sold out</span>
-        ) : low ? (
-          <span className="rounded-full bg-ink px-2.5 py-0.5 text-[11px] font-bold text-white">Only {product.purchasableQuantity} left</span>
+        {/* Stock status: in stock green, out of stock red (no low-stock label). */}
+        {product.available ? (
+          <span className="rounded-full border border-stock-in/40 bg-white px-2.5 py-0.5 text-[11px] font-bold text-stock-in">In stock</span>
         ) : (
-          <span className="rounded-full border border-ink/20 bg-white px-2.5 py-0.5 text-[11px] font-bold text-ink">In stock</span>
+          <span className="rounded-full bg-stock-out px-2.5 py-0.5 text-[11px] font-bold text-white">Out of stock</span>
         )}
       </div>
       <div className="absolute right-3.5 top-3.5 z-10 flex flex-col gap-1.5 sm:right-4 sm:top-4">
@@ -97,7 +95,7 @@ export function CompactProductCard({ product, priority, row = false, instalments
                 save,
                 available: product.available,
                 hasVariants: product.hasVariants,
-                low: low ? product.purchasableQuantity : 0,
+                low: 0,
                 summary: product.content?.shortDescription || undefined,
                 details: cardHighlights(product),
               }}
@@ -131,7 +129,7 @@ export function CompactProductCard({ product, priority, row = false, instalments
             {canAdd ? (
               <AddToCartButton bar line={line} />
             ) : (
-              <Link href={href} className="flex min-h-11 w-full items-center justify-center rounded-control bg-ink px-3 text-xs font-bold uppercase tracking-[0.08em] text-white hover:bg-brand-500 hover:text-on-brand">
+              <Link href={product.available ? href : `${href}#preorder`} className="flex min-h-11 w-full items-center justify-center rounded-control bg-ink px-3 text-xs font-bold uppercase tracking-[0.08em] text-white hover:bg-brand-500 hover:text-on-brand">
                 {otherLabel}
               </Link>
             )}
@@ -141,19 +139,22 @@ export function CompactProductCard({ product, priority, row = false, instalments
 
       <div className={`flex min-w-0 flex-1 flex-col ${row ? "items-start pl-3 text-left sm:pl-4" : "items-center pt-3 text-center"}`}>
         {label ? <p className="mb-1 max-w-full truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</p> : null}
-        <h3 className="line-clamp-2 min-h-10 text-[13.5px] font-bold leading-5 text-ink sm:text-[15px]">
+        <h3 className="line-clamp-3 min-h-10 text-[13.5px] font-bold leading-5 text-ink sm:text-[15px]">
           <Link href={href} className="py-1 hover:underline">
             {title}
           </Link>
         </h3>
-        {/* Key details under the title (the photo keeps the full width of the card): "Brand new · 12 months Warranty". */}
+        {/* Key details under the title: just the two main values ("20,000 mAh · 65 W"), always shown in full, never cut off. */}
         {details.length ? (
-          <p className={`mt-0.5 line-clamp-1 text-[11px] text-muted sm:text-xs ${row ? "" : "text-center"}`}>
-            {details.map((d, i) => (
-              <span key={d.name}>
-                {i > 0 ? <span aria-hidden className="mx-1.5 text-brand-500">·</span> : null}
-                <span className="font-semibold text-ink/80">{d.value}</span>
-                {/^condition$/i.test(d.name) ? null : <span> {d.name}</span>}
+          <p className={`mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] font-semibold text-ink/75 sm:text-xs ${row ? "" : "justify-center"}`}>
+            {details.slice(0, 2).map((d, i) => (
+              <span key={d.name} className="inline-flex items-center gap-1.5 whitespace-nowrap" title={d.name}>
+                {i > 0 ? <span aria-hidden className="text-brand-500">·</span> : null}
+                {/* A bare number ("5.3") is unclear alone, so it keeps its name in front ("Bluetooth 5.3"). */}
+                {/[a-z]/i.test(d.value) ? null : <span>{d.name}</span>}
+                {d.value}
+                {/* "12 months" alone would be unclear, so the warranty keeps its word; other names are for screen readers. */}
+                {/^warranty$/i.test(d.name) ? <span> warranty</span> : /[a-z]/i.test(d.value) ? <span className="sr-only"> {d.name}</span> : null}
               </span>
             ))}
           </p>
@@ -193,7 +194,7 @@ export function CompactProductCard({ product, priority, row = false, instalments
           {canAdd ? (
             <AddToCartButton outline line={line} />
           ) : (
-            <Link href={href} className="btn min-h-10 w-full border border-ink/20 px-3 text-[13px] text-ink hover:border-ink hover:bg-ink hover:text-white">
+            <Link href={product.available ? href : `${href}#preorder`} className="btn min-h-10 w-full border border-ink/20 px-3 text-[13px] text-ink hover:border-ink hover:bg-ink hover:text-white">
               {otherLabel}
             </Link>
           )}
