@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChatReply } from "@/components/admin/chat-reply";
+import { PreorderMessageSettings } from "@/components/admin/preorder-message-settings";
 import { Empty, ErrorNote, PageHeader, Panel } from "@/components/admin/ui";
 import { WhatsAppConnection } from "@/components/admin/whatsapp-connection";
 import { adminGate } from "@/lib/admin/gate";
 import { getDb } from "@/lib/db";
+import { getWaSettings, toWaDigits } from "@/lib/whatsapp/settings";
 
 export const metadata: Metadata = { title: "WhatsApp Chat" };
 export const dynamic = "force-dynamic";
@@ -24,6 +26,7 @@ export default async function WhatsAppPage({ searchParams }: { searchParams: Pro
   const chats = await db.chatConversation.findMany({ orderBy: { lastMessageAt: "desc" }, take: 50, include: { messages: { orderBy: { createdAt: "desc" }, take: 1 } } });
   const openId = sp.c && chats.some((c) => c.id === sp.c) ? sp.c : undefined;
   const open = openId ? await db.chatConversation.findUnique({ where: { id: openId }, include: { messages: { orderBy: { createdAt: "asc" }, take: 300 } } }) : null;
+  const wa = await getWaSettings().catch(() => null);
   if (open && open.unread > 0) await db.chatConversation.update({ where: { id: open.id }, data: { unread: 0 } }).catch(() => undefined);
 
   return (
@@ -31,6 +34,9 @@ export default async function WhatsAppPage({ searchParams }: { searchParams: Pro
       {header}
       <Panel title="Connection" className="mb-5">
         <WhatsAppConnection />
+      </Panel>
+      <Panel title="Pre-order message to the customer (WhatsApp)" className="mb-5" id="preorder-message">
+        <PreorderMessageSettings chatMode={wa?.mode ?? "off"} />
       </Panel>
       <Panel title="Chats">
         {chats.length === 0 ? (
@@ -44,7 +50,7 @@ export default async function WhatsAppPage({ searchParams }: { searchParams: Pro
                   <li key={c.id}>
                     <Link href={`/admin/whatsapp?c=${c.id}`} aria-current={c.id === openId ? "page" : undefined} className={`block px-3 py-2.5 hover:bg-surface ${c.id === openId ? "bg-surface" : ""}`}>
                       <span className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-sm font-bold text-ink">#{c.code}</span>
+                        <span className="min-w-0 truncate text-sm font-bold text-ink">{c.name ?? "Guest"} <span className="font-mono font-semibold text-muted">#{c.code}</span></span>
                         {c.unread > 0 && c.id !== openId ? <span className="badge bg-brand-500 text-on-brand">{c.unread} new</span> : <span className="text-xs text-muted">{when(c.lastMessageAt)}</span>}
                       </span>
                       <span className="mt-0.5 block truncate text-sm text-muted">{last ? `${last.direction === "IN" ? "" : "You: "}${last.body}` : "-"}</span>
@@ -55,7 +61,18 @@ export default async function WhatsAppPage({ searchParams }: { searchParams: Pro
             </ul>
             {open ? (
               <section aria-label={`Chat #${open.code}`} className="flex flex-col overflow-hidden rounded-card border border-border">
-                <p className="border-b border-border px-4 py-2.5 text-sm font-semibold text-ink">Chat #{open.code} <span className="font-normal text-muted">· started {when(open.createdAt)}</span></p>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2.5 text-sm">
+                  <p className="font-semibold text-ink">
+                    {open.name ?? "Guest"} <span className="font-mono text-muted">#{open.code}</span>
+                    <span className="font-normal text-muted"> · started {when(open.createdAt)}{open.customerId ? " · signed-in customer" : ""}</span>
+                  </p>
+                  {open.phone ? (
+                    <span className="flex items-center gap-3">
+                      <a href={`tel:${open.phone.replace(/[^\d+]/g, "")}`} className="text-muted hover:underline">{open.phone}</a>
+                      <a href={`https://wa.me/${toWaDigits(open.phone)}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#128c4a] hover:underline">Open in WhatsApp</a>
+                    </span>
+                  ) : null}
+                </div>
                 <div className="flex-1 space-y-2 overflow-y-auto bg-surface p-4">
                   {open.messages.map((m) => (
                     <div key={m.id} className={`flex ${m.direction === "IN" ? "justify-start" : "justify-end"}`}>

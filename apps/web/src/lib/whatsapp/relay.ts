@@ -35,7 +35,12 @@ export async function ensureLinkedDevice() {
   setNotifyTarget(s.notifyTo ? toWaDigits(s.notifyTo) : "");
   setWaHandlers({
     onIncoming: async (m) => {
-      if (!m.allowed) return; // only messages in the staff chat count as replies
+      // Only messages in the staff chat count as replies. A Reply to one of the site's copies can only be made in
+      // that chat, so it counts even if the chat's id could not be matched to the staff number.
+      if (!m.allowed) {
+        const quoted = m.quotedId ? await getDb()?.chatMessage.findUnique({ where: { waMessageId: m.quotedId }, select: { direction: true } }) : null;
+        if (quoted?.direction !== "IN") return;
+      }
       await storeStaffReply({ waId: m.id, text: m.text, quotedId: m.quotedId });
     },
     onStatus: async (m) => updateDelivery(m.id, m.status),
@@ -48,7 +53,7 @@ export async function ensureLinkedDevice() {
 }
 const booted = { done: false };
 
-export async function createConversation() {
+export async function createConversation(owner?: { customerId: string; name: string; phone: string | null }) {
   const db = getDb();
   if (!db) throw new Error("no database");
   const token = newToken();
@@ -56,7 +61,7 @@ export async function createConversation() {
     const code = newCode();
     const exists = await db.chatConversation.findUnique({ where: { code }, select: { id: true } });
     if (exists) continue;
-    const convo = await db.chatConversation.create({ data: { code, tokenHash: hashToken(token) } });
+    const convo = await db.chatConversation.create({ data: { code, tokenHash: hashToken(token), ...(owner ? { customerId: owner.customerId, name: owner.name, phone: owner.phone } : {}) } });
     return { convo, token };
   }
   throw new Error("could not create a chat");
@@ -69,7 +74,9 @@ export async function forwardToWhatsApp(messageId: string) {
   const msg = await db.chatMessage.findUnique({ where: { id: messageId }, include: { conversation: true } });
   if (!msg || msg.direction !== "IN") return;
   const c = msg.conversation;
-  const text = `${siteConfig.name} website chat #${c.code}${c.name ? ` (${c.name})` : ""}\n\n${msg.body}\n\nReply to this message (or just type) to answer this customer. With several chats open, use Reply or start with #${c.code}.`;
+  // A signed-in customer's name and phone number (from their account) go at the top, so staff know who it is.
+  const who = [c.name, c.phone].filter(Boolean).join(", ");
+  const text = `${siteConfig.name} website chat #${c.code}${who ? ` (${who})` : " (guest)"}\n\n${msg.body}\n\nReply to this message (or just type) to answer this customer. With several chats open, use Reply or start with #${c.code}.`;
   const s = await getWaSettings();
   let result: { ok: true; id: string } | { ok: false; error: string };
   if (s.mode === "qr") {

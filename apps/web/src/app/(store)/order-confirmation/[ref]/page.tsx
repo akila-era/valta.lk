@@ -6,7 +6,7 @@ import { Check, ShoppingBag } from "lucide-react";
 import { OrderProgress } from "@/components/account/order-card";
 import { CopyRef } from "@/components/orders/copy-ref";
 import { ErpUnavailable } from "@/components/ui/states";
-import { isAdminEmail } from "@/lib/admin/auth";
+import { requireAdmin } from "@/lib/admin/auth";
 import { getCurrentCustomer } from "@/lib/auth/session";
 import { getDb } from "@/lib/db";
 import { ErpError } from "@/lib/erp/errors";
@@ -60,7 +60,8 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
   const canSee = canSeeOrderDetails(local, {
     customerId: customer?.id,
     tokens: await accessTokensFor(ref),
-    isAdmin: customer ? isAdminEmail(customer.email) : false,
+    // staff signed in to the admin (its own sign-in) may see any order
+    isAdmin: (await requireAdmin()).kind === "ok",
   });
   const payload = canSee && local ? (local.payload as unknown as CreateOrderRequest) : null;
   const pending = order.status === "RECEIVED";

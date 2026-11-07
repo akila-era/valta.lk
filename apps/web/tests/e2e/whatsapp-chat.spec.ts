@@ -141,11 +141,12 @@ test.describe("WhatsApp support chat", () => {
       data: { mode: "cloud", notifyTo: "0771234567", cloud: { phoneNumberId: "1234567890", verifyToken: "verify-token-123", accessToken: "test-access-token", appSecret: APP_SECRET } },
     })).status()).toBe(200);
 
-    // Template 2 (Short), reworded by staff
-    await page.goto("/admin/orders/preorders");
+    // Template 2 (Short), reworded by staff (on the WhatsApp Chat page)
+    await page.goto("/admin/whatsapp");
     await page.getByRole("radio", { name: "Template 2: Short" }).check();
     await page.getByLabel("Template 2 text").fill("Hi {name}, {store} got your pre-order {ref} for {qty} x {product}.");
-    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const templates = page.getByRole("region", { name: "Pre-order message to the customer (WhatsApp)" });
+    await templates.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByRole("status").filter({ hasText: "Saved." })).toBeVisible();
 
     const res = await request.post("/api/store/preorders", {
@@ -162,14 +163,54 @@ test.describe("WhatsApp support chat", () => {
     await expect(page.getByRole("row", { name: new RegExp(ref) }).getByText("Sent", { exact: true })).toBeVisible();
 
     // switched off: no message
+    await page.goto("/admin/whatsapp");
     await page.getByLabel("Send the customer a WhatsApp message when they send a pre-order").uncheck();
-    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await templates.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByRole("status").filter({ hasText: "Saved." })).toBeVisible();
     await request.post("/api/store/preorders", { headers: { Origin: SITE, "x-forwarded-for": nextIp() }, data: { productId: "cm0item00000013", name: "Off Test", phone: "0712345679" } });
     expect((await sentTo(request)).filter((m) => m.to === "94712345679")).toHaveLength(0);
 
     // back to the defaults so other tests see the site as before
     await page.request.put("/api/admin/preorders/message", { headers: { Origin: SITE }, data: { enabled: true, selected: 0, templates: ["Hi {name}, thank you for your pre-order at {store}!", "{store}: pre-order {ref} received.", "Dear {name}, we have received your pre-order {ref}."] } });
+    await page.request.put("/api/admin/whatsapp", { headers: { Origin: SITE }, data: { mode: "off", notifyTo: "", cloud: {} } });
+  });
+
+  test("a signed-in customer's chat carries their name and phone, follows the account, and admin and shop sign-ins are separate", async ({ page, request }) => {
+    await page.context().setExtraHTTPHeaders({ "x-forwarded-for": nextIp() });
+    await signInAsAdmin(page);
+    await page.request.put("/api/admin/whatsapp", {
+      headers: { Origin: SITE },
+      data: { mode: "cloud", notifyTo: "0771234567", cloud: { phoneNumberId: "1234567890", verifyToken: "verify-token-123", accessToken: "test-access-token", appSecret: APP_SECRET } },
+    });
+
+    // The admin stays signed in to the admin while a different customer signs in on the shop in the same browser.
+    const email = `naveen.${Date.now()}@example.test`;
+    expect((await page.request.post("/api/account/register", { headers: { Origin: SITE }, data: { name: "Naveen Perera", email, phone: "0771112223", password: "secret123" } })).status()).toBe(201);
+    await page.goto("/admin/whatsapp");
+    await expect(page.getByRole("heading", { level: 1, name: "WhatsApp Chat" })).toBeVisible();
+    await page.goto("/");
+    await expect(page.locator("header").getByRole("button", { name: /signed in as Naveen Perera/ })).toBeVisible();
+
+    // Naveen's chat message reaches WhatsApp with his account name and phone
+    await page.getByRole("button", { name: "Open WhatsApp support chat" }).click();
+    const chat = page.getByRole("dialog", { name: "WhatsApp Support" });
+    await chat.getByLabel("Type a message").fill("Is the power bank back in stock?");
+    await chat.getByRole("button", { name: "Send" }).click();
+    await expect(chat.getByLabel("Sent")).toBeVisible();
+    const copy = (await sentTo(request)).find((m) => m.body.includes("Is the power bank back in stock?"))!;
+    expect(copy.body).toContain("(Naveen Perera, +94771112223)");
+
+    // After signing out of the shop, the chat is not shown in this browser; signing in again brings it back.
+    await page.request.post("/api/account/logout", { headers: { Origin: SITE } });
+    expect(JSON.stringify(await (await page.request.get("/api/store/chat")).json())).not.toContain("power bank back in stock");
+    await page.request.post("/api/account/login", { headers: { Origin: SITE }, data: { email, password: "secret123" } });
+    expect(JSON.stringify(await (await page.request.get("/api/store/chat")).json())).toContain("power bank back in stock");
+
+    // The admin inbox shows who it is, with the phone number; the admin is still signed in after the shop sign-out.
+    await page.goto("/admin/whatsapp");
+    await page.getByRole("list", { name: "Chats" }).getByRole("link", { name: /Naveen Perera/ }).first().click();
+    await expect(page.getByRole("link", { name: "Open in WhatsApp" })).toHaveAttribute("href", "https://wa.me/94771112223");
+
     await page.request.put("/api/admin/whatsapp", { headers: { Origin: SITE }, data: { mode: "off", notifyTo: "", cloud: {} } });
   });
 

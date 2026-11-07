@@ -417,6 +417,9 @@ model ChatConversation {
   /// Short code staff see in WhatsApp ("#K7P2Q") so a reply can be matched to the chat.
   code          String        @unique
   tokenHash     String        @unique
+  /// The shop account that wrote, when the visitor was signed in: the chat follows the account (any device), and is
+  /// never shown to someone else using the same browser.
+  customerId    String?
   name          String?
   phone         String?
   status        String        @default("OPEN")
@@ -428,6 +431,7 @@ model ChatConversation {
   messages      ChatMessage[]
 
   @@index([lastMessageAt])
+  @@index([customerId])
 }
 
 /// One chat message. IN = from the visitor, OUT = a staff reply (from WhatsApp or the admin inbox).

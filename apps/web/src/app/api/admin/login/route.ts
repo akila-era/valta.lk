@@ -1,6 +1,6 @@
 import { isAdminEmail } from "@/lib/admin/auth";
 import { AccountError, createSession, LOCK_MINUTES, login } from "@/lib/auth/accounts";
-import { accountRequest, serverError, setSessionCookie } from "@/lib/auth/route-helpers";
+import { accountRequest, serverError, setAdminSessionCookie } from "@/lib/auth/route-helpers";
 import { errorResponse, json } from "@/lib/security/api";
 import { loginSchema } from "@/lib/validation/account";
 
@@ -16,7 +16,8 @@ export async function POST(req: Request) {
   try {
     const customer = await login(r.db, r.data.email, r.data.password);
     const s = await createSession(r.db, customer.id);
-    return setSessionCookie(json({ customer: { name: customer.name, email: customer.email } }), s.token, s.expiresAt);
+    // The admin's own cookie: the shop's customer sign-in in the same browser is left as it is.
+    return setAdminSessionCookie(json({ customer: { name: customer.name, email: customer.email } }), s.token, s.expiresAt);
   } catch (e) {
     if (e instanceof AccountError && e.code === "LOCKED") {
       return errorResponse(429, "LOCKED", `Too many failed attempts. Please try again in ${LOCK_MINUTES} minutes.`);

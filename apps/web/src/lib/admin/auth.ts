@@ -1,5 +1,5 @@
 import "server-only";
-import { getCurrentCustomer } from "../auth/session";
+import { getAdminSessionCustomer, getCurrentCustomer } from "../auth/session";
 import type { PublicCustomer } from "../auth/accounts";
 
 /** Store staff who may open /admin: customer accounts whose email is listed in ADMIN_EMAILS (comma separated). */
@@ -16,7 +16,9 @@ export type AdminAccess = { kind: "ok"; admin: PublicCustomer } | { kind: "signe
 
 /** Server-side authorisation check used by every admin page and API route. */
 export async function requireAdmin(): Promise<AdminAccess> {
-  const c = await getCurrentCustomer();
+  // The admin's own sign-in first; a shop sign-in with a staff email still works too (older sessions).
+  const admin = await getAdminSessionCustomer();
+  const c = admin && isAdminEmail(admin.email) ? admin : await getCurrentCustomer();
   if (!c) return { kind: "signed-out" };
   return isAdminEmail(c.email) ? { kind: "ok", admin: c } : { kind: "forbidden" };
 }

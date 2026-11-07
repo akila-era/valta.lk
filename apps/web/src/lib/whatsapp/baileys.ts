@@ -18,6 +18,7 @@ type Sock = {
   ev: { on: (event: string, cb: (arg: never) => void) => void };
   sendMessage: (jid: string, content: { text: string }) => Promise<{ key: { id?: string | null } } | undefined>;
   onWhatsApp: (...jids: string[]) => Promise<{ jid: string; exists: boolean }[] | undefined>;
+  signalRepository?: { lidMapping?: { getPNForLID?: (lid: string) => Promise<string | null> } };
   logout: () => Promise<void>;
   end: (err?: Error) => void;
 };
@@ -194,7 +195,7 @@ export async function connectWhatsApp(): Promise<void> {
     }) as never);
 
     type Content = { conversation?: string | null; extendedTextMessage?: { text?: string | null; contextInfo?: { stanzaId?: string | null } | null } | null; ephemeralMessage?: { message?: Content | null } | null; viewOnceMessage?: { message?: Content | null } | null; viewOnceMessageV2?: { message?: Content | null } | null };
-    sock.ev.on("messages.upsert", ((u: { messages: { key: { id?: string | null; remoteJid?: string | null; fromMe?: boolean | null }; message?: Content | null }[] }) => {
+    sock.ev.on("messages.upsert", ((u: { messages: { key: { id?: string | null; remoteJid?: string | null; remoteJidAlt?: string | null; fromMe?: boolean | null }; message?: Content | null }[] }) => {
       const handlers = h.__waHandlers;
       if (!handlers) return;
       for (const m of u.messages) {
@@ -206,7 +207,17 @@ export async function connectWhatsApp(): Promise<void> {
         const text = (c?.conversation ?? c?.extendedTextMessage?.text ?? "").trim();
         if (!text) continue;
         const quotedId = c?.extendedTextMessage?.contextInfo?.stanzaId ?? null;
-        handlers.onIncoming({ id, jid, text, quotedId, allowed: isStaffChat(jid) }).catch(() => undefined);
+        // WhatsApp now often addresses chats by a private id (…@lid) instead of the phone number, so the staff chat
+        // is recognised by the phone-number form too (sent along as remoteJidAlt, or looked up from the LID).
+        const alt = m.key.remoteJidAlt ?? "";
+        (async () => {
+          let allowed = isStaffChat(jid) || (alt ? isStaffChat(alt) : false);
+          if (!allowed && jid.endsWith("@lid")) {
+            const pn = await sock.signalRepository?.lidMapping?.getPNForLID?.(jid).catch(() => null);
+            if (pn) allowed = isStaffChat(pn);
+          }
+          await handlers.onIncoming({ id, jid, text, quotedId, allowed });
+        })().catch(() => undefined);
       }
     }) as never);
 

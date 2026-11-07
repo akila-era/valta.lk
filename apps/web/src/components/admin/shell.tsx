@@ -323,7 +323,7 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
             <div className="card absolute right-0 mt-2 w-64 p-4 shadow-card max-sm:fixed max-sm:inset-x-3 max-sm:top-[4.25rem] max-sm:mt-0 max-sm:w-auto">
               <p className="truncate text-sm font-semibold">{user.name}</p>
               <p className="truncate text-xs text-muted">{user.email}</p>
-              <div className="mt-4"><SignOutButton /></div>
+              <div className="mt-4"><SignOutButton admin /></div>
             </div>
           </details>
           </div>

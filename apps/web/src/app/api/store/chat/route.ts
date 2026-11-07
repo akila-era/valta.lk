@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
+import { getCurrentCustomer } from "@/lib/auth/session";
 import { getDb } from "@/lib/db";
 import { errorResponse, guard, json, readJson } from "@/lib/security/api";
 import { chatStatus, createConversation, forwardToWhatsApp, hashToken } from "@/lib/whatsapp/relay";
@@ -12,11 +13,25 @@ const MAX_AGE = 60 * 60 * 24 * 90; // 90 days
 type Row = { id: string; direction: string; body: string; status: string; createdAt: Date };
 const view = (m: Row) => ({ id: m.id, from: m.direction === "IN" ? "you" : "staff", body: m.body, status: m.status, at: m.createdAt.toISOString() });
 
+/**
+ * This visitor's chat. Signed in: the account's chat (on any device); a guest chat started in this browser before
+ * signing in is joined to the account. Guest: only a chat that belongs to no account, so after signing out (or on a
+ * shared computer) nobody sees the previous person's messages.
+ */
 async function current() {
-  const token = (await cookies()).get(COOKIE)?.value;
   const db = getDb();
-  if (!token || !db || token.length > 100) return null;
-  return db.chatConversation.findUnique({ where: { tokenHash: hashToken(token) } });
+  if (!db) return { convo: null, customer: null };
+  const customer = await getCurrentCustomer();
+  const token = (await cookies()).get(COOKIE)?.value;
+  const byCookie = token && token.length <= 100 ? await db.chatConversation.findUnique({ where: { tokenHash: hashToken(token) } }) : null;
+  if (!customer) return { convo: byCookie && !byCookie.customerId ? byCookie : null, customer: null };
+  const mine = await db.chatConversation.findFirst({ where: { customerId: customer.id }, orderBy: { lastMessageAt: "desc" } });
+  if (mine) return { convo: mine, customer };
+  if (byCookie && !byCookie.customerId) {
+    const claimed = await db.chatConversation.update({ where: { id: byCookie.id }, data: { customerId: customer.id, name: customer.name, phone: customer.phone } });
+    return { convo: claimed, customer };
+  }
+  return { convo: null, customer };
 }
 
 /** The visitor's own chat (found by its httpOnly cookie) and whether staff can be reached. Never another visitor's chat. */
@@ -24,7 +39,7 @@ export async function GET(req: Request) {
   const blocked = guard(req, { name: "chat-read", limit: 120, windowMs: 60_000 });
   if (blocked) return blocked;
   const status = await chatStatus().catch(() => ({ enabled: false, online: false }));
-  const convo = await current();
+  const { convo } = await current();
   const db = getDb();
   const messages = convo && db ? await db.chatMessage.findMany({ where: { conversationId: convo.id }, orderBy: { createdAt: "asc" }, take: 200 }) : [];
   return json({ ...status, messages: messages.map(view) });
@@ -47,12 +62,17 @@ export async function POST(req: Request) {
   const status = await chatStatus().catch(() => ({ enabled: false, online: false }));
   if (!status.enabled) return errorResponse(503, "CHAT_OFF", "Chat is not available right now.");
 
-  let convo = await current();
+  const found = await current();
+  let convo = found.convo;
+  const customer = found.customer;
   let token: string | null = null;
   if (!convo) {
-    const made = await createConversation();
+    const made = await createConversation(customer ? { customerId: customer.id, name: customer.name, phone: customer.phone } : undefined);
     convo = made.convo;
     token = made.token;
+  } else if (customer && (convo.name !== customer.name || convo.phone !== customer.phone)) {
+    // the account's name or phone changed since: staff see the current details
+    convo = await db.chatConversation.update({ where: { id: convo.id }, data: { name: customer.name, phone: customer.phone } });
   }
   const key = { conversationId_clientId: { conversationId: convo.id, clientId: parsed.data.clientId } };
   // The same message sent twice (double tap, network retry) is stored and forwarded once.

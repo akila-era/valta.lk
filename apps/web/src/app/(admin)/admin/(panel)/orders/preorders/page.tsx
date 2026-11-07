@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarClock, Inbox } from "lucide-react";
-import { PreorderMessageSettings, ResendPreorderMessage } from "@/components/admin/preorder-message-settings";
+import { ResendPreorderMessage } from "@/components/admin/preorder-message-settings";
 import { PreorderStatus } from "@/components/admin/preorder-status";
-import { Empty, ErrorNote, PageHeader, Pager, Panel, Stat, Table } from "@/components/admin/ui";
+import { Empty, ErrorNote, PageHeader, Pager, Stat, Table } from "@/components/admin/ui";
 import { getWaSettings } from "@/lib/whatsapp/settings";
 import { adminGate } from "@/lib/admin/gate";
 import { parseSize } from "@/lib/admin/paging";
@@ -67,9 +67,10 @@ export default async function PreordersPage({ searchParams }: { searchParams: Pr
         <Stat icon={CalendarClock} tone="purple" label="Pre-orders" value={total} />
         <Stat icon={Inbox} tone={open ? "orange" : "grey"} label="Not contacted yet" value={open} href="/admin/orders/preorders?status=NEW" />
       </div>
-      <Panel title="WhatsApp message to the customer" className="mb-5">
-        <PreorderMessageSettings chatMode={wa?.mode ?? "off"} />
-      </Panel>
+      <p className="mb-5 rounded-card border border-border bg-bg p-3 text-sm text-muted">
+        {wa?.mode && wa.mode !== "off" ? "Customers get a WhatsApp message when they send a pre-order. " : "WhatsApp is not connected, so customers get no WhatsApp message. "}
+        Choose or edit the message templates in <Link href="/admin/whatsapp#preorder-message" className="font-semibold text-ink underline">Customers, WhatsApp Chat</Link>.
+      </p>
       {rows.length === 0 ? (
         <Empty>{status ? "No pre-orders with this status." : "No pre-orders yet. Customers can send one from the page of a product that is out of stock."}</Empty>
       ) : (
