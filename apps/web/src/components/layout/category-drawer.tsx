@@ -19,6 +19,10 @@ interface Props {
   categories: DrawerCategory[];
   hasDeals: boolean;
   initialTab?: "categories" | "menu";
+  /** Opened from the phone search icon: the search box gets the focus instead of Close. */
+  focusSearch?: boolean;
+  /** "Popular requests" chips under the search box (staff popular searches, else the biggest brands and categories). */
+  popular?: { label: string; href: string }[];
 }
 
 const MENU_LINKS = [
@@ -50,7 +54,7 @@ const ROW = "flex min-h-[50px] flex-1 items-center gap-3 px-5 text-sm font-mediu
  * sub-categories has its own › button that slides in a second level with a Back row. Escape, the overlay or choosing a
  * link closes it; focus is trapped while open and returns to the opener afterwards.
  */
-export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories" }: Props) {
+export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories", focusSearch = false, popular = [] }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<"categories" | "menu">(initialTab);
   const [level, setLevel] = useState<string | null>(null); // slug of the category whose sub-categories are shown
@@ -65,7 +69,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
   useEffect(() => {
     if (!open) return;
     restoreFocus.current = document.activeElement as HTMLElement | null;
-    panel.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+    panel.current?.querySelector<HTMLElement>(focusSearch ? "input[type=search]" : "[data-autofocus]")?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setLevel(null);
@@ -93,7 +97,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
       document.body.style.overflow = prevOverflow;
       restoreFocus.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, focusSearch]);
 
   // Moving between levels keeps keyboard focus in a sensible place: Back on the way in, the › button on the way out.
   useEffect(() => {
@@ -180,13 +184,29 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
               onChange={(e) => setTerm(e.target.value)}
               placeholder="Search for products"
               maxLength={100}
-              className="h-[70px] w-full bg-bg pl-5 pr-14 text-sm text-ink outline-none placeholder:font-medium placeholder:text-ink/60 focus-visible:bg-surface"
+              className="h-[70px] w-full bg-bg pl-5 pr-14 text-base text-ink sm:text-sm outline-none placeholder:font-medium placeholder:text-ink/60 focus-visible:bg-surface"
             />
             <button type="submit" aria-label="Search" className="absolute right-2 flex h-11 w-11 items-center justify-center text-ink transition-colors hover:text-brand-600">
               <Search className="h-5 w-5" aria-hidden />
             </button>
           </div>
         </form>
+
+        {/* Popular requests: one tap to a search, as on ugreen.lk. */}
+        {popular.length > 0 ? (
+          <div className="shrink-0 border-b border-border px-3 pb-3 pt-2.5">
+            <p className="mb-2 px-0.5 text-xs font-bold uppercase tracking-wide text-ink">Popular requests</p>
+            <ul aria-label="Popular requests" className="flex flex-wrap gap-1.5">
+              {popular.slice(0, 8).map((q) => (
+                <li key={q.href}>
+                  <Link href={q.href} onClick={close} className="inline-flex min-h-8 items-center rounded-full bg-surface px-3 text-[11px] font-semibold uppercase tracking-wide text-ink/80 transition-colors hover:bg-brand-500 hover:text-on-brand">
+                    {q.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {/* Tabs */}
         <div role="tablist" aria-label="Navigation" className="flex shrink-0 border-b border-border">

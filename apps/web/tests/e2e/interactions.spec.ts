@@ -249,31 +249,27 @@ test.describe("shop by brand", () => {
 });
 
 test.describe("phone header", () => {
-  test("the sticky header is one slim row; the search button opens search anywhere on the page", async ({ browser }) => {
+  test("the sticky header is one slim row; the search icon opens the drawer with search and popular requests", async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     const page = await ctx.newPage();
     await page.goto("/");
     expect((await page.locator("header").boundingBox())!.height).toBeLessThan(80);
-    // At the top the page's own search bar shows, so the header button appears only once that bar has scrolled away.
     await expect(page.locator(".splash-auto-out")).toHaveCount(0, { timeout: 10_000 }); // the opening splash has gone
-    await expect(page.getByRole("button", { name: "Open search" })).toBeHidden();
-    await expect(async () => {
-      await page.evaluate(() => window.scrollTo(0, 2000));
-      await expect(page.getByRole("button", { name: "Open search" })).toBeVisible({ timeout: 1000 });
-    }).toPass();
+    // No separate search bar on phones: the search icon is in the header row.
+    await expect(page.getByRole("search", { name: "Site search" })).toBeHidden();
     await page.getByRole("button", { name: "Open search" }).click();
-    const box = page.locator("header").getByRole("combobox", { name: "Search products" });
+    const drawer = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
+    const box = drawer.getByRole("searchbox", { name: "Search for products" });
     await expect(box).toBeFocused();
-    await box.fill("earb");
-    await expect(page.getByRole("option", { name: /Pulse Wireless Earbuds/ })).toBeVisible();
-    await page.keyboard.press("Escape"); // first Escape: suggestions close, the search stays open
-    await expect(page.getByRole("listbox", { name: "Search suggestions" })).toHaveCount(0);
-    await expect(box).toBeVisible();
-    await page.keyboard.press("Escape"); // second Escape closes it
-    await expect(box).toHaveCount(0);
+    await expect(drawer.getByRole("list", { name: "Popular requests" }).getByRole("link").first()).toBeVisible();
+    await expect(drawer.getByRole("tab", { name: "All categories" })).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("Escape");
+    await expect(drawer).toHaveCount(0);
     await page.getByRole("button", { name: "Open search" }).click();
-    await page.getByRole("button", { name: "Close search" }).click();
-    await expect(box).toHaveCount(0);
+    await box.fill("earb");
+    await box.press("Enter");
+    await expect(page).toHaveURL(/\/search\?q=earb$/);
+    await expect(drawer).toHaveCount(0);
     await ctx.close();
   });
 });

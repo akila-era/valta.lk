@@ -91,6 +91,16 @@ export function ChatWidget() {
     return () => clearTimeout(t);
   }, [open, staffCount, messages.length]);
 
+  // Phones: the chat fills the screen; keep the page behind it from scrolling.
+  useEffect(() => {
+    if (!open || !window.matchMedia("(max-width: 639.98px)").matches) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     inputRef.current?.focus();
@@ -150,7 +160,7 @@ export function ChatWidget() {
           id="wa-chat"
           role="dialog"
           aria-label="WhatsApp Support"
-          className="fixed inset-x-0 bottom-0 z-[60] flex h-[min(88svh,36rem)] flex-col overflow-hidden rounded-t-2xl bg-white shadow-[0_-10px_40px_-12px_rgb(0_0_0/0.4)] sm:inset-x-auto sm:bottom-24 sm:right-5 sm:h-[min(34rem,calc(100svh-8rem))] sm:w-[23rem] sm:rounded-2xl sm:shadow-[0_18px_50px_-14px_rgb(0_0_0/0.45)]"
+          className="fixed inset-0 z-[70] flex h-[100dvh] flex-col overflow-hidden bg-white sm:inset-auto sm:bottom-24 sm:right-5 sm:h-[min(34rem,calc(100svh-8rem))] sm:w-[23rem] sm:rounded-2xl sm:shadow-[0_18px_50px_-14px_rgb(0_0_0/0.45)]"
         >
           <header className="flex items-center gap-3 bg-ink px-4 py-3 text-white">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fe752d] text-on-brand">
@@ -201,7 +211,7 @@ export function ChatWidget() {
           </div>
 
           <form
-            className="flex items-end gap-2 border-t border-border bg-white px-3 py-2.5"
+            className="flex items-end gap-2 border-t border-border bg-white px-3 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5"
             onSubmit={(e) => {
               e.preventDefault();
               send(text);
@@ -222,7 +232,7 @@ export function ChatWidget() {
                 }
               }}
               placeholder="Type a message"
-              className="max-h-28 min-h-11 flex-1 resize-none rounded-3xl border border-border bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-muted focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/30"
+              className="max-h-28 min-h-11 flex-1 resize-none rounded-3xl border border-border bg-surface px-4 py-3 text-base text-ink sm:text-[15px] outline-none placeholder:text-muted focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/30"
             />
             <button type="submit" disabled={!text.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#fe752d] text-on-brand hover:bg-ink hover:text-white disabled:opacity-50">
               <SendHorizontal className="h-5 w-5" aria-hidden />

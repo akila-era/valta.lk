@@ -86,9 +86,9 @@ export async function Header() {
       </div>
       <HeaderShell>
         <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 md:py-0">
-          <MobileMenu categories={categories} hasDeals={hasDeals} />
+          <MobileMenu categories={categories} hasDeals={hasDeals} popular={quick} />
           <Wordmark shine pumpkin={halloween} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
-          {/* On phones the search bar sits under the sticky header (below) so the sticky part stays one slim row. */}
+          {/* On phones search is the icon in this row: it opens the menu drawer with the search box (as on ugreen.lk). */}
           <div className="hidden md:mx-auto md:block md:w-full md:max-w-[47.5rem]">
             <SearchBox size="lg" popular={quick} />
           </div>
@@ -98,7 +98,7 @@ export async function Header() {
               Apply wholesale
             </Link>
             {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
-            <MobileSearch popular={quick} />
+            <MobileSearch />
             {accounts ? <AccountMenu customer={customer ? { name: customer.name } : null} enabled /> : null}
             <WishlistLink />
             <CartLink />
@@ -108,9 +108,6 @@ export async function Header() {
           <CategoryNav categories={categories} showDeals={hasDeals} />
         </Suspense>
       </HeaderShell>
-      <div id="mobile-searchbar" className="border-b border-border bg-bg px-3 py-2.5 md:hidden">
-        <SearchBox size="lg" popular={quick} />
-      </div>
       {/* One cart drawer for the page, opened by the header cart and the phone tab bar. */}
       <CartDrawer deliveryCharge={settings ? settings.deliveryCharge : null} cod={cod} />
     </>
