@@ -27,7 +27,7 @@ function Ticks({ status }: { status: string }) {
     status === "PENDING" ? { label: "Sending", el: <Clock className="h-3.5 w-3.5" aria-hidden /> }
     : status === "SENT" ? { label: "Sent", el: <Check className="h-3.5 w-3.5" aria-hidden /> }
     : status === "DELIVERED" ? { label: "Delivered", el: <CheckCheck className="h-3.5 w-3.5" aria-hidden /> }
-    : status === "READ" ? { label: "Read", el: <CheckCheck className="h-3.5 w-3.5 text-[#53bdeb]" aria-hidden /> }
+    : status === "READ" ? { label: "Read", el: <CheckCheck className="h-3.5 w-3.5 text-brand-500" aria-hidden /> }
     : null;
   if (!icon) return null;
   return (
@@ -134,7 +134,7 @@ export function ChatWidget() {
         aria-expanded={open}
         aria-controls="wa-chat"
         aria-label={open ? "Close WhatsApp support chat" : "Open WhatsApp support chat"}
-        className={`wa-float fixed right-5 z-30 flex items-center justify-center transition-[transform,bottom] duration-200 hover:scale-105 motion-reduce:transition-none sm:right-8 ${open ? "h-13 w-13 rounded-full bg-[#25d366] text-white shadow-[0_8px_24px_-8px_rgb(0_0_0/0.45)] hover:bg-[#1ebe5b]" : "h-[6.25rem] w-[7.5rem]"}`}
+        className={`wa-float fixed right-5 z-30 flex items-center justify-center transition-[transform,bottom] duration-200 hover:scale-105 motion-reduce:transition-none sm:right-8 ${open ? "h-13 w-13 rounded-full bg-[#fe752d] text-on-brand shadow-[0_8px_24px_-8px_rgb(0_0_0/0.45)] hover:bg-ink hover:text-white" : "h-[6.25rem] w-[7.5rem]"}`}
       >
         {open ? <X className="h-6 w-6" aria-hidden /> : <WhatsAppLottie className="h-full w-full drop-shadow-[0_6px_10px_rgb(0_0_0/0.25)]" />}
         {unread > 0 ? (
@@ -152,8 +152,8 @@ export function ChatWidget() {
           aria-label="WhatsApp Support"
           className="fixed inset-x-0 bottom-0 z-[60] flex h-[min(88svh,36rem)] flex-col overflow-hidden rounded-t-2xl bg-white shadow-[0_-10px_40px_-12px_rgb(0_0_0/0.4)] sm:inset-x-auto sm:bottom-24 sm:right-5 sm:h-[min(34rem,calc(100svh-8rem))] sm:w-[23rem] sm:rounded-2xl sm:shadow-[0_18px_50px_-14px_rgb(0_0_0/0.45)]"
         >
-          <header className="flex items-center gap-3 bg-[#008069] px-4 py-3 text-white">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+          <header className="flex items-center gap-3 bg-ink px-4 py-3 text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fe752d] text-on-brand">
               <WhatsAppGlyph className="h-6 w-6" />
             </span>
             <div className="min-w-0 flex-1">
@@ -168,16 +168,16 @@ export function ChatWidget() {
             </button>
           </header>
 
-          <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto bg-[#efeae2] px-3 py-4" aria-live="polite">
-            <div className="max-w-[85%] rounded-xl rounded-tl-none bg-white px-3 py-2 text-sm text-[#111b21] shadow-sm">
+          <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto bg-surface px-3 py-4" aria-live="polite">
+            <div className="max-w-[85%] rounded-xl rounded-tl-none border border-border bg-white px-3 py-2 text-sm text-ink">
               Hello! Welcome to VOLTA.LK. How can we help you today?
-              {online === false ? <span className="mt-1 block text-xs text-[#667781]">We are offline right now. Leave a message and we will reply here.</span> : null}
+              {online === false ? <span className="mt-1 block text-xs text-muted">We are offline right now. Leave a message and we will reply here.</span> : null}
             </div>
 
             {!sentAny ? (
               <div className="flex flex-wrap gap-2 pt-1" role="group" aria-label="Quick questions">
                 {QUICK.map((q) => (
-                  <button key={q} type="button" onClick={() => send(q)} className="min-h-9 rounded-full border border-[#008069]/40 bg-white px-3 text-[13px] font-medium text-[#008069] hover:bg-[#008069] hover:text-white">
+                  <button key={q} type="button" onClick={() => send(q)} className="min-h-9 rounded-full border border-brand-500/60 bg-white px-3 text-[13px] font-medium text-ink hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand">
                     {q}
                   </button>
                 ))}
@@ -186,14 +186,14 @@ export function ChatWidget() {
 
             {messages.map((m) => (
               <div key={m.id} className={`flex ${m.from === "you" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-xl px-3 py-1.5 text-sm text-[#111b21] shadow-sm ${m.from === "you" ? "rounded-tr-none bg-[#d9fdd3]" : "rounded-tl-none bg-white"}`}>
+                <div className={`max-w-[85%] rounded-xl px-3 py-1.5 text-sm text-ink ${m.from === "you" ? "rounded-tr-none border border-[#f2c5b3] bg-[#fff3eb]" : "rounded-tl-none border border-border bg-white"}`}>
                   <p className="whitespace-pre-wrap break-words">{m.body}</p>
-                  <p className="mt-0.5 flex items-center justify-end gap-1 text-[11px] text-[#667781]">
+                  <p className="mt-0.5 flex items-center justify-end gap-1 text-[11px] text-muted">
                     {time(m.at)}
                     {m.from === "you" ? <Ticks status={m.status} /> : null}
                   </p>
                   {m.from === "you" && m.status === "FAILED" ? (
-                    <p className="mt-0.5 text-[11px] font-medium text-[#b42318]">Not delivered to WhatsApp. Our team will still see it here.</p>
+                    <p className="mt-0.5 text-[11px] font-medium text-danger">Not delivered to WhatsApp. Our team will still see it here.</p>
                   ) : null}
                 </div>
               </div>
@@ -201,7 +201,7 @@ export function ChatWidget() {
           </div>
 
           <form
-            className="flex items-end gap-2 border-t border-black/5 bg-[#f0f2f5] px-3 py-2.5"
+            className="flex items-end gap-2 border-t border-border bg-white px-3 py-2.5"
             onSubmit={(e) => {
               e.preventDefault();
               send(text);
@@ -222,13 +222,13 @@ export function ChatWidget() {
                 }
               }}
               placeholder="Type a message"
-              className="max-h-28 min-h-11 flex-1 resize-none rounded-3xl border-0 bg-white px-4 py-3 text-[15px] text-[#111b21] outline-none placeholder:text-[#667781] focus-visible:ring-2 focus-visible:ring-[#008069]"
+              className="max-h-28 min-h-11 flex-1 resize-none rounded-3xl border border-border bg-surface px-4 py-3 text-[15px] text-ink outline-none placeholder:text-muted focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/30"
             />
-            <button type="submit" disabled={!text.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#008069] text-white hover:bg-[#006e5a] disabled:opacity-50">
+            <button type="submit" disabled={!text.trim()} aria-label="Send" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#fe752d] text-on-brand hover:bg-ink hover:text-white disabled:opacity-50">
               <SendHorizontal className="h-5 w-5" aria-hidden />
             </button>
           </form>
-          {error ? <p role="alert" className="bg-[#f0f2f5] px-4 pb-2 text-xs font-medium text-[#b42318]">{error}</p> : null}
+          {error ? <p role="alert" className="bg-white px-4 pb-2 text-xs font-medium text-danger">{error}</p> : null}
         </section>
       ) : null}
     </>
