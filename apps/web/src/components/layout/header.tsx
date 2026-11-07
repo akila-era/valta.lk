@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Phone, PhoneCall } from "lucide-react";
+import { Briefcase, MapPin, Phone, PhoneCall } from "lucide-react";
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
@@ -99,7 +99,15 @@ export async function Header() {
             </Link>
             {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
             <MobileSearch />
-            {accounts ? <AccountMenu customer={customer ? { name: customer.name } : null} enabled /> : null}
+            {/* Phones: My account is already in the bottom tab bar, so this spot links to Apply wholesale instead. */}
+            <Link href="/wholesale" aria-label="Apply wholesale" title="Apply wholesale" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control text-ink transition-colors hover:text-brand-600 md:hidden">
+              <Briefcase className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+            </Link>
+            {accounts ? (
+              <div className="hidden md:block">
+                <AccountMenu customer={customer ? { name: customer.name } : null} enabled />
+              </div>
+            ) : null}
             <WishlistLink />
             <CartLink />
           </div>
