@@ -10,6 +10,8 @@ export interface ProductQuery {
   sub?: string;
   /** Exact brand name from the catalogue. Matching is case-insensitive. */
   brand?: string;
+  /** The Brand filter: any of these brands (case-insensitive). Used together with `brand` only on its own pages. */
+  brands?: string[];
   sort?: SortKey;
   page?: number;
   pageSize?: number;
@@ -88,6 +90,7 @@ export function queryProducts(all: ErpProduct[], query: ProductQuery = {}): Prod
 
   let list = scoped.filter((p) => {
     if (!matchesBrand(p.brand, query.brand)) return false;
+    if (query.brands?.length && !query.brands.some((b) => matchesBrand(p.brand, b))) return false;
     if (query.inStockOnly && !p.available) return false;
     if (query.onSale && !isOnSale(p)) return false;
     if (query.fresh && !isNewArrival(p.publishedAt)) return false;

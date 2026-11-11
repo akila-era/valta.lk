@@ -13,7 +13,7 @@ import { AccountMenu } from "./account-menu";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { CartLink } from "./cart-link";
 import { WishlistLink } from "./wishlist-link";
-import { CategoryNav } from "./category-nav";
+import { CategoryNav, CompactCategoryLinks } from "./category-nav";
 import { HeaderShell } from "./header-shell";
 import { MobileMenu } from "./mobile-menu";
 import { MobileSearch } from "./mobile-search";
@@ -89,12 +89,18 @@ export async function Header() {
           <MobileMenu categories={categories} hasDeals={hasDeals} popular={quick} />
           <Wordmark shine pumpkin={halloween} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
           {/* On phones search is the icon in this row: it opens the menu drawer with the search box (as on ugreen.lk). */}
-          <div className="hidden md:mx-auto md:block md:w-full md:max-w-[47.5rem]">
-            <SearchBox size="lg" popular={quick} />
+          {/* Desktop: the search bar; once the page has scrolled, the top categories take its place (slim header). */}
+          <div className="hidden min-w-0 md:block">
+            <div className="md:mx-auto md:w-full md:max-w-[47.5rem] lg:group-data-[compact=true]/hdr:hidden">
+              <SearchBox size="lg" popular={quick} />
+            </div>
+            <div className="hidden lg:group-data-[compact=true]/hdr:block">
+              <CompactCategoryLinks categories={categories} />
+            </div>
           </div>
           <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
             {/* As on ugreen.lk: businesses can apply to buy wholesale. */}
-            <Link href="/wholesale" className="hidden min-h-8 items-center rounded-full bg-ink px-3.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white hover:bg-ink/85 xl:inline-flex">
+            <Link href="/wholesale" className="hidden min-h-8 items-center rounded-full bg-ink px-3.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white hover:bg-ink/85 xl:inline-flex xl:group-data-[compact=true]/hdr:hidden">
               Apply wholesale
             </Link>
             {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
@@ -112,9 +118,12 @@ export async function Header() {
             <CartLink />
           </div>
         </div>
-        <Suspense fallback={null}>
-          <CategoryNav categories={categories} showDeals={hasDeals} />
-        </Suspense>
+        {/* The category row folds away on desktop once the page has scrolled (its links move into the row above). */}
+        <div className="lg:group-data-[compact=true]/hdr:hidden">
+          <Suspense fallback={null}>
+            <CategoryNav categories={categories} showDeals={hasDeals} />
+          </Suspense>
+        </div>
       </HeaderShell>
       {/* One cart drawer for the page, opened by the header cart and the phone tab bar. */}
       <CartDrawer deliveryCharge={settings ? settings.deliveryCharge : null} cod={cod} />

@@ -61,17 +61,35 @@ test.describe("client updates", () => {
     await expect(page.getByRole("row", { name: new RegExp(ref) }).getByText("Contacted", { exact: true })).toBeVisible();
   });
 
-  test("brand filter: a category lists its brands and choosing one shows only that brand", async ({ page }) => {
-    // Smart Home has several brands in the test catalogue (Kora has one product).
+  test("brand filter: tick one or more brands in a category or on All products, and clear them", async ({ page }) => {
+    // Smart Home has several brands in the test catalogue (Kora and Aero have one product each).
     await page.goto("/categories/smart-home");
-    await page.getByText("Brand", { exact: true }).first().click();
     const brands = page.getByRole("list", { name: "Brand" });
+    await expect(brands).toBeVisible(); // open without a click
     expect(await brands.getByRole("link").count()).toBeGreaterThan(1);
     await brands.getByRole("link", { name: /Kora/ }).click();
-    await expect(page).toHaveURL(/\/categories\/smart-home\?brand=Kora$/);
+    await expect(page).toHaveURL(/\/categories\/smart-home\?brands=Kora$/);
     await expect(page.locator("main article")).toHaveCount(1);
     await expect(page.locator("main article", { hasText: "Kora Security Camera" })).toBeVisible();
-    await expect(page.getByRole("list", { name: "Brand" }).getByRole("link", { name: /Kora/ })).toHaveAttribute("aria-current", "true");
+    // a second brand is added, not swapped
+    await page.getByRole("list", { name: "Brand" }).getByRole("link", { name: /Aero/ }).click();
+    await expect(page).toHaveURL(/brands=Kora(%2C|,)Aero$/);
+    await expect(page.locator("main article")).toHaveCount(2);
+    for (const name of [/Kora/, /Aero/]) await expect(page.getByRole("list", { name: "Brand" }).getByRole("link", { name })).toHaveAttribute("aria-current", "true");
+    // unticking one keeps the other; Clear brands shows everything again
+    await page.getByRole("list", { name: "Brand" }).getByRole("link", { name: /Kora/ }).click();
+    await expect(page).toHaveURL(/brands=Aero$/);
+    await expect(page.locator("main article")).toHaveCount(1);
+    await page.getByRole("link", { name: "Clear brands" }).click();
+    await expect(page).toHaveURL(/\/categories\/smart-home$/);
+
+    // On All products, ticking a brand filters the list (it does not jump to that brand's own page)
+    await page.goto("/products");
+    await page.getByRole("list", { name: "Brand" }).getByRole("link", { name: /Pulse/ }).click();
+    await expect(page).toHaveURL(/\/products\?brands=Pulse$/);
+    await expect(page.getByRole("list", { name: "Brand" })).toBeVisible();
+    await expect(page.locator("main article", { hasText: "Pulse Wireless Earbuds" })).toBeVisible();
+    await expect(page.locator("main article", { hasText: "Echo Mini Speaker" })).toHaveCount(0);
   });
 
   test("the floating WhatsApp button links to the store number, and the site offers no app install", async ({ page }) => {

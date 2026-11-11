@@ -33,12 +33,26 @@ export function HeaderShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // "compact" (desktop slim header) switches on a little way down and off near the top, with a gap between the two
+  // so the header does not flicker when its own height changes right at the switch point.
+  const [compact, setCompact] = useState(false);
   useEffect(() => {
-    const el = sentinel.current;
-    if (!el || !("IntersectionObserver" in window)) return;
-    const io = new IntersectionObserver(([e]) => setScrolled(!e.isIntersecting), { threshold: 0 });
-    io.observe(el);
-    return () => io.disconnect();
+    let frame = 0;
+    const check = () => {
+      frame = 0;
+      const y = window.scrollY;
+      setScrolled(y > 0);
+      setCompact((was) => (was ? y > 40 : y > 160));
+    };
+    const onScroll = () => {
+      frame ||= requestAnimationFrame(check);
+    };
+    check();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   // Scroll progress: the line grows from left to right as the page is read (transform only, so it never moves the layout).
@@ -70,6 +84,7 @@ export function HeaderShell({ children }: { children: ReactNode }) {
       <header
         ref={header}
         data-scrolled={scrolled}
+        data-compact={compact}
         className="group/hdr sticky top-0 z-40 [@media(max-height:520px)]:static border-b border-border bg-bg text-ink transition-shadow duration-300 data-[scrolled=true]:shadow-[0_6px_20px_-12px_rgb(16_24_40/0.3)]"
       >
         {children}

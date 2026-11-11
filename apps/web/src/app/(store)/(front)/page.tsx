@@ -46,8 +46,10 @@ export default async function HomePage() {
       {data.catalogueOk ? (
         <>
           {/* In the order of ugreen.lk's homepage: categories, new arrivals (tabs), customer reviews, the range tiles,
-              the feature block, why choose us and most popular; then our own deals, brands and offers. */}
+              the feature block, why choose us and most popular; then our own deals and offers. Brands sit right under the categories. */}
           <CategoryGrid categories={data.categories} />
+          {/* Brands right after the categories: the second way shoppers start looking. */}
+          <BrandWall brands={data.brands} />
           <StripBanner banner={data.stripBanner} />
           <RangeTabs newArrivals={data.newArrivals} rails={tabRails} />
           <Reviews title={data.reviews.title} reviews={data.reviews.items} />
@@ -63,7 +65,6 @@ export default async function HomePage() {
             priority
             aside={data.hotDealsEndAt ? <DealCountdown endsAt={data.hotDealsEndAt} /> : null}
           />
-          <BrandWall brands={data.brands} />
           {data.staffBanners ? <PromoTiles banners={data.banners.slice(0, 4)} /> : null}
           <div className="container-page">
             <VideoShowcase title={data.videos.title} videos={data.videos.items} />

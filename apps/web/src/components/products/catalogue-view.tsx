@@ -19,6 +19,8 @@ export interface RawParams {
   sale?: string;
   sub?: string;
   brand?: string;
+  /** The Brand filter: one or more brand names, comma separated ("Anker,UGREEN"). */
+  brands?: string;
   /** "list" shows one product per row, "2" / "3" that many per row; anything else is the four-column grid. */
   view?: string;
   /** Products per page: one of PER_PAGE (default 12). */
@@ -67,6 +69,7 @@ export function parseParams(p: RawParams, fixedCategory?: string, fresh = false)
     category: fixedCategory ?? (p.category?.slice(0, 100) || undefined),
     sub: p.sub?.slice(0, 100) || undefined,
     brand: p.brand?.trim().slice(0, 80) || undefined,
+    brands: p.brands ? [...new Set(p.brands.split(",").map((b) => b.trim().slice(0, 80)).filter(Boolean))].slice(0, 20) : undefined,
     sort,
     page,
     minPrice: num(p.min),
@@ -119,6 +122,7 @@ export async function CatalogueView({
     query.sub ||
       query.q ||
       query.brand ||
+      query.brands?.length ||
       query.minPrice ||
       query.maxPrice ||
       query.inStockOnly ||
@@ -161,20 +165,23 @@ export async function CatalogueView({
           </ul>
         </details>
 
-        {/* Brand: the brands in the current category (or search), each with its product count. One brand at a time; the
-            chosen one again clears it. Not on a brand's own page, where the brand is already fixed. */}
-        {!brand && (result.brands.length > 1 || query.brand) ? (
-          <details className="group/f mb-3" open={query.brand ? true : undefined}>
+        {/* Brand (open by default, shown even when a category has one brand): the brands in the current category or search, each with its product count. Tick one
+            or more; the list keeps every brand so more can be added. Not on a brand's own page (the brand is fixed). */}
+        {!brand && result.brands.length > 0 ? (
+          <details className="group/f mb-3" open>
             <summary className={summary}>
               Brand <ChevronDown className="h-4 w-4 shrink-0 text-muted transition-transform group-open/f:rotate-180" aria-hidden />
             </summary>
-            <ul aria-label="Brand" className="mb-2 mt-1">
+            <ul aria-label="Brand" className="mb-1 mt-1 lg:max-h-80 lg:overflow-y-auto lg:pr-1">
               {result.brands.map((b) => {
-                const on = (query.brand ?? "").toLowerCase() === b.name.toLowerCase();
+                // A brand picked from the category's brand tiles (?brand=) counts as ticked too; ticking more moves it here.
+                const chosen = [...(query.brands ?? []), ...(query.brand ? [query.brand] : [])];
+                const on = chosen.some((x) => x.toLowerCase() === b.name.toLowerCase());
+                const next = on ? chosen.filter((x) => x.toLowerCase() !== b.name.toLowerCase()) : [...chosen, b.name];
                 return (
                   <li key={b.name}>
                     <Link
-                      href={href(basePath, params, { brand: on ? "" : b.name, page: "" })}
+                      href={href(basePath, params, { brands: next.join(","), brand: "", page: "" })}
                       aria-current={on ? "true" : undefined}
                       scroll={false}
                       className={`flex items-center gap-2.5 py-1.5 text-sm transition-colors pointer-coarse:py-2.5 ${on ? "font-semibold text-brand-600" : "text-ink/80 hover:text-brand-600"}`}
@@ -189,6 +196,11 @@ export async function CatalogueView({
                 );
               })}
             </ul>
+            {query.brands?.length ? (
+              <Link href={href(basePath, params, { brands: "", page: "" })} scroll={false} className="mb-2 inline-block text-xs font-semibold text-ink underline underline-offset-2 hover:text-brand-600">
+                Clear brands
+              </Link>
+            ) : null}
           </details>
         ) : null}
 

@@ -408,27 +408,27 @@ export async function BrandGrid({ brands, page = false }: { brands: HomeData["br
     );
   }
   return (
-    <ul className="flex flex-wrap justify-center gap-2.5 sm:gap-3">
+    <ul className="grid grid-cols-4 gap-2 sm:gap-4 lg:grid-cols-8">
       {brands.map((b, i) => {
         const count = `${b.count} ${b.count === 1 ? "product" : "products"}`;
         return (
-          <li key={b.name} className="w-[calc((100%-1.25rem)/3)] xs:w-28 sm:w-32">
+          <li key={b.name}>
             <Link
               href={`/products?brand=${encodeURIComponent(b.name)}`}
               aria-label={`${b.name}, ${count}`}
-              className="group flex h-full flex-col items-center gap-2 rounded-card border border-brand-500/15 bg-white px-2 pb-2.5 pt-3 text-center transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-neon-lift motion-reduce:hover:translate-y-0"
+              className="group flex h-16 items-center justify-center rounded-card border border-border bg-white px-1.5 text-center transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-neon-lift motion-reduce:hover:translate-y-0 sm:h-24 sm:px-3"
             >
-              <span className="flex h-12 w-full items-center justify-center">
+              {/* The brand's logo only (its name is the link's label for screen readers); the wordmark when there is no logo. */}
+              <span className="flex h-14 w-full items-center justify-center">
                 {b.logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={b.logo} alt="" loading="lazy" className="max-h-11 max-w-[88%] object-contain" />
+                  <img src={b.logo} alt="" loading="lazy" className="max-h-14 max-w-[90%] object-contain" />
                 ) : (
-                  <span aria-hidden data-wordmark className="max-w-full truncate font-display text-[15px] font-extrabold uppercase tracking-[0.04em]" style={{ color: colors[i] }}>
+                  <span aria-hidden data-wordmark className="max-w-full truncate font-display text-[13px] font-extrabold sm:text-[15px] uppercase tracking-[0.04em]" style={{ color: colors[i] }}>
                     {b.name}
                   </span>
                 )}
               </span>
-              <span className="max-w-full truncate text-xs font-medium text-ink/80 group-hover:text-ink">{b.name}</span>
             </Link>
           </li>
         );
@@ -440,18 +440,12 @@ export async function BrandGrid({ brands, page = false }: { brands: HomeData["br
 /** "Explore our brands" on the homepage: every brand as a white tile on a light neon-orange panel, then a link to all. */
 export function BrandWall({ brands }: { brands: HomeData["brands"] }) {
   if (!brands.length) return null;
+  // Laid out like Shop by Category above it: the same heading, an even row of tiles and a "View all" pill.
   return (
     <section aria-labelledby="brands" className="container-page mt-12 sm:mt-16">
-      <div className="rounded-panel border border-brand-500/20 bg-[#fff3eb] px-4 py-9 sm:px-8 sm:py-12">
-        <h2 id="brands" className="text-center font-display text-[clamp(1.5rem,1.1rem+1.3vw,2.1rem)] font-bold leading-tight tracking-title text-ink">Explore our brands</h2>
-        <p className="mb-7 mt-2 text-center text-sm text-ink/70">Tap a brand to see its complete {siteConfig.name} collection.</p>
-        <BrandGrid brands={brands.slice(0, 30)} />
-        <div className="mt-8 flex justify-center">
-          <Link href="/brands" className="btn-primary min-h-11 rounded-full px-6">
-            View all brands <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </div>
-      </div>
+      <SectionHead id="brands" title="Explore our brands" />
+      <BrandGrid brands={brands.slice(0, 16)} />
+      <ViewAll href="/brands" label="View all brands" />
     </section>
   );
 }

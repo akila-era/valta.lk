@@ -57,7 +57,7 @@ test.describe("admin marketing", () => {
     const pulse = page.locator("section[aria-labelledby=brands]").getByRole("link", { name: /^Pulse, / });
     await expect(pulse.locator("img")).toHaveCount(1);
     await expect(pulse.locator("[data-wordmark]")).toHaveCount(0); // no wordmark once a logo exists
-    await expect(pulse.getByText("Pulse", { exact: true })).toBeVisible(); // the name stays under the logo
+    await expect(pulse.getByText("Pulse", { exact: true })).toHaveCount(0); // logo only: no name under it (the link keeps it as its label)
 
     await page.goto("/admin/brands");
     await page.getByRole("button", { name: "Remove logo for Pulse" }).click();

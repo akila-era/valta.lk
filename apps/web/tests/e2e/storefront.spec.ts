@@ -241,7 +241,7 @@ test.describe("responsive @mobile", () => {
     await page.getByRole("button", { name: "Open menu" }).click();
     const menu = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
     await expect(menu).toBeVisible();
-    await menu.getByRole("link", { name: "Audio" }).click();
+    await menu.getByRole("tabpanel", { name: "All categories" }).getByRole("link", { name: "Audio" }).click();
     await expect(page).toHaveURL(/categories\/audio/);
     await expect(page.getByRole("dialog", { name: "Browse VOLTA.LK" })).toHaveCount(0);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
