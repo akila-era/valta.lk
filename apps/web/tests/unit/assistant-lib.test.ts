@@ -132,3 +132,11 @@ describe("what the Agent may answer", () => {
     for (const href of ["https://evil.example", "//evil.example", "/admin", "/api/internal/sync-orders", "javascript:alert(1)", "/products/../admin"]) expect(act({ type: "navigate", actionId: "act_12345678", href }), href).toBe(false);
   });
 });
+
+describe("private preview key", () => {
+  it("is optional, must be 16+ characters when set, and a weak one turns the assistant off", () => {
+    expect(readAssistantConfig(ok)!.previewKey).toBeNull();
+    expect(readAssistantConfig({ ...ok, AI_ASSISTANT_PREVIEW_KEY: "p".repeat(16) })!.previewKey).toBe("p".repeat(16));
+    expect(readAssistantConfig({ ...ok, AI_ASSISTANT_PREVIEW_KEY: "short" })).toBeNull();
+  });
+});

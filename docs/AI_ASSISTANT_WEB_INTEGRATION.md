@@ -71,3 +71,14 @@ Pages are rendered per request, so the settings are read at runtime (checked in 
 - `tests/integration/assistant-route.test.ts` (29): against a fake Agent that verifies the signature: off, origin, validation, rate limit, identity and session handling, response filtering, error mapping, redirects, timeouts, no logging.
 - `tests/unit/assistant-cards.test.ts`, `assistant-confirm-interaction.test.ts`: cards and Confirm/Cancel.
 - `tests/e2e/assistant-widget.spec.ts` (8, real Chromium, desktop and mobile): launcher and dialog, cards and demo label, comparison, confirm-gated cart (the real `volta.cart.v1` changes only after Confirm), signed request and derived session, error state, Sinhala notice, order hand-off, phone layout.
+
+## Private preview on the live site (demo data)
+
+To try the assistant on the live site without showing it to shoppers:
+
+1. Build the Agent bundle (mock data) from the `feature/ai-agent-m1` branch: `npx esbuild apps/agent/tests/real/dev-mock-agent.ts --bundle --platform=node --format=esm --target=node24 --outfile=agent.mjs`, and copy it to `/opt/valta/ai-agent/agent.mjs` on the server.
+2. In `.env` set `AI_ASSISTANT_ENABLED=true`, `AI_AGENT_URL=http://127.0.0.1:18787`, `AI_AGENT_HMAC_KEY_ID=web1`, `AI_AGENT_HMAC_SECRET=<48 random chars>`, `AI_ASSISTANT_DEMO_DATA=true` and `AI_ASSISTANT_PREVIEW_KEY=<24+ random chars>`.
+3. `docker compose up -d web` and `docker compose --profile ai-preview up -d ai-agent`. The Agent container shares the web container's network namespace, so it listens only on 127.0.0.1 inside it; no port is published.
+4. Open `https://<site>/api/assistant/preview?key=<AI_ASSISTANT_PREVIEW_KEY>` once in the browser that should see it. Other visitors see nothing (the chat route answers 404). Remove the preview key to open the assistant to everyone.
+
+This preview has **no model** (English messages the router does not know get a clarification) and **mock products** that are not in the site's catalogue, so adding them to the cart will not work at checkout. To turn it off: unset `AI_ASSISTANT_ENABLED` and stop the `ai-agent` service.

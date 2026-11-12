@@ -80,6 +80,7 @@ beforeEach(() => {
   process.env.AI_AGENT_HMAC_KEY_ID = "web1";
   process.env.AI_AGENT_HMAC_SECRET = SECRET;
   delete process.env.AI_AGENT_TIMEOUT_MS;
+  delete process.env.AI_ASSISTANT_PREVIEW_KEY;
   (globalThis as unknown as { __voltaRate?: Map<string, unknown> }).__voltaRate?.clear();
 });
 afterEach(() => vi.restoreAllMocks());
@@ -272,5 +273,48 @@ describe("no message content is logged", () => {
     process.env.AI_AGENT_URL = "http://127.0.0.1:1";
     await call({ message: "my password is Tr0ub4dor&3-unique" });
     for (const s of spies) expect(s).not.toHaveBeenCalled();
+  });
+});
+
+describe("private preview", () => {
+  const KEY = "preview-key-0123456789";
+  const getPreview = async (key?: string) => (await import("@/app/api/assistant/preview/route")).GET(new Request(`http://shop.test/api/assistant/preview${key === undefined ? "" : `?key=${key}`}`, { headers: { "x-forwarded-for": "203.0.113.60" } }));
+
+  it("hides the assistant from everyone without the preview cookie (404, the Agent is never contacted)", async () => {
+    process.env.AI_ASSISTANT_PREVIEW_KEY = KEY;
+    expect((await call({ message: "hi" })).status).toBe(404);
+    jar.set("volta_ai_preview", "not-the-cookie");
+    expect((await call({ message: "hi" })).status).toBe(404);
+    expect(seen).toHaveLength(0);
+  });
+
+  it("the preview link with the right key sets an httpOnly cookie and redirects home; with the cookie the chat works", async () => {
+    process.env.AI_ASSISTANT_PREVIEW_KEY = KEY;
+    const res = await getPreview(KEY);
+    expect(res.status).toBe(303);
+    const cookie = res.headers.get("set-cookie") ?? "";
+    expect(cookie.toLowerCase()).toContain("httponly");
+    jar.set("volta_ai_preview", /volta_ai_preview=([^;]+)/.exec(cookie)![1]!);
+    expect((await call({ message: "hi" })).status).toBe(200);
+    expect(seen).toHaveLength(1);
+  });
+
+  it("a wrong, missing or short key gets 404 and no cookie, and the link does not exist when no preview key is set", async () => {
+    process.env.AI_ASSISTANT_PREVIEW_KEY = KEY;
+    for (const k of ["wrong-key-0123456789", "", undefined]) {
+      const r = await getPreview(k);
+      expect(r.status, String(k)).toBe(404);
+      expect(r.headers.get("set-cookie")).toBeNull();
+    }
+    delete process.env.AI_ASSISTANT_PREVIEW_KEY;
+    expect((await getPreview(KEY)).status).toBe(404);
+    expect((await call({ message: "hi" })).status).toBe(200); // no key: open to everyone
+  });
+
+  it("rate limits guessing of the key", async () => {
+    process.env.AI_ASSISTANT_PREVIEW_KEY = KEY;
+    let last: Response | undefined;
+    for (let i = 0; i < 11; i++) last = await getPreview("guess-0123456789-" + i);
+    expect(last!.status).toBe(429);
   });
 });

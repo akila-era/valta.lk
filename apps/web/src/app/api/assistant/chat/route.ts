@@ -2,6 +2,7 @@ import { isIP } from "node:net";
 import { cookies } from "next/headers";
 import { getCurrentCustomer, sessionCookieOptions } from "@/lib/auth/session";
 import { readAssistantConfig } from "@/lib/assistant/config";
+import { hasAssistantAccess } from "@/lib/assistant/preview";
 import { AGENT_CONTRACT_VERSION, AgentChatResponse, BrowserRequest, toPublic } from "@/lib/assistant/schema";
 import { agentSessionId, ASSISTANT_COOKIE, ASSISTANT_COOKIE_MAX_AGE, isAssistantToken, newAssistantToken } from "@/lib/assistant/session-id";
 import { signAgentRequest, type AgentIdentity } from "@/lib/assistant/sign";
@@ -28,7 +29,7 @@ const UNAVAILABLE = "The shopping assistant is not available right now. Please t
  */
 export async function POST(req: Request) {
   const cfg = readAssistantConfig();
-  if (!cfg) return errorResponse(404, "NOT_FOUND", "Not found.");
+  if (!cfg || !(await hasAssistantAccess(cfg))) return errorResponse(404, "NOT_FOUND", "Not found.");
   const blocked = guard(req, { name: "assistant-chat", limit: 20, windowMs: 60_000, mutating: true });
   if (blocked) return blocked;
 

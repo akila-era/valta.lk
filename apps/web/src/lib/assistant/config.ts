@@ -12,6 +12,8 @@ export interface AssistantConfig {
   keyId: string;
   secret: string;
   timeoutMs: number;
+  /** When set, the assistant is visible and usable only to browsers that opened the private preview link (see preview.ts). */
+  previewKey: string | null;
 }
 
 const KEY_ID = /^[A-Za-z0-9_-]{1,16}$/;
@@ -37,7 +39,9 @@ export function readAssistantConfig(env: Readonly<Record<string, string | undefi
   if (url.protocol !== "https:" && !(url.protocol === "http:" && isLoopback(url.hostname))) return null;
   const timeout = Number(env.AI_AGENT_TIMEOUT_MS ?? 50_000);
   const timeoutMs = Number.isInteger(timeout) && timeout >= 1_000 && timeout <= 120_000 ? timeout : 50_000;
-  return { agentUrl: new URL(url.origin), keyId, secret, timeoutMs };
+  const preview = env.AI_ASSISTANT_PREVIEW_KEY?.trim() ?? "";
+  if (preview !== "" && preview.length < 16) return null; // a weak preview key is a misconfiguration: stay off
+  return { agentUrl: new URL(url.origin), keyId, secret, timeoutMs, previewKey: preview === "" ? null : preview };
 }
 
 /** True when the assistant is fully configured. Used by the layout (to show the button) and the route (404 when off). */

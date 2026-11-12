@@ -77,5 +77,27 @@ services:
     ports:
       - "127.0.0.1:4010:4010"
 
+  # PREVIEW of the AI shopping assistant: the Agent API on MOCK data (invented products, no model, no ERP), for trying the
+  # assistant on this site before the real Agent is connected (docs/AI_ASSISTANT_WEB_INTEGRATION.md). Start it with
+  # `docker compose --profile ai-preview up -d`. It shares the web container's network namespace and listens on 127.0.0.1:18787
+  # INSIDE it: no published port, nothing else can reach it. The bundle is built from the Agent repo branch and copied to
+  # ./ai-agent/agent.mjs (not committed). Needs AI_AGENT_HMAC_SECRET in .env (the same value the site signs with).
+  ai-agent:
+    profiles: ["ai-preview"]
+    image: volta/web:latest
+    restart: unless-stopped
+    network_mode: "service:web"
+    depends_on:
+      - web
+    user: node
+    working_dir: /agent
+    environment:
+      AGENT_DEV_SECRET: ${AI_AGENT_HMAC_SECRET:?set AI_AGENT_HMAC_SECRET in .env}
+      AGENT_DEV_KEY_ID: ${AI_AGENT_HMAC_KEY_ID:-web1}
+      AGENT_DEV_PORT: "18787"
+    volumes:
+      - ./ai-agent/agent.mjs:/agent/agent.mjs:ro
+    command: ["node", "/agent/agent.mjs"]
+
 volumes:
   db-data:
