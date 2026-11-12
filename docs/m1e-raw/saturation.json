@@ -1,0 +1,37 @@
+{
+ "phase": "saturation",
+ "startedAt": "2026-11-12T15:09:50.714Z",
+ "node": "v24.22.3",
+ "submitted": 30,
+ "rejected": 23,
+ "completed": 7,
+ "rejectionLatencyMs": {
+  "n": 23,
+  "min": 6.27,
+  "p50": 38.6,
+  "p95": 66.64,
+  "p99": 70.15,
+  "max": 70.15,
+  "mean": 38.44
+ },
+ "retryAfterSec": {
+  "n": 23,
+  "min": 84,
+  "p50": 84,
+  "p95": 84,
+  "p99": 84,
+  "max": 84,
+  "mean": 84
+ },
+ "schedulerState": {
+  "running": null,
+  "loaded": "qwen",
+  "depth": 0,
+  "switches": 0,
+  "completed": 7,
+  "rejectedFull": 23,
+  "expired": 0
+ },
+ "rssMb": 100,
+ "durationSeconds": 96.63
+}

@@ -1,0 +1,407 @@
+{
+ "phase": "queue50",
+ "startedAt": "2026-11-12T15:13:16.672Z",
+ "node": "v24.22.3",
+ "jobs": 50,
+ "outcomes": {
+  "ok": 50
+ },
+ "queueDepthAfterSubmitting": 49,
+ "wallSeconds": 1026.14,
+ "throughputJobsPerMinute": 2.92,
+ "timeInSystemMs": {
+  "n": 50,
+  "min": 42481.48,
+  "p50": 543677.14,
+  "p95": 974116.1,
+  "p99": 1025944.9,
+  "max": 1025944.9,
+  "mean": 524758.57
+ },
+ "queueWaitMs": {
+  "n": 50,
+  "min": 1,
+  "p50": 499223,
+  "p95": 961922,
+  "p99": 1016577,
+  "max": 1016577,
+  "mean": 504234.8
+ },
+ "runMs": {
+  "n": 50,
+  "min": 5166,
+  "p50": 9583,
+  "p95": 44452,
+  "p99": 46959,
+  "max": 46959,
+  "mean": 20521.48
+ },
+ "runMsQwen": {
+  "n": 34,
+  "min": 5166,
+  "p50": 14082,
+  "p95": 44842,
+  "p99": 46959,
+  "max": 46959,
+  "mean": 25688.38
+ },
+ "runMsSinhala": {
+  "n": 16,
+  "min": 7175,
+  "p50": 8928,
+  "p95": 16766,
+  "p99": 16766,
+  "max": 16766,
+  "mean": 9541.81
+ },
+ "runMsAfterSwitch": {
+  "n": 32,
+  "min": 7175,
+  "p50": 16766,
+  "p95": 44842,
+  "p99": 46959,
+  "max": 46959,
+  "mean": 25976.63
+ },
+ "schedulerState": {
+  "running": null,
+  "loaded": "qwen",
+  "depth": 0,
+  "switches": 32,
+  "completed": 50,
+  "rejectedFull": 0,
+  "expired": 0
+ },
+ "switches": 32,
+ "maxConcurrentModelCalls": 1,
+ "loadedTimeline": [
+  {
+   "t": 5212,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 66134,
+   "loaded": []
+  },
+  {
+   "t": 70537,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 76563,
+   "loaded": []
+  },
+  {
+   "t": 81353,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 121455,
+   "loaded": []
+  },
+  {
+   "t": 126218,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 129020,
+   "loaded": []
+  },
+  {
+   "t": 133823,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 188362,
+   "loaded": []
+  },
+  {
+   "t": 193085,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 205119,
+   "loaded": []
+  },
+  {
+   "t": 210301,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 262385,
+   "loaded": []
+  },
+  {
+   "t": 266772,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 270801,
+   "loaded": []
+  },
+  {
+   "t": 275579,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 322530,
+   "loaded": []
+  },
+  {
+   "t": 327238,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 331643,
+   "loaded": []
+  },
+  {
+   "t": 336051,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 372208,
+   "loaded": []
+  },
+  {
+   "t": 376885,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 379727,
+   "loaded": []
+  },
+  {
+   "t": 384490,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 435804,
+   "loaded": []
+  },
+  {
+   "t": 440618,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 448228,
+   "loaded": []
+  },
+  {
+   "t": 453436,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 490678,
+   "loaded": []
+  },
+  {
+   "t": 495081,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 499629,
+   "loaded": []
+  },
+  {
+   "t": 504288,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 557537,
+   "loaded": []
+  },
+  {
+   "t": 561939,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 565943,
+   "loaded": []
+  },
+  {
+   "t": 570748,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 617200,
+   "loaded": []
+  },
+  {
+   "t": 621594,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 626115,
+   "loaded": []
+  },
+  {
+   "t": 630796,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 672844,
+   "loaded": []
+  },
+  {
+   "t": 676853,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 681437,
+   "loaded": []
+  },
+  {
+   "t": 686071,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 725022,
+   "loaded": []
+  },
+  {
+   "t": 729711,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 732177,
+   "loaded": []
+  },
+  {
+   "t": 736917,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 793026,
+   "loaded": []
+  },
+  {
+   "t": 797437,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 801839,
+   "loaded": []
+  },
+  {
+   "t": 807457,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 850337,
+   "loaded": []
+  },
+  {
+   "t": 854758,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 858016,
+   "loaded": []
+  },
+  {
+   "t": 863573,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 912036,
+   "loaded": []
+  },
+  {
+   "t": 916429,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 921694,
+   "loaded": []
+  },
+  {
+   "t": 926870,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 962260,
+   "loaded": []
+  },
+  {
+   "t": 966945,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 974559,
+   "loaded": []
+  },
+  {
+   "t": 979767,
+   "loaded": [
+    "qwen"
+   ]
+  }
+ ],
+ "rssMb": 104,
+ "durationSeconds": 1026.32
+}

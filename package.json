@@ -2,7 +2,8 @@
   "name": "valta-lk",
   "private": true,
   "workspaces": [
-    "apps/web"
+    "apps/web",
+    "apps/agent"
   ],
   "scripts": {
     "dev": "npm run dev -w @valta/web",

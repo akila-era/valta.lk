@@ -1,0 +1,55 @@
+{
+ "phase": "timeout",
+ "startedAt": "2026-11-12T15:11:32.617Z",
+ "node": "v24.22.3",
+ "warmMs": {
+  "n": 3,
+  "min": 4821.59,
+  "p50": 11650.7,
+  "p95": 43623.57,
+  "p99": 43623.57,
+  "max": 43623.57,
+  "mean": 20031.95
+ },
+ "runningDeadline800ms": {
+  "out": "JobDeadlineError",
+  "ms": 798.31
+ },
+ "nextAfter_runningDeadline": {
+  "out": "ok",
+  "ms": 12496.69
+ },
+ "cancelRunning": {
+  "out": "JobAbortedError",
+  "ms": 810.24,
+  "abortToSettledMs": 9.13
+ },
+ "nextAfter_cancelRunning": {
+  "out": "ok",
+  "ms": 11612.04
+ },
+ "queuedDeadline500ms": {
+  "out": "JobDeadlineError",
+  "ms": 501.01
+ },
+ "queuedCancelled": {
+  "out": "JobAbortedError",
+  "ms": 200.86
+ },
+ "blockerCompleted": {
+  "out": "ok",
+  "ms": 12664.18
+ },
+ "schedulerState": {
+  "running": null,
+  "loaded": "qwen",
+  "depth": 0,
+  "switches": 0,
+  "completed": 8,
+  "rejectedFull": 0,
+  "expired": 1
+ },
+ "slotFreeAtEnd": true,
+ "rssMb": 94,
+ "durationSeconds": 98.79
+}

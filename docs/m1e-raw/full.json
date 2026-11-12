@@ -1,0 +1,131 @@
+{
+ "phase": "full",
+ "startedAt": "2026-11-12T15:03:51.970Z",
+ "node": "v24.22.3",
+ "requests": 60,
+ "statuses": {
+  "200": 60
+ },
+ "allMs": {
+  "n": 60,
+  "min": 3.63,
+  "p50": 7.5,
+  "p95": 9433.87,
+  "p99": 56283.64,
+  "max": 56283.64,
+  "mean": 1786.76
+ },
+ "byClassMs": {
+  "router_only": {
+   "n": 43,
+   "min": 3.63,
+   "p50": 7.02,
+   "p95": 20.18,
+   "p99": 167.32,
+   "max": 167.32,
+   "mean": 12.2
+  },
+  "qwen_used": {
+   "n": 5,
+   "min": 9260.07,
+   "p50": 11009.93,
+   "p95": 56283.64,
+   "p99": 56283.64,
+   "max": 56283.64,
+   "mean": 21315.14
+  },
+  "sinhala_router": {
+   "n": 12,
+   "min": 4.01,
+   "p50": 7.7,
+   "p95": 29.04,
+   "p99": 29.04,
+   "max": 29.04,
+   "mean": 8.79
+  },
+  "degraded": {
+   "n": 0,
+   "min": 0,
+   "p50": 0,
+   "p95": 0,
+   "p99": 0,
+   "max": 0,
+   "mean": 0
+  }
+ },
+ "metrics": {
+  "startedAt": "2026-11-12T15:03:52.203Z",
+  "uptimeSec": 107,
+  "counters": {
+   "tool_calls_total": {
+    "search_products": 20,
+    "get_product_details": 3,
+    "compare_products": 6,
+    "check_stock": 5,
+    "get_accessories": 7,
+    "get_cart": 1
+   },
+   "requests_total": {
+    "/v1/chat 200": 60
+   },
+   "model_requests_total": {
+    "qwen": 7
+   },
+   "jobs_total": {
+    "ok": 7
+   }
+  },
+  "gauges": {
+   "queue_depth": 0,
+   "queue_running": 0,
+   "queue_rejected_full_total": 0,
+   "queue_expired_total": 0,
+   "in_flight": 1
+  },
+  "latencyMs": {
+   "tool_run": {
+    "count": 42,
+    "max": 6,
+    "mean": 1.0952380952380953,
+    "p50": 1,
+    "p95": 2,
+    "p99": 6
+   },
+   "request": {
+    "count": 60,
+    "max": 56281,
+    "mean": 1783.0666666666666,
+    "p50": 4,
+    "p95": 9428,
+    "p99": 56281
+   },
+   "queue_wait": {
+    "count": 7,
+    "max": 1,
+    "mean": 0.42857142857142855,
+    "p50": 0,
+    "p95": 1,
+    "p99": 1
+   },
+   "model_run": {
+    "count": 7,
+    "max": 44054,
+    "mean": 15215,
+    "p50": 11000,
+    "p95": 44054,
+    "p99": 44054
+   }
+  },
+  "note": "Counts and durations only. In-process, reset on restart. Percentiles use the latest 2000 samples per series."
+ },
+ "loadedTimeline": [
+  {
+   "t": 6442,
+   "loaded": [
+    "qwen"
+   ]
+  }
+ ],
+ "rssMb": 109,
+ "durationSeconds": 107.47
+}

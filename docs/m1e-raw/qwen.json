@@ -1,0 +1,66 @@
+{
+ "phase": "qwen",
+ "startedAt": "2026-11-12T14:49:51.032Z",
+ "node": "v24.22.3",
+ "coldStartMs": 44166.43,
+ "coldLoadMsReportedByOllama": 5158.12,
+ "warmPlannerMs": {
+  "n": 30,
+  "min": 4826.57,
+  "p50": 8610.6,
+  "p95": 20446.85,
+  "p99": 25460.7,
+  "max": 25460.7,
+  "mean": 10500.62
+ },
+ "modelCallMs": {
+  "n": 36,
+  "min": 4819.66,
+  "p50": 8697.74,
+  "p95": 13877.64,
+  "p99": 44114.63,
+  "max": 44114.63,
+  "mean": 9971.06
+ },
+ "tokensPerSecond": {
+  "n": 36,
+  "min": 4.41,
+  "p50": 5.11,
+  "p95": 5.67,
+  "p99": 5.8,
+  "max": 5.8,
+  "mean": 5.13
+ },
+ "promptTokens": {
+  "n": 36,
+  "min": 852,
+  "p50": 857,
+  "p95": 883,
+  "p99": 887,
+  "max": 887,
+  "mean": 860.31
+ },
+ "generatedTokens": {
+  "n": 36,
+  "min": 17,
+  "p50": 36,
+  "p95": 53,
+  "p99": 53,
+  "max": 53,
+  "mean": 38.03
+ },
+ "modelCalls": 36,
+ "secondAttemptRate": 0.17,
+ "noTool": 5,
+ "invalidAfterRetry": 2,
+ "loadedTimeline": [
+  {
+   "t": 5616,
+   "loaded": [
+    "qwen"
+   ]
+  }
+ ],
+ "rssMb": 103,
+ "durationSeconds": 359.25
+}

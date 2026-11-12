@@ -1,0 +1,21 @@
+14:49:41 start router
+14:49:45 end router exit=0
+14:49:50 start qwen
+14:55:50 end qwen exit=0
+14:55:55 start sinhala
+14:57:17 end sinhala exit=0
+14:57:22 start switch
+15:03:46 end switch exit=0
+15:03:51 start full
+15:05:39 end full exit=0
+15:05:44 start fullpolish
+15:06:50 end fullpolish exit=0
+15:06:55 start concurrent
+15:09:45 end concurrent exit=0
+15:09:50 start saturation
+15:11:27 end saturation exit=0
+15:11:32 start timeout
+15:13:11 end timeout exit=0
+15:13:16 start queue50
+15:30:23 end queue50 exit=0
+done

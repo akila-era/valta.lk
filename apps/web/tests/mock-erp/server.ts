@@ -15,7 +15,7 @@ interface Variant { key: string; storage: string; color: string; sku: string; pr
 interface Item {
   subCategory?: string;
   id: string; sku: string; name: string; brand: string; category: string; price: string; salePrice: string | null;
-  discountActive: boolean; stock: number; updatedAt: string; variants: Variant[]; model?: string;
+  discountActive: boolean; stock: number; updatedAt: string; variants: Variant[]; model?: string; warrantyMonths?: number; warrantyNote?: string;
 }
 
 const mk = (n: number, name: string, category: string, brand: string, price: number, extra: Partial<Item> = {}): Item => ({
@@ -23,7 +23,7 @@ const mk = (n: number, name: string, category: string, brand: string, price: num
   stock: 20, updatedAt: `2026-10-${String(10 + (n % 9)).padStart(2, "0")}T08:00:00.000Z`, variants: [], ...extra,
 });
 
-const initialItems = (): Item[] => [
+const baseItems = (): Item[] => [
   mk(1, "Nova X1 Smartphone", "Mobile Phones", "Nova", 129900, {
     model: "X1",
     variants: [
@@ -47,6 +47,27 @@ const initialItems = (): Item[] => [
   mk(14, "Volt Power Bank 10000", "Accessories", "Volt", 7900, { subCategory: "Power Banks" }),
   mk(15, "Echo Mini Speaker", "Audio", "Echo", 5900, { subCategory: "Speakers" }),
 ];
+
+/**
+ * Products 16 to 25 (laptops, a second tablet, ANC earbuds, case, screen protector, laptop charger, computer accessories) for the AI
+ * assistant's tests. They are OFF by default so the storefront's own tests and e2e specs keep seeing the original 15 products;
+ * start the server with MOCK_ERP_CATALOGUE=extended to serve all 25. Keep identical to apps/agent/src/mock/erp-fixture.ts
+ * (the agent's contract test compares the two item by item).
+ */
+const extendedItems = (): Item[] => [
+  mk(16, "Zen Book 14 Laptop", "Laptops", "Zen", 289900, { warrantyMonths: 24, warrantyNote: "Mock warranty record" }),
+  mk(17, "Zen Book 16 Pro Laptop", "Laptops", "Zen", 459900, { warrantyMonths: 24, stock: 3 }),
+  mk(18, "Orbit Tablet 11 Plus", "Tablets", "Orbit", 129900, { warrantyMonths: 12 }),
+  mk(19, "Pulse ANC Earbuds", "Audio", "Pulse", 22900, { subCategory: "Earbuds", warrantyMonths: 12 }),
+  mk(20, "Glide Clear Case for Nova X1", "Accessories", "Glide", 1900, { subCategory: "Cases" }),
+  mk(21, "Glide Screen Protector Tablet 11", "Accessories", "Glide", 1400, { subCategory: "Screen Protectors" }),
+  mk(22, "Volt 65W Laptop Charger", "Accessories", "Volt", 8900, { subCategory: "Chargers", warrantyMonths: 6 }),
+  mk(23, "Keyra Wireless Mouse", "Computer Accessories", "Keyra", 3200, { subCategory: "Mice", warrantyMonths: 12 }),
+  mk(24, "Keyra Mechanical Keyboard", "Computer Accessories", "Keyra", 9800, { subCategory: "Keyboards", warrantyMonths: 12 }),
+  mk(25, "Keyra USB-C Hub 7-in-1", "Computer Accessories", "Keyra", 6900, { subCategory: "Hubs" }),
+];
+
+const initialItems = (): Item[] => (process.env.MOCK_ERP_CATALOGUE === "extended" ? [...baseItems(), ...extendedItems()] : baseItems());
 
 const defaultSettings = () => ({
   currency: "LKR", reservationsEnabled: true, ordersEnabled: true, paymentMethods: { COD: true, ONLINE: false },
@@ -87,7 +108,7 @@ const qty = (stock: number) => Math.min(stock, 20);
 
 const wireItem = (i: Item) => ({
   id: i.id, externalId: null, sku: i.sku, name: i.name, description: `${i.name} by ${i.brand}.`, brand: i.brand,
-  category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: null, warrantyNote: null,
+  category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: i.warrantyMonths ?? null, warrantyNote: i.warrantyNote ?? null,
   images: i.sku === "SKU-6" || i.sku === "SKU-7" ? [] : [{ url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
   salePrice: i.salePrice, discountActive: i.discountActive, discountEndsAt: null, hasVariants: i.variants.length > 0,
   variants: i.variants.map((v) => ({ key: v.key, sku: v.sku, storage: v.storage, color: v.color, colorHex: null, price: v.price, salePrice: null, discountActive: false, availability: avail(v.stock), purchasableQuantity: qty(v.stock) })),

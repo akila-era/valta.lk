@@ -34,6 +34,7 @@ export default defineConfig({
         ADMIN_EMAILS: "admin@example.test",
         SETTINGS_ENCRYPTION_KEY: "e2e-settings-key-0123456789-abcdefghij",
         ORDER_SYNC_SECRET: "e2e-sync-secret-0123456789",
+        ASSISTANT_DEMO_ENABLED: "true", // the local assistant demo page (mock data only) is off in every normal build
         ORDER_SYNC_BACKOFF_MS: "1500", // tests only: retry quickly instead of after minutes
         DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5499/postgres?sslmode=disable",
       },

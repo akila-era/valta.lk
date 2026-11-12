@@ -1,0 +1,46 @@
+== baseline 2026-11-12T14:49:38Z
+               total        used        free      shared  buff/cache   available
+Mem:            3814         476        1830           5        1747        3338
+Swap:           2047           0        2047
+/dev/sda1        38G  8.8G   27G  25% /
+2
+oom_kill=0
+ollama=active
+swappiness=20 overcommit=0
+ollama version is 0.40.16
+  Model
+    architecture        qwen3          
+    parameters          2.0B           
+    context length      40960          
+    embedding length    2048           
+    quantization        Q4_K_M         
+    template source     go_template    
+
+  Capabilities
+    completion     
+    tools          
+    thinking       
+        levels     false, true    
+        default    true           
+  Model
+    architecture        llama          
+    parameters          1.74B          
+    context length      8192           
+    embedding length    2048           
+    quantization        Q4_K_M         
+    template source     go_template    
+
+  Capabilities
+    completion    
+
+  Parameters
+    stop    "<|im_start|>"    
+    stop    "<|im_end|>"      
+== after 2026-11-12T15:30:28Z
+               total        used        free      shared  buff/cache   available
+Mem:            3814        2086         251           6        1717        1728
+Swap:           2047           1        2046
+/dev/sda1        38G  8.9G   27G  25% /
+oom_kill=0
+ollama=active
+{"models":[{"name":"qwen3:1.7b-q4_K_M","model":"qwen3:1.7b-q4_K_M","size":1649651219,"digest":"8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7","details":{"parent_model":"","format":"gguf","family":"qwen3","families":["qwen3"],"parameter_size":"2.0B","quantization_level":"Q4_K_M"},"expires_at":"2026-11-12T15:35:22.99162954Z","size_vram":0,"context_length":2048,"runner":"llamacpp"}]}

@@ -1,0 +1,144 @@
+{
+ "phase": "concurrent",
+ "startedAt": "2026-11-12T15:06:56.167Z",
+ "node": "v24.22.3",
+ "groups": {
+  "group_of_2": {
+   "requests": 6,
+   "statuses": {
+    "200": 6
+   },
+   "latencyMs": {
+    "n": 6,
+    "min": 10.34,
+    "p50": 65.74,
+    "p95": 9818.71,
+    "p99": 9818.71,
+    "max": 9818.71,
+    "mean": 2977.13
+   },
+   "queueWaitReportedMs": {
+    "n": 6,
+    "min": 0,
+    "p50": 0,
+    "p95": 4,
+    "p99": 4,
+    "max": 4,
+    "mean": 0.67
+   }
+  },
+  "group_of_3": {
+   "requests": 9,
+   "statuses": {
+    "200": 9
+   },
+   "latencyMs": {
+    "n": 9,
+    "min": 17.62,
+    "p50": 29.44,
+    "p95": 30009.47,
+    "p99": 30009.47,
+    "max": 30009.47,
+    "mean": 8751.29
+   },
+   "queueWaitReportedMs": {
+    "n": 9,
+    "min": 0,
+    "p50": 0,
+    "p95": 10046,
+    "p99": 10046,
+    "max": 10046,
+    "mean": 3201.56
+   }
+  },
+  "group_of_4": {
+   "requests": 12,
+   "statuses": {
+    "200": 12
+   },
+   "latencyMs": {
+    "n": 12,
+    "min": 19.4,
+    "p50": 47.64,
+    "p95": 22370.2,
+    "p99": 22370.2,
+    "max": 22370.2,
+    "mean": 6646.35
+   },
+   "queueWaitReportedMs": {
+    "n": 12,
+    "min": 0,
+    "p50": 0,
+    "p95": 9643,
+    "p99": 9643,
+    "max": 9643,
+    "mean": 1563.17
+   }
+  }
+ },
+ "healthDuringLoad": {
+  "polls": 128,
+  "failures": 0,
+  "latencyMs": {
+   "n": 128,
+   "min": 4.83,
+   "p50": 10.99,
+   "p95": 43.21,
+   "p99": 59.24,
+   "max": 68.13,
+   "mean": 16.25
+  }
+ },
+ "metrics": {
+  "startedAt": "2026-11-12T15:06:56.373Z",
+  "uptimeSec": 169,
+  "counters": {
+   "model_requests_total": {
+    "qwen": 14
+   },
+   "jobs_total": {
+    "ok": 14
+   },
+   "requests_total": {
+    "/v1/chat 200": 28,
+    "/v1/health 200": 128
+   }
+  },
+  "gauges": {
+   "queue_depth": 0,
+   "queue_running": 0,
+   "queue_rejected_full_total": 0,
+   "queue_expired_total": 0,
+   "in_flight": 1
+  },
+  "latencyMs": {
+   "queue_wait": {
+    "count": 14,
+    "max": 10046,
+    "mean": 3398.3571428571427,
+    "p50": 0,
+    "p95": 10046,
+    "p99": 10046
+   },
+   "model_run": {
+    "count": 14,
+    "max": 40729,
+    "mean": 12046.214285714286,
+    "p50": 9684,
+    "p95": 40729,
+    "p99": 40729
+   },
+   "request": {
+    "count": 156,
+    "max": 40885,
+    "mean": 1400.3653846153845,
+    "p50": 9,
+    "p95": 10082,
+    "p99": 30002
+   }
+  },
+  "note": "Counts and durations only. In-process, reset on restart. Percentiles use the latest 2000 samples per series."
+ },
+ "rssMb": 112,
+ "durationSeconds": 169.26
+}

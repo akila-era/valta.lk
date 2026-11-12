@@ -1,0 +1,193 @@
+{
+ "phase": "switch",
+ "startedAt": "2026-11-12T14:57:22.915Z",
+ "node": "v24.22.3",
+ "coldQwenMs": 40106.56,
+ "switchToSinhalaMs": {
+  "n": 6,
+  "min": 7273.68,
+  "p50": 7707.22,
+  "p95": 8706.47,
+  "p99": 8706.47,
+  "max": 8706.47,
+  "mean": 7938.06
+ },
+ "switchToQwenMs": {
+  "n": 6,
+  "min": 39271.97,
+  "p50": 40376.99,
+  "p95": 42559.81,
+  "p99": 42559.81,
+  "max": 42559.81,
+  "mean": 40789.79
+ },
+ "warmSinhalaMs": {
+  "n": 6,
+  "min": 975.13,
+  "p50": 1576.93,
+  "p95": 2486.81,
+  "p99": 2486.81,
+  "max": 2486.81,
+  "mean": 1630.88
+ },
+ "warmQwenMs": {
+  "n": 6,
+  "min": 6477.68,
+  "p50": 6863.15,
+  "p95": 7244.27,
+  "p99": 7244.27,
+  "max": 7244.27,
+  "mean": 6869.76
+ },
+ "ollamaLoadMsToSinhala": {
+  "n": 6,
+  "min": 4274.32,
+  "p50": 4307.02,
+  "p95": 4535.77,
+  "p99": 4535.77,
+  "max": 4535.77,
+  "mean": 4404.83
+ },
+ "ollamaLoadMsToQwen": {
+  "n": 6,
+  "min": 4583.12,
+  "p50": 4847.29,
+  "p95": 5326.52,
+  "p99": 5326.52,
+  "max": 5326.52,
+  "mean": 4915.42
+ },
+ "switchOverheadSinhalaMs": 6130.29,
+ "switchOverheadQwenMs": 33513.84,
+ "schedulerSwitches": 12,
+ "loadedTimeline": [
+  {
+   "t": 5218,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 40563,
+   "loaded": []
+  },
+  {
+   "t": 44877,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 50090,
+   "loaded": []
+  },
+  {
+   "t": 54890,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 97351,
+   "loaded": []
+  },
+  {
+   "t": 101754,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 105799,
+   "loaded": []
+  },
+  {
+   "t": 110563,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 151584,
+   "loaded": []
+  },
+  {
+   "t": 156225,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 162738,
+   "loaded": []
+  },
+  {
+   "t": 168233,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 212686,
+   "loaded": []
+  },
+  {
+   "t": 217095,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 223097,
+   "loaded": []
+  },
+  {
+   "t": 227903,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 270390,
+   "loaded": []
+  },
+  {
+   "t": 274797,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 279999,
+   "loaded": []
+  },
+  {
+   "t": 284805,
+   "loaded": [
+    "qwen"
+   ]
+  },
+  {
+   "t": 327051,
+   "loaded": []
+  },
+  {
+   "t": 331313,
+   "loaded": [
+    "sinhala"
+   ]
+  },
+  {
+   "t": 335711,
+   "loaded": []
+  },
+  {
+   "t": 340516,
+   "loaded": [
+    "qwen"
+   ]
+  }
+ ],
+ "rssMb": 101,
+ "durationSeconds": 383.77
+}

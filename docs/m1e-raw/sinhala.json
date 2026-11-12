@@ -1,0 +1,58 @@
+{
+ "phase": "sinhala",
+ "startedAt": "2026-11-12T14:55:55.579Z",
+ "node": "v24.22.3",
+ "coldStartMs": 10232.42,
+ "coldLoadMsReportedByOllama": 4106.7,
+ "warmPolishMs": {
+  "n": 16,
+  "min": 1879.85,
+  "p50": 3715.17,
+  "p95": 10852.78,
+  "p99": 10852.78,
+  "max": 10852.78,
+  "mean": 4474.5
+ },
+ "modelCallMs": {
+  "n": 17,
+  "min": 1879.15,
+  "p50": 3726.78,
+  "p95": 10852.31,
+  "p99": 10852.31,
+  "max": 10852.31,
+  "mean": 4812.57
+ },
+ "tokensPerSecond": {
+  "n": 17,
+  "min": 6.29,
+  "p50": 7.04,
+  "p95": 7.98,
+  "p99": 7.98,
+  "max": 7.98,
+  "mean": 7.02
+ },
+ "generatedTokens": {
+  "n": 17,
+  "min": 7,
+  "p50": 17,
+  "p95": 60,
+  "p99": 60,
+  "max": 60,
+  "mean": 21.35
+ },
+ "polishAccepted": "13/16",
+ "polishRejectedReasons": {
+  "new_latin_word": 2,
+  "length": 1
+ },
+ "loadedTimeline": [
+  {
+   "t": 4412,
+   "loaded": [
+    "sinhala"
+   ]
+  }
+ ],
+ "rssMb": 98,
+ "durationSeconds": 82.04
+}

@@ -1,0 +1,86 @@
+{
+ "phase": "fullpolish",
+ "startedAt": "2026-11-12T15:05:44.749Z",
+ "node": "v24.22.3",
+ "requests": 12,
+ "allMs": {
+  "n": 12,
+  "min": 3.97,
+  "p50": 8.63,
+  "p95": 42585.75,
+  "p99": 42585.75,
+  "max": 42585.75,
+  "mean": 5492.41
+ },
+ "modelUsed": {
+  "qwen3:1.7b-q4_K_M": 2,
+  "null": 8,
+  "hf.co/namindu94/SinhalaLLM-1.7B:Q4_K_M": 2
+ },
+ "metrics": {
+  "startedAt": "2026-11-12T15:05:44.939Z",
+  "uptimeSec": 66,
+  "counters": {
+   "model_requests_total": {
+    "qwen": 2,
+    "sinhala": 2
+   },
+   "jobs_total": {
+    "ok": 4
+   },
+   "requests_total": {
+    "/v1/chat 200": 12
+   },
+   "tool_calls_total": {
+    "search_products": 2,
+    "get_product_details": 1
+   },
+   "model_switches_total": {
+    "qwen->sinhala": 1
+   }
+  },
+  "gauges": {
+   "queue_depth": 0,
+   "queue_running": 0,
+   "queue_rejected_full_total": 0,
+   "queue_expired_total": 0,
+   "in_flight": 1
+  },
+  "latencyMs": {
+   "queue_wait": {
+    "count": 4,
+    "max": 7,
+    "mean": 2,
+    "p50": 0,
+    "p95": 7,
+    "p99": 7
+   },
+   "model_run": {
+    "count": 4,
+    "max": 42471,
+    "mean": 16411.75,
+    "p50": 9745,
+    "p95": 42471,
+    "p99": 42471
+   },
+   "request": {
+    "count": 12,
+    "max": 42575,
+    "mean": 5487.583333333333,
+    "p50": 6,
+    "p95": 42575,
+    "p99": 42575
+   },
+   "tool_run": {
+    "count": 3,
+    "max": 4,
+    "mean": 2,
+    "p50": 1,
+    "p95": 4,
+    "p99": 4
+   }
+  },
+  "note": "Counts and durations only. In-process, reset on restart. Percentiles use the latest 2000 samples per series."
+ },
+ "durationSeconds": 66.13
+}
