@@ -92,7 +92,8 @@ services:
     user: node
     working_dir: /agent
     environment:
-      AGENT_DEV_SECRET: ${AI_AGENT_HMAC_SECRET:?set AI_AGENT_HMAC_SECRET in .env}
+      # Empty when the preview is not set up; the Agent then refuses to start (it needs 32+ characters).
+      AGENT_DEV_SECRET: ${AI_AGENT_HMAC_SECRET:-}
       AGENT_DEV_KEY_ID: ${AI_AGENT_HMAC_KEY_ID:-web1}
       AGENT_DEV_PORT: "18787"
     volumes:
