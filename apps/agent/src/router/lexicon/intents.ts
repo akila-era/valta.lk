@@ -72,8 +72,8 @@ export const INTENT_CUES: Record<Exclude<Intent, "unknown">, CueGroup[]> = {
     { w: 3, p: ["delivery", "shipping", "courier", "ඩිලිවරි", "return policy", "returns policy", "exchange policy", "opening hours", "open hours", "business hours", "contact", "contact number", "address", "location", "your shop", "your store", "shop eka", "කඩේ", "payment methods", "do you accept", "ගෙවීම් ක්‍රම"] },
   ],
   smalltalk: [
-    { w: 4, p: ["hi", "hello", "hey", "hiya", "good morning", "good afternoon", "good evening", "thanks", "thank you", "thx", "bye", "goodbye", "see you", "ayubowan", "ආයුබෝවන්", "හායි", "හෙලෝ", "ස්තූතියි", "ස්තුතියි", "istuti", "sthuthi", "who are you", "what can you do", "what do you do", "how can you help", "ඔබ කවුද", "ඔයා කවුද", "umba kauda", "oya kauda", "මොනවද කරන්නේ", "ශුභ උදෑසන", "ශුභ සන්ධ්‍යාවක්", "ඔයාගේ නම", "ඔබේ නම", "your name", "what is your name"] },
-    { w: 3, p: ["kohomada", "පිං", "help me", "උදව්", "උදව්වක්", "උදව් කරන්න"] },
+    { w: 4, p: ["hi", "hello", "hey", "hiya", "good morning", "good afternoon", "good evening", "thanks", "thank you", "thx", "bye", "goodbye", "see you", "ayubowan", "ආයුබෝවන්", "හායි", "හෙලෝ", "ස්තූතියි", "ස්තුතියි", "istuti", "sthuthi", "who are you", "what can you do", "what do you do", "how can you help", "ඔබ කවුද", "ඔයා කවුද", "umba kauda", "oya kauda", "මොනවද කරන්නේ", "ශුභ උදෑසන", "ශුභ සන්ධ්‍යාවක්", "ඔයාගේ නම", "ඔබේ නම", "your name", "what is your name", "how are you", "how r u", "oyata mokada karanna puluwan", "oyata mokakda karanna puluwan", "oyata mokak karanna puluwan", "oyata mond karann puluwn", "oyata mond karanna puluwan", "mokada karanna puluwan", "mokakda karanna puluwan", "mond karanna puluwan", "oyata mokada karanne", "ඔයාට මොනවද කරන්න පුළුවන්", "ඔයාට මොනවා කරන්න පුළුවන්", "මොනවද කරන්න පුළුවන්"] },
+    { w: 3, p: ["kohomada", "kohomd", "kohomda", "kohoma da", "kohomada ado", "පිං", "help me", "උදව්", "උදව්වක්", "උදව් කරන්න"] },
     { w: 2, p: ["can you help", "help"] },
     { w: 1, p: ["කොහොමද"] },
   ],

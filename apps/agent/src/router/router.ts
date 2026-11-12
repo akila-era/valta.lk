@@ -233,7 +233,7 @@ export function routeMessage(input: RouteInput): RouteDecision {
           ? "goodbye"
           : anyPhrase(h, ["who are you", "ඔබ කවුද", "ඔයා කවුද", "umba kauda", "oya kauda"])
             ? "identity"
-            : anyPhrase(h, ["help", "help me", "can you help", "උදව්", "උදව්වක්", "උදව් කරන්න", "what can you do", "what do you do", "how can you help"])
+            : anyPhrase(h, ["help", "help me", "can you help", "උදව්", "උදව්වක්", "උදව් කරන්න", "what can you do", "what do you do", "how can you help", "karanna puluwan", "karann puluwn", "කරන්න පුළුවන්"])
               ? "capabilities"
               : "greeting";
       return decide({ intent, action: "static", calls: [], template: t, reason: "smalltalk" });
