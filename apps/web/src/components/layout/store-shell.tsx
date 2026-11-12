@@ -3,7 +3,9 @@ import { ToastProvider } from "@/components/ui/toast";
 import { accountsEnabled } from "@/lib/auth/session";
 import { getStoreInfo } from "@/lib/store-info";
 import { getWaSettings } from "@/lib/whatsapp/settings";
+import { AssistantPanel } from "@/components/assistant/assistant-panel";
 import { ChatWidget } from "@/components/chat/chat-widget";
+import { assistantEnabled } from "@/lib/assistant/config";
 import { activeSeason } from "@/lib/season";
 import { Footer } from "./footer";
 import { HalloweenDecor } from "./halloween";
@@ -32,6 +34,8 @@ export async function StoreShell({ children }: { children: React.ReactNode }) {
       <AddedNotice />
       {/* With the WhatsApp chat switched on (Admin, WhatsApp chat) visitors chat on the site; otherwise a plain WhatsApp link. */}
       {wa && wa.mode !== "off" ? <ChatWidget /> : <WhatsAppFloat number={store?.whatsapp} />}
+      {/* The AI shopping assistant is a separate panel (bottom left). Off unless fully configured (see docs/AI_ASSISTANT_WEB_INTEGRATION.md). */}
+      {assistantEnabled() ? <AssistantPanel demo={process.env.AI_ASSISTANT_DEMO_DATA !== "false"} /> : null}
     </ToastProvider>
   );
 }

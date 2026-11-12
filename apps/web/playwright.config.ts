@@ -14,6 +14,8 @@ export default defineConfig({
     { command: "npx tsx tests/mock-erp/server.ts", port: 4011, reuseExistingServer: false, env: { MOCK_ERP_PORT: "4011" } },
     // Stand-in for the WhatsApp Cloud API (Graph API), so chat messages never leave the machine.
     { command: "npx tsx tests/mock-wa/server.ts", port: 4031, reuseExistingServer: false, env: { MOCK_WA_PORT: "4031" } },
+    // Stand-in for the AI Agent API (canned answers, verifies the HMAC signature, records what it was sent). No model or data.
+    { command: "npx tsx tests/stubs/fake-agent.ts", port: 4013, reuseExistingServer: false, env: { FAKE_AGENT_PORT: "4013" } },
     // Disposable in-memory Postgres (PGlite) for customer accounts. Never a real database.
     { command: "npx tsx tests/e2e-db/server.ts", port: 5499, reuseExistingServer: false, env: { E2E_DB_PORT: "5499" } },
     {
@@ -37,6 +39,10 @@ export default defineConfig({
         SETTINGS_ENCRYPTION_KEY: "e2e-settings-key-0123456789-abcdefghij",
         ORDER_SYNC_SECRET: "e2e-sync-secret-0123456789",
         WA_GRAPH_BASE: "http://localhost:4031",
+        AI_ASSISTANT_ENABLED: "true",
+        AI_AGENT_URL: "http://127.0.0.1:4013",
+        AI_AGENT_HMAC_KEY_ID: "web1",
+        AI_AGENT_HMAC_SECRET: "e2e-agent-secret-0123456789-abcdefghij",
         ORDER_SYNC_BACKOFF_MS: "1500", // tests only: retry quickly instead of after minutes
         DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5499/postgres?sslmode=disable",
       },
