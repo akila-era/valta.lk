@@ -16,9 +16,16 @@ export const INTENTS = [
   "checkout_handoff",
   "store_info",
   "smalltalk",
+  /** Asks the assistant to use another website or a search engine. Refused politely; never turned into a shopping tool. */
+  "external_site",
+  /** General knowledge, writing, coding or explanation request with no catalogue anchor. Handled outside the shopping tools. */
+  "general",
   "unknown",
 ] as const;
 export type Intent = (typeof INTENTS)[number];
+
+/** Intents that are scored from cue phrases. `external_site` and `general` are decided by the scope guard (scope.ts), `unknown` is the abstention. */
+export type ScoredIntent = Exclude<Intent, "unknown" | "external_site" | "general">;
 
 /** si = Sinhala script, si-latin = Singlish (Sinhala in Latin letters), mixed = Sinhala script plus Latin words. */
 export type Script = "si" | "si-latin" | "mixed" | "en";
@@ -134,6 +141,7 @@ export type TemplateKey =
   | "cart_unavailable"
   | "cart_not_in_cart"
   | "order_none"
+  | "external_site_refused"
   | "busy_degraded";
 
 export type RouteAction = "tool" | "clarify" | "static" | "handoff";

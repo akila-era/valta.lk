@@ -35,10 +35,12 @@ describe("normalizeMatch", () => {
     expect(normalizeMatch("rs. 150000")).toBe("rs 150000");
   });
 
-  it("shortens runs of three or more identical Latin letters, not two", () => {
-    expect(normalizeMatch("thiyenawadaaaa")).toBe("thiyenawadaa");
-    expect(normalizeMatch("coool shoooow")).toBe("cool shoow"); // shortened to two, not one
-    expect(normalizeMatch("onee")).toBe("onee");
+  it("shortens long runs of a Latin letter and collapses doubled vowels (Singlish long vowels), but keeps doubled consonants", () => {
+    expect(normalizeMatch("thiyenawadaaaa")).toBe("thiyenawada");
+    expect(normalizeMatch("laabama keeyada")).toBe("labama kiyada");
+    expect(normalizeMatch("coool shoooow")).toBe("cul shuw"); // long runs shortened, then doubled vowels collapsed
+    expect(normalizeMatch("onee")).toBe("one"); // Singlish "one" (need), typed with a long vowel
+    expect(normalizeMatch("little tall")).toBe("little tall"); // doubled consonants stay
   });
 
   it("removes zero-width and bidi characters that could hide text", () => {

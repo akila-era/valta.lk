@@ -38,6 +38,7 @@ const SPELLING_VARIANTS: Record<string, string> = {
   mokakda: "mokada", mokkda: "mokada", mokd: "mokada", mokakd: "mokada", monawada: "monawada", mnawada: "monawada",
   kiyda: "kiyada", kiyd: "kiyada", kiynda: "kiyada",
   ekk: "ekak", dnna: "danna", dhanna: "danna",
+  onee: "one", oneee: "one",
   oyta: "oyata", mta: "mata",
   compair: "compare", comapre: "compare", comper: "compare", comparre: "compare",
   fone: "phone", phn: "phone", phon: "phone", fones: "phones",
@@ -59,7 +60,19 @@ export function normalizeMatch(input: string): string {
   s = s.replace(/[:/+\-]+/g, (m) => (m === "-" ? "-" : " "));
   s = s.replace(/([a-z])\1{2,}/g, "$1$1");
   s = s.replace(/\s+/g, " ").trim();
-  return s.replace(/[a-z]+/g, (w) => SPELLING_VARIANTS[w] ?? w);
+  // The Sinhala question particle is often typed as its own word ("puluwan da"): join it to the verb, as in "puluwanda".
+  s = s.replace(/([a-z]{3,}) da/g, "$1da");
+  return s.replace(/[a-z]+/g, (w) => canonicalSinglish(SPELLING_VARIANTS[w] ?? w));
+}
+
+/**
+ * Singlish writers spell long and short vowels freely ("laabama", "keeyada"). Doubled vowels are collapsed to one letter.
+ * (Consonant variants such as th/t and w/v were tried and rejected: they corrupt number words like "thousand".) This runs on user text AND on the lexicon,
+ * so an English word that changes ("good" becomes "gud") still matches itself; two different words that collapse to the same letters
+ * are the only risk, and the regression sets guard it.
+ */
+function canonicalSinglish(w: string): string {
+  return w.replace(/aa+/g, "a").replace(/ee+/g, "i").replace(/ii+/g, "i").replace(/oo+/g, "u").replace(/uu+/g, "u");
 }
 
 export const tokenize = (matchForm: string): string[] => (matchForm === "" ? [] : matchForm.split(" "));

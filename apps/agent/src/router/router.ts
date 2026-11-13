@@ -3,7 +3,9 @@ import { anyPhrase, compilePhrase, makeHaystack, phraseMatches, type Haystack } 
 import { MAX_COMPARE_PRODUCTS } from "../contract/schemas";
 import { extractEntities } from "./entities";
 import { normalizeMatch } from "./normalize";
-import type { Entities, Intent, PlannedCall, RouteContext, RouteDecision, Vocabulary } from "./types";
+import { FRAMES } from "./lexicon/frames";
+import { scopeOf } from "./scope";
+import type { Entities, Intent, PlannedCall, RouteContext, RouteDecision, ScoredIntent, Vocabulary } from "./types";
 
 /** An intent needs this much weighted evidence, and a lead of at least MIN_MARGIN over the runner-up, or the router asks. */
 export const MIN_SCORE = 3;
@@ -24,7 +26,7 @@ const STORE_NAMES = new Set(["volta", "valta", "volta lk", "valta lk", "volta.lk
 /** Category names that contain a cue word. Only exact English phrases, so no other wording changes meaning. */
 const CATEGORY_NAME_PHRASES = /\b(?:computer|pc) accessor(?:y|ies)\b/g;
 
-const SCORED = Object.keys(INTENT_CUES) as Exclude<Intent, "unknown">[];
+const SCORED = Object.keys(INTENT_CUES) as ScoredIntent[];
 
 function groupScore(h: Haystack, groups: CueGroup[]): number {
   let total = 0;
@@ -39,9 +41,26 @@ function groupScore(h: Haystack, groups: CueGroup[]): number {
   return total;
 }
 
-function scoreIntents(h: Haystack, e: Entities): Record<Exclude<Intent, "unknown">, number> {
-  const score = {} as Record<Exclude<Intent, "unknown">, number>;
-  for (const intent of SCORED) score[intent] = groupScore(h, INTENT_CUES[intent]);
+/** Best matching co-occurrence frame for an intent: every set must match and no exclusion may (see lexicon/frames.ts). */
+function frameScore(h: Haystack, intent: ScoredIntent, cartItems: number): number {
+  let best = 0;
+  for (const f of FRAMES[intent] ?? []) {
+    if (f.w <= best) continue;
+    if (f.needsCartItems && cartItems === 0) continue;
+    if (f.not && f.not.some((raw) => anyPhrase(h, [raw]))) continue;
+    if (f.all.every((set) => anyPhrase(h, set))) best = f.w;
+  }
+  return best;
+}
+
+function scoreIntents(h: Haystack, e: Entities, cartItems: number): Record<ScoredIntent, number> {
+  const score = {} as Record<ScoredIntent, number>;
+  for (const intent of SCORED) {
+    const cues = groupScore(h, INTENT_CUES[intent]);
+    const frames = frameScore(h, intent, cartItems);
+    // The stronger evidence decides; two independent kinds of evidence earn a small bonus, never a sum of both.
+    score[intent] = Math.max(cues, frames) + (cues > 0 && frames > 0 ? 1 : 0);
+  }
 
   // Entity evidence supports the intents that need that entity. It never creates an intent from nothing.
   const hasProduct = e.products.length > 0;
@@ -131,7 +150,7 @@ export function routeMessage(input: RouteInput): RouteDecision {
   // (entity extraction still sees it and resolves the category), so the word "accessories" cannot score as an accessory question.
   const h = makeHaystack(input.matchText.replace(CATEGORY_NAME_PHRASES, " "));
   const e = extractEntities(input.rawText, input.vocab);
-  const score = scoreIntents(h, e);
+  const score = scoreIntents(h, e, input.context.cart.length);
   const popularity = anyPhrase(h, POPULARITY_PHRASES);
   if (STORE_NAMES.has(input.matchText.trim().toLowerCase().replace(/[!?.]+$/, ""))) {
     return { intent: "smalltalk", action: "static", calls: [], template: "identity", reason: "store_name", confidence: { score: 4, margin: 4 }, entities: e };
@@ -144,6 +163,12 @@ export function routeMessage(input: RouteInput): RouteDecision {
   const confidence = { score: topScore, margin };
 
   const decide = (d: Omit<RouteDecision, "confidence" | "entities">): RouteDecision => ({ ...d, confidence, entities: e });
+
+  // Scope guard: another website, or a general request with no catalogue anchor, never becomes a shopping tool call.
+  const shoppingScore = Math.max(...SCORED.filter((i) => i !== "smalltalk").map((i) => score[i]));
+  const scope = scopeOf({ h, entities: e, shoppingScore });
+  if (scope === "external_site") return decide({ intent: "external_site", action: "static", calls: [], template: "external_site_refused", reason: "external_site" });
+  if (scope === "general") return decide({ intent: "general", action: "clarify", calls: [], template: "clarify_what", reason: "general_request" });
 
   if (popularity) {
     return decide({ intent: "search_products", action: "tool", calls: [{ name: "search_products", arguments: { inStockOnly: true, sort: "newest", limit: 5 } }], template: "popular_unavailable", reason: "popularity_unavailable" });

@@ -87,7 +87,7 @@ export const SET_A: Case[] = [
   { text: "Tell me about the Atlas Smartwatch", intent: "get_product_details", tag: "en", expect: { productIds: [itemId(8)] } },
   { text: "ඒක", intent: "unknown", tag: "abstain" },
   { text: "asdf qwerty", intent: "unknown", tag: "abstain" },
-  { text: "What's the weather today?", intent: "unknown", tag: "abstain" },
+  { text: "What's the weather today?", intent: "general", tag: "abstain" }, // M3-B: a general request (same clarify behaviour)
   { text: "මට උදව්වක් ඕන", intent: "smalltalk", tag: "si" },
 ];
 
@@ -186,7 +186,7 @@ export const SET_C: Case[] = [
   { text: "my parcel hasn't arrived", intent: "order_status", tag: "en" },
   { text: "cancel it please", intent: "order_support", tag: "en" },
   { text: "thx!", intent: "smalltalk", tag: "en" },
-  { text: "tell me a joke", intent: "unknown", tag: "abstain" },
+  { text: "tell me a joke", intent: "general", tag: "abstain" }, // M3-B: a general request (same clarify behaviour)
   { text: "How do I reset my password", intent: "unknown", tag: "abstain" },
   { text: "ඔයාගේ නම මොකක්ද", intent: "smalltalk", tag: "si" },
 ];

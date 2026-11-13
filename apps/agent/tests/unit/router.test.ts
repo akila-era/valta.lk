@@ -88,7 +88,7 @@ describe("hand-offs: the assistant never places orders, takes payment or cancels
 
 describe("fail closed: abstain and ask rather than guess", () => {
   it("abstains when evidence is weak, with an explicit reason", () => {
-    for (const s of ["ඒක", "asdf qwerty", "What's the weather today?", "මට 2 ක් ඕන", "", "   "]) {
+    for (const s of ["ඒක", "asdf qwerty", "මට 2 ක් ඕන", "", "   "]) {
       const d = route(s);
       expect(d, s).toMatchObject({ intent: "unknown", action: "clarify", template: "clarify_what", calls: [] });
       expect(["below_min_score", "below_min_margin"]).toContain(d.reason);

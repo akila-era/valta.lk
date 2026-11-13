@@ -1,4 +1,4 @@
-import type { Intent } from "../types";
+import type { ScoredIntent } from "../types";
 
 /**
  * Weighted cue phrases per intent. PROVISIONAL, engineer-drafted, `needsNativeReview` (see meta.ts).
@@ -13,7 +13,7 @@ export interface CueGroup {
   p: string[];
 }
 
-export const INTENT_CUES: Record<Exclude<Intent, "unknown">, CueGroup[]> = {
+export const INTENT_CUES: Record<ScoredIntent, CueGroup[]> = {
   search_products: [
     { w: 3, p: ["show me", "find me", "looking for", "i need", "i want", "i am looking", "suggest", "recommend", "hoyanna", "pennanna", "which phone", "which phones", "what phones", "which smartphone", "wadiya hodama", "ganna one", "ganna oni", "ganna ona", "balanna one", "පෙන්වන්න", "හොයන්න", "හොයලා දෙන්න", "ගන්න ඕන", "ගන්න ඕනේ", "ගන්න ඕනෙ", "මොනවාද තියෙන්නේ", "do you have", "have any", "any phones", "i d like", "i would like", "would like to see", "let me see", "see some", "මොන phone", "මොන ෆෝන්", "onee", "denna", "ekak denna", "dennako", "mata denna", "ganna puluwan", "ganna puluwanda", "ganna puluwandha", "hoyala denna", "hoyaganna", "walata mila", "wala mila", "mila monawada", "mila range", "ගන්න පුළුවන්"] },
     { w: 3, p: ["තියෙනවද", "තියෙනවාද", "තියේද", "නැද්ද", "නැතිද", "thiyenawada", "thiyanawada", "tiyenawada"] },
