@@ -142,6 +142,7 @@ export type TemplateKey =
   | "cart_not_in_cart"
   | "order_none"
   | "external_site_refused"
+  | "live_info_unavailable"
   | "busy_degraded";
 
 export type RouteAction = "tool" | "clarify" | "static" | "handoff";

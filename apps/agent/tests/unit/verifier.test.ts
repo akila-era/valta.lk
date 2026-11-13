@@ -5,7 +5,7 @@ import { MOCK_ORDER_REFS, itemId } from "../../src/mock/erp-fixture";
 import { createMockStack } from "../../src/mock/stack";
 import { renderTemplate } from "../../src/router/templates";
 import { runToolCalls, type ToolOutcome } from "../../src/tools/runner";
-import { verifyResponse, verifyVersionShape, type VerifyFailure, type VerifyInput } from "../../src/verify/verifier";
+import { modelReplyProblem, verifyResponse, verifyVersionShape, type VerifyFailure, type VerifyInput } from "../../src/verify/verifier";
 import { customerCtx, guestCtx } from "../fixtures/pipeline-helpers";
 
 const NOVA = itemId(1);
@@ -273,5 +273,14 @@ describe("missing information", () => {
     expect(code(base(r, { reply: { text: renderTemplate("no_results", "en").text, source: "template" }, templateKey: "no_results" }))).toBe("ok");
     const found = await run([detailsCall(NOVA)]);
     expect(code(base(r, { cards: found.cards }))).toBe("unknown_product");
+  });
+});
+
+describe("a model-written reply may never state live information (M3-B follow-up)", () => {
+  it.each(["The weather today is pleasant. Check the forecast for details.", "It looks sunny outside, a lovely day.", "Traffic is light right now.", "The latest headlines are about cricket."])("rejects %s", (text) => {
+    expect(modelReplyProblem(text, [])).toBe("live_info");
+  });
+  it("still accepts an ordinary friendly reply", () => {
+    expect(modelReplyProblem("Happy to help! Tell me a brand or budget and I will help you find something.", [])).toBeNull();
   });
 });

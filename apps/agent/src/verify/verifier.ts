@@ -281,6 +281,8 @@ const LEAK_WORDS = /\b(system prompt|my instructions|my rules|these rules|ignore
  * Sinhala script; no claim about price, stock, warranty or delivery; no catalogue product name or brand; no copy of the instructions;
  * short.
  */
+const LIVE_INFO_WORDS = /\b(weather|forecast|temperature|sunny|rainy|raining|humid|cloudy|headlines?|breaking news|exchange rate|scores?|traffic|stock market)\b/i;
+
 export function modelReplyProblem(text: string, catalogueNames: readonly string[]): string | null {
   const t = text.trim();
   if (t.length === 0 || t.length > 320) return "length";
@@ -289,6 +291,7 @@ export function modelReplyProblem(text: string, catalogueNames: readonly string[
   if (/https?:|www\.|@|\.com\b|\.lk\b/i.test(t)) return "link";
   if (/[*_`#<>{}[\]|~]/.test(t) || /\n\s*[-•]/.test(t)) return "markup";
   if (hasSinhala(t)) return "sinhala";
+  if (LIVE_INFO_WORDS.test(t)) return "live_info"; // the model cannot know the weather, news or scores: any such statement is invented
   if (CLAIM_WORDS.test(t)) return "claim";
   if (LEAK_WORDS.test(t)) return "leak";
   const lower = t.toLowerCase();

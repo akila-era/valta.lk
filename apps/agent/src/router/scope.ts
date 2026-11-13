@@ -35,7 +35,14 @@ const GENERAL_STRONG = [
 ];
 const GENERAL_WEAK = ["what is", "what are", "what does", "what s", "what do", "how to", "why", "who is", "who was", "when did", "where is the", "kiyanne mokakda", "kiyanne monawada", "කියන්නේ මොකක්ද", "කියන්නේ මොනවාද", "ඇයි", "aiy"];
 
-export type ScopeVerdict = "external_site" | "general" | null;
+/** Questions whose answer is live (weather, news, time, rates): the assistant cannot know them and must say so instead of inventing. */
+const LIVE_INFO = [
+  "weather", "forecast", "temperature today", "will it rain", "is it raining", "news", "headlines", "latest news", "what time is it", "what is the time", "current time", "today s date", "what is the date", "exchange rate", "dollar rate", "gold rate", "petrol price", "traffic", "cricket score", "match score",
+  "kalagunaya", "kalaguna", "welawa kiyada", "dollar eka kiyada", "puwath", "aluth puwath", "cricket score eka",
+  "කාලගුණය", "කාලගුණ", "පුවත්", "වේලාව කීයද", "වෙලාව කීයද", "ඩොලර් එක", "ඩොලර් අනුපාත", "ක්‍රිකට් ලකුණු",
+];
+
+export type ScopeVerdict = "external_site" | "general" | "live_info" | null;
 
 export interface ScopeInput {
   h: Haystack;
@@ -54,6 +61,7 @@ export function scopeOf({ h, entities, shoppingScore }: ScopeInput): ScopeVerdic
   const generic = anyPhrase(h, EXTERNAL_GENERIC);
   if ((namesSite || generic) && !(namesSite && anyPhrase(h, SITE_NAME_PRODUCTS)) && !entities.brand && entities.products.length === 0) return "external_site";
 
+  if (anyPhrase(h, LIVE_INFO) && entities.products.length === 0 && !entities.brand) return "live_info";
   const anchored = hasCatalogueAnchor(entities);
   if (!anchored && anyPhrase(h, GENERAL_STRONG) && shoppingScore < 4) return "general";
   if (!anchored && anyPhrase(h, GENERAL_WEAK) && shoppingScore < 3) return "general";

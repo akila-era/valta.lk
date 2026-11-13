@@ -163,6 +163,11 @@ const T: Record<TemplateKey, Template> = {
     si: "මට VOLTA.LK වෙබ් අඩවිය තුළ පමණක් උදව් කළ හැකියි, ඒ නිසා Google හෝ වෙනත් වෙබ් අඩවි විවෘත කරන්න බැහැ. VOLTA.LK නිෂ්පාදන සොයන්න, තොග බලන්න සහ ඔබේ cart එකට උදව් කරන්න මට පුළුවන්.",
     polishable: false,
   },
+  live_info_unavailable: {
+    en: "I can't check live information such as the weather, news, the time or exchange rates. I can help you find VOLTA.LK products, compare them, check stock and manage your cart.",
+    si: "කාලගුණය, පුවත්, වේලාව හෝ මුදල් අනුපාත වැනි සජීවී තොරතුරු මට පරීක්ෂා කළ නොහැක. VOLTA.LK නිෂ්පාදන සොයන්න, සසඳන්න, තොග බලන්න සහ ඔබේ cart එකට උදව් කරන්න මට පුළුවන්.",
+    polishable: false,
+  },
   busy_degraded: {
     en: "I'm busy right now, so I'll keep this short.",
     si: "මම දැන් කාර්යබහුලයි, ඒ නිසා කෙටියෙන් පිළිතුරු දෙමි.",
@@ -225,6 +230,7 @@ const CHIP_SET: Partial<Record<TemplateKey, keyof typeof CHIPS_EN>> = {
   no_accessories: "browse",
   popular_unavailable: "sale",
   external_site_refused: "start",
+  live_info_unavailable: "start",
   store_info_other: "browse",
   cart_proposed: "cart",
   cart_unavailable: "browse",

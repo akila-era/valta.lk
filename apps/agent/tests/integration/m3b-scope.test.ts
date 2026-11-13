@@ -43,7 +43,7 @@ describe("external websites and search engines are refused, never turned into sh
 });
 
 describe("general requests stay away from the shopping tools", () => {
-  it.each(["What's the weather today?", "tell me a joke", "Can you explain how a database index works?", "Write a professional email for me", "Python වල loop එකක් කොහොමද ලියන්නේ", "mata birthday wish ekak liyala denna", "මට සුභ පැතුම් පණිවිඩයක් ලියලා දෙන්න"])("%s", (message) => {
+  it.each(["tell me a joke", "Can you explain how a database index works?", "Write a professional email for me", "Python වල loop එකක් කොහොමද ලියන්නේ", "mata birthday wish ekak liyala denna", "මට සුභ පැතුම් පණිවිඩයක් ලියලා දෙන්න"])("%s", (message) => {
     const d = route(message);
     expect(d.intent).toBe("general");
     expect(d.action).toBe("clarify");
@@ -106,5 +106,30 @@ describe("paraphrase frames", () => {
   it("Singlish long vowels meet: laabama, keeyada, and onee all match their short forms", () => {
     expect(route("laabama phone eka monawada").intent).toBe(route("labama phone eka monawada").intent);
     expect(route("eke mila keeyada").intent).toBe("get_product_details");
+  });
+});
+
+describe("live information is declined, never invented", () => {
+  it.each(["What is the weather today", "will it rain tomorrow", "what time is it", "latest news please", "today's cricket score", "kalagunaya kohomada", "අද කාලගුණය කොහොමද", "dollar rate eka kiyada"])("%s", (message) => {
+    const d = route(message);
+    expect(d).toMatchObject({ intent: "general", action: "static", template: "live_info_unavailable", calls: [] });
+  });
+
+  it("the pipeline answers with the fixed text and runs no model or tool, and flags Sinhala for native review", async () => {
+    const s = createMockStack();
+    const en = await run(s.pipeline, "What is the weather today");
+    expect(en.result.reply.text).toBe(renderTemplate("live_info_unavailable", "en").text);
+    expect(en.result.reply.source).not.toBe("qwen");
+    expect(en.result.cards).toEqual([]);
+    const si = await run(s.pipeline, "අද කාලගුණය කොහොමද");
+    expect(si.result.reply.text).toBe(renderTemplate("live_info_unavailable", "si").text);
+    expect(si.result.needsNativeReview).toBe(true);
+    for (const t of ["en", "si"] as const) expect(renderTemplate("live_info_unavailable", t).text).not.toMatch(/\d|https?:/);
+  });
+
+  it("a shopping question or a product anchor is never mistaken for live information", () => {
+    expect(route("show me phones with a good battery").intent).toBe("search_products");
+    expect(route("how much is the delivery charge").intent).toBe("store_info");
+    expect(route("where is my order").intent).toBe("order_status");
   });
 });

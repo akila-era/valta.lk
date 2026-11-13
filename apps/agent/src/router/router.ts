@@ -168,6 +168,7 @@ export function routeMessage(input: RouteInput): RouteDecision {
   const shoppingScore = Math.max(...SCORED.filter((i) => i !== "smalltalk").map((i) => score[i]));
   const scope = scopeOf({ h, entities: e, shoppingScore });
   if (scope === "external_site") return decide({ intent: "external_site", action: "static", calls: [], template: "external_site_refused", reason: "external_site" });
+  if (scope === "live_info") return decide({ intent: "general", action: "static", calls: [], template: "live_info_unavailable", reason: "live_info" });
   if (scope === "general") return decide({ intent: "general", action: "clarify", calls: [], template: "clarify_what", reason: "general_request" });
 
   if (popularity) {
