@@ -19,7 +19,7 @@ import type { AssistantLang, CartAction, ProductCardData } from "./types";
  */
 type Entry =
   | { id: number; role: "you"; text: string }
-  | { id: number; role: "assistant"; text: string; cards: AgentCard[]; actions: AgentAction[]; names: Record<string, string>; lang: AssistantLang; review: boolean }
+  | { id: number; role: "assistant"; text: string; cards: AgentCard[]; actions: AgentAction[]; names: Record<string, string>; suggestions: string[]; lang: AssistantLang; review: boolean }
   | { id: number; role: "error"; text: string; retry?: string };
 
 const STARTERS = ["Show me phones under 150000 rupees", "Compare two products for me", "What accessories fit the Zen Book 14?", "Is the Atlas Smartwatch in stock?"];
@@ -83,7 +83,7 @@ export function AssistantPanel({ demo = true }: { demo?: boolean }) {
         remember(data.cards);
         const l: AssistantLang = data.language === "en" ? "en" : "si";
         setLang(l);
-        setEntries((e) => [...e, { id: next.current++, role: "assistant", text: data.reply.text, cards: data.cards, actions: data.actions, names: Object.fromEntries(data.actions.flatMap((a) => (a.type === "navigate" ? [] : [[a.productId, catalogue.current.get(a.productId)?.name ?? "this item"]]))), lang: l, review: data.needsNativeReview }]);
+        setEntries((e) => [...e, { id: next.current++, role: "assistant", text: data.reply.text, cards: data.cards, actions: data.actions, names: Object.fromEntries(data.actions.flatMap((a) => (a.type === "navigate" ? [] : [[a.productId, catalogue.current.get(a.productId)?.name ?? "this item"]]))), suggestions: data.suggestions ?? [], lang: l, review: data.needsNativeReview }]);
       } catch {
         setEntries((e) => [...e, { id: next.current++, role: "error", text: "Could not reach the assistant. Please try again.", retry: m }]);
       } finally {
@@ -122,7 +122,7 @@ export function AssistantPanel({ demo = true }: { demo?: boolean }) {
     return "Added to your cart.";
   };
 
-  const note = (message: string) => message && setEntries((e) => [...e, { id: next.current++, role: "assistant", text: message, cards: [], actions: [], names: {}, lang: "en", review: false }]);
+  const note = (message: string) => message && setEntries((e) => [...e, { id: next.current++, role: "assistant", text: message, cards: [], actions: [], names: {}, suggestions: [], lang: "en", review: false }]);
 
   return (
     <>
@@ -155,7 +155,7 @@ export function AssistantPanel({ demo = true }: { demo?: boolean }) {
               </div>
             ) : null}
 
-            {entries.map((e) =>
+            {entries.map((e, index) =>
               e.role === "you" ? (
                 <div key={e.id} className="flex justify-end">
                   <p className="max-w-[85%] break-words rounded-2xl rounded-br-sm bg-[#2563EB] px-3 py-2 text-sm text-white">{e.text}</p>
@@ -190,6 +190,15 @@ export function AssistantPanel({ demo = true }: { demo?: boolean }) {
                       />
                     ),
                   )}
+                  {e.suggestions.length > 0 && index === entries.length - 1 && !busy ? (
+                    <div className="flex flex-wrap gap-2" data-testid="assistant-suggestions">
+                      {e.suggestions.map((c) => (
+                        <button key={c} type="button" onClick={() => void send(c)} className="rounded-full border border-blue-200 bg-white px-3 py-1.5 text-xs font-medium text-[#2563EB] hover:bg-blue-50">
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               ),
             )}

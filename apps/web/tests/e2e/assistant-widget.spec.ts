@@ -86,6 +86,18 @@ test.describe("assistant widget", () => {
     expect(c?.value).not.toContain(calls[0]!.sessionId);
   });
 
+  test("offers tap-to-send suggestions after a reply that needs more, and sending one asks the assistant", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("assistant-launcher").click();
+    await ask(page, "asdf qwerty");
+    const chips = page.getByTestId("assistant-suggestions");
+    await expect(chips.getByRole("button", { name: "Show me phones" })).toBeVisible();
+    await chips.getByRole("button", { name: "Show me phones" }).click();
+    await expect(page.getByTestId("product-card").first()).toBeVisible();
+    expect((await seen()).map((c) => c.message)).toEqual(["asdf qwerty", "Show me phones"]);
+    await expect(page.getByTestId("assistant-suggestions")).toHaveCount(0); // only the latest reply offers chips, and this one shows cards
+  });
+
   test("shows a generic, retryable error when the Agent fails, never its internal message", async ({ page }) => {
     await page.goto("/");
     await page.getByTestId("assistant-launcher").click();

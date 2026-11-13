@@ -28,7 +28,7 @@ function answer(message: string): { status: number; body: unknown } {
   }
   if (m.includes("phone") || m.includes("show")) return { status: 200, body: { ...base, cards: [earbuds, headphones] } };
   if (m.includes("order")) return { status: 200, body: { ...base, reply: { text: "I can't look up orders for guests. Please use the Track order page.", source: "template" }, actions: [{ type: "navigate", actionId: `act_${Date.now().toString(36)}wxyz`, href: "/track-order" }] } };
-  return { status: 200, body: base };
+  return { status: 200, body: { ...base, reply: { text: "I'm not sure what you'd like.", source: "template" }, suggestions: ["Show me phones", "Show me laptops"] } };
 }
 
 http
