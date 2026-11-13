@@ -64,7 +64,8 @@ export async function startFakeOllama(opts: FakeOptions = {}): Promise<FakeOllam
         if (mode === "notjson") return send(200, "<html>not json</html>");
 
         if (req.method === "GET" && path === "/api/version") return send(200, { version: "0.40.16" });
-        if (req.method === "GET" && path === "/api/ps") return send(200, { models: loaded ? [{ name: loaded, model: loaded }] : [] });
+        if (req.method === "GET" && path === "/api/ps") return send(200, { models: loaded ? [{ name: loaded, model: loaded, size: 1_200_000_000 }] : [] });
+        if (req.method === "GET" && path === "/api/tags") return send(200, { models: [...known].map((n) => ({ name: n, model: n })) });
 
         if (req.method === "POST" && path === "/api/chat") {
           let body: Record<string, unknown> = {};

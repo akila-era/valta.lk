@@ -1,0 +1,147 @@
+{
+  "basis": "measured",
+  "mode": "router",
+  "reviewStatus": "developer-authored, not native-reviewed, not independent",
+  "ranAt": "2026-11-13T07:41:32.302Z",
+  "node": "v24.12.0",
+  "totalCases": 98,
+  "perGroup": {
+    "si": {
+      "n": 24,
+      "supported": 18,
+      "intentCorrect": 14,
+      "intentAccuracyPct": 77.8,
+      "abstained": 7,
+      "entityChecked": 6,
+      "entityCorrect": 5,
+      "newCategory": 6,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 6
+    },
+    "singlish": {
+      "n": 24,
+      "supported": 19,
+      "intentCorrect": 14,
+      "intentAccuracyPct": 73.7,
+      "abstained": 4,
+      "entityChecked": 5,
+      "entityCorrect": 3,
+      "newCategory": 5,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 5
+    },
+    "en": {
+      "n": 26,
+      "supported": 19,
+      "intentCorrect": 18,
+      "intentAccuracyPct": 94.7,
+      "abstained": 2,
+      "entityChecked": 8,
+      "entityCorrect": 8,
+      "newCategory": 7,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 7
+    },
+    "mixed": {
+      "n": 24,
+      "supported": 19,
+      "intentCorrect": 19,
+      "intentAccuracyPct": 100,
+      "abstained": 2,
+      "entityChecked": 8,
+      "entityCorrect": 8,
+      "newCategory": 5,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 5
+    }
+  },
+  "overall": {
+    "n": 98,
+    "supported": 75,
+    "intentCorrect": 65,
+    "intentAccuracyPct": 86.7,
+    "abstained": 15,
+    "entityChecked": 27,
+    "entityCorrect": 24,
+    "newCategory": 23,
+    "newCategoryRoutedToTool": 0,
+    "newCategoryNoTool": 23
+  },
+  "latencyMs": {
+    "p50": 1.509800000000041,
+    "p95": 4.891599999999926,
+    "max": 24.894300000000044
+  },
+  "misses": [
+    {
+      "group": "si",
+      "text": "මේක කරත්තයට දාන්න",
+      "want": "cart_add",
+      "got": "unknown",
+      "action": "clarify"
+    },
+    {
+      "group": "si",
+      "text": "ඇණවුම ට්‍රැක් කරන්නේ කොහොමද?",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify"
+    },
+    {
+      "group": "si",
+      "text": "ගෙවීම කරන්න ඕන",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify"
+    },
+    {
+      "group": "si",
+      "text": "බෙදාහැරීමේ ගාස්තුව කීයද?",
+      "want": "store_info",
+      "got": "get_product_details",
+      "action": "clarify"
+    },
+    {
+      "group": "singlish",
+      "text": "laabama phone eka monawada?",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify"
+    },
+    {
+      "group": "singlish",
+      "text": "mama kalin balapu phone eke details kiyanna",
+      "want": "get_product_details",
+      "got": "unknown",
+      "action": "clarify"
+    },
+    {
+      "group": "singlish",
+      "text": "me deken battery eka hondama monawada?",
+      "want": "compare_products",
+      "got": "get_product_details",
+      "action": "clarify"
+    },
+    {
+      "group": "singlish",
+      "text": "meka ekata hari charger ekak thiyenawada?",
+      "want": "get_accessories",
+      "got": "search_products",
+      "action": "tool"
+    },
+    {
+      "group": "singlish",
+      "text": "mata gewanna one",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify"
+    },
+    {
+      "group": "en",
+      "text": "Which of these two has the better battery life?",
+      "want": "compare_products",
+      "got": "get_product_details",
+      "action": "clarify"
+    }
+  ]
+}
