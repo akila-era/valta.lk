@@ -69,3 +69,24 @@ describe("buildChatBody", () => {
     expect(b.format).toEqual({ type: "object" });
   });
 });
+
+describe("the Qwen model is chosen at start-up from two vetted tags only (AGENT_QWEN_MODEL)", () => {
+  it("defaults to the 1.7B when unset or blank, and accepts exactly the two vetted tags", async () => {
+    const { resolveQwenTag, QWEN_DEFAULT_TAG, QWEN_LARGER_TAG, ALLOWED_QWEN_TAGS } = await import("../../src/ollama/models");
+    expect(resolveQwenTag(undefined)).toBe(QWEN_DEFAULT_TAG);
+    expect(resolveQwenTag("  ")).toBe(QWEN_DEFAULT_TAG);
+    expect(resolveQwenTag("qwen3:4b-instruct-2507")).toBe(QWEN_LARGER_TAG);
+    expect(ALLOWED_QWEN_TAGS).toEqual(["qwen3:1.7b-q4_K_M", "qwen3:4b-instruct-2507"]);
+  });
+
+  it.each(["qwen2.5:3b-instruct", "gemma3:4b", "gpt-oss:20b", "qwen3:4b", "qwen3:1.7b", "llama3:8b", "qwen3:4b-instruct-2507-cloud", "qwen3:4b-instruct-2507 ", "../../etc/passwd", "hf.co/x/y:Q4"])("refuses %j (fails closed, never guesses)", async (tag) => {
+    const { resolveQwenTag } = await import("../../src/ollama/models");
+    if (tag.trim() === "qwen3:4b-instruct-2507") expect(resolveQwenTag(tag)).toBe("qwen3:4b-instruct-2507"); // surrounding spaces are trimmed
+    else expect(() => resolveQwenTag(tag)).toThrow(/AGENT_QWEN_MODEL/);
+  });
+
+  it("the running default is unchanged when the setting is absent (no change to live behaviour)", async () => {
+    const { MODELS } = await import("../../src/ollama/models");
+    expect(MODELS.qwen).toBe("qwen3:1.7b-q4_K_M");
+  });
+});

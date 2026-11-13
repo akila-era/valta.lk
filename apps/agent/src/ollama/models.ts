@@ -1,9 +1,26 @@
 /**
- * The only two models this project may ask for. Any other name, and in particular any cloud/remote model, is refused
- * before a request is built, so a prompt can never be sent to a model we did not vet.
+ * The only models this project may ask for. Any other name, and in particular any cloud/remote model, is refused before a request is
+ * built, so a prompt can never be sent to a model we did not vet.
+ *
+ * The Qwen model is chosen once at start-up by AGENT_QWEN_MODEL and must be one of the two vetted tags below (both Apache-2.0).
+ * Unset means the 1.7B, which is the default and the rollback. The 4B is stronger but slower and leaves little memory on the 4 GB
+ * server, so it is only used when the owner sets it deliberately. An unknown value stops the Agent from starting (fail closed).
  */
+export const QWEN_DEFAULT_TAG = "qwen3:1.7b-q4_K_M" as const;
+export const QWEN_LARGER_TAG = "qwen3:4b-instruct-2507" as const;
+export const ALLOWED_QWEN_TAGS = [QWEN_DEFAULT_TAG, QWEN_LARGER_TAG] as const;
+export type QwenTag = (typeof ALLOWED_QWEN_TAGS)[number];
+
+export function resolveQwenTag(value: string | undefined): QwenTag {
+  const v = (value ?? "").trim();
+  if (v === "") return QWEN_DEFAULT_TAG;
+  const hit = ALLOWED_QWEN_TAGS.find((t) => t === v);
+  if (!hit) throw new Error(`AGENT_QWEN_MODEL must be one of: ${ALLOWED_QWEN_TAGS.join(", ")}.`);
+  return hit;
+}
+
 export const MODELS = {
-  qwen: "qwen3:1.7b-q4_K_M",
+  qwen: resolveQwenTag(process.env.AGENT_QWEN_MODEL),
   sinhala: "hf.co/namindu94/SinhalaLLM-1.7B:Q4_K_M",
 } as const;
 
