@@ -163,8 +163,18 @@ var GROUPS = ["si", "singlish", "en", "mixed"];
 import { readFileSync, readdirSync } from "node:fs";
 
 // src/ollama/models.ts
+var QWEN_DEFAULT_TAG = "qwen3:1.7b-q4_K_M";
+var QWEN_LARGER_TAG = "qwen3:4b-instruct-2507";
+var ALLOWED_QWEN_TAGS = [QWEN_DEFAULT_TAG, QWEN_LARGER_TAG];
+function resolveQwenTag(value) {
+  const v = (value ?? "").trim();
+  if (v === "") return QWEN_DEFAULT_TAG;
+  const hit = ALLOWED_QWEN_TAGS.find((t) => t === v);
+  if (!hit) throw new Error(`AGENT_QWEN_MODEL must be one of: ${ALLOWED_QWEN_TAGS.join(", ")}.`);
+  return hit;
+}
 var MODELS = {
-  qwen: "qwen3:1.7b-q4_K_M",
+  qwen: resolveQwenTag(process.env.AGENT_QWEN_MODEL),
   sinhala: "hf.co/namindu94/SinhalaLLM-1.7B:Q4_K_M"
 };
 var MODEL_KEYS = Object.keys(MODELS);
@@ -210,6 +220,45 @@ var MODEL_DESCRIPTORS = Object.freeze([
     allowedTasks: ["classify", "plan_tools", "chat", "general_answer"],
     status: "experimental",
     statusReason: "Benchmark only. Owner decision 2026-11-13: not to be downloaded or switched to without separate approval. Verify the exact installed tag first."
+  },
+  {
+    id: "qwen3.5-4b",
+    tag: "qwen3.5:4b-q4_K_M",
+    provider: "ollama-local",
+    license: { spdxOrName: "apache-2.0", verdict: "permissive", source: `${card("Qwen/Qwen3.5-4B")}; Apache-2.0 licence layer inside the Ollama package`, checkedOn: CHECKED },
+    memoryMb: { value: 3500, basis: "measured", note: "New 6 vCPU / 12 GB server, 4096 context, 2026-11-13: about 3.5 GB of host RAM above idle." },
+    tokensPerSecond: { value: 4.4, basis: "measured", note: "New server, one short reply, single request; not a benchmark." },
+    toolCalling: true,
+    languageEvidence: {},
+    allowedTasks: ["classify", "plan_tools", "chat", "general_answer"],
+    status: "experimental",
+    statusReason: "Fast-fallback candidate under evaluation on the new server. Capabilities per Ollama: completion, vision, tools, thinking. Not approved for shoppers."
+  },
+  {
+    id: "gemma4-e4b",
+    tag: "gemma4:e4b-it-q4_K_M",
+    provider: "ollama-local",
+    license: { spdxOrName: "apache-2.0", verdict: "permissive", source: `${card("google/gemma-4-E4B-it")}; Apache-2.0 licence layer inside the Ollama package`, checkedOn: CHECKED },
+    memoryMb: { value: 6600, basis: "measured", note: "New server, 4096 context, 2026-11-13: about 6.6 GB of host RAM above idle (7.5 B parameters including per-layer embeddings)." },
+    tokensPerSecond: { value: 2, basis: "measured", note: "New server, one short reply, single request; not a benchmark." },
+    toolCalling: true,
+    languageEvidence: {},
+    allowedTasks: ["classify", "plan_tools"],
+    status: "experimental",
+    statusReason: "Vision and audio candidate (Ollama capabilities: completion, vision, audio, tools, thinking). Audio and Sinhala audio untested. Not approved for shoppers."
+  },
+  {
+    id: "qwen3.5-9b",
+    tag: "qwen3.5:9b-q4_K_M",
+    provider: "ollama-local",
+    license: { spdxOrName: "apache-2.0", verdict: "permissive", source: `${card("Qwen/Qwen3.5-9B")}; Apache-2.0 licence layer inside the Ollama package`, checkedOn: CHECKED },
+    memoryMb: { value: 6600, basis: "measured", note: "New server, 4096 context, 2026-11-13: about 6.6 GB of host RAM above idle; leaves little for browser, RAG and speech running together." },
+    tokensPerSecond: { value: 2.8, basis: "measured", note: "New server, one short reply, single request; not a benchmark." },
+    toolCalling: true,
+    languageEvidence: {},
+    allowedTasks: ["classify", "plan_tools", "chat", "general_answer"],
+    status: "experimental",
+    statusReason: "Main-model candidate under evaluation on the new server. Capabilities per Ollama: completion, vision, tools, thinking. Not approved for shoppers."
   },
   {
     id: "qwen2.5-3b-instruct",
