@@ -100,5 +100,44 @@ services:
       - ./ai-agent/agent.mjs:/agent/agent.mjs:ro
     command: ["node", "/agent/agent.mjs"]
 
+  # TUNNEL from this site to the AI Agent on the AI server (docs/AI_ASSISTANT_WEB_INTEGRATION.md). Start it with
+  # `docker compose --profile ai-tunnel up -d --build ai-tunnel` (and stop the ai-preview mock Agent first: both use port 18787).
+  # It shares the web container's network namespace and forwards 127.0.0.1:18787 (inside it) to the Agent's 127.0.0.1:8787 on the
+  # AI server over SSH, with a key that can do nothing else (the AI server's sshd allows that user to forward to that one port only).
+  # ./ai-tunnel/ holds id_ed25519 (mode 600) and known_hosts (the AI server's pinned host key); neither is committed.
+  ai-tunnel:
+    profiles: ["ai-tunnel"]
+    build:
+      context: ./ai-tunnel-image
+    image: volta/ai-tunnel:latest
+    restart: unless-stopped
+    network_mode: "service:web"
+    depends_on:
+      - web
+    volumes:
+      - ./ai-tunnel:/tunnel:ro
+    command:
+      - ssh
+      - -N
+      - -i
+      - /tunnel/id_ed25519
+      - -o
+      - UserKnownHostsFile=/tunnel/known_hosts
+      - -o
+      - StrictHostKeyChecking=yes
+      - -o
+      - BatchMode=yes
+      - -o
+      - IdentitiesOnly=yes
+      - -o
+      - ExitOnForwardFailure=yes
+      - -o
+      - ServerAliveInterval=15
+      - -o
+      - ServerAliveCountMax=3
+      - -L
+      - 127.0.0.1:18787:127.0.0.1:8787
+      - voltatunnel@2.29.97.114
+
 volumes:
   db-data:

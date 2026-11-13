@@ -34,3 +34,7 @@ Thumbs.db
 # Impeccable launchers download and run a binary when it is missing; not committed until reviewed
 **/skills/impeccable/scripts/impeccable
 **/skills/impeccable/scripts/impeccable.cmd
+
+# AI assistant preview: server-side secrets and bundles (never committed)
+/ai-tunnel/
+/ai-agent/
