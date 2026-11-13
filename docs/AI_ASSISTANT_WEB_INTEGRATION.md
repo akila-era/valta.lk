@@ -82,3 +82,23 @@ To try the assistant on the live site without showing it to shoppers:
 4. Open `https://<site>/api/assistant/preview?key=<AI_ASSISTANT_PREVIEW_KEY>` once in the browser that should see it. Other visitors see nothing (the chat route answers 404). Remove the preview key to open the assistant to everyone.
 
 This preview has **no model** (English messages the router does not know get a clarification) and **mock products** that are not in the site's catalogue, so adding them to the cart will not work at checkout. To turn it off: unset `AI_ASSISTANT_ENABLED` and stop the `ai-agent` service.
+
+## Connected to the AI server (tunnel, preview on demo data)
+
+The website's Agent address `http://127.0.0.1:18787` (inside the web container) is forwarded over SSH to the Agent on the AI server:
+
+```
+web container 127.0.0.1:18787 --ssh -L--> AI server voltatunnel@2.29.97.114 --> 127.0.0.1:8787 (volta-agent.service) --> Ollama 127.0.0.1:11434
+```
+
+What exists (set up 2026-11-13, approved plan):
+
+| Where | What |
+|---|---|
+| AI server | `volta-agent.service` (user `voltaagent`, no shell; `/opt/volta-agent/agent.mjs`; secret in `/etc/volta-agent/agent.env`, mode 640; listens on 127.0.0.1:8787 only; Qwen tool planner over the MOCK catalogue; SinhalaLLM polishing off; no memory limit set) |
+| AI server | user `voltatunnel` (nologin; key-only; sshd `Match User voltatunnel`: `AllowTcpForwarding local`, `PermitOpen 127.0.0.1:8787`, `PermitTTY no`, `ForceCommand /bin/false`); `AllowUsers volta voltatunnel`; backup `/etc/ssh/sshd_config.d/10-volta-hardening.conf.bak-20261113`. UFW and public ports unchanged (SSH 22 as before) |
+| Website server | `ai-tunnel` compose service (profile `ai-tunnel`, shares the web container's network); key and pinned host key in `/opt/valta/ai-tunnel/` (not committed). The mock `ai-agent` service must be stopped while the tunnel runs (same port) |
+
+Verified: the shell is refused, the allowed port answers, another port (Ollama) through the tunnel is refused, the live chat reaches Qwen (a message the router cannot place took 34.9 s cold, because the model had been unloaded; later calls are far shorter while it stays loaded for 5 minutes).
+
+**Roll back / turn off:** on the website server `docker compose --profile ai-tunnel stop ai-tunnel` (and unset `AI_ASSISTANT_ENABLED` in `.env`, `docker compose up -d --no-deps web`); on the AI server `sudo systemctl disable --now volta-agent`, `sudo userdel voltatunnel`, restore the sshd drop-in from the `.bak-20261113` file, `sudo sshd -t && sudo systemctl reload ssh`.
