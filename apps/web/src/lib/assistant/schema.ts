@@ -119,4 +119,43 @@ export interface PublicChatResponse {
   suggestions: string[];
 }
 
-export const toPublic = (r: AgentChatResponse): PublicChatResponse => ({ language: r.language, reply: { text: r.reply.text }, needsNativeReview: r.needsNativeReview, cards: r.cards, actions: r.actions, suggestions: r.suggestions });
+/**
+ * Card images may only come from this site or from the hosts listed in ERP_IMAGE_HOSTS, over https. Anything else (an http address,
+ * the mock catalogue's made-up host, an unknown CDN) is dropped, so the card shows its placeholder instead of a blocked or broken
+ * image, and the shopper's browser is never told to fetch from a host nobody approved.
+ */
+export function safeImageUrl(url: string, env: Readonly<Record<string, string | undefined>> = process.env): string | undefined {
+  if (/^\/(?!\/)/.test(url) && !url.includes("\\")) return url; // a path on this site
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return undefined;
+  }
+  if (u.protocol !== "https:" || u.username || u.password) return undefined;
+  const allowed = new Set((env.ERP_IMAGE_HOSTS ?? "").split(",").map((h) => h.trim().toLowerCase()).filter(Boolean));
+  try {
+    if (env.SITE_URL) allowed.add(new URL(env.SITE_URL).hostname.toLowerCase());
+  } catch {
+    /* ignore an unparseable SITE_URL */
+  }
+  return allowed.has(u.hostname.toLowerCase()) ? u.toString() : undefined;
+}
+
+/** Returns a copy with every `imageUrl` that fails the image policy removed (cards nest products in comparisons and accessories). */
+function stripUnsafeImages<T>(value: T, env: Readonly<Record<string, string | undefined>>): T {
+  if (Array.isArray(value)) return value.map((v) => stripUnsafeImages(v, env)) as T;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (k === "imageUrl") {
+        const ok = typeof v === "string" ? safeImageUrl(v, env) : undefined;
+        if (ok) out[k] = ok;
+      } else out[k] = stripUnsafeImages(v, env);
+    }
+    return out as T;
+  }
+  return value;
+}
+
+export const toPublic = (r: AgentChatResponse, env: Readonly<Record<string, string | undefined>> = process.env): PublicChatResponse => ({ language: r.language, reply: { text: r.reply.text }, needsNativeReview: r.needsNativeReview, cards: stripUnsafeImages(r.cards, env), actions: r.actions, suggestions: r.suggestions });
