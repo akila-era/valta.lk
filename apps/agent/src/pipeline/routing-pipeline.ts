@@ -74,6 +74,7 @@ type Failed = Exclude<ToolOutcome, { status: "ok" }>;
 /** Chooses the fixed reply text from what the tools returned. Facts are in the cards; this text never contains any. */
 function templateForOutcomes(outcomes: ToolOutcome[], decision: RouteDecision): TemplateKey {
   const ok = outcomes.filter((o): o is Ok => o.status === "ok");
+  const popularity = decision.reason === "popularity_unavailable";
   const failed = outcomes.filter((o): o is Failed => o.status !== "ok");
   if (ok.length === 0) {
     const code = failed.find((f) => f.status === "error")?.error.code;
@@ -87,7 +88,7 @@ function templateForOutcomes(outcomes: ToolOutcome[], decision: RouteDecision): 
   const r = ok[0]!.data as { kind?: string; total?: number; items?: unknown[]; orders?: unknown[]; deliveryCents?: number } | undefined;
   switch (r?.kind) {
     case "search":
-      return r.total === 0 ? "no_results" : "tools_ran";
+      return r.total === 0 ? "no_results" : popularity ? "popular_unavailable" : "tools_ran";
     case "accessories":
       return (r.items?.length ?? 0) === 0 ? "no_accessories" : "tools_ran";
     case "proposal":

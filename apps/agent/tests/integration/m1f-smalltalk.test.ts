@@ -42,3 +42,29 @@ describe("small talk in Singlish and Sinhala", () => {
     expect((await run(s.pipeline, "Orbit Pro එක cart එකට දාන්න")).result.actions[0]).toMatchObject({ type: "cart.add" });
   });
 });
+
+describe("popularity and best-seller questions (no sales data exists)", () => {
+  it.each(["fast move product", "fast moving products", "best selling phones", "most popular items", "trending now", "top selling products", "bestseller", "වැඩියෙන්ම විකුණන දේවල්"])(
+    "%s: says it has no sales data and shows the newest products in stock, never a ranking",
+    async (message) => {
+      const s = createMockStack();
+      const { result } = await run(s.pipeline, message);
+      expect(result.reply.text).toBe(textOf("popular_unavailable", /[඀-෿]/.test(message) ? "si" : "en"));
+      expect(result.reply.text).not.toMatch(/\d/);
+      expect(result.cards.length).toBeGreaterThan(0);
+      expect(result.cards.every((c) => c.type === "product")).toBe(true);
+      expect(result.reply.source).toBe("template");
+    },
+  );
+
+  it("Sinhala answers are flagged for native review", async () => {
+    const s = createMockStack();
+    expect((await run(s.pipeline, "වැඩියෙන්ම විකුණන දේවල්")).result.needsNativeReview).toBe(true);
+  });
+
+  it("does not hijack normal searches", async () => {
+    const s = createMockStack();
+    const r = (await run(s.pipeline, "Show me phones under 150000 rupees")).result;
+    expect(r.reply.text).toBe(textOf("tools_ran", "en"));
+  });
+});

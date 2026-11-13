@@ -9,6 +9,15 @@ import type { Entities, Intent, PlannedCall, RouteContext, RouteDecision, Vocabu
 export const MIN_SCORE = 3;
 export const MIN_MARGIN = 1;
 
+/**
+ * "Fast moving", "best selling", "popular" and the like ask for a sales ranking, which the store data does not provide. The honest
+ * answer says so and offers the newest products in stock, never a ranking the assistant cannot back up.
+ */
+const POPULARITY_PHRASES = [
+  "fast moving", "fast move", "fast selling", "best seller", "best sellers", "bestseller", "bestsellers", "best selling", "top selling", "top seller", "most popular", "popular products", "popular items",
+  "trending", "hot selling", "hot items", "most sold", "mostly sold", "selling fast", "wikunena", "wadiyenma wikunena", "වැඩියෙන්ම විකුණන", "වැඩියෙන්ම විකිණෙන", "ජනප්‍රිය නිෂ්පාදන", "ජනප්‍රියම",
+];
+
 /** Category names that contain a cue word. Only exact English phrases, so no other wording changes meaning. */
 const CATEGORY_NAME_PHRASES = /\b(?:computer|pc) accessor(?:y|ies)\b/g;
 
@@ -120,6 +129,7 @@ export function routeMessage(input: RouteInput): RouteDecision {
   const h = makeHaystack(input.matchText.replace(CATEGORY_NAME_PHRASES, " "));
   const e = extractEntities(input.rawText, input.vocab);
   const score = scoreIntents(h, e);
+  const popularity = anyPhrase(h, POPULARITY_PHRASES);
 
   const ranked = [...SCORED].sort((a, b) => score[b] - score[a]);
   const top = ranked[0]!;
@@ -128,6 +138,10 @@ export function routeMessage(input: RouteInput): RouteDecision {
   const confidence = { score: topScore, margin };
 
   const decide = (d: Omit<RouteDecision, "confidence" | "entities">): RouteDecision => ({ ...d, confidence, entities: e });
+
+  if (popularity) {
+    return decide({ intent: "search_products", action: "tool", calls: [{ name: "search_products", arguments: { inStockOnly: true, sort: "newest", limit: 5 } }], template: "popular_unavailable", reason: "popularity_unavailable" });
+  }
 
   if (topScore < MIN_SCORE || margin < MIN_MARGIN) {
     return decide({ intent: "unknown", action: "clarify", calls: [], template: "clarify_what", reason: topScore < MIN_SCORE ? "below_min_score" : "below_min_margin" });
