@@ -231,8 +231,16 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
                 <div key={e.id} className="flex items-start gap-2">
                   <BrandMark className="mt-0.5 h-7 w-7" />
                   <div className="min-w-0 flex-1 space-y-2">
-                    <p className="max-w-[92%] break-words rounded-2xl rounded-tl-sm bg-white px-3.5 py-2 text-sm text-slate-900 shadow-sm">{e.text}</p>
-                    {e.review ? <p className="text-[11px] text-slate-500">Sinhala text is provisional and awaiting native review.</p> : null}
+                    <p
+                      className="max-w-[92%] break-words rounded-2xl rounded-tl-sm bg-white px-3.5 py-2 text-sm text-slate-900 shadow-sm"
+                      data-testid="assistant-reply"
+                      data-native-review={e.review ? "pending" : undefined}
+                    >
+                      {e.text}
+                    </p>
+                    {/* The review flag is internal. Shoppers never see it; it stays on the message as a data attribute (and as a visible note in development
+                        and QA builds only) until native Sinhala speakers have reviewed the wording and the flag is removed on purpose. */}
+                    {e.review && process.env.NODE_ENV !== "production" ? <p className="text-[11px] text-slate-500">Sinhala text is provisional and awaiting native review.</p> : null}
                     {voice.tts && e.spoken ? (
                       <SpokenReply
                         key={`${e.id}-${voiceOutput && e.id === lastAssistantId}`}

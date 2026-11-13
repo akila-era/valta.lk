@@ -178,3 +178,46 @@ const SI: Record<keyof typeof EN, string> = {
 
 export type LabelKey = keyof typeof EN;
 export const labels = (lang: AssistantLang): Record<LabelKey, string> => (lang === "si" ? SI : EN);
+
+/**
+ * Wording for the contract 1.2 fit codes (why a product suits what the shopper said). Fixed text written here, never taken from the
+ * Agent or a model. The Sinhala column is PROVISIONAL like every other Sinhala label and needs native-speaker review.
+ */
+export const FIT_LABELS: Record<AssistantLang, Record<string, string>> = {
+  en: {
+    within_budget: "Within your budget",
+    brand_match: "The brand you asked for",
+    best_camera: "Highest camera spec listed among the matches",
+    best_battery: "Largest battery listed among the matches",
+    most_memory: "Most memory listed among the matches",
+    lowest_price: "Lowest price among these",
+    good_value: "Good value for what you asked",
+    on_sale: "On sale",
+    has_warranty: "Warranty listed",
+    in_stock: "In stock",
+    over_budget: "Above your budget",
+    out_of_stock: "Out of stock",
+    no_camera_data: "No camera details listed",
+    no_battery_data: "No battery details listed",
+    no_memory_data: "No memory details listed",
+    different_brand: "A different brand",
+  },
+  si: {
+    within_budget: "ඔබේ budget එකට ඇතුළත්",
+    brand_match: "ඔබ ඉල්ලූ brand එක",
+    best_camera: "ගැළපෙන ඒවා අතර ලැයිස්තුගත camera විස්තර වඩාත් ඉහළම",
+    best_battery: "ගැළපෙන ඒවා අතර ලැයිස්තුගත විශාලතම බැටරිය",
+    most_memory: "ගැළපෙන ඒවා අතර ලැයිස්තුගත වැඩිම memory",
+    lowest_price: "මේවා අතර අඩුම මිල",
+    good_value: "ඔබ ඉල්ලූ දේට හොඳ වටිනාකමක්",
+    on_sale: "වට්ටමකින්",
+    has_warranty: "වගකීම් කාලය සඳහන්",
+    in_stock: "තොගයේ ඇත",
+    over_budget: "ඔබේ budget එකට වඩා වැඩි",
+    out_of_stock: "තොගයේ නැත",
+    no_camera_data: "camera විස්තර සඳහන් නැත",
+    no_battery_data: "බැටරි විස්තර සඳහන් නැත",
+    no_memory_data: "memory විස්තර සඳහන් නැත",
+    different_brand: "වෙනත් brand එකක්",
+  },
+};

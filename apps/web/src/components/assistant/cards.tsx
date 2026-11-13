@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AlertTriangle, Check, PackageSearch } from "lucide-react";
-import { labels } from "./labels";
+import { FIT_LABELS, labels } from "./labels";
 import type { AccessoryCardData, AssistantCard, AssistantLang, CartAction, ComparisonCardData, ProductCardData, StockCardData } from "./types";
 
 /**
@@ -71,6 +71,20 @@ export function ProductCardView({ card, lang = "en", compact = false, demo = tru
           {card.offerName ? <span className="rounded bg-blue-50 px-1.5 text-xs font-medium text-[#2563EB]">{card.offerName}</span> : null}
         </p>
         <p className={`mt-1 text-sm font-medium ${card.available ? "text-emerald-700" : "text-slate-500"}`}>{card.available ? (demo ? t.inStock : t.inStockLive) : demo ? t.outOfStock : t.outOfStockLive}</p>
+        {card.fit && (card.fit.reasons.length > 0 || card.fit.tradeoffs.length > 0) ? (
+          <ul className="mt-2 flex flex-wrap gap-1.5 text-xs" data-testid="fit-codes">
+            {card.fit.reasons.filter((c) => FIT_LABELS[lang][c]).map((c) => (
+              <li key={c} className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-800" data-fit={c}>
+                {FIT_LABELS[lang][c]}
+              </li>
+            ))}
+            {card.fit.tradeoffs.filter((c) => FIT_LABELS[lang][c]).map((c) => (
+              <li key={c} className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800" data-fit={c}>
+                {FIT_LABELS[lang][c]}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {card.specs?.length ? (
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm" aria-label={t.specs}>
             {card.specs.slice(0, 6).map((s) => (

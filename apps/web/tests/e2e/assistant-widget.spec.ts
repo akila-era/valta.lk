@@ -112,7 +112,7 @@ test.describe("assistant widget", () => {
     await page.goto("/");
     await page.getByTestId("assistant-launcher").click();
     await ask(page, "ආයුබෝවන්");
-    await expect(page.getByText("Sinhala text is provisional and awaiting native review.")).toBeVisible();
+    await expect(page.locator("[data-native-review=pending]").first()).toBeVisible();
   });
 
   test("hands a guest asking about orders to the Track order page", async ({ page }) => {

@@ -115,7 +115,7 @@ test.describe("VOLTA AI modal", () => {
     await expect(page.getByPlaceholder("නිෂ්පාදන, තොග, උපාංග ගැන අහන්න")).toBeVisible();
     await page.getByLabel("Message the shopping assistant").fill("phones පෙන්වන්න");
     await page.getByRole("button", { name: "යවන්න" }).click();
-    await expect(panel.getByText("Sinhala text is provisional and awaiting native review.")).toBeVisible();
+    await expect(panel.locator("[data-native-review=pending]").first()).toBeVisible();
     expect(body.locale).toBe("si");
   });
 

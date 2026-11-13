@@ -7,7 +7,7 @@ import { z } from "zod";
  *    treated as a failure and never reaches the browser, so an unexpected shape, an off-site link or an unknown action is dropped.
  */
 export const MAX_MESSAGE_CHARS = 800;
-export const AGENT_CONTRACT_VERSION = "1.1";
+export const AGENT_CONTRACT_VERSION = "1.2";
 
 const NO_CONTROL = /^[^\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]*$/;
 const ProductId = z.string().min(1).max(100);
@@ -25,6 +25,11 @@ export type BrowserRequest = z.infer<typeof BrowserRequest>;
 
 const Money = z.strictObject({ amount: z.number().finite().nonnegative(), text: z.string().min(1).max(40) });
 
+/** Contract 1.2: codes saying why a product suits what the shopper asked for. Codes only; the wording is ours (see labels.ts). */
+export const FIT_REASONS = ["within_budget", "brand_match", "best_camera", "best_battery", "most_memory", "lowest_price", "good_value", "on_sale", "has_warranty", "in_stock"] as const;
+export const FIT_TRADEOFFS = ["over_budget", "out_of_stock", "no_camera_data", "no_battery_data", "no_memory_data", "different_brand"] as const;
+const Fit = z.strictObject({ reasons: z.array(z.enum(FIT_REASONS)).max(3), tradeoffs: z.array(z.enum(FIT_TRADEOFFS)).max(2) });
+
 const ProductCard = z.strictObject({
   type: z.literal("product"),
   id: ProductId,
@@ -39,6 +44,7 @@ const ProductCard = z.strictObject({
   variants: z.array(z.strictObject({ key: z.string().max(200), label: z.string().max(120), available: z.boolean(), price: Money })).max(24).optional(),
   url: z.string().regex(/^\/products\/[A-Za-z0-9._~-]{1,200}$/),
   specs: z.array(z.strictObject({ name: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(24).optional(),
+  fit: Fit.optional(),
 });
 
 const ORDER_REF = /^VLK-\d{6}-[A-HJKMNP-TV-Z2-9]{10}$/;

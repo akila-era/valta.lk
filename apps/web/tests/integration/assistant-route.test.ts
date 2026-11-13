@@ -37,7 +37,7 @@ const good = (over: Record<string, unknown> = {}) => ({
   cards: [],
   actions: [],
   suggestions: [],
-  meta: { model: "qwen3:1.7b-q4_K_M", degraded: false, queuedMs: 12, latencyMs: 40, contractVersion: "1.1" },
+  meta: { model: "qwen3:1.7b-q4_K_M", degraded: false, queuedMs: 12, latencyMs: 40, contractVersion: "1.2" },
   ...over,
 });
 
@@ -135,7 +135,7 @@ describe("what the Agent is sent", () => {
     expect(s.signatureValid).toBe(true);
     expect(s.headers["x-volta-identity"]).toBe("anon");
     expect(s.headers["x-volta-client-ip"]).toBe("203.0.113.50");
-    expect(s.body).toMatchObject({ message: "Show me phones", locale: "en", cart: [{ productId: "p1", variantKey: "", quantity: 2 }], context: { page: "product" }, contractVersion: "1.1" });
+    expect(s.body).toMatchObject({ message: "Show me phones", locale: "en", cart: [{ productId: "p1", variantKey: "", quantity: 2 }], context: { page: "product" }, contractVersion: "1.2" });
     expect(String(s.body.sessionId)).toMatch(/^sess_[A-Za-z0-9_-]{32}$/);
   });
 
@@ -256,6 +256,18 @@ describe("Agent failures become safe, generic answers", () => {
     expect(Date.now() - t0).toBeLessThan(3_000);
     slow.closeAllConnections();
     slow.close();
+  });
+
+  it("an Agent card with an unknown fit code is refused as garbage (502): nothing from it reaches the browser, and a known code passes", async () => {
+    const card = { type: "product", id: "p1", slug: "p1", name: "Test phone", price: { amount: 1000, text: "Rs. 1,000.00" }, available: true, url: "/products/p1" };
+    respond = () => ({ status: 200, body: good({ cards: [{ ...card, fit: { reasons: ["the_best_phone_ever"], tradeoffs: [] } }] }) });
+    const bad = await call({ message: "show me phones" });
+    expect(bad.status).toBe(502);
+    expect(JSON.stringify(await bad.json())).not.toContain("the_best_phone_ever");
+    respond = () => ({ status: 200, body: good({ cards: [{ ...card, fit: { reasons: ["within_budget"], tradeoffs: ["no_camera_data"] } }] }) });
+    const ok = await call({ message: "show me phones" });
+    expect(ok.status).toBe(200);
+    expect(((await ok.json()) as { cards: { fit?: unknown }[] }).cards[0]!.fit).toEqual({ reasons: ["within_budget"], tradeoffs: ["no_camera_data"] });
   });
 
   it("refuses an oversized Agent response", async () => {

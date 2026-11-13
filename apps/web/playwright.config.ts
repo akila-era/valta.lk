@@ -7,8 +7,8 @@ export default defineConfig({
   reporter: [["list"]],
   use: { baseURL: "http://localhost:3100", trace: "retain-on-failure" },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] }, grepInvert: /@mobile/ },
-    { name: "mobile", use: { ...devices["Pixel 7"] }, grep: /@mobile/ },
+    { name: "desktop", use: { ...devices["Desktop Chrome"] }, grepInvert: /@mobile/, testIgnore: /assistant-real-agent\.spec\.ts/ },
+    { name: "mobile", use: { ...devices["Pixel 7"] }, grep: /@mobile/, testIgnore: /assistant-real-agent\.spec\.ts/ },
   ],
   webServer: [
     { command: "npx tsx tests/mock-erp/server.ts", port: 4011, reuseExistingServer: false, env: { MOCK_ERP_PORT: "4011" } },

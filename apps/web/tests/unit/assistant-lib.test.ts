@@ -113,7 +113,7 @@ describe("what the browser may send", () => {
 });
 
 describe("what the Agent may answer", () => {
-  const good = { requestId: "req_1", sessionId: "sess_x", language: "en", reply: { text: "Here is what I found.", source: "template" }, needsNativeReview: false, cards: [], actions: [], suggestions: [], meta: { model: null, degraded: false, queuedMs: 0, latencyMs: 5, contractVersion: "1.1" } };
+  const good = { requestId: "req_1", sessionId: "sess_x", language: "en", reply: { text: "Here is what I found.", source: "template" }, needsNativeReview: false, cards: [], actions: [], suggestions: [], meta: { model: null, degraded: false, queuedMs: 0, latencyMs: 5, contractVersion: "1.2" } };
   it("accepts a valid response and rejects other contract versions, unknown fields and Sinhala without the review flag", () => {
     expect(AgentChatResponse.safeParse(good).success).toBe(true);
     expect(AgentChatResponse.safeParse({ ...good, meta: { ...good.meta, contractVersion: "1" } }).success).toBe(false);

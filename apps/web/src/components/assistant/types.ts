@@ -20,6 +20,8 @@ export interface ProductCardData {
   url: string;
   specs?: { name: string; value: string }[];
   variants?: { key: string; label: string; available: boolean; price: Money }[];
+  /** Why this product suits what the shopper said (codes; see labels.ts for the wording). */
+  fit?: { reasons: string[]; tradeoffs: string[] };
 }
 export interface ComparisonCardData {
   type: "comparison";

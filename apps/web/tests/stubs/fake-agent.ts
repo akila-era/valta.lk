@@ -17,7 +17,7 @@ const headphones = { type: "product", id: "cm0item00000004", slug: "pulse-over-e
 
 function answer(message: string): { status: number; body: unknown } {
   const m = message.toLowerCase();
-  const base = { requestId: "req_fake", sessionId: "sess_fake", language: "en", reply: { text: "Here is what I found.", source: "template" }, needsNativeReview: false, cards: [] as unknown[], actions: [] as unknown[], suggestions: [], meta: { model: null, degraded: false, queuedMs: 0, latencyMs: 3, contractVersion: "1.1" } };
+  const base = { requestId: "req_fake", sessionId: "sess_fake", language: "en", reply: { text: "Here is what I found.", source: "template" }, needsNativeReview: false, cards: [] as unknown[], actions: [] as unknown[], suggestions: [], meta: { model: null, degraded: false, queuedMs: 0, latencyMs: 3, contractVersion: "1.2" } };
   if (m.includes("boom")) return { status: 500, body: { error: { code: "INTERNAL", message: "internal detail that must never reach the shopper" } } };
   if (/[඀-෿]/.test(message)) return { status: 200, body: { ...base, language: "si", reply: { text: "මෙන්න මට සොයාගත හැකි දේ.", source: "template" }, needsNativeReview: true } };
   if (m.includes("compare")) {
@@ -39,6 +39,14 @@ http
       const send = (status: number, body: unknown) => (res.writeHead(status, { "content-type": "application/json" }), res.end(JSON.stringify(body)));
       if (req.url === "/__seen") return send(200, seen);
       if (req.url === "/__reset") return (seen.length = 0), nonces.clear(), send(200, {});
+      if (req.url === "/v1/health" && req.method === "GET") {
+        // A TEST DOUBLE of the Agent's signed health route: it answers like the real Agent running with NO model (no Ollama), so the QA
+        // control center must report the model as not connected. It never claims a model.
+        const hh = req.headers;
+        const exp = createHmac("sha256", SECRET).update([hh["x-volta-timestamp"], hh["x-volta-nonce"], req.method, req.url, hh["x-volta-identity"], hh["x-volta-client-ip"], createHash("sha256").update(Buffer.concat(chunks)).digest("hex")].join("\n")).digest("hex");
+        if (hh["x-volta-signature"] !== exp) return send(401, { error: { code: "UNAUTHORIZED", message: "Unauthorized." } });
+        return send(200, { ok: true, ready: false, enabled: true, appVersion: "fake-agent", contractVersion: "1.2", ollama: { reachable: false, loadedModel: null }, queue: { depth: 0, running: false }, memory: { availableMb: null, swapUsedMb: null }, uptimeSec: 1 });
+      }
       if (req.url !== "/v1/chat" || req.method !== "POST") return send(404, { error: { code: "NOT_FOUND", message: "Not found." } });
       const raw = Buffer.concat(chunks);
       const h = req.headers;
