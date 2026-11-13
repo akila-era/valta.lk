@@ -102,3 +102,63 @@ describe("the store's own name", () => {
     expect(r.cards.length).toBeGreaterThan(0);
   });
 });
+
+describe("suggestion chips", () => {
+  const SETS = ["greeting", "clarify_what", "clarify_product", "no_results", "popular_unavailable", "cart_proposed", "store_info_other"] as const;
+
+  it("every chip, in English and Sinhala, is understood by the assistant (never answered with 'I'm not sure')", async () => {
+    const { suggestionsFor } = await import("../../src/router/templates");
+    const all = new Set<string>();
+    for (const k of SETS) for (const l of ["en", "si"] as const) suggestionsFor(k, l).forEach((c) => all.add(c));
+    expect(all.size).toBeGreaterThan(8);
+    for (const chip of all) {
+      const r = (await run(createMockStack().pipeline, chip, { cart: [] })).result;
+      expect(r.reply.text, chip).not.toBe(textOf("clarify_what", "en"));
+      expect(r.reply.text, chip).not.toBe(textOf("clarify_what", "si"));
+      expect(r.cards.length, chip).toBeGreaterThan(0);
+    }
+  });
+
+  it("clarifications and greetings carry up to 4 short chips; they are fixed and fact-free; Sinhala chips need native review", async () => {
+    const { ChatResponse } = await import("../../src/contract/schemas");
+    for (const [m, sinhala] of [["hi", false], ["asdfgh qwerty", false], ["ආයුබෝවන්", true]] as const) {
+      const r = (await run(createMockStack().pipeline, m)).result;
+      expect(r.suggestions.length, m).toBeGreaterThan(0);
+      expect(r.suggestions.length).toBeLessThanOrEqual(4);
+      for (const c of r.suggestions) expect(c).not.toMatch(/\d|\bRs\b|stock/i);
+      expect(r.needsNativeReview).toBe(sinhala);
+      expect(ChatResponse.safeParse({ requestId: "r", sessionId: "sess_0123456789abcdef", ...r, meta: { ...r.meta, latencyMs: 1, contractVersion: "1.1" } }).success).toBe(true);
+    }
+  });
+
+  it("answers that show cards carry no chips, and a failed verification returns none", async () => {
+    expect((await run(createMockStack().pipeline, "Show me phones")).result.suggestions).toEqual([]);
+  });
+});
+
+describe("spelling variants", () => {
+  it.each([
+    ["kohmada", "greeting"],
+    ["phone eka penanna", "cards"],
+    ["laptop thiyenwada", "cards"],
+    ["mata fone ekk denna", "cards"],
+    ["Nova X1 saha Orbit Pro compair karanna", "cards"],
+    ["Nova X1 eke mila kiyda", "cards"],
+  ])("%s", async (m, kind) => {
+    const r = (await run(createMockStack().pipeline, m)).result;
+    if (kind === "greeting") expect(r.reply.text).toBe(textOf("greeting", "en"));
+    else expect(r.cards.length).toBeGreaterThan(0);
+  });
+});
+
+describe("follow-up questions about what was just shown", () => {
+  it("'this one' and 'it' refer to the product on the page or the last one shown", async () => {
+    const s = createMockStack();
+    const first = (await run(s.pipeline, "Tell me about the Atlas Smartwatch")).result;
+    expect(first.cards).toHaveLength(1);
+    const stock = (await run(s.pipeline, "is it in stock?")).result;
+    expect(stock.cards[0]).toMatchObject({ type: "stock" });
+    const acc = (await run(s.pipeline, "what accessories fit this one")).result;
+    expect(acc.reply.text).not.toBe(textOf("clarify_what", "en"));
+  });
+});

@@ -184,3 +184,50 @@ export const TEMPLATE_KEYS = Object.keys(T) as TemplateKey[];
 export function allSinhalaTemplates(): Record<string, string> {
   return Object.fromEntries(TEMPLATE_KEYS.map((k) => [k, T[k].si]));
 }
+
+/**
+ * Tap-to-send suggestions that go with a reply. Fixed texts, none naming a product, price or stock level, so they are always true
+ * of any catalogue; each one is something the assistant understands (a test sends every one through the router). The Sinhala set
+ * is PROVISIONAL and needs native review like every other Sinhala text.
+ */
+const CHIPS_EN = {
+  start: ["Show me phones", "Show me laptops", "What is on sale?", "Show my cart"],
+  browse: ["Show me phones", "Show me laptops", "Show me chargers", "What is on sale?"],
+  sale: ["What is on sale?", "Show me phones", "Show me laptops"],
+  cart: ["Show me phones", "Show me laptops", "Show my cart"],
+} as const;
+const CHIPS_SI = {
+  start: ["phones පෙන්වන්න", "laptops පෙන්වන්න", "වට්ටම් phones පෙන්වන්න", "මගේ cart එක බලන්න"],
+  browse: ["phones පෙන්වන්න", "laptops පෙන්වන්න", "chargers පෙන්වන්න", "වට්ටම් phones පෙන්වන්න"],
+  sale: ["වට්ටම් phones පෙන්වන්න", "phones පෙන්වන්න", "laptops පෙන්වන්න"],
+  cart: ["phones පෙන්වන්න", "laptops පෙන්වන්න", "මගේ cart එක බලන්න"],
+} as const;
+
+const CHIP_SET: Partial<Record<TemplateKey, keyof typeof CHIPS_EN>> = {
+  greeting: "start",
+  identity: "start",
+  capabilities: "start",
+  language_support: "start",
+  thanks: "start",
+  clarify_what: "browse",
+  clarify_product: "browse",
+  clarify_ambiguous_product: "browse",
+  clarify_two_products: "browse",
+  clarify_accessory_for: "browse",
+  clarify_budget: "browse",
+  clarify_variant: "browse",
+  no_results: "browse",
+  no_accessories: "browse",
+  popular_unavailable: "sale",
+  store_info_other: "browse",
+  cart_proposed: "cart",
+  cart_unavailable: "browse",
+  cart_not_in_cart: "browse",
+  order_none: "browse",
+  tool_failed: "browse",
+};
+
+export function suggestionsFor(key: TemplateKey, lang: "en" | "si"): string[] {
+  const set = CHIP_SET[key];
+  return set ? [...(lang === "si" ? CHIPS_SI[set] : CHIPS_EN[set])] : [];
+}

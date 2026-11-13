@@ -7,7 +7,7 @@ import { normalizeMatch } from "../router/normalize";
 import { checkSafety, type SafetyReason } from "../router/safety";
 import { routeMessage } from "../router/router";
 import { extractEntities } from "../router/entities";
-import { renderTemplate } from "../router/templates";
+import { renderTemplate, suggestionsFor } from "../router/templates";
 import type { PlannedCall, RouteDecision, TemplateKey, Vocabulary } from "../router/types";
 import { emptySession, sessionKey, type SessionState, type TtlLruStore } from "../session/store";
 import type { ToolRegistry } from "../tools/registry";
@@ -283,6 +283,7 @@ export class RoutingPipeline implements ChatPipeline {
       tplLang,
       language: lang.language,
       needsNativeReview,
+      suggestions: suggestionsFor(templateKey, tplLang),
     });
     let shown = extra.shownIds ?? [];
     if (!verdict.ok) {
@@ -294,6 +295,7 @@ export class RoutingPipeline implements ChatPipeline {
       shown = [];
       needsNativeReview = lang.language !== "en" || hasSinhala(tpl.text);
     }
+    const suggestions = verdict.ok ? suggestionsFor(templateKey, tplLang) : [];
     for (const c of cards) emit({ type: "card", card: c });
     for (const a of actions) emit({ type: "action", action: a });
     if (shown.length) session.lastShownProductIds = [...new Set([...shown, ...session.lastShownProductIds])].slice(0, 5);
@@ -305,7 +307,7 @@ export class RoutingPipeline implements ChatPipeline {
       needsNativeReview,
       cards,
       actions,
-      suggestions: [],
+      suggestions,
       meta: { model: extra.model ?? null, degraded: extra.degraded ?? false, queuedMs: extra.queuedMs ?? 0 },
     };
   }

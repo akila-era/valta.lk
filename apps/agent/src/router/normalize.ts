@@ -24,6 +24,29 @@ function mapSinhalaDigits(s: string): string {
   return s.replace(/[෦-෯]/g, (ch) => String(ch.charCodeAt(0) - SINHALA_DIGIT_ZERO));
 }
 
+/**
+ * Common spelling variants of everyday words, mapped to one canonical spelling. Applied to whole words only, in the match form, and
+ * the lexicon is normalised the same way, so "kohomd" and "kohomada" mean the same thing without listing every variant everywhere.
+ * Only unambiguous variants are listed: a word that is also a different real word (for example "one") is left alone.
+ */
+const SPELLING_VARIANTS: Record<string, string> = {
+  kohomd: "kohomada", kohmada: "kohomada", kohomda: "kohomada", kohomadha: "kohomada", kohamada: "kohomada",
+  penanna: "pennanna", pennana: "pennanna", penna: "pennanna", pennnna: "pennanna",
+  thiyenwada: "thiyenawada", thiyenawd: "thiyenawada", thiyenavada: "thiyenawada", tiyenawada: "thiyenawada", thiyanawada: "thiyenawada", thienawada: "thiyenawada", thiyenavda: "thiyenawada",
+  puluwn: "puluwan", puluvan: "puluwan", pluwan: "puluwan", puluvn: "puluwan", puluwanda: "puluwanda", puluvanda: "puluwanda", puluwnd: "puluwanda", puluwandha: "puluwanda",
+  karann: "karanna", karnna: "karanna",
+  mokakda: "mokada", mokkda: "mokada", mokd: "mokada", mokakd: "mokada", monawada: "monawada", mnawada: "monawada",
+  kiyda: "kiyada", kiyd: "kiyada", kiynda: "kiyada",
+  ekk: "ekak", dnna: "danna", dhanna: "danna",
+  oyta: "oyata", mta: "mata",
+  compair: "compare", comapre: "compare", comper: "compare", comparre: "compare",
+  fone: "phone", phn: "phone", phon: "phone", fones: "phones",
+  labtop: "laptop", laptap: "laptop", lappy: "laptop",
+  chargar: "charger", chrger: "charger", charjer: "charger",
+  avilable: "available", availble: "available", avaliable: "available",
+  stok: "stock", chep: "cheap", cheep: "cheap", ordar: "order",
+};
+
 export function normalizeMatch(input: string): string {
   let s = input.normalize("NFKC").toLowerCase();
   s = s.replace(CONTROL, " ").replace(BIDI_AND_INVISIBLE, "").replace(JOINERS, "");
@@ -35,7 +58,8 @@ export function normalizeMatch(input: string): string {
   s = s.replace(/(?<!\d)[.,]|[.,](?!\d)/g, " ");
   s = s.replace(/[:/+\-]+/g, (m) => (m === "-" ? "-" : " "));
   s = s.replace(/([a-z])\1{2,}/g, "$1$1");
-  return s.replace(/\s+/g, " ").trim();
+  s = s.replace(/\s+/g, " ").trim();
+  return s.replace(/[a-z]+/g, (w) => SPELLING_VARIANTS[w] ?? w);
 }
 
 export const tokenize = (matchForm: string): string[] => (matchForm === "" ? [] : matchForm.split(" "));
