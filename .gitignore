@@ -7,3 +7,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# M3-B scratch measurements and a backup copy of the old router used for the holdout baseline
+docs/m3b-raw/work/
