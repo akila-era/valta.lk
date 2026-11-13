@@ -18,6 +18,9 @@ const POPULARITY_PHRASES = [
   "trending", "hot selling", "hot items", "most sold", "mostly sold", "selling fast", "wikunena", "wadiyenma wikunena", "වැඩියෙන්ම විකුණන", "වැඩියෙන්ම විකිණෙන", "ජනප්‍රිය නිෂ්පාදන", "ජනප්‍රියම",
 ];
 
+/** A message that is only the store's name ("volta", "valta.lk") is a hello to the assistant: answer with who it is. */
+const STORE_NAMES = new Set(["volta", "valta", "volta lk", "valta lk", "volta.lk", "valta.lk", "voltalk", "valtalk"]);
+
 /** Category names that contain a cue word. Only exact English phrases, so no other wording changes meaning. */
 const CATEGORY_NAME_PHRASES = /\b(?:computer|pc) accessor(?:y|ies)\b/g;
 
@@ -130,6 +133,9 @@ export function routeMessage(input: RouteInput): RouteDecision {
   const e = extractEntities(input.rawText, input.vocab);
   const score = scoreIntents(h, e);
   const popularity = anyPhrase(h, POPULARITY_PHRASES);
+  if (STORE_NAMES.has(input.matchText.trim().toLowerCase().replace(/[!?.]+$/, ""))) {
+    return { intent: "smalltalk", action: "static", calls: [], template: "identity", reason: "store_name", confidence: { score: 4, margin: 4 }, entities: e };
+  }
 
   const ranked = [...SCORED].sort((a, b) => score[b] - score[a]);
   const top = ranked[0]!;

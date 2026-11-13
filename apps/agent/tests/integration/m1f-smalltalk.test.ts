@@ -90,3 +90,15 @@ describe("more everyday Singlish", () => {
     expect((await cards("Orbit Pro eka cart ekata danna")).actions[0]).toMatchObject({ type: "cart.add" });
   });
 });
+
+describe("the store's own name", () => {
+  it.each(["valta", "volta", "Valta.lk", "volta lk!"])("%s alone answers who the assistant is", async (m) => {
+    const r = (await run(createMockStack().pipeline, m)).result;
+    expect(r.reply.text).toBe(textOf("identity", "en"));
+    expect(r.cards).toEqual([]);
+  });
+  it("does not change a real question that mentions it", async () => {
+    const r = (await run(createMockStack().pipeline, "Show me phones under 150000 rupees from volta")).result;
+    expect(r.cards.length).toBeGreaterThan(0);
+  });
+});
