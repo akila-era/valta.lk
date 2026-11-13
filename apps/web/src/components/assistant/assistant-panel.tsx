@@ -204,7 +204,7 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
         <section
           role="dialog"
           aria-label="VOLTA AI shopping assistant"
-          className="fixed inset-0 z-50 flex flex-col bg-white pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] sm:inset-auto sm:bottom-6 sm:left-6 sm:h-[min(42rem,calc(100vh-3rem))] sm:w-[26rem] sm:overflow-hidden sm:rounded-3xl sm:border sm:border-slate-200 sm:pb-0 sm:pt-0 sm:shadow-2xl"
+          className="fixed inset-x-0 top-0 z-50 flex h-dvh max-h-dvh flex-col bg-white pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] sm:inset-x-auto sm:top-auto sm:bottom-6 sm:left-6 sm:h-[min(42rem,calc(100dvh-3rem))] sm:max-h-none sm:w-[26rem] sm:overflow-hidden sm:rounded-3xl sm:border sm:border-slate-200 sm:pb-0 sm:pt-0 sm:shadow-2xl"
           data-testid="assistant-panel"
         >
           <PanelHeader lang={ui} demo={demo} ttsAvailable={voice.tts} voiceOutput={voiceOutput} canClear={entries.length > 0} onToggleVoiceOutput={() => setVoiceOutput((v) => !v)} onClear={() => setConfirmClear(true)} onClose={() => { setOpen(false); launcherRef.current?.focus(); }} />
@@ -338,9 +338,10 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
         aria-label={open ? "Close shopping assistant" : "Open shopping assistant"}
         aria-expanded={open}
         data-testid="assistant-launcher"
-        className={`fixed bottom-20 left-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#2563EB] text-white shadow-lg transition hover:bg-[#1d4ed8] sm:bottom-6 sm:left-6 ${open ? "hidden sm:flex" : ""}`}
+        className={`fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-40 flex h-14 items-center justify-center gap-2 rounded-full bg-[#2563EB] text-white shadow-lg ring-4 ring-white/80 transition hover:bg-[#1d4ed8] sm:bottom-6 sm:left-6 sm:w-14 ${open ? "hidden sm:flex w-14" : "pl-4 pr-5"}`}
       >
-        {open ? <X className="h-6 w-6" aria-hidden /> : <Sparkles className="h-6 w-6" aria-hidden />}
+        {open ? <X className="h-6 w-6" aria-hidden /> : <Sparkles className="h-6 w-6 shrink-0" aria-hidden />}
+        {open ? null : <span className="text-sm font-semibold sm:hidden" aria-hidden>Ask AI</span>}
       </button>
     </>
   );

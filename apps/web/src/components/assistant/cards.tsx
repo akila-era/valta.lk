@@ -24,7 +24,7 @@ export function MockBadge({ lang = "en" }: { lang?: AssistantLang }) {
 }
 
 /** A neutral placeholder when the product has no image (or while mock images are not served). */
-export function ImagePlaceholder({ name, lang = "en" }: { name: string; lang?: AssistantLang }) {
+export function ImagePlaceholder({ name, lang = "en", compact = true }: { name: string; lang?: AssistantLang; compact?: boolean }) {
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -32,9 +32,19 @@ export function ImagePlaceholder({ name, lang = "en" }: { name: string; lang?: A
     .map((w) => w[0]!.toUpperCase())
     .join("");
   return (
-    <div role="img" aria-label={`${labels(lang).noImage}: ${name}`} className="flex aspect-square w-full items-center justify-center rounded-xl bg-slate-100 text-2xl font-semibold text-slate-400">
+    <div role="img" aria-label={`${labels(lang).noImage}: ${name}`} className={`flex w-full items-center justify-center rounded-xl bg-slate-100 text-2xl font-semibold text-slate-400 ${compact ? "aspect-square" : "h-24"}`}>
       {initials}
     </div>
+  );
+}
+
+/** Product image that falls back to the placeholder when the file cannot be loaded (mock images are not served), and stays a modest size. */
+function CardImage({ src, name, lang, compact }: { src?: string; name: string; lang: AssistantLang; compact: boolean }) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return <ImagePlaceholder name={name} lang={lang} compact={compact} />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={name} loading="lazy" onError={() => setFailed(true)} className={`w-full rounded-xl object-cover ${compact ? "aspect-square" : "aspect-[4/3] max-h-44"}`} />
   );
 }
 
@@ -43,12 +53,7 @@ export function ProductCardView({ card, lang = "en", compact = false, demo = tru
   return (
     <article className={`${SURFACE} flex ${compact ? "flex-row gap-3 p-3" : "flex-col gap-3 p-4"} sm:max-w-sm`} data-testid="product-card">
       <div className={compact ? "w-20 shrink-0" : "w-full"}>
-        {card.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={card.imageUrl} alt={card.name} loading="lazy" className="aspect-square w-full rounded-xl object-cover" />
-        ) : (
-          <ImagePlaceholder name={card.name} lang={lang} />
-        )}
+        <CardImage src={card.imageUrl} name={card.name} lang={lang} compact={compact} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
