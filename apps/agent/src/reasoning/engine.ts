@@ -48,7 +48,7 @@ export function answerPending(state: ReasoningState, message: string, e: Entitie
   if (!pending) {
     // No question was asked, but "camera" or "gaming" right after a search is still the shopper narrowing it.
     const usages = extractUsages(message);
-    if (lastWasSearch && usages.length > 0 && message.trim().split(/\s+/).length <= 4 && (state.profile.category || state.profile.query) && !e.categorySlug && !e.brand && e.products.length === 0 && e.amounts.length === 0) {
+    if (lastWasSearch && usages.length > 0 && message.trim().split(/\s+/).length <= 4 && (state.profile.category || state.profile.query) && !e.categorySlug && !e.conceptWord && !e.queryWord && !e.brand && e.products.length === 0 && e.amounts.length === 0) {
       return { call: { name: "search_products", arguments: profileSearchArgs(state.profile) }, usages, reason: "refine_usage" };
     }
     return null;
@@ -58,12 +58,12 @@ export function answerPending(state: ReasoningState, message: string, e: Entitie
   if (pending === "budget") {
     // The shopper answered with what they will use it for instead of an amount: take that, the budget question stays asked.
     const usages = extractUsages(message);
-    if (usages.length === 0 || e.amounts.length > 0 || e.categorySlug || e.brand || e.products.length > 0 || words > 4) return null;
+    if (usages.length === 0 || e.amounts.length > 0 || e.categorySlug || e.conceptWord || e.queryWord || e.brand || e.products.length > 0 || words > 4) return null;
     return { call: { name: "search_products", arguments: profileSearchArgs(state.profile) }, usages, reason: "answer_usage" };
   }
   if (pending === "usage") {
     const usages = extractUsages(message);
-    if (usages.length === 0 || e.categorySlug || e.brand || e.products.length > 0) return null;
+    if (usages.length === 0 || e.categorySlug || e.conceptWord || e.queryWord || e.brand || e.products.length > 0) return null;
     return { call: { name: "search_products", arguments: profileSearchArgs(state.profile) }, usages, reason: "answer_usage" };
   }
   if (pending === "brand") {

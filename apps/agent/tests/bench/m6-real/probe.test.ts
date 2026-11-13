@@ -12,7 +12,7 @@ import { emptySite, loadSnapshot, SnapshotTransport } from "./snapshot";
 const JSON_PATH = process.env.REAL_CATALOGUE_JSON;
 const OUT = process.env.REAL_PROBE_OUT;
 
-const CONVERSATIONS: string[] = [
+const CONVERSATIONS: string[] = (process.env.REAL_PROBE_ONLY ? process.env.REAL_PROBE_ONLY.split("||") : [
   "show me phones",
   "phones under 50000",
   "show me Apple phones",
@@ -37,7 +37,7 @@ const CONVERSATIONS: string[] = [
   "show me Apple phones|is the first one worth it?|tell me about the second one",
   "phone ekak pennanna|2000 ta adu|camera",
   "මට phone එකක් ඕන|2000 ට අඩු",
-];
+]);
 
 it.runIf(JSON_PATH && OUT)("real catalogue probe", async () => {
   const snap = loadSnapshot(JSON_PATH!);
