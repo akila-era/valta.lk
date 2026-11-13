@@ -49,3 +49,15 @@ npm run typecheck -w @valta/agent   # tsc --noEmit
 - **Cart** tools only produce browser-side `ClientAction` proposals, always `confirm: "ask"` (forced in the pipeline). No checkout, order creation, payment or discount execution exists.
 - **Facts** appear only in cards built from tool results; replies are fixed, digit-free templates; Sinhala/mixed output keeps `needsNativeReview`.
 - `AGENT_ENGLISH_MODE=router-first` (default) or `qwen` (evaluation); the safety pre-filter runs in both.
+
+## M3-A: contracts and a mock-only browser layer (NOT wired into the running Agent)
+
+**Browser control is mock-only. No real Playwright browser worker exists, none is deployed, and nothing here has been run against a real browser or the real storefront.**
+
+- `src/security/url-policy.ts`: exact-host allowlist (`valta.hexalyte.com` fixed in code), URL, redirect and address checks.
+- `src/tools/action-classes.ts`: read / reversible / sensitive / financial classes; no financial tool exists (tested).
+- `src/models/*`: model registry with licence evidence (Qwen3 1.7B live; Qwen3 4B experimental; Qwen2.5 3B excluded as non-commercial; Gemma excluded pending review).
+- `src/browser/*`: the eleven typed `browser.*` tools, session manager, confirmation tokens, tool service and action loop, written against a `BrowserDriver` interface that only a test mock implements.
+- `src/knowledge/types.ts`: website-knowledge contract (interface only).
+- `tests/browser/*`: mock store and driver, tests, and the 15-scenario benchmark (scripted planners, so it measures the controls, not a model). `tests/bench/*`: language benchmark harness. Raw results in `docs/m3a-raw/`.
+- Documents: `docs/AI_BROWSER_CONTROL_ARCHITECTURE.md`, `docs/AI_BROWSER_SECURITY_MODEL.md`, `docs/AI_BROWSER_BENCHMARKS.md`.
