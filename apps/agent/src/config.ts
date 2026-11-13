@@ -29,6 +29,8 @@ export interface AgentConfig {
    * when it recognises the intent, and Qwen is used only when it abstains. "qwen": Qwen chooses the tools (kept for evaluation).
    */
   englishMode: "router-first" | "qwen";
+  /** Natural, verified replies written by Qwen for messages with no tool (see pipeline/chat-responder.ts). Off by default. */
+  chatReplies: boolean;
 }
 
 /** Messages name the variable and the rule, never the value, so a bad secret can never reach a log. */
@@ -168,6 +170,7 @@ export function loadConfig(env: Env): AgentConfig {
     heartbeatMs: intVar(env, "AGENT_HEARTBEAT_MS", 15_000, 100, 60_000, issues),
     maxInFlight: intVar(env, "AGENT_MAX_IN_FLIGHT", 16, 1, 256, issues),
     englishMode: englishMode(env, issues),
+    chatReplies: boolVar(env, "AGENT_CHAT_REPLIES", false, issues),
   };
 
   if (issues.length) throw new ConfigError(issues);

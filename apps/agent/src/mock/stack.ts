@@ -5,6 +5,7 @@ import type { SiteData } from "../backend/site";
 import type { ErpTransport } from "../backend/transport";
 import type { EnglishPlanner } from "../pipeline/english-planner";
 import type { SinhalaPolisher } from "../pipeline/polisher";
+import type { ChatResponder } from "../pipeline/chat-responder";
 import { RoutingPipeline, type RoutingDeps } from "../pipeline/routing-pipeline";
 import { createSessionStore } from "../session/store";
 import { createToolRegistry } from "../tools/definitions";
@@ -16,6 +17,7 @@ export interface MockStackOptions<T extends ErpTransport = FixtureErpTransport> 
   site?: SiteData;
   planner?: EnglishPlanner;
   polisher?: SinhalaPolisher;
+  chat?: ChatResponder;
   englishMode?: "router-first" | "qwen";
   now?: () => number;
   catalogueTtlMs?: number;
@@ -40,6 +42,7 @@ export function createMockStack<T extends ErpTransport = FixtureErpTransport>(op
     sessions,
     ...(opts.planner ? { planner: opts.planner } : {}),
     ...(opts.polisher ? { polisher: opts.polisher } : {}),
+    ...(opts.chat ? { chat: opts.chat } : {}),
     ...(opts.englishMode ? { englishMode: opts.englishMode } : {}),
     cardsFrom: (o) => buildCards(o).cards,
     shownProductIdsFrom: (o) => buildCards(o).shownIds,

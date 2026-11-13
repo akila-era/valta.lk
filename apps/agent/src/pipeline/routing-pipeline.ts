@@ -15,6 +15,7 @@ import { runToolCalls, type ToolOutcome } from "../tools/runner";
 import { hasSinhala } from "../util/script";
 import { verifyResponse, type VerifyFailure } from "../verify/verifier";
 import type { EnglishPlanner, KnownProduct } from "./english-planner";
+import type { ChatResponder } from "./chat-responder";
 import type { SinhalaPolisher } from "./polisher";
 
 export interface RoutingDeps {
@@ -29,6 +30,11 @@ export interface RoutingDeps {
    * chose the right tool more often than Qwen on the same 100 English prompts. Off by default; the owner decides.
    */
   englishMode?: "qwen" | "router-first";
+  /**
+   * Optional natural replies for small talk and general questions (Qwen, verified; see chat-responder.ts). Used only for Latin-script
+   * messages the assistant has no tool for; anything the verifier does not accept falls back to the fixed text. Off by default.
+   */
+  chat?: ChatResponder;
   /** Optional SinhalaLLM rewording of fixed, fact-free templates. Off by default. */
   polisher?: SinhalaPolisher;
   /** M1-C: turns tool results into cards. Until then no cards are produced. */
@@ -121,7 +127,17 @@ export class RoutingPipeline implements ChatPipeline {
 
     emit({ type: "status", phase: "routing" });
 
-    const finish = (templateKey: TemplateKey, extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; polishable?: boolean; outcomes?: ToolOutcome[]; shownIds?: string[] } = {}): PipelineResult => this.compose(input, lang, tplLang, templateKey, extra, emit, session, key);
+    const finish = (templateKey: TemplateKey, extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; polishable?: boolean; outcomes?: ToolOutcome[]; shownIds?: string[]; modelReply?: string; catalogueNames?: string[] } = {}): PipelineResult => this.compose(input, lang, tplLang, templateKey, extra, emit, session, key);
+
+    /** A clarification, written by the model when that is enabled and the message is in Latin script; otherwise the fixed text. */
+    const clarifyOrChat = async (extra: { model?: string | null; queuedMs?: number } = {}): Promise<PipelineResult> => {
+      if (!this.deps.chat || lang.script === "si") return finish("clarify_what", extra);
+      emit({ type: "status", phase: "writing" });
+      const text = await this.deps.chat.reply({ message, priority, deadlineAt: input.deadlineAt, signal: input.signal });
+      if (text === null) return finish("clarify_what", extra);
+      const v = await this.deps.vocab().catch(() => null);
+      return finish("clarify_what", { ...extra, model: MODELS.qwen, modelReply: text, catalogueNames: v ? [...v.products.map((x) => x.name), ...v.brands] : [] });
+    };
 
     // 1. Safety first, before any model or tool, in every language.
     const safety = checkSafety(message);
@@ -180,14 +196,15 @@ export class RoutingPipeline implements ChatPipeline {
       model = MODELS.qwen;
       queuedMs = plan.queuedMs;
       if (plan.degraded) return finish("busy_degraded", { degraded: true });
-      if (plan.noTool || plan.invalid || plan.calls.length === 0) return finish("clarify_what", { model, queuedMs });
+      if (plan.noTool && !plan.invalid) return clarifyOrChat({ model, queuedMs });
+      if (plan.invalid || plan.calls.length === 0) return finish("clarify_what", { model, queuedMs });
       calls = plan.calls.map((c) => ({ name: String(c.name), arguments: (c.arguments ?? {}) as Record<string, unknown> }));
       decision = { ...det, action: "tool", calls, intent: det.intent, reason: "qwen_plan", template: "tools_ran" };
     }
 
     // 3. Static answers, clarifications and hand-offs need no tool.
     if (decision.action === "static") return this.maybePolish(input, finish, decision.template ?? "clarify_what", lang.script);
-    if (decision.action === "clarify") return finish(decision.template ?? "clarify_what", { model, queuedMs });
+    if (decision.action === "clarify") return (decision.template ?? "clarify_what") === "clarify_what" ? clarifyOrChat({ model, queuedMs }) : finish(decision.template ?? "clarify_what", { model, queuedMs });
     if (decision.action === "handoff") {
       const href = decision.navigate ?? "/checkout";
       session.lastIntent = decision.intent;
@@ -260,7 +277,7 @@ export class RoutingPipeline implements ChatPipeline {
     lang: ReturnType<typeof detectLanguage>,
     tplLang: "en" | "si",
     key: TemplateKey,
-    extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; outcomes?: ToolOutcome[]; shownIds?: string[] },
+    extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; outcomes?: ToolOutcome[]; shownIds?: string[]; modelReply?: string; catalogueNames?: string[] },
     emit: (e: PipelineEvent) => void,
     session: SessionState,
     sessionKeyValue: string,
@@ -272,18 +289,40 @@ export class RoutingPipeline implements ChatPipeline {
     // Provisional Sinhala rule: anything that is not plain English, or contains Sinhala script, needs native review.
     let needsNativeReview = lang.language !== "en" || hasSinhala(tpl.text);
 
+    // A model-written reply is used only if the verifier accepts it; otherwise the fixed template below is used, as if there were none.
+    let replyText = tpl.text;
+    let replySource: "template" | "qwen" = "template";
+    if (extra.modelReply !== undefined) {
+      const mv = verifyResponse({
+        actor: input.identity.kind,
+        outcomes: [],
+        cards: [],
+        actions: [],
+        reply: { text: extra.modelReply, source: "qwen" },
+        tplLang,
+        language: lang.language,
+        needsNativeReview,
+        catalogueNames: extra.catalogueNames ?? [],
+      });
+      if (mv.ok) {
+        replyText = extra.modelReply.trim();
+        replySource = "qwen";
+      } else this.deps.onVerifierFailure?.({ requestId: input.requestId, code: mv.code });
+    }
+
     // Verification: nothing is emitted or remembered until the whole answer has been checked against this request's tool results.
     const verdict = verifyResponse({
       actor: input.identity.kind,
       outcomes: extra.outcomes ?? [],
       cards,
       actions,
-      reply: { text: tpl.text, source: "template" },
+      reply: { text: replyText, source: replySource },
       templateKey,
       tplLang,
       language: lang.language,
       needsNativeReview,
       suggestions: suggestionsFor(templateKey, tplLang),
+      ...(replySource === "qwen" ? { catalogueNames: extra.catalogueNames ?? [] } : {}),
     });
     let shown = extra.shownIds ?? [];
     if (!verdict.ok) {
@@ -303,7 +342,7 @@ export class RoutingPipeline implements ChatPipeline {
     this.deps.sessions.set(sessionKeyValue, session);
     return {
       language: lang.language,
-      reply: { text: tpl.text, source: "template" },
+      reply: verdict.ok ? { text: replyText, source: replySource } : { text: tpl.text, source: "template" },
       needsNativeReview,
       cards,
       actions,

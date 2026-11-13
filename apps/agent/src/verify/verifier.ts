@@ -6,6 +6,7 @@ import { renderTemplate } from "../router/templates";
 import type { TemplateKey } from "../router/types";
 import type { ToolOutcome } from "../tools/runner";
 import { hasSinhala } from "../util/script";
+import { CHAT_SYSTEM_PROMPT } from "../pipeline/chat-responder";
 
 /**
  * The response verifier (M1-D). It runs on every answer before anything is emitted, and it trusts nothing but the tool results the
@@ -48,6 +49,8 @@ export interface VerifyInput {
   language: "en" | "si" | "mixed";
   needsNativeReview: boolean;
   suggestions?: readonly string[];
+  /** Present only for a model-written reply: the catalogue's product names and brands, none of which may appear in it. */
+  catalogueNames?: readonly string[];
 }
 
 const fail = (code: VerifyFailure): VerifyResult => ({ ok: false, code });
@@ -253,8 +256,11 @@ export function verifyResponse(i: VerifyInput): VerifyResult {
     if (!i.templateKey || i.reply.text !== renderTemplate(i.templateKey, i.tplLang).text) return fail("reply_unsupported");
   } else if (i.reply.source === "sinhala-llm") {
     if (!hasSinhala(i.reply.text) || /\d|https?:|www\.|\bRs\b|LKR|%|@/i.test(i.reply.text) || i.reply.text.length > 600) return fail("reply_unsupported");
+  } else if (i.reply.source === "qwen" && i.catalogueNames !== undefined) {
+    if (modelReplyProblem(i.reply.text, i.catalogueNames)) return fail("reply_unsupported");
+    if (i.cards.length > 0 || i.actions.length > 0) return fail("reply_unsupported"); // a model-written reply never travels with facts or actions
   } else {
-    return fail("reply_unsupported"); // Qwen never writes shopper-facing text in M1
+    return fail("reply_unsupported"); // free model text is never shown, except a verified chat reply (above)
   }
 
   // 4. Nothing sensitive may leave in any text, including catalogue text.
@@ -265,6 +271,30 @@ export function verifyResponse(i: VerifyInput): VerifyResult {
   if (sinhala && !i.needsNativeReview) return fail("review_flag_missing");
 
   return OK;
+}
+
+const CLAIM_WORDS = /\b(we have|we sell|we stock|we offer|in stock|out of stock|available|availability|warranty|guarantee|guaranteed|discount|discounts|price|prices|priced|cost|costs|cheap|cheapest|free delivery|delivery time|days|per month|installment|refund|best seller|bestseller)\b/i;
+const LEAK_WORDS = /\b(system prompt|my instructions|my rules|these rules|ignore (all|the|previous)|as an ai language model)\b/i;
+
+/**
+ * Why a model-written chat reply must NOT be shown, or null when it is acceptable: no digits, currency, percent, links, markup or
+ * Sinhala script; no claim about price, stock, warranty or delivery; no catalogue product name or brand; no copy of the instructions;
+ * short.
+ */
+export function modelReplyProblem(text: string, catalogueNames: readonly string[]): string | null {
+  const t = text.trim();
+  if (t.length === 0 || t.length > 320) return "length";
+  if (/\d/.test(t.normalize("NFKC")) || /[෦-෯]/.test(t)) return "digits";
+  if (/\b(rs|lkr|rupees?|usd|dollars?)\b|[%$₹€£]/i.test(t)) return "currency";
+  if (/https?:|www\.|@|\.com\b|\.lk\b/i.test(t)) return "link";
+  if (/[*_`#<>{}[\]|~]/.test(t) || /\n\s*[-•]/.test(t)) return "markup";
+  if (hasSinhala(t)) return "sinhala";
+  if (CLAIM_WORDS.test(t)) return "claim";
+  if (LEAK_WORDS.test(t)) return "leak";
+  const lower = t.toLowerCase();
+  for (const name of catalogueNames) if (name.length >= 3 && lower.includes(name.toLowerCase())) return "product_name";
+  for (const line of CHAT_SYSTEM_PROMPT.split("\n")) if (line.length >= 25 && lower.includes(line.toLowerCase().slice(0, 25))) return "leak";
+  return null;
 }
 
 /** The comparison size a client of this contract version may receive. */

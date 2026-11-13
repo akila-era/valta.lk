@@ -11,6 +11,7 @@ import { createAgentServer } from "../../src/http/server";
 import { consoleSink, createLogger, verifierFailureLogger } from "../../src/observability/logger";
 import { Metrics } from "../../src/observability/metrics";
 import { OllamaClient } from "../../src/ollama/client";
+import { ChatResponder } from "../../src/pipeline/chat-responder";
 import { EnglishPlanner } from "../../src/pipeline/english-planner";
 import { InferenceScheduler } from "../../src/queue/scheduler";
 import { createMockStack } from "../../src/mock/stack";
@@ -24,7 +25,8 @@ const scheduler = new InferenceScheduler({ maxQueued: config.queueMaxDepth, obse
 // The planner needs the tool registry, which the mock stack builds; build it once to get the registry, then wire the real stack.
 const registry = createMockStack().registry;
 const planner = new EnglishPlanner({ ollama, scheduler, registry });
-const stack = createMockStack({ planner, englishMode: "router-first", metrics, onVerifierFailure: verifierFailureLogger(logger) });
+const chat = config.chatReplies ? new ChatResponder({ ollama, scheduler }) : undefined;
+const stack = createMockStack({ planner, englishMode: "router-first", ...(chat ? { chat } : {}), metrics, onVerifierFailure: verifierFailureLogger(logger) });
 
 const app = createAgentServer({ config, pipeline: stack.pipeline, ollama, scheduler, logger, metrics });
 app.listen().then(({ host, port }) => process.stdout.write(`${JSON.stringify({ msg: "preview agent listening", host, port, ollama: config.ollamaUrl })}\n`));
