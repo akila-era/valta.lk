@@ -16,11 +16,74 @@ export interface Template {
 
 const T: Record<TemplateKey, Template> = {
   greeting: {
-    en: "Hello! I'm the VOLTA.LK shopping assistant. I can help you find products, compare them, check stock and see compatible accessories.",
-    si: "ආයුබෝවන්! මම VOLTA.LK සාප්පු සහායකයායි. නිෂ්පාදන සොයන්න, සසඳන්න, තොග තත්ත්වය බලන්න සහ ගැළපෙන උපාංග බලන්න මට ඔබට උදව් කළ හැක.",
+    en: "Hi! Welcome to VOLTA.LK. How can I help you today?",
+    si: "ආයුබෝවන්! VOLTA.LK වෙත සාදරයෙන් පිළිගන්නවා. අද මම ඔයාට කොහොමද උදව් කරන්න ඕන?",
     polishable: true,
   },
-  thanks: { en: "You're welcome! Let me know if you need anything else.", si: "ඔබට ස්තූතියි! තවත් උදව්වක් අවශ්‍ය නම් කියන්න.", polishable: true },
+  how_are_you: {
+    en: "I'm doing well, thanks for asking! 😊 How are you? What are you looking for today?",
+    si: "මට හොඳින් ඉන්නවා! 😊 ඔයාට කොහොමද? අද මොනවද හොයන්නේ?",
+    polishable: true,
+  },
+  acknowledged: {
+    en: "Okay! Tell me what you're looking for whenever you're ready.",
+    si: "හරි! ඔයාට ඕන දේ කියන්න, මම හොයලා දෙන්නම්.",
+    polishable: true,
+  },
+  help_yes: {
+    en: "Of course! Tell me what you're looking for, or ask me to compare products or check stock, and I'll help.",
+    si: "ඔව්, අනිවාර්යයෙන්ම! ඔයාට මොනවද ඕන කියන්න. product එකක් හොයන්න, compare කරන්න, stock බලන්න මම උදව් කරන්නම්.",
+    polishable: true,
+  },
+  browse_categories: {
+    en: "Tell me what kind of product you're looking for (for example a phone, laptop, charger or power bank) or your budget, and I'll search our store.",
+    si: "ඔයාට මොන වගේ product එකක්ද ඕන කියන්න (උදා: phone, laptop, charger, power bank) නැත්නම් budget එක කියන්න, මම අපේ store එකේ හොයලා දෙන්නම්.",
+    polishable: true,
+  },
+  clarify_budget_what: {
+    en: "What would you like to find within that budget? For example a phone, a laptop or a charger.",
+    si: "ඒ budget එකට මොනවද හොයන්න ඕන? උදා: phone, laptop, charger.",
+    polishable: true,
+  },
+  opinion_facts: {
+    en: "I can't judge what is best for you, but here are the details so you can decide. I can also compare it with another product.",
+    si: "ඒක ඔයාට හොඳද නැද්ද කියලා මට කියන්න බැහැ, ඒත් තීරණය කරන්න විස්තර මෙන්න. තව product එකක් එක්ක සසඳන්නත් පුළුවන්.",
+    polishable: false,
+  },
+  recommend_intro: {
+    en: "Based on what you've told me, these look like the best fits.",
+    si: "ඔයා කියපු දේවල් අනුව, මේවා තමයි වඩාත්ම ගැළපෙන ඒවා.",
+    polishable: false,
+  },
+  recommend_limited_data: {
+    en: "Here are the closest matches. The store's product data doesn't list the details I'd need to rank them for that, so please check each product page.",
+    si: "මෙන්න ළඟම ගැළපෙන ඒවා. ඒ අනුව ඒවා පෙළගස්වන්න ඕන විස්තර අපේ product දත්තවල නැති නිසා, එක් එක් product පිටුව බලන්න.",
+    polishable: false,
+  },
+  no_match_alternatives: {
+    en: "I couldn't find exactly that, but these are close options in the same category.",
+    si: "හරියටම ඒක හොයාගන්න බැරි වුණා, ඒත් එකම ප්‍රවර්ගයේ ළඟම විකල්ප මෙන්න.",
+    polishable: false,
+  },
+  brand_advice: {
+    en: "I can't say whether a brand is better for you, but here is what we have that fits what you've told me.",
+    si: "brand එකක් ඔයාට හොඳද කියලා මට කියන්න බැහැ, ඒත් ඔයා කියපු දේවලට ගැළපෙන ඒවා මෙන්න.",
+    polishable: false,
+  },
+  ask_budget: { en: "What budget do you have in mind?", si: "ඔයාගේ budget එක කීයද?", polishable: false },
+  ask_usage_phone: {
+    en: "What matters most to you in a phone: camera, battery, gaming or everyday use?",
+    si: "phone එකක ඔයාට වැදගත්ම දේ මොකක්ද: camera, battery, gaming නැත්නම් සාමාන්‍ය පාවිච්චිය?",
+    polishable: false,
+  },
+  ask_usage_laptop: {
+    en: "What will you use the laptop for: gaming, office work, programming or design?",
+    si: "laptop එක මොකටද පාවිච්චි කරන්නේ: gaming, office වැඩ, programming නැත්නම් design?",
+    polishable: false,
+  },
+  ask_brand: { en: "Do you prefer a particular brand?", si: "ඔයා කැමති brand එකක් තියෙනවද?", polishable: false },
+  ask_device: { en: "Which phone or device is it for?", si: "මේක මොන phone එකටද / device එකටද?", polishable: false },
+  thanks: { en: "You're welcome! 😊 Let me know if you need anything else.", si: "ඕනෑම වෙලාවක! 😊 තවත් දෙයක් අවශ්‍ය නම් කියන්න.", polishable: true },
   goodbye: { en: "Goodbye! Come back any time.", si: "ස්තූතියි, නැවත හමුවෙමු!", polishable: true },
   identity: {
     en: "I'm the VOLTA.LK shopping assistant. I show products and information from our store. I can't place orders or take payments.",
@@ -175,6 +238,9 @@ const T: Record<TemplateKey, Template> = {
   },
 };
 
+/** A reply may be two fixed templates (for example a recommendation intro, then one follow-up question) joined by a blank line. */
+export const REPLY_PART_SEPARATOR = "\n\n";
+
 export interface RenderedTemplate {
   text: string;
   polishable: boolean;
@@ -205,16 +271,30 @@ const CHIPS_EN = {
   browse: ["Show me phones", "Show me laptops", "Show me chargers", "What is on sale?"],
   sale: ["What is on sale?", "Show me phones", "Show me laptops"],
   cart: ["Show me phones", "Show me laptops", "Show my cart"],
+  after_search: ["Show the cheapest", "What is on sale?", "Show my cart"],
+  usage_phone: ["Camera", "Battery", "Gaming", "Everyday use"],
+  usage_laptop: ["Gaming", "Office work", "Programming", "Design"],
 } as const;
 const CHIPS_SI = {
   start: ["phones පෙන්වන්න", "laptops පෙන්වන්න", "වට්ටම් phones පෙන්වන්න", "මගේ cart එක බලන්න"],
   browse: ["phones පෙන්වන්න", "laptops පෙන්වන්න", "chargers පෙන්වන්න", "වට්ටම් phones පෙන්වන්න"],
   sale: ["වට්ටම් phones පෙන්වන්න", "phones පෙන්වන්න", "laptops පෙන්වන්න"],
   cart: ["phones පෙන්වන්න", "laptops පෙන්වන්න", "මගේ cart එක බලන්න"],
+  after_search: ["ලාභම ඒවා පෙන්වන්න", "වට්ටම් phones පෙන්වන්න", "මගේ cart එක බලන්න"],
+  usage_phone: ["Camera එක", "Battery එක", "Gaming", "සාමාන්‍ය පාවිච්චිය"],
+  usage_laptop: ["Gaming", "Office වැඩ", "Programming", "Design"],
 } as const;
 
 const CHIP_SET: Partial<Record<TemplateKey, keyof typeof CHIPS_EN>> = {
   greeting: "start",
+  how_are_you: "start",
+  acknowledged: "start",
+  help_yes: "start",
+  browse_categories: "browse",
+  clarify_budget_what: "browse",
+  opinion_facts: "after_search",
+  ask_usage_phone: "usage_phone",
+  ask_usage_laptop: "usage_laptop",
   identity: "start",
   capabilities: "start",
   language_support: "start",
@@ -239,7 +319,8 @@ const CHIP_SET: Partial<Record<TemplateKey, keyof typeof CHIPS_EN>> = {
   tool_failed: "browse",
 };
 
-export function suggestionsFor(key: TemplateKey, lang: "en" | "si"): string[] {
-  const set = CHIP_SET[key];
+export function suggestionsFor(key: TemplateKey, lang: "en" | "si", ctx: { afterSearch?: boolean } = {}): string[] {
+  // Results of a search are followed by prompts that refine it; everything else uses the fixed set for its reply.
+  const set = key === "tools_ran" && ctx.afterSearch ? "after_search" : CHIP_SET[key];
   return set ? [...(lang === "si" ? CHIPS_SI[set] : CHIPS_EN[set])] : [];
 }

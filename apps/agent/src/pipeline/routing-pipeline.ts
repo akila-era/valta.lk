@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { ProductView } from "../backend/types";
 import { Card, ClientAction } from "../contract/schemas";
 import type { ChatPipeline, PipelineEvent, PipelineInput, PipelineResult } from "../http/pipeline";
 import { MODELS } from "../ollama/models";
@@ -6,9 +7,12 @@ import { detectLanguage } from "../router/language";
 import { normalizeMatch } from "../router/normalize";
 import { checkSafety, type SafetyReason } from "../router/safety";
 import { routeMessage } from "../router/router";
+import { conversationIntent, isNeutralMessage, type ConversationIntent } from "../router/conversation";
 import { extractEntities } from "../router/entities";
-import { renderTemplate, suggestionsFor } from "../router/templates";
+import { renderTemplate, suggestionsFor, REPLY_PART_SEPARATOR } from "../router/templates";
 import type { PlannedCall, RouteDecision, TemplateKey, Vocabulary } from "../router/types";
+import { answerPending, CANDIDATE_LIMIT, fitFor, looksLikeAccessory, profileSearchArgs, reasonAboutSearch, searchIndex, updateProfileFromSearch, type ReasonedSearch } from "../reasoning/engine";
+import { extractUsages } from "../reasoning/usage";
 import { emptySession, sessionKey, type SessionState, type TtlLruStore } from "../session/store";
 import type { ToolRegistry } from "../tools/registry";
 import { runToolCalls, type ToolOutcome } from "../tools/runner";
@@ -45,6 +49,8 @@ export interface RoutingDeps {
   /** Counts tool calls and failures (names and statuses only). */
   metrics?: { tool(tool: string, status: string): void; toolBatchMs(ms: number): void };
   now?: () => number;
+  /** Called once per message with the conversation intent the router decided (no message text), for tests and observability. */
+  onDecision?: (info: { intent: ConversationIntent; routerIntent: string; reason: string; template: string | null; language: string }) => void;
 }
 
 const REFUSAL: Record<SafetyReason, TemplateKey> = {
@@ -95,6 +101,8 @@ function templateForOutcomes(outcomes: ToolOutcome[], decision: RouteDecision): 
   switch (r?.kind) {
     case "search":
       return r.total === 0 ? "no_results" : popularity ? "popular_unavailable" : "tools_ran";
+    case "details":
+      return decision.reason === "opinion" ? "opinion_facts" : "tools_ran";
     case "accessories":
       return (r.items?.length ?? 0) === 0 ? "no_accessories" : "tools_ran";
     case "proposal":
@@ -118,16 +126,23 @@ export class RoutingPipeline implements ChatPipeline {
   async run(input: PipelineInput, emit: (e: PipelineEvent) => void): Promise<PipelineResult> {
     const { request, identity } = input;
     const message = request.message;
-    const lang = detectLanguage(message, { locale: request.locale });
-    const tplLang: "en" | "si" = lang.script === "si" || lang.script === "mixed" ? "si" : "en";
+    const detected = detectLanguage(message, { locale: request.locale });
     const actor = identity.kind === "customer" ? ({ kind: "customer", customerId: identity.customerId } as const) : ({ kind: "guest" } as const);
     const priority = identity.kind === "customer" ? "customer" : "guest";
     const key = sessionKey(identity, request.sessionId);
     const session = deps_get(this.deps.sessions, key);
+    // Language of the reply. An explicit choice in the page (English or Sinhala) always wins. In Auto mode the reply follows the
+    // message (Singlish gets the same Sinhala-style reply as Sinhala script, not a switch to English); a neutral message such as
+    // "ok" or "200000" keeps the language the conversation was already in.
+    const neutral = isNeutralMessage(message);
+    const keepSession = request.locale !== "en" && request.locale !== "si" && neutral && (session.language === "si" || session.language === "mixed");
+    const lang = keepSession ? ({ script: session.language === "si" ? "si" : "si-latin", language: session.language!, path: "sinhala", reason: "conversation language" } as typeof detected) : detected;
+    const tplLang: "en" | "si" =
+      request.locale === "en" ? "en" : request.locale === "si" ? "si" : lang.script === "si" || lang.script === "mixed" || lang.script === "si-latin" ? "si" : "en";
 
     emit({ type: "status", phase: "routing" });
 
-    const finish = (templateKey: TemplateKey, extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; polishable?: boolean; outcomes?: ToolOutcome[]; shownIds?: string[]; modelReply?: string; catalogueNames?: string[] } = {}): PipelineResult => this.compose(input, lang, tplLang, templateKey, extra, emit, session, key);
+    const finish = (templateKey: TemplateKey, extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; polishable?: boolean; outcomes?: ToolOutcome[]; shownIds?: string[]; modelReply?: string; catalogueNames?: string[]; followUp?: TemplateKey; fitContext?: { profile: import("../reasoning/profile").Profile; candidateIds: string[] } } = {}): PipelineResult => this.compose(input, lang, tplLang, templateKey, extra, emit, session, key);
 
     /** A clarification, written by the model when that is enabled and the message is in Latin script; otherwise the fixed text. */
     const clarifyOrChat = async (extra: { model?: string | null; queuedMs?: number } = {}): Promise<PipelineResult> => {
@@ -154,9 +169,30 @@ export class RoutingPipeline implements ChatPipeline {
       // The catalogue cannot be read (for example the ERP is down): say so with a fixed text instead of failing the request.
       return finish("tool_failed");
     }
-    const ctx = { ...(request.context?.productId ? { contextProductId: request.context.productId } : {}), lastShownProductIds: session.lastShownProductIds, cart: request.cart };
+    const reasoning = session.reasoning;
+    const profile = reasoning.profile;
+    const ctx = {
+      ...(request.context?.productId ? { contextProductId: request.context.productId } : {}),
+      lastShownProductIds: session.lastShownProductIds,
+      lastResultIds: reasoning.lastResultIds,
+      discussedIds: reasoning.discussed,
+      cart: request.cart,
+      ...(session.lastIntent ? { lastIntent: session.lastIntent } : {}),
+      slots: {
+        ...(profile.brand ? { brand: profile.brand } : {}),
+        ...(profile.category ? { category: profile.category } : {}),
+        ...(profile.query ? { query: profile.query } : {}),
+        ...(profile.budgetMaxLkr !== undefined ? { budgetMaxLkr: profile.budgetMaxLkr } : {}),
+      },
+    };
     const matchText = normalizeMatch(message);
-    const det = routeMessage({ matchText, rawText: message, vocab, context: ctx });
+    let det = routeMessage({ matchText, rawText: message, vocab, context: ctx });
+    // The shopper's short reply to the question just asked (a usage, a brand, the device an accessory is for) becomes the search it means.
+    const pendingAnswer = answerPending(reasoning, message, det.entities, session.lastIntent === "search_products", det.reason);
+    reasoning.pending = undefined;
+    if (pendingAnswer) det = { ...det, intent: pendingAnswer.call.name === "get_accessories" ? "get_accessories" : "search_products", action: "tool", calls: [pendingAnswer.call], reason: pendingAnswer.reason, confidence: { score: 4, margin: 4 } };
+    const usages = pendingAnswer ? pendingAnswer.usages : extractUsages(message);
+    this.deps.onDecision?.({ intent: conversationIntent(det, message), routerIntent: det.intent, reason: det.reason, template: det.template ?? null, language: lang.language });
 
     // Guests are never given an order lookup by the assistant, in any language: hand them to the existing Track order page.
     if (actor.kind === "guest" && det.intent === "order_status") {
@@ -204,6 +240,7 @@ export class RoutingPipeline implements ChatPipeline {
 
     // 3. Static answers, clarifications and hand-offs need no tool.
     if (decision.action === "static") return this.maybePolish(input, finish, decision.template ?? "clarify_what", lang.script);
+    if (decision.template === "clarify_accessory_for") reasoning.pending = "device";
     if (decision.action === "clarify") return (decision.template ?? "clarify_what") === "clarify_what" ? clarifyOrChat({ model, queuedMs }) : finish(decision.template ?? "clarify_what", { model, queuedMs });
     if (decision.action === "handoff") {
       const href = decision.navigate ?? "/checkout";
@@ -225,9 +262,14 @@ export class RoutingPipeline implements ChatPipeline {
     const safeCalls = idOk.filter((c) => !unknownFilterIn(c, categories, brands));
     if (safeCalls.length === 0) return finish(idOk.length === 0 ? "clarify_product" : "clarify_what", { model, queuedMs });
 
+    // A search is a statement of what the shopper wants: fold it (and any usage they mention) into their profile, then fetch enough
+    // candidates (up to 8) to rank them for this shopper.
+    for (const c of safeCalls) if (c.name === "search_products") updateProfileFromSearch(reasoning, c.arguments, usages);
+    const toRun = safeCalls.map((c) => (c.name === "search_products" && c.arguments.limit === undefined ? { ...c, arguments: { ...c.arguments, limit: CANDIDATE_LIMIT } } : c));
+
     emit({ type: "status", phase: "tool" });
     const toolStart = this.now();
-    const outcomes = await runToolCalls(this.deps.registry, safeCalls, { actor, requestId: input.requestId, signal: input.signal, cart: request.cart });
+    let outcomes = await runToolCalls(this.deps.registry, toRun, { actor, requestId: input.requestId, signal: input.signal, cart: request.cart });
     if (this.deps.metrics) {
       this.deps.metrics.toolBatchMs(this.now() - toolStart);
       for (const o of outcomes) this.deps.metrics.tool(o.tool, o.status);
@@ -243,15 +285,124 @@ export class RoutingPipeline implements ChatPipeline {
         actions.push(parsed.data.type.startsWith("cart.") ? ({ ...parsed.data, confirm: "ask" } as ClientAction) : parsed.data);
       }
     }
-    const cards = this.deps.cardsFrom?.(outcomes) ?? [];
-    const shown = this.deps.shownProductIdsFrom?.(outcomes) ?? [];
+    // Reasoning over a search: no exact match -> close alternatives; otherwise rank for this shopper, say why, and maybe ask ONE question.
+    let reasoned: ReasonedSearch | null = null;
+    const si = searchIndex(outcomes);
+    if (si >= 0) {
+      const first = outcomes[si] as { data: { total: number } };
+      let alternatives = false;
+      // The catalogue's categories are the shop's own and may not match how shoppers speak (iPhones filed under "apple"): when a category
+      // finds nothing, look for the kind of product by name before saying there are none.
+      const word = decision.entities.conceptWord;
+      if (first.data.total === 0 && profile.category && !profile.query && word) {
+        // Only when the CATEGORY itself holds nothing in stock (a budget or brand that excluded everything is a different case, handled below).
+        const emptyCheck = await runToolCalls(this.deps.registry, [{ name: "search_products", arguments: { category: profile.category, inStockOnly: true, limit: 1 } }], { actor, requestId: input.requestId, signal: input.signal, cart: request.cart });
+        const ei = searchIndex(emptyCheck);
+        const categoryEmpty = ei >= 0 && (emptyCheck[ei] as { data: { total: number } }).data.total === 0;
+        if (categoryEmpty) {
+          const byName = toRun.find((c) => c.name === "search_products");
+          const retry = await runToolCalls(this.deps.registry, [{ name: "search_products", arguments: { ...(byName?.arguments ?? {}), category: undefined, query: word } }], { actor, requestId: input.requestId, signal: input.signal, cart: request.cart });
+          const ri = searchIndex(retry);
+          if (ri >= 0) {
+            const found = retry[ri] as { tool: string; status: "ok"; data: { kind: "search"; total: number; items: ProductView[] } };
+            const real = found.data.items.filter((p) => !looksLikeAccessory(p));
+            if (real.length > 0) {
+              outcomes = [...outcomes.slice(0, si), { ...found, data: { ...found.data, total: real.length, items: real } }, ...outcomes.slice(si + 1)];
+              delete profile.category;
+              profile.query = word;
+            }
+          }
+        }
+      }
+      if ((outcomes[si] as { data: { total: number } }).data.total === 0 && profile.category && (profile.brand || profile.query || profile.budgetMaxLkr !== undefined)) {
+        // Close alternatives, widest last: the same category without the brand or word that found nothing (budget kept first, then dropped:
+        // the card says when it is over budget), then the same kind of product by name when the category holds nothing in stock.
+        const budgetVariants = profile.budgetMaxLkr !== undefined ? [true, false] : [false];
+        const attempts: Record<string, unknown>[] = [];
+        for (const keep of budgetVariants) attempts.push(profileSearchArgs({ category: profile.category, usage: [], ...(keep ? { budgetMaxLkr: profile.budgetMaxLkr } : {}) }));
+        if (word) for (const keep of budgetVariants) attempts.push(profileSearchArgs({ query: word, usage: [], ...(keep ? { budgetMaxLkr: profile.budgetMaxLkr } : {}) }));
+        for (const altArgs of attempts) {
+          const alt = await runToolCalls(this.deps.registry, [{ name: "search_products", arguments: altArgs }], { actor, requestId: input.requestId, signal: input.signal, cart: request.cart });
+          const ai = searchIndex(alt);
+          if (ai < 0) continue;
+          const hit = alt[ai] as { tool: string; status: "ok"; data: { kind: "search"; total: number; items: ProductView[] } };
+          // A by-name attempt must not turn up accessories (a phone case is not an alternative to a phone).
+          const items = altArgs.category === undefined ? hit.data.items.filter((p) => !looksLikeAccessory(p)) : hit.data.items;
+          if (items.length > 0) {
+            outcomes = [...outcomes.slice(0, si), { ...hit, data: { ...hit.data, total: items.length, items } }, ...outcomes.slice(si + 1)];
+            alternatives = true;
+            break;
+          }
+        }
+      }
+      const explicitSort = toRun.some((c) => c.name === "search_products" && typeof c.arguments.sort === "string");
+      reasoned = reasonAboutSearch(outcomes, reasoning, { hasProductContext: Boolean(request.context?.productId), alternatives, explicitSort });
+      if (reasoned) outcomes = reasoned.outcomes;
+    }
+
+    const cardSource = reasoned ? reasoned.cardOutcomes : outcomes;
+    let cards = this.deps.cardsFrom?.(cardSource) ?? [];
+    let fitCandidates: string[] = reasoned?.candidateIds ?? [];
+    const personalNow = profile.usage.length > 0 || profile.budgetMaxLkr !== undefined || profile.budgetMinLkr !== undefined || Boolean(profile.brand);
+    if (reasoned) {
+      // Fit codes explain a match against what the shopper SAID; a bare browse has nothing to explain, so it carries none.
+      if (personalNow || reasoned.usedAlternatives) {
+        const fits = reasoned.fits;
+        cards = cards.map((c) => (c.type === "product" && fits.has(c.id) ? { ...c, fit: fits.get(c.id)! } : c));
+      } else fitCandidates = [];
+    } else {
+      // One product under discussion (details, "is it worth it?"): say how it sits against what the shopper told us.
+      const detail = outcomes.find((o) => o.status === "ok" && (o.data as { kind?: string } | undefined)?.kind === "details");
+      const view = detail && detail.status === "ok" ? (detail.data as { product?: Parameters<typeof fitFor>[0] }).product : undefined;
+      const f = view ? fitFor(view, profile) : null;
+      if (view && f) {
+        cards = cards.map((c) => (c.type === "product" && c.id === view.id ? { ...c, fit: f } : c));
+        fitCandidates = [view.id];
+      }
+    }
+    const shown = this.deps.shownProductIdsFrom?.(cardSource) ?? [];
     session.lastIntent = decision.intent;
     const e = decision.entities;
-    if (e.brand) session.slots.brand = e.brand;
-    if (e.categorySlug) session.slots.category = e.categorySlug;
-    if (e.maxPriceLkr !== undefined) session.slots.budgetLkr = e.maxPriceLkr;
+    // What the search was about is replaced, not accumulated, so a new topic never inherits the previous one.
+    const search = safeCalls.find((c) => c.name === "search_products");
+    if (search) {
+      const a = search.arguments as { brand?: unknown; category?: unknown; query?: unknown; maxPriceLkr?: unknown };
+      session.slots = {
+        ...(typeof a.brand === "string" ? { brand: a.brand } : {}),
+        ...(typeof a.category === "string" ? { category: a.category } : {}),
+        ...(typeof a.query === "string" ? { query: a.query } : {}),
+        ...(typeof a.maxPriceLkr === "number" ? { budgetLkr: a.maxPriceLkr } : {}),
+      };
+    } else {
+      if (e.brand) session.slots.brand = e.brand;
+      if (e.categorySlug) session.slots.category = e.categorySlug;
+      if (e.maxPriceLkr !== undefined) session.slots.budgetLkr = e.maxPriceLkr;
+    }
 
-    return finish(templateForOutcomes(outcomes, decision), { actions, cards, model, queuedMs, outcomes, shownIds: shown });
+    // Which fixed reply goes with the cards, and the one follow-up question (if any).
+    let replyKey = templateForOutcomes(outcomes, decision);
+    const personal = profile.usage.length > 0 || profile.budgetMaxLkr !== undefined || profile.budgetMinLkr !== undefined || Boolean(profile.brand);
+    if (reasoned && replyKey === "tools_ran") {
+      if (reasoned.usedAlternatives) replyKey = "no_match_alternatives";
+      else if (decision.reason === "brand_advice") replyKey = "brand_advice";
+      else if (reasoned.metricsWithoutData > 0) replyKey = "recommend_limited_data";
+      else if (personal) replyKey = "recommend_intro";
+    }
+    let followUp: TemplateKey | undefined;
+    if (reasoned?.question) {
+      const q = reasoned.question;
+      followUp = q === "budget" ? "ask_budget" : q === "usage" ? (reasoned.kind === "laptop" ? "ask_usage_laptop" : "ask_usage_phone") : q === "brand" ? "ask_brand" : "ask_device";
+      reasoning.asked.push(q);
+      reasoning.pending = q;
+      reasoning.questionsInARow += 1;
+    } else reasoning.questionsInARow = 0;
+
+    // What was shown and chosen, for "the second one", "the one I mentioned before" and "is it worth it?".
+    reasoning.discussed = [...new Set([...shown, ...reasoning.discussed])].slice(0, 8);
+    if (si >= 0 && shown.length > 0) reasoning.lastResultIds = shown;
+    for (const a of actions) if (a.type === "cart.add") reasoning.selected = [...new Set([a.productId, ...reasoning.selected])].slice(0, 8);
+
+    return finish(replyKey, { actions, cards, model, queuedMs, outcomes, shownIds: shown, ...(followUp ? { followUp } : {}), ...(fitCandidates.length ? { fitContext: { profile: structuredClone(profile), candidateIds: fitCandidates } } : {}) });
   }
 
   private async maybePolish(input: PipelineInput, finish: (k: TemplateKey, x?: { polishable?: boolean }) => PipelineResult, key: TemplateKey, script: string): Promise<PipelineResult> {
@@ -277,7 +428,7 @@ export class RoutingPipeline implements ChatPipeline {
     lang: ReturnType<typeof detectLanguage>,
     tplLang: "en" | "si",
     key: TemplateKey,
-    extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; outcomes?: ToolOutcome[]; shownIds?: string[]; modelReply?: string; catalogueNames?: string[] },
+    extra: { actions?: ClientAction[]; cards?: Card[]; model?: string | null; degraded?: boolean; queuedMs?: number; outcomes?: ToolOutcome[]; shownIds?: string[]; modelReply?: string; catalogueNames?: string[]; followUp?: TemplateKey; fitContext?: { profile: import("../reasoning/profile").Profile; candidateIds: string[] } },
     emit: (e: PipelineEvent) => void,
     session: SessionState,
     sessionKeyValue: string,
@@ -290,7 +441,8 @@ export class RoutingPipeline implements ChatPipeline {
     let needsNativeReview = lang.language !== "en" || hasSinhala(tpl.text);
 
     // A model-written reply is used only if the verifier accepts it; otherwise the fixed template below is used, as if there were none.
-    let replyText = tpl.text;
+    const followUp = extra.followUp;
+    let replyText = followUp ? tpl.text + REPLY_PART_SEPARATOR + renderTemplate(followUp, tplLang).text : tpl.text;
     let replySource: "template" | "qwen" = "template";
     if (extra.modelReply !== undefined) {
       const mv = verifyResponse({
@@ -321,7 +473,9 @@ export class RoutingPipeline implements ChatPipeline {
       tplLang,
       language: lang.language,
       needsNativeReview,
-      suggestions: suggestionsFor(templateKey, tplLang),
+      ...(followUp ? { templateKeys: [templateKey, followUp] } : {}),
+      ...(extra.fitContext ? { fitContext: extra.fitContext } : {}),
+      suggestions: suggestionsFor(followUp ?? templateKey, tplLang, { afterSearch: !followUp && session.lastIntent === "search_products" }),
       ...(replySource === "qwen" ? { catalogueNames: extra.catalogueNames ?? [] } : {}),
     });
     let shown = extra.shownIds ?? [];
@@ -334,7 +488,7 @@ export class RoutingPipeline implements ChatPipeline {
       shown = [];
       needsNativeReview = lang.language !== "en" || hasSinhala(tpl.text);
     }
-    const suggestions = verdict.ok ? suggestionsFor(templateKey, tplLang) : [];
+    const suggestions = verdict.ok ? suggestionsFor(followUp ?? templateKey, tplLang, { afterSearch: !followUp && session.lastIntent === "search_products" }) : [];
     for (const c of cards) emit({ type: "card", card: c });
     for (const a of actions) emit({ type: "action", action: a });
     if (shown.length) session.lastShownProductIds = [...new Set([...shown, ...session.lastShownProductIds])].slice(0, 5);

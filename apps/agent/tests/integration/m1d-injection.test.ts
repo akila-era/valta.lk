@@ -100,7 +100,7 @@ describe("hidden instructions inside product data are treated as data", () => {
     const s = mockStack(fake, { transport });
     const { result } = await run(s.pipeline, "Show me Nova phones");
     expect(result.actions).toEqual([]);
-    expect(result.reply.text).toBe(renderTemplate("tools_ran", "en").text);
+    expect(result.reply.text).toBe(renderTemplate("recommend_intro", "en").text);
     const card = result.cards.find((c) => c.type === "product" && c.id === NOVA) as { price: { text: string } } | undefined;
     expect(card?.price.text).toBe("Rs. 129,900.00");
   });

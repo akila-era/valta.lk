@@ -108,7 +108,7 @@ describe("contract version negotiation over HTTP", () => {
     expect(legacy.cards[0]!.products).toHaveLength(3);
     const current = (await (await post(url, { sessionId: SID, message: MSG[4], contractVersion: CONTRACT_VERSION })).json()) as { cards: Cmp[]; meta: { contractVersion: string } };
     expect(ChatResponse.safeParse(current).success).toBe(true);
-    expect(current.meta.contractVersion).toBe("1.1");
+    expect(current.meta.contractVersion).toBe(CONTRACT_VERSION);
     expect(current.cards[0]!.products).toHaveLength(4);
   });
 

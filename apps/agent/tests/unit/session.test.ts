@@ -96,7 +96,7 @@ describe("session keys and state", () => {
   });
 
   it("holds no message text by design", () => {
-    expect(Object.keys(emptySession()).sort()).toEqual(["lastShownProductIds", "slots"]);
+    expect(Object.keys(emptySession()).sort()).toEqual(["lastShownProductIds", "reasoning", "slots"]);
   });
 });
 

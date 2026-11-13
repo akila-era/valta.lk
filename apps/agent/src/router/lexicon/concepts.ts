@@ -47,8 +47,19 @@ export const COLORS: Record<string, string[]> = {
 };
 
 /** "this one" and "these". */
-export const REFERENT_SINGLE = ["this", "this one", "it", "that one", "meka", "meke", "mekata", "meken", "මේක", "මේකේ", "මේකට", "මෙය", "මෙම", "ඒක", "ඒකේ", "මේ"];
-export const REFERENT_PLURAL = ["these", "these two", "both", "මේ දෙක", "මේ දෙකෙන්", "දෙකම", "මේවා", "mewa", "me deka"];
+export const REFERENT_SINGLE = ["this", "this one", "it", "that one", "meyata", "eyata", "ara eka", "e model eka", "e eka", "that model", "meka", "meke", "mekata", "meken", "මේක", "මේකේ", "මේකට", "මෙය", "මෙම", "ඒක", "ඒකේ", "මේ"];
+export const REFERENT_PLURAL = ["these", "these two", "the first two", "first two", "top two", "the two", "both", "මේ දෙක", "මේ දෙකෙන්", "දෙකම", "මේවා", "mewa", "me deka"];
+
+/** "the first / second / third / fourth one" of the last list, and "the last one". Provisional. */
+export const ORDINALS: { n: number; words: string[] }[] = [
+  { n: 1, words: ["first one", "the first", "1st one", "palaweni eka", "palaweni ekak", "palaweni", "පළවෙනි", "පළමු", "පළමුවෙනි"] },
+  { n: 2, words: ["second one", "the second", "2nd one", "deweni eka", "deweni", "දෙවෙනි", "දෙවැනි"] },
+  { n: 3, words: ["third one", "the third", "3rd one", "thunweni eka", "thunweni", "තුන්වෙනි", "තුන්වැනි"] },
+  { n: 4, words: ["fourth one", "the fourth", "4th one", "hatharaweni eka", "හතරවෙනි", "හතරවැනි"] },
+  { n: -1, words: ["last one", "the last", "anthima eka", "anthima", "අන්තිම", "අවසාන"] },
+];
+/** "the one I mentioned before". Provisional. */
+export const PREVIOUS_REFS = ["kalin kiyapu", "kalin kiwwa", "kalin kiyapu eka", "kalin eka", "the one i mentioned", "the one you mentioned", "the one before", "the earlier one", "the previous one", "previous one", "කලින් කියපු", "කලින් කිව්ව", "කලින් එක"];
 
 /** Spoken small quantities. Provisional. */
 export const NUMBER_WORDS: Record<number, string[]> = {

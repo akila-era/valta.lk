@@ -1,6 +1,6 @@
 import { parseAmounts, toPriceBounds } from "./amounts";
 import { anyPhrase, compilePhrase, makeHaystack, phraseMatches, type Haystack } from "./cues";
-import { COLORS, CONCEPTS, NUMBER_WORDS, ON_SALE, REFERENT_PLURAL, REFERENT_SINGLE, SORT_CHEAP, SORT_EXPENSIVE, SORT_NEWEST, STOPWORDS } from "./lexicon/concepts";
+import { COLORS, CONCEPTS, NUMBER_WORDS, ON_SALE, ORDINALS, PREVIOUS_REFS, REFERENT_PLURAL, REFERENT_SINGLE, SORT_CHEAP, SORT_EXPENSIVE, SORT_NEWEST, STOPWORDS } from "./lexicon/concepts";
 import { editDistanceAtMost, normalizeDisplay, normalizeMatch, tokenize } from "./normalize";
 import type { Entities, ProductMatch, Vocabulary, VocabProduct } from "./types";
 
@@ -17,6 +17,9 @@ const QUANTITY_PATTERNS: RegExp[] = [
 const ORDER_REF = /\bVLK-\d{6}-[A-HJKMNP-TV-Z2-9]{10}\b/i;
 /** Tokens in product names that do not identify a product on their own. */
 const GENERIC_PRODUCT_TOKENS = new Set(["smartphone", "phone", "mobile", "the", "and", "with", "for", "of", "sold", "out"]);
+
+/** Well-known brand names. A catalogue that does not carry one still gets an honest "not found" instead of unrelated products. */
+const KNOWN_BRAND_WORDS = new Set(["samsung", "apple", "xiaomi", "huawei", "honor", "oppo", "vivo", "realme", "oneplus", "nokia", "motorola", "google", "sony", "lg", "lenovo", "dell", "hp", "asus", "acer", "msi", "microsoft", "anker", "jbl", "logitech", "tecno", "infinix", "itel", "zte", "nothing"]);
 
 const fuzzyEqual = (a: string, b: string): boolean => a === b || (a.length >= 5 && b.length >= 5 && editDistanceAtMost(a, b, 1));
 
@@ -83,6 +86,15 @@ function matchBrand(h: Haystack, vocab: Vocabulary): string | undefined {
   return undefined;
 }
 
+const CONCEPT_SEARCH_WORD: Record<string, string> = { phone: "phone", laptop: "laptop", tablet: "tablet" };
+
+/** A catalogue model word of at least five letters ("iphone") that the message contains, lower-case. Short model codes are ignored. */
+function matchModelWord(h: Haystack, vocab: Vocabulary): string | undefined {
+  const models = new Set<string>();
+  for (const p of vocab.products) for (const t of tokenize(normalizeMatch(p.model ?? ""))) if (t.length >= 5 && !STOPWORDS.has(t) && /^[a-z]+$/.test(t)) models.add(t);
+  return h.tokens.find((t) => models.has(t));
+}
+
 function resolveCategory(catalogueWords: string[], vocab: Vocabulary): string | undefined {
   for (const c of vocab.categories) {
     const name = c.name.toLowerCase();
@@ -102,6 +114,10 @@ function unknownTerms(display: string, h: Haystack, vocab: Vocabulary, brand: st
     if (word.length < 3 || /^\d+$/.test(word)) continue;
     const lower = word.toLowerCase();
     if (STOPWORDS.has(lower) || known.has(lower) || h.tokenSet.has(lower) === false) continue;
+    if (KNOWN_BRAND_WORDS.has(lower)) {
+      out.push(lower);
+      continue;
+    }
     // Brand-like: starts upper-case, or has an interior capital ("iPhone"). Plain lower-case words are ordinary vocabulary.
     if (/^[A-Z]/.test(word) || /[a-z][A-Z]/.test(word)) {
       if (CONCEPTS.some((c) => c.words.some((w) => normalizeMatch(w) === lower))) continue;
@@ -123,10 +139,12 @@ export function extractEntities(rawMessage: string, vocab: Vocabulary): Entities
   // Specific concept first (charger before phone). A concept resolves to a category only if the catalogue really has one.
   let categorySlug: string | undefined;
   let queryWord: string | undefined;
+  let conceptWord: string | undefined;
   for (const c of CONCEPTS) {
     if (c.words.some((w) => phraseMatches(h, compilePhrase(w)))) {
       categorySlug = resolveCategory(c.catalogueWords, vocab);
       if (c.queryWord) queryWord = c.queryWord;
+      conceptWord = c.queryWord ?? CONCEPT_SEARCH_WORD[c.id];
       break;
     }
   }
@@ -151,9 +169,15 @@ export function extractEntities(rawMessage: string, vocab: Vocabulary): Entities
 
   const { products, ambiguous } = matchProducts(h, vocab);
   const brand = matchBrand(h, vocab);
-
+  // A word that is the MODEL of catalogue products ("iphone") is what the shopper is looking for, even when no product name contains it.
+  if (!queryWord && !brand && products.length === 0) {
+    const model = matchModelWord(h, vocab);
+    if (model) queryWord = model;
+  }
+  const ordinal = ORDINALS.find((o) => anyPhrase(h, o.words))?.n;
+  const previous = anyPhrase(h, PREVIOUS_REFS);
   const plural = anyPhrase(h, REFERENT_PLURAL);
-  const single = !plural && anyPhrase(h, REFERENT_SINGLE);
+  const single = !plural && (ordinal !== undefined || previous || anyPhrase(h, REFERENT_SINGLE));
 
   const sort = anyPhrase(h, SORT_CHEAP) ? "price-asc" : anyPhrase(h, SORT_EXPENSIVE) ? "price-desc" : anyPhrase(h, SORT_NEWEST) ? "newest" : undefined;
   const onSale = anyPhrase(h, ON_SALE) && !/\b(give|apply|make)\b/.test(text);
@@ -168,10 +192,13 @@ export function extractEntities(rawMessage: string, vocab: Vocabulary): Entities
     storages,
     ...(categorySlug ? { categorySlug } : {}),
     ...(queryWord ? { queryWord } : {}),
+    ...(conceptWord ? { conceptWord } : {}),
     ...(brand ? { brand } : {}),
     products,
     productAmbiguous: ambiguous,
     ...(plural ? { referent: "plural" as const } : single ? { referent: "single" as const } : {}),
+    ...(ordinal !== undefined ? { ordinal } : {}),
+    ...(previous ? { previous: true } : {}),
     ...(ref ? { orderRef: ref[0].toUpperCase() } : {}),
     ...(sort ? { sort } : {}),
     ...(onSale ? { onSale: true } : {}),

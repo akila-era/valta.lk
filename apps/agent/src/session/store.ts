@@ -1,5 +1,6 @@
 import { formatIdentity, type Identity } from "../auth/hmac";
 import type { Language } from "../contract/schemas";
+import { emptyReasoning, type ReasoningState } from "../reasoning/profile";
 
 /**
  * Short-term conversation state. In memory only: it is never written to disk, so a restart simply forgets it and the
@@ -8,13 +9,16 @@ import type { Language } from "../contract/schemas";
 export interface SessionState {
   language?: Language;
   lastIntent?: string;
-  slots: { brand?: string; category?: string; budgetLkr?: number };
+  /** The last search's subject. `query` is a free word such as "power bank", or a brand the catalogue does not carry. */
+  slots: { brand?: string; category?: string; budgetLkr?: number; query?: string };
   /** Ids only, newest first. Used to resolve "this one". */
   lastShownProductIds: string[];
   pendingClarification?: string;
+  /** The shopper's requirement profile, what was asked, and the products discussed (see src/reasoning). */
+  reasoning: ReasoningState;
 }
 
-export const emptySession = (): SessionState => ({ slots: {}, lastShownProductIds: [] });
+export const emptySession = (): SessionState => ({ slots: {}, lastShownProductIds: [], reasoning: emptyReasoning() });
 
 /** Keyed by identity AND session id, so knowing someone's session id is not enough to read their state. */
 export const sessionKey = (identity: Identity, sessionId: string): string => `${formatIdentity(identity)}|${sessionId}`;

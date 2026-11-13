@@ -60,7 +60,7 @@ export const FRAMES: Partial<Record<ScoredIntent, Frame[]>> = {
     { w: 4, all: [CART_THING, ["show", "see", "view", "what", "whats", "list", "everything", "contents", "inside", "got", "thiyenne", "thiyena", "thiyenawa", "monawada", "pennanna", "balanna", "බලන්න", "පෙන්නන්න", "මොනවද", "තියෙන්නේ", "තියෙන", "තියෙනවා", "තියෙන දේවල්", "තියෙන ඒවා"]], not: [...REMOVE_WORD, "add", "put", "danna", "දාන්න", "දාගන්න"] },
   ],
   get_accessories: [
-    { w: 5, all: [ACCESSORY_THING, ["fit", "fits", "go with", "goes with", "work with", "works with", "compatible", "for this", "for it", "for my", "for that", "also need", "also want", "ekata", "meta", "මේකට", "ඒකට", "එකට", "ගැළපෙන", "ගැලපෙන", "ගැළපේ", "hari yana", "hariyana", "hari yanawa", "හරි යන", "ගන්න ඕන", "ganna one", "ඕන"]], not: CART_THING },
+    { w: 5, all: [ACCESSORY_THING, ["fit", "fits", "go with", "goes with", "work with", "works with", "compatible", "for this", "for it", "for my", "for that", "also need", "also want", "ekata", "mekata", "eyata", "meyata", "meta", "මේකට", "ඒකට", "එකට", "ගැළපෙන", "ගැලපෙන", "ගැළපේ", "hari yana", "hariyana", "hari yanawa", "හරි යන", "ගන්න ඕන", "ganna one", "ඕන"]], not: CART_THING },
   ],
   check_stock: [
     { w: 4, all: [COLOUR, ["available", "stock", "have", "thiyenawada", "thiyenawa", "තියෙනවද", "තියෙනවාද", "තියේද", "ඇද්ද", "තොග", "still"]] },
@@ -77,6 +77,15 @@ export const FRAMES: Partial<Record<ScoredIntent, Frame[]>> = {
     },
   ],
   search_products: [
+    // "gaming laptop", "camera phone", "laptop for programming": a product kind together with what it is for is a search.
+    {
+      w: 4,
+      all: [
+        ["phone", "phones", "laptop", "laptops", "tablet", "smartphone", "mobile", "ෆෝන්", "ලැප්ටොප්", "fone", "labtop"],
+        ["gaming", "game", "games", "camera", "photography", "battery", "office", "programming", "coding", "design", "editing", "student", "කැමරා", "ගේම්", "බැටරි"],
+      ],
+      not: ["this", "that", "meka", "eka kohomada", "how is", "how are", "මේක", "ඒක", "මේ", "මෙම", "compare", "vs"],
+    },
     { w: 5, all: [["new", "newest", "latest", "just come in", "just arrived", "arrivals", "aluth", "aluthma", "aluthin", "අලුත්", "අලුත්ම", "අලුතින්"], ["items", "stuff", "products", "goods", "arrivals", "show", "what", "monawada", "මොනවද", "පෙන්නන්න", "pennanna", "බඩු", "badu", "ආපු", "ena", "come", "came"]] },
     { w: 4, all: [["cost", "costs", "price", "priced", "pay", "spend", "budget", "mila", "මිල", "බජට්", "salli", "රුපියල්", "rupees", "rs", "lkr"], ["less", "under", "below", "within", "adu", "අඩු", "at most", "max", "not more", "wadi nowana"]] },
     { w: 4, all: [["pick out", "pick", "select", "choose", "recommend", "suggest", "find", "hoyala", "hoya", "therala", "තෝරලා", "තෝරා", "හොයලා", "හොයන්න", "pennanna", "පෙන්නන්න", "look for", "looking for", "buying", "shopping", "gannawa", "ගන්න හිතාගෙන", "බලනවා", "balanawa", "ඕන", "one"], ["phone", "phones", "laptop", "laptops", "tablet", "tablets", "earbuds", "headphones", "headphone", "watch", "speaker", "ෆෝන්", "ටැබ්ලට්", "ඉයර්බඩ්ස්", "හෙඩ්ෆෝන්", "ලැප්ටොප්", "වොච්"]] },

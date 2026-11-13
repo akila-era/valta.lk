@@ -23,6 +23,7 @@ export interface MockStackOptions<T extends ErpTransport = FixtureErpTransport> 
   catalogueTtlMs?: number;
   onVerifierFailure?: RoutingDeps["onVerifierFailure"];
   metrics?: RoutingDeps["metrics"];
+  onDecision?: RoutingDeps["onDecision"];
 }
 
 /**
@@ -48,6 +49,7 @@ export function createMockStack<T extends ErpTransport = FixtureErpTransport>(op
     shownProductIdsFrom: (o) => buildCards(o).shownIds,
     ...(opts.onVerifierFailure ? { onVerifierFailure: opts.onVerifierFailure } : {}),
     ...(opts.metrics ? { metrics: opts.metrics } : {}),
+    ...(opts.onDecision ? { onDecision: opts.onDecision } : {}),
     ...(opts.now ? { now: opts.now } : {}),
   });
   return { transport, site, catalogue, backend, registry, sessions, pipeline };

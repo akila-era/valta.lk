@@ -11,7 +11,7 @@ import { RoutingPipeline } from "../../src/pipeline/routing-pipeline";
 import { InferenceScheduler } from "../../src/queue/scheduler";
 import { detectLanguage } from "../../src/router/language";
 import { renderTemplate } from "../../src/router/templates";
-import { createSessionStore, sessionKey } from "../../src/session/store";
+import { createSessionStore, emptySession, sessionKey } from "../../src/session/store";
 import { createToolRegistry } from "../../src/tools/definitions";
 import { hasSinhala } from "../../src/util/script";
 import { SET_A, SET_B, SET_C } from "../eval/sinhala-sets";
@@ -81,7 +81,7 @@ describe("Sinhala, Singlish and mixed input never reaches Qwen", () => {
   it("plans a Sinhala search with the deterministic router and runs the tool", async () => {
     const { pipeline, stub } = build();
     const { result } = await run(pipeline, input("රුපියල් 100,000ට අඩු හොඳ phone එකක් පෙන්වන්න"));
-    expect(stub.calls).toEqual([{ tool: "search_products", args: { inStockOnly: true, limit: 5, category: "mobile-phones", maxPriceLkr: 100000 }, actor: "guest" }]);
+    expect(stub.calls).toEqual([{ tool: "search_products", args: { inStockOnly: true, limit: 30, category: "mobile-phones", maxPriceLkr: 100000 }, actor: "guest" }]);
     expect(result).toMatchObject({ language: "mixed", needsNativeReview: true, reply: { source: "template" } });
     expect(fake.requests).toHaveLength(0);
   });
@@ -125,14 +125,14 @@ describe("English input: Qwen chooses the tool, the server validates it", () => 
     for (const args of [{ category: "electronics", query: "x" }, { brand: "volta" }, { category: "smartphones", brand: "Nova" }]) {
       fake.setResponder(() => ({ content: "", tool_calls: [call("search_products", args)] }));
       const { pipeline, stub } = build();
-      const { result } = await run(pipeline, input("what do you have"));
+      const { result } = await run(pipeline, input("a gift for my cousin who likes gadgets"));
       expect(stub.calls, JSON.stringify(args)).toEqual([]);
       expect(result.reply.text).toBe(renderTemplate("clarify_what", "en").text);
     }
     // real vocabulary values pass
     fake.setResponder(() => ({ content: "", tool_calls: [call("search_products", { category: "mobile-phones", brand: "nova" })] }));
     const { pipeline, stub } = build();
-    await run(pipeline, input("what do you have"));
+    await run(pipeline, input("a gift for my cousin who likes gadgets"));
     expect(stub.calls.map((c) => c.tool)).toEqual(["search_products"]);
   });
 
@@ -216,7 +216,7 @@ describe("safety: no model, no tool, fixed refusal", () => {
     const expected = { injection: "refuse_injection", price_manipulation: "refuse_price", exfiltration: "refuse_exfil", sensitive_input: "refuse_sensitive" } as const;
     for (const c of UNSAFE) {
       const { result } = await run(pipeline, input(c.text, { customer: true }));
-      const tplLang = hasSinhala(c.text) ? "si" : "en";
+      const tplLang = detectLanguage(c.text).script === "en" ? "en" : "si";
       expect(result.reply.text, c.text).toBe(renderTemplate(expected[c.reason], tplLang).text);
       expect(result.cards).toEqual([]);
       expect(result.actions).toEqual([]);
@@ -239,7 +239,7 @@ describe("hand-offs and permissions", () => {
       const { pipeline, stub } = build();
       const { result } = await run(pipeline, input(msg));
       expect(result.actions).toEqual([{ type: "navigate", actionId: expect.any(String), href: "/track-order" }]);
-      expect(result.reply.text, msg).toBe(renderTemplate("order_guest_handoff", hasSinhala(msg) ? "si" : "en").text);
+      expect(result.reply.text, msg).toBe(renderTemplate("order_guest_handoff", detectLanguage(msg).script === "en" ? "en" : "si").text);
       expect(stub.calls, msg).toEqual([]);
     }
     expect(fake.requests).toHaveLength(0);
@@ -285,7 +285,7 @@ describe("no invented facts: every reply is a fixed template", () => {
     fake.setResponder(() => ({ content: "The Nova X1 costs 129,900 rupees, has 5000mAh and 2 years warranty.", tool_calls: [call("search_products", { query: "phone" })] }));
     const { pipeline } = build();
     const messages = [...SET_A, ...SET_B, ...SET_C].map((c) => c.text).concat(UNSAFE.map((c) => c.text), ["", "👍", "a".repeat(700), "Show me phones", "tell me about the Nova X1"].filter(Boolean));
-    const allowed = new Set(["greeting", "thanks", "goodbye", "identity", "capabilities", "clarify_what", "clarify_product", "clarify_two_products", "clarify_budget", "clarify_accessory_for", "clarify_variant", "clarify_ambiguous_product", "refuse_injection", "refuse_price", "refuse_exfil", "refuse_sensitive", "order_guest_handoff", "checkout_handoff", "order_support_handoff", "store_info_other", "tools_ran", "tool_failed", "busy_degraded", "cart_proposed", "no_results", "no_accessories", "cart_unavailable", "cart_not_in_cart", "order_none"]);
+    const allowed = new Set(["greeting", "how_are_you", "acknowledged", "help_yes", "browse_categories", "clarify_budget_what", "opinion_facts", "thanks", "goodbye", "identity", "capabilities", "clarify_what", "clarify_product", "clarify_two_products", "clarify_budget", "clarify_accessory_for", "clarify_variant", "clarify_ambiguous_product", "refuse_injection", "refuse_price", "refuse_exfil", "refuse_sensitive", "order_guest_handoff", "checkout_handoff", "order_support_handoff", "store_info_other", "tools_ran", "tool_failed", "busy_degraded", "cart_proposed", "no_results", "no_accessories", "cart_unavailable", "cart_not_in_cart", "order_none"]);
     const texts = new Set<string>();
     for (const k of allowed) for (const l of ["en", "si"] as const) texts.add(renderTemplate(k as never, l).text);
     for (const m of messages) {
@@ -365,7 +365,7 @@ describe("session state", () => {
 
   it("resolves 'this one' from what was shown earlier in the session", async () => {
     const { pipeline, sessions, stub } = build();
-    const s = sessions.get(sessionKey({ kind: "guest" }, SESSION)) ?? { slots: {}, lastShownProductIds: [] };
+    const s = sessions.get(sessionKey({ kind: "guest" }, SESSION)) ?? emptySession();
     s.lastShownProductIds = [NOVA];
     sessions.set(sessionKey({ kind: "guest" }, SESSION), s);
     await run(pipeline, input("මේක තොගේ තියෙනවද?"));

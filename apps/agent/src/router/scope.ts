@@ -33,6 +33,10 @@ const GENERAL_STRONG = [
   "වැඩ කරන්නේ කොහොමද", "වැඩ කරන්නේ කෙසේද", "සුභ පැතුම්", "ජාවා", "පයිතන්", "ඇයි කියලා",
   "wish ekak", "birthday wish", "email ekak", "letter ekak", "cover letter ekak",
 ];
+/** Creative, coding and translation requests: general even when a loose shopping cue such as "about the" is present, as long as nothing in the message anchors it to the catalogue. */
+const GENERAL_CREATIVE = ["write", "poem", "story", "essay", "joke", "riddle", "translate", "python", "javascript", "typescript", "algorithm", "recipe", "cover letter", "rewrite", "paraphrase", "ලියන්න", "කවියක්", "කතාවක්", "පරිවර්තනය"];
+const DEFINITIONAL_START = /^(what is|what are|what s|whats|explain|define|what does)\b|(kiyanne|kiyanne|kiyanney|කියන්නේ) (mokakda|mokada|monawada|මොකක්ද)$/;
+const DEFINITION_NOT_SHOPPING = ["price", "cost", "how much", "stock", "available", "in stock", "delivery", "cart", "order", "sale", "new", "arrived", "come in", "came in", "offer", "offers", "discount", "deal", "deals", "popular", "cheap", "cheapest", "latest"];
 const GENERAL_WEAK = ["what is", "what are", "what does", "what s", "what do", "how to", "why", "who is", "who was", "when did", "where is the", "kiyanne mokakda", "kiyanne monawada", "කියන්නේ මොකක්ද", "කියන්නේ මොනවාද", "ඇයි", "aiy"];
 
 /** Questions whose answer is live (weather, news, time, rates): the assistant cannot know them and must say so instead of inventing. */
@@ -53,7 +57,7 @@ export interface ScopeInput {
 
 /** True when the message names a catalogue anchor: a product, brand, category, search word, amount, or "this/that one". */
 export function hasCatalogueAnchor(e: Entities): boolean {
-  return e.products.length > 0 || Boolean(e.brand) || Boolean(e.categorySlug) || Boolean(e.queryWord) || Boolean(e.referent) || e.amounts.length > 0 || e.colors.length > 0 || e.storages.length > 0;
+  return e.products.length > 0 || Boolean(e.brand) || Boolean(e.categorySlug) || Boolean(e.queryWord) || Boolean(e.referent) || e.amounts.length > 0 || e.colors.length > 0 || e.storages.length > 0 || Boolean(e.onSale) || Boolean(e.sort);
 }
 
 export function scopeOf({ h, entities, shoppingScore }: ScopeInput): ScopeVerdict {
@@ -63,6 +67,9 @@ export function scopeOf({ h, entities, shoppingScore }: ScopeInput): ScopeVerdic
 
   if (anyPhrase(h, LIVE_INFO) && entities.products.length === 0 && !entities.brand) return "live_info";
   const anchored = hasCatalogueAnchor(entities);
+  // "What is RAM?", "explain X versus Y": a definition request with nothing from the catalogue in it, even though a spec word is a loose shopping cue.
+  if (!anchored && DEFINITIONAL_START.test(h.text) && !anyPhrase(h, DEFINITION_NOT_SHOPPING)) return "general";
+  if (!anchored && anyPhrase(h, GENERAL_CREATIVE) && shoppingScore <= 4) return "general";
   if (!anchored && anyPhrase(h, GENERAL_STRONG) && shoppingScore < 4) return "general";
   if (!anchored && anyPhrase(h, GENERAL_WEAK) && shoppingScore < 3) return "general";
   return null;

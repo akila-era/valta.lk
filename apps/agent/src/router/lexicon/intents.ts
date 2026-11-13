@@ -15,8 +15,8 @@ export interface CueGroup {
 
 export const INTENT_CUES: Record<ScoredIntent, CueGroup[]> = {
   search_products: [
-    { w: 3, p: ["show me", "find me", "looking for", "i need", "i want", "i am looking", "suggest", "recommend", "hoyanna", "pennanna", "which phone", "which phones", "what phones", "which smartphone", "wadiya hodama", "ganna one", "ganna oni", "ganna ona", "balanna one", "පෙන්වන්න", "හොයන්න", "හොයලා දෙන්න", "ගන්න ඕන", "ගන්න ඕනේ", "ගන්න ඕනෙ", "මොනවාද තියෙන්නේ", "do you have", "have any", "any phones", "i d like", "i would like", "would like to see", "let me see", "see some", "මොන phone", "මොන ෆෝන්", "onee", "denna", "ekak denna", "dennako", "mata denna", "ganna puluwan", "ganna puluwanda", "ganna puluwandha", "hoyala denna", "hoyaganna", "walata mila", "wala mila", "mila monawada", "mila range", "ගන්න පුළුවන්"] },
-    { w: 3, p: ["තියෙනවද", "තියෙනවාද", "තියේද", "නැද්ද", "නැතිද", "thiyenawada", "thiyanawada", "tiyenawada"] },
+    { w: 3, p: ["show me", "find me", "looking for", "i need", "i want", "i am looking", "suggest", "recommend", "hoyanna", "pennanna", "ekak ganna", "ekak gannako", "ganna hithuwa", "ganna hithanawa", "ekak ganna puluwan", "most expensive", "priciest", "highest price", "show the cheapest", "show cheapest", "cheapest first", "cheapest ones", "show the newest", "ලාභම ඒවා පෙන්වන්න", "which phone", "which phones", "what phones", "which smartphone", "wadiya hodama", "ganna one", "ganna oni", "ganna ona", "balanna one", "පෙන්වන්න", "හොයන්න", "හොයලා දෙන්න", "ගන්න ඕන", "ගන්න ඕනේ", "ගන්න ඕනෙ", "මොනවාද තියෙන්නේ", "do you have", "have any", "any phones", "i d like", "i would like", "would like to see", "let me see", "see some", "මොන phone", "මොන ෆෝන්", "onee", "denna", "ekak denna", "dennako", "mata denna", "ganna puluwan", "ganna puluwanda", "ganna puluwandha", "hoyala denna", "hoyaganna", "walata mila", "wala mila", "mila monawada", "mila range", "ගන්න පුළුවන්"] },
+    { w: 3, p: ["තියෙනවද", "තියෙනවාද", "තියේද", "නැද්ද", "නැතිද", "thiyenawada", "thiyanawada", "tiyenawada", "nadda"] },
     { w: 2, p: ["under", "below", "less than", "upto", "up to", "within", "budget", "cheap", "cheapest", "best", "good", "latest", "newest", "popular", "බජට්", "අඩු", "හොඳ", "ලාභ", "ලාභම", "අලුත්", "අලුත්ම", "adu", "hodama", "honda", "rupees", "රුපියල්", "rs", "lkr", "on sale", "sale", "discount", "discounts", "offers", "offer", "වට්ටම්", "වට්ටමක්", "ඕන", "ඕනේ", "ඕනෙ", "balanna", "oni", "ona"] },
   ],
   get_product_details: [
@@ -73,6 +73,7 @@ export const INTENT_CUES: Record<ScoredIntent, CueGroup[]> = {
   ],
   smalltalk: [
     { w: 4, p: ["hi", "hello", "hey", "hiya", "good morning", "good afternoon", "good evening", "thanks", "thank you", "thx", "bye", "goodbye", "see you", "ayubowan", "ආයුබෝවන්", "හායි", "හෙලෝ", "ස්තූතියි", "ස්තුතියි", "istuti", "sthuthi", "who are you", "what can you do", "what do you do", "how can you help", "ඔබ කවුද", "ඔයා කවුද", "umba kauda", "oya kauda", "මොනවද කරන්නේ", "ශුභ උදෑසන", "ශුභ සන්ධ්‍යාවක්", "ඔයාගේ නම", "ඔබේ නම", "your name", "what is your name", "how are you", "how r u", "sinhalen katha", "sinhala katha", "sinhalen puluwan", "sinhala puluwan", "speak sinhala", "sinhala support", "singlish", "සිංහලෙන් කතා", "සිංහලෙන් පුළුවන්", "oyata mokada karanna puluwan", "oyata mokakda karanna puluwan", "oyata mokak karanna puluwan", "oyata mond karann puluwn", "oyata mond karanna puluwan", "mokada karanna puluwan", "mokakda karanna puluwan", "mond karanna puluwan", "oyata mokada karanne", "ඔයාට මොනවද කරන්න පුළුවන්", "ඔයාට මොනවා කරන්න පුළුවන්", "මොනවද කරන්න පුළුවන්"] },
+    { w: 4, p: ["how are you", "how r u", "how are u", "kohomada oyata", "oyata kohomada", "oya kohomada", "kohomada oya", "ඔයාට කොහොමද", "ඔයා කොහොමද", "udaw karanna puluwanda", "udaw karanna puluwan", "puluwanda udaw", "can you help me", "could you help me", "will you help me", "උදව් කරන්න පුළුවන්ද", "මට උදව් කරන්න", "monawada product", "monawada products", "monawada thiyenne", "what products", "which products", "what do you sell", "what do you have", "what items", "what can i buy", "products monawada", "මොනවද තියෙන්නේ"] },
     { w: 3, p: ["kohomada", "kohomd", "kohomda", "kohoma da", "kohomada ado", "පිං", "help me", "උදව්", "උදව්වක්", "උදව් කරන්න"] },
     { w: 2, p: ["can you help", "help"] },
     { w: 1, p: ["කොහොමද"] },
@@ -80,7 +81,7 @@ export const INTENT_CUES: Record<ScoredIntent, CueGroup[]> = {
 };
 
 /** Words that make a question about availability ("is there...?") rather than a command. Used to separate search from stock checks. */
-export const AVAILABILITY_PHRASES = ["තියෙනවද", "තියෙනවාද", "තියේද", "thiyenawada", "thiyanawada", "tiyenawada", "do you have", "have any", "තියෙන්නේ", "නැද්ද", "නැතිද"];
+export const AVAILABILITY_PHRASES = ["තියෙනවද", "තියෙනවාද", "තියේද", "thiyenawada", "thiyanawada", "tiyenawada", "nadda", "do you have", "have any", "තියෙන්නේ", "නැද්ද", "නැතිද"];
 /** Words that, with a named product, mean the shopper wants a stock check even if a search cue is also present. */
 export const COMPATIBILITY_PHRASES = ["compatible", "goes with", "fits", "fit the", "fit my", "ගැළපෙන", "ගැලපෙන", "ekata charger", "ekata case", "ekata cable", "ekata cover", "ekata protector", "එකට case", "එකට charger", "එකට cover", "එකට cable", "එකට screen", "charger for", "case for", "cable for", "cover for"];
 export const EXPLICIT_STOCK_PHRASES = ["stock", "in stock", "out of stock", "availability", "available", "තොග", "තොගේ", "තොගයේ", "තොගයක්"];

@@ -1,0 +1,7 @@
+{
+  "recordedOn": "2026-11-13",
+  "note": "EVAL is the independent evaluation set for the M5 reasoning layer. It was written before the layer was measured and is never used for tuning. Hashes are SHA-256 over the file text with LF line endings. Author-written, not native-reviewed, on an invented fixture catalogue. Results are recorded in docs/AI_REASONING_BENCHMARK_REPORT.md and must not be rewritten.",
+  "files": {
+    "eval-set.ts": "2148b65cec5ac10474075d01d0d313ff7dda59d583974f8c1009436aad4f0051"
+  }
+}

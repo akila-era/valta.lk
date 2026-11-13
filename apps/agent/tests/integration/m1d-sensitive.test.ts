@@ -73,7 +73,7 @@ describe("sensitive input is detected, refused and never processed", () => {
     const state = s.sessions.get(key);
     expect(state).toBeDefined();
     expect(JSON.stringify(state)).not.toContain("Tr0ub4dor");
-    expect(Object.keys(state!).sort()).toEqual(["language", "lastShownProductIds", "slots"].sort());
+    expect(Object.keys(state!).sort()).toEqual(["language", "lastShownProductIds", "reasoning", "slots"].sort());
     expect(createSessionStore().size()).toBe(0);
   });
 

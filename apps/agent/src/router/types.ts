@@ -85,11 +85,17 @@ export interface Entities {
   categorySlug?: string;
   /** The specific thing asked for (for example "charger"), used as the search text. */
   queryWord?: string;
+  /** The kind of product named ("phone", "laptop"), as a search word, even when the catalogue has no category for it. */
+  conceptWord?: string;
   brand?: string;
   products: ProductMatch[];
   productAmbiguous: boolean;
   /** "this one", "these", "both". */
   referent?: "single" | "plural";
+  /** "the second one": 1-based position in the last result list, or -1 for "the last one". */
+  ordinal?: number;
+  /** "the one I mentioned before": the product discussed before the current one. */
+  previous?: boolean;
   orderRef?: string;
   sort?: "price-asc" | "price-desc" | "newest";
   onSale?: boolean;
@@ -101,7 +107,13 @@ export interface RouteContext {
   /** From the page the shopper is on. An untrusted hint, validated by the backend. */
   contextProductId?: string;
   lastShownProductIds: string[];
+  /** The last result list in display order ("the second one"), and products discussed, newest first ("the one I mentioned before"). */
+  lastResultIds?: string[];
+  discussedIds?: string[];
   cart: { productId: string; variantKey: string; quantity: number }[];
+  /** What the previous turn was, and what the last search was about, so a follow-up such as "100000 ta adu" refines it. */
+  lastIntent?: string;
+  slots?: { brand?: string; category?: string; query?: string; budgetMaxLkr?: number };
 }
 
 export interface PlannedCall {
@@ -111,6 +123,21 @@ export interface PlannedCall {
 
 export type TemplateKey =
   | "greeting"
+  | "recommend_intro"
+  | "recommend_limited_data"
+  | "no_match_alternatives"
+  | "brand_advice"
+  | "ask_budget"
+  | "ask_usage_phone"
+  | "ask_usage_laptop"
+  | "ask_brand"
+  | "ask_device"
+  | "how_are_you"
+  | "acknowledged"
+  | "help_yes"
+  | "browse_categories"
+  | "clarify_budget_what"
+  | "opinion_facts"
   | "thanks"
   | "goodbye"
   | "identity"

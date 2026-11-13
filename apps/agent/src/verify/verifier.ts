@@ -2,7 +2,9 @@ import { LEGACY_CONTRACT_VERSION, LEGACY_MAX_COMPARE_PRODUCTS, MAX_COMPARE_PRODU
 import type { CartLineView, OrderView, ProductView, ToolResult, VariantView } from "../backend/types";
 import { effectiveCents } from "../backend/types";
 import { containsSensitive } from "../router/safety";
-import { renderTemplate } from "../router/templates";
+import { renderTemplate, REPLY_PART_SEPARATOR } from "../router/templates";
+import { rankProducts } from "../reasoning/ranking";
+import type { Profile } from "../reasoning/profile";
 import type { TemplateKey } from "../router/types";
 import type { ToolOutcome } from "../tools/runner";
 import { hasSinhala } from "../util/script";
@@ -45,6 +47,10 @@ export interface VerifyInput {
   reply: { text: string; source: string };
   /** The fixed template the reply must be. Absent only for a polished Sinhala template. */
   templateKey?: TemplateKey;
+  /** A reply made of fixed templates joined by a blank line (for example a recommendation intro followed by one follow-up question). */
+  templateKeys?: readonly TemplateKey[];
+  /** What the shopper said they need, and the products the fit codes were ranked among: the verifier recomputes every `fit` from these. */
+  fitContext?: { profile: Profile; candidateIds: readonly string[] };
   tplLang: "en" | "si";
   language: "en" | "si" | "mixed";
   needsNativeReview: boolean;
@@ -184,6 +190,13 @@ export function verifyResponse(i: VerifyInput): VerifyResult {
       case "product": {
         const f = productCardOk(c, src.products.get(c.id));
         if (f) return fail(f);
+        if (c.fit) {
+          // `fit` is a claim about this product for this shopper: it must be exactly what the ranking code derives from the same sources.
+          if (!i.fitContext) return fail("product_mismatch");
+          const candidates = i.fitContext.candidateIds.map((id) => src.products.get(id)).filter((p): p is ProductView => p !== undefined);
+          const want = rankProducts(candidates, i.fitContext.profile).ranked.find((r) => r.product.id === c.id)?.fit;
+          if (!want || JSON.stringify(want) !== JSON.stringify(c.fit)) return fail("product_mismatch");
+        }
         break;
       }
       case "comparison": {
@@ -253,7 +266,8 @@ export function verifyResponse(i: VerifyInput): VerifyResult {
 
   // 3. The reply text is a fixed template (or a polished fact-free Sinhala template), never model-authored content.
   if (i.reply.source === "template") {
-    if (!i.templateKey || i.reply.text !== renderTemplate(i.templateKey, i.tplLang).text) return fail("reply_unsupported");
+    const expected = i.templateKeys && i.templateKeys.length > 0 ? i.templateKeys.map((k) => renderTemplate(k, i.tplLang).text).join(REPLY_PART_SEPARATOR) : i.templateKey ? renderTemplate(i.templateKey, i.tplLang).text : undefined;
+    if (expected === undefined || i.reply.text !== expected) return fail("reply_unsupported");
   } else if (i.reply.source === "sinhala-llm") {
     if (!hasSinhala(i.reply.text) || /\d|https?:|www\.|\bRs\b|LKR|%|@/i.test(i.reply.text) || i.reply.text.length > 600) return fail("reply_unsupported");
   } else if (i.reply.source === "qwen" && i.catalogueNames !== undefined) {

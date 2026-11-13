@@ -1,0 +1,7 @@
+{
+  "recordedOn": "2026-11-13",
+  "note": "HOLDOUT is an evaluation set and is never used for tuning. It was written before the M4 conversation layer was tuned. Hashes are SHA-256 over the file text with LF line endings. Author-written, not native-reviewed. Results are recorded in docs/AI_CONVERSATION_INTELLIGENCE_REPORT.md and must not be rewritten.",
+  "files": {
+    "holdout.ts": "ec0ada483474340db57c0381315349b3278f69fb95835c3e42c9cecba3cd2f13"
+  }
+}

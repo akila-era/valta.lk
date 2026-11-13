@@ -59,9 +59,10 @@ describe("router: category names that contain the word 'accessories'", () => {
     expect((await run(s.pipeline, "what accessories fit the Zen Book 14")).result.cards.map((c) => c.type)).toEqual(["accessory", "accessory", "accessory"]);
   });
 
-  it("a bare category noun ('keyboards') asks what the shopper wants, like 'phones' and 'laptops' do; with a verb it searches", async () => {
+  it("a bare category ('laptops', 'phones') asks what the shopper wants; a specific item ('keyboards') or a request with a verb searches", async () => {
     const s = createMockStack({ transport: new FixtureErpTransport() });
-    for (const m of ["keyboards", "laptops", "phones"]) expect((await run(s.pipeline, m)).result.reply.text, m).toBe(renderTemplate("clarify_what", "en").text);
+    for (const m of ["laptops", "phones"]) expect((await run(s.pipeline, m)).result.reply.text, m).toBe(renderTemplate("clarify_what", "en").text);
+    expect((await run(s.pipeline, "keyboards")).result.cards).toHaveLength(1);
     expect((await run(s.pipeline, "show me keyboards")).result.cards).toHaveLength(1);
   });
 });

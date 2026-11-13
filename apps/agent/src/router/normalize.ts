@@ -46,6 +46,14 @@ const SPELLING_VARIANTS: Record<string, string> = {
   chargar: "charger", chrger: "charger", charjer: "charger",
   avilable: "available", availble: "available", avaliable: "available",
   stok: "stock", chep: "cheap", cheep: "cheap", ordar: "order",
+  // Conversation (M4): "power banak" is "power bank ekak" typed short; "nadd" is the everyday "nadda" ("isn't there?"); "monada" is "monawada".
+  banak: "bank", banka: "bank", bnak: "bank", powerbank: "power bank", powrbank: "power bank",
+  nadd: "nadda", nedda: "nadda", nadhda: "nadda", nedd: "nadda", nada: "nadda",
+  monada: "monawada", monwada: "monawada", mnada: "monawada", mona: "monawada",
+  udav: "udaw", udau: "udaw", udw: "udaw",
+  hondd: "hondada", hondhada: "hondada", hondadha: "hondada", hodaida: "hondada", hondaida: "hondada", hodada: "hondada", hondaidha: "hondada", hodayida: "hondada",
+  helo: "hello", hellow: "hello", hii: "hi", heyy: "hey",
+  thx: "thanks", thanx: "thanks", thankyou: "thank you", thnks: "thanks",
 };
 
 export function normalizeMatch(input: string): string {

@@ -59,7 +59,7 @@ export function createToolRegistry(b: ToolBackend): ToolRegistry {
         inStockOnly: z.boolean().default(true),
         onSale: z.boolean().optional(),
         sort: z.enum(["newest", "price-asc", "price-desc", "name"]).optional(),
-        limit: z.number().int().min(1).max(8).default(5),
+        limit: z.number().int().min(1).max(30).default(5),
       },
       allow: BOTH,
       effect: "read",

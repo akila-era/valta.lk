@@ -52,7 +52,8 @@ function readOne(text: string, match: RegExpExecArray): AmountInfo | null {
   if (CURRENCY_BEFORE.test(before) || CURRENCY_AFTER.test(after)) explicit = true;
   value *= multiplier;
 
-  if (!explicit && value < 1_000) return null;
+  // A bare number below 1,000 is usually a quantity or a spec, so it needs a price word beside it ("under 500", "within 800") to count as a budget.
+  if (!explicit && value < 1_000 && !(value >= 100 && (test(MAX_CUES, `${before}|${after}`) || test(MIN_CUES, `${before}|${after}`)))) return null;
   if (!explicit && /\d{9,}/.test(raw.replace(/[,.]/g, ""))) return null; // phone-number sized
   if (value <= 0 || value > 50_000_000) return null;
   return { value: Math.round(value), role: "unknown", raw };

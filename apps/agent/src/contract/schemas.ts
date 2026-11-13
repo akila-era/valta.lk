@@ -5,12 +5,16 @@ import { hasSinhala } from "../util/script";
 /**
  * Bump when a schema changes. Sent in every response so the website side can refuse a mismatch.
  * 1.1 (M1-C): a comparison card may hold 2 to 4 products (1.0 allowed 2 to 3).
+ * 1.2 (M5): a product card may carry `fit`, codes saying why the product suits (or does not suit) what the shopper asked for. Codes only:
+ * the website writes the wording in the shopper's language. A 1.0 or 1.1 client never receives `fit`.
  * A client that does not send `contractVersion` is treated as 1.0 and never receives a comparison of more than 3 products;
  * a client that sends 1.1 gets up to 4; any other value is rejected as a validation error.
  */
-export const CONTRACT_VERSION = "1.1";
+export const CONTRACT_VERSION = "1.2";
 export const LEGACY_CONTRACT_VERSION = "1";
-export const SUPPORTED_CONTRACT_VERSIONS = [LEGACY_CONTRACT_VERSION, CONTRACT_VERSION] as const;
+/** 1.1 added comparisons of up to 4 products. */
+export const COMPARE4_CONTRACT_VERSION = "1.1";
+export const SUPPORTED_CONTRACT_VERSIONS = [LEGACY_CONTRACT_VERSION, COMPARE4_CONTRACT_VERSION, CONTRACT_VERSION] as const;
 export const ContractVersion = z.enum(SUPPORTED_CONTRACT_VERSIONS);
 export type ContractVersion = z.infer<typeof ContractVersion>;
 export const MAX_COMPARE_PRODUCTS = 4;
@@ -72,6 +76,20 @@ const ProductVariant = z.strictObject({
   price: Money,
 });
 
+/**
+ * Why a product suits the shopper's stated needs, as codes derived in code from verified catalogue fields and the shopper's own
+ * requirements (budget, brand, usage). Never free text, never a model's opinion.
+ */
+export const FIT_REASONS = ["within_budget", "brand_match", "best_camera", "best_battery", "most_memory", "lowest_price", "good_value", "on_sale", "has_warranty", "in_stock"] as const;
+export const FIT_TRADEOFFS = ["over_budget", "out_of_stock", "no_camera_data", "no_battery_data", "no_memory_data", "different_brand"] as const;
+export const Fit = z.strictObject({
+  reasons: z.array(z.enum(FIT_REASONS)).max(3),
+  tradeoffs: z.array(z.enum(FIT_TRADEOFFS)).max(2),
+});
+export type Fit = z.infer<typeof Fit>;
+export type FitReason = (typeof FIT_REASONS)[number];
+export type FitTradeoff = (typeof FIT_TRADEOFFS)[number];
+
 export const ProductCard = z.strictObject({
   type: z.literal("product"),
   id: ProductId,
@@ -87,6 +105,8 @@ export const ProductCard = z.strictObject({
   url: z.string().regex(/^\/products\/[A-Za-z0-9._~-]{1,200}$/),
   /** Specifications the backend actually provides (name and value). Never generated. Present on details responses. */
   specs: z.array(z.strictObject({ name: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(24).optional(),
+  /** Contract 1.2. Why this product suits the shopper's stated needs (see Fit). */
+  fit: Fit.optional(),
 });
 export type ProductCard = z.infer<typeof ProductCard>;
 

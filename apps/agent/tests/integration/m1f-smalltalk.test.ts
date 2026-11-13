@@ -1,18 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { createMockStack } from "../../src/mock/stack";
+import { detectLanguage } from "../../src/router/language";
 import { renderTemplate } from "../../src/router/templates";
 import { run } from "../fixtures/pipeline-helpers";
 
 /** Everyday Singlish and Sinhala greetings and "what can you do" questions are answered by the deterministic router with fixed texts. */
+/** Auto mode: Sinhala script and Singlish both get the Sinhala-style reply; only plain English gets English. */
+const tplLangOf = (m: string): "en" | "si" => (detectLanguage(m).script === "en" ? "en" : "si");
 const textOf = (key: Parameters<typeof renderTemplate>[0], lang: "en" | "si") => renderTemplate(key, lang).text;
 
 describe("small talk in Singlish and Sinhala", () => {
   it.each([
-    ["kohomada", "greeting"],
-    ["kohomd", "greeting"],
-    ["kohomda", "greeting"],
+    ["kohomada", "how_are_you"],
+    ["kohomd", "how_are_you"],
+    ["kohomda", "how_are_you"],
+    ["kohomada oyata", "how_are_you"],
     ["hi", "greeting"],
-    ["how are you", "greeting"],
+    ["how are you", "how_are_you"],
     ["oyata mokada karanna puluwan", "capabilities"],
     ["oyata mond karann puluwn", "capabilities"],
     ["mokakda karanna puluwan", "capabilities"],
@@ -21,16 +25,18 @@ describe("small talk in Singlish and Sinhala", () => {
   ] as const)("%s -> %s", async (message, key) => {
     const s = createMockStack();
     const { result } = await run(s.pipeline, message);
-    // A reply is in Sinhala only when the message has Sinhala script; Latin-script Singlish gets the English fixed text.
-    expect(result.reply.text).toBe(textOf(key, /[඀-෿]/.test(message) ? "si" : "en"));
+    // Sinhala script and Singlish get the Sinhala-style reply; plain English gets English.
+    expect(result.reply.text).toBe(textOf(key, tplLangOf(message)));
     expect(result.cards).toEqual([]);
     expect(result.actions).toEqual([]);
   });
 
-  it("a Sinhala-script reply is flagged for native review; the English fixed text for Latin-script messages is not", async () => {
+  it("a Sinhala-style reply (Sinhala script or Singlish) is flagged for native review; the English fixed text is not", async () => {
     const s = createMockStack();
     expect((await run(s.pipeline, "ඔයාට මොනවද කරන්න පුළුවන්")).result.needsNativeReview).toBe(true);
-    expect((await run(s.pipeline, "oyata mond karann puluwn")).result.reply.text).toBe(textOf("capabilities", "en"));
+    const singlish = (await run(s.pipeline, "oyata mond karann puluwn")).result;
+    expect(singlish.reply.text).toBe(textOf("capabilities", "si"));
+    expect(singlish.needsNativeReview).toBe(true);
     expect((await run(s.pipeline, "what can you do")).result.needsNativeReview).toBe(false);
   });
 
@@ -49,7 +55,7 @@ describe("popularity and best-seller questions (no sales data exists)", () => {
     async (message) => {
       const s = createMockStack();
       const { result } = await run(s.pipeline, message);
-      expect(result.reply.text).toBe(textOf("popular_unavailable", /[඀-෿]/.test(message) ? "si" : "en"));
+      expect(result.reply.text).toBe(textOf("popular_unavailable", tplLangOf(message)));
       expect(result.reply.text).not.toMatch(/\d/);
       expect(result.cards.length).toBeGreaterThan(0);
       expect(result.cards.every((c) => c.type === "product")).toBe(true);
@@ -65,7 +71,7 @@ describe("popularity and best-seller questions (no sales data exists)", () => {
   it("does not hijack normal searches", async () => {
     const s = createMockStack();
     const r = (await run(s.pipeline, "Show me phones under 150000 rupees")).result;
-    expect(r.reply.text).toBe(textOf("tools_ran", "en"));
+    expect(r.reply.text).toBe(textOf("recommend_intro", "en"));
   });
 });
 
@@ -79,7 +85,7 @@ describe("more everyday Singlish", () => {
 
   it.each(["oyata sinhalen katha karanna puluwanda", "do you speak sinhala", "singlish walin katha karanna puluwanda", "සිංහලෙන් කතා කරන්න පුළුවන්ද"])("%s -> says which languages it understands", async (m) => {
     const r = await cards(m);
-    expect(r.reply.text).toBe(textOf("language_support", /[඀-෿]/.test(m) ? "si" : "en"));
+    expect(r.reply.text).toBe(textOf("language_support", tplLangOf(m)));
     expect(r.cards).toEqual([]);
   });
 
@@ -131,14 +137,22 @@ describe("suggestion chips", () => {
     }
   });
 
-  it("answers that show cards carry no chips, and a failed verification returns none", async () => {
-    expect((await run(createMockStack().pipeline, "Show me phones")).result.suggestions).toEqual([]);
+  it("answers that show search results carry refinement chips (not the starter set), and every one of them is understood", async () => {
+    const s = createMockStack();
+    const r = (await run(s.pipeline, "Show me phones")).result;
+    expect(r.suggestions.length).toBeGreaterThan(0);
+    expect(r.suggestions.length).toBeLessThanOrEqual(4);
+    for (const c of r.suggestions) {
+      expect(c).not.toMatch(/\d|Rs/i);
+      const again = (await run(createMockStack().pipeline, c)).result;
+      expect(again.reply.text, c).not.toBe(textOf("clarify_what", "en"));
+    }
   });
 });
 
 describe("spelling variants", () => {
   it.each([
-    ["kohmada", "greeting"],
+    ["kohmada", "how_are_you"],
     ["phone eka penanna", "cards"],
     ["laptop thiyenwada", "cards"],
     ["mata fone ekk denna", "cards"],
@@ -146,7 +160,7 @@ describe("spelling variants", () => {
     ["Nova X1 eke mila kiyda", "cards"],
   ])("%s", async (m, kind) => {
     const r = (await run(createMockStack().pipeline, m)).result;
-    if (kind === "greeting") expect(r.reply.text).toBe(textOf("greeting", "en"));
+    if (kind === "how_are_you") expect(r.reply.text).toBe(textOf("how_are_you", "si"));
     else expect(r.cards.length).toBeGreaterThan(0);
   });
 });
