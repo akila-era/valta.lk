@@ -113,6 +113,11 @@ const T: Record<TemplateKey, Template> = {
     si: "සමාවෙන්න, ඒ තොරතුරු දැන් ලබාගන්න බැරි වුණා. කරුණාකර ටිකකින් නැවත උත්සාහ කරන්න.",
     polishable: false,
   },
+  language_support: {
+    en: "Yes, you can write to me in English, in Sinhala, or in Singlish (Sinhala in English letters). My Sinhala is still being reviewed, so it may sound a little unnatural.",
+    si: "ඔව්, ඔබට මට ඉංග්‍රීසියෙන්, සිංහලෙන් හෝ සිංග්ලිෂ් (ඉංග්‍රීසි අකුරින් සිංහල) වලින් ලියන්න පුළුවන්. මගේ සිංහල තවමත් සමාලෝචනය වෙමින් පවතින නිසා ටිකක් අස්වාභාවික විය හැක.",
+    polishable: false,
+  },
   popular_unavailable: {
     en: "I don't have sales or popularity data, so I can't tell which products sell fastest. Here are the newest products in stock instead.",
     si: "මා සතුව විකුණුම් හෝ ජනප්‍රියතා දත්ත නැති නිසා වැඩියෙන්ම විකිණෙන්නේ මොනවාද කියා කියන්න බැහැ. ඒ වෙනුවට තොගයේ ඇති අලුත්ම නිෂ්පාදන මෙන්න.",

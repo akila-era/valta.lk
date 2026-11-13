@@ -128,6 +128,7 @@ export type TemplateKey =
   | "tool_failed"
   | "no_results"
   | "popular_unavailable"
+  | "language_support"
   | "no_accessories"
   | "cart_proposed"
   | "cart_unavailable"

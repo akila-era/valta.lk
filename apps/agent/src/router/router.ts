@@ -241,7 +241,9 @@ export function routeMessage(input: RouteInput): RouteDecision {
       return decide({ intent, action: "static", calls: [], template: "store_info_other", topic, reason: "store_info_other" });
     }
     case "smalltalk": {
-      const t = anyPhrase(h, ["thanks", "thank you", "thx", "ස්තූතියි", "ස්තුතියි", "istuti", "sthuthi", "පිං"])
+      const t = anyPhrase(h, ["sinhalen katha", "sinhala katha", "sinhalen puluwan", "sinhala puluwan", "speak sinhala", "sinhala support", "singlish", "සිංහලෙන් කතා", "සිංහලෙන් පුළුවන්"])
+        ? "language_support"
+        : anyPhrase(h, ["thanks", "thank you", "thx", "ස්තූතියි", "ස්තුතියි", "istuti", "sthuthi", "පිං"])
         ? "thanks"
         : anyPhrase(h, ["bye", "goodbye", "see you"])
           ? "goodbye"

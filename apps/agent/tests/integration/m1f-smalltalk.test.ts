@@ -68,3 +68,25 @@ describe("popularity and best-seller questions (no sales data exists)", () => {
     expect(r.reply.text).toBe(textOf("tools_ran", "en"));
   });
 });
+
+describe("more everyday Singlish", () => {
+  const cards = async (m: string) => (await run(createMockStack().pipeline, m)).result;
+  it.each(["tablet ekak denna", "mata phone ekak ganna puluwanda", "phone walata mila kiyada", "phone wala mila monawada", "mata laptop ekak denna 300000 ta adu"])("%s -> product cards", async (m) => {
+    const r = await cards(m);
+    expect(r.cards.length).toBeGreaterThan(0);
+    expect(r.cards.every((c) => c.type === "product")).toBe(true);
+  });
+
+  it.each(["oyata sinhalen katha karanna puluwanda", "do you speak sinhala", "singlish walin katha karanna puluwanda", "සිංහලෙන් කතා කරන්න පුළුවන්ද"])("%s -> says which languages it understands", async (m) => {
+    const r = await cards(m);
+    expect(r.reply.text).toBe(textOf("language_support", /[඀-෿]/.test(m) ? "si" : "en"));
+    expect(r.cards).toEqual([]);
+  });
+
+  it("does not turn discount requests or cart changes into searches", async () => {
+    const r = await cards("discount ekak denna");
+    expect(r.cards).toEqual([]);
+    expect(r.reply.text).not.toBe(textOf("tools_ran", "en"));
+    expect((await cards("Orbit Pro eka cart ekata danna")).actions[0]).toMatchObject({ type: "cart.add" });
+  });
+});
