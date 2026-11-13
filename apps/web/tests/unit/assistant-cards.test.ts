@@ -126,7 +126,8 @@ describe("states and language", () => {
     const si = labels("si");
     for (const k of Object.keys(en) as (keyof typeof en)[]) {
       expect(si[k], k).toBeTruthy();
-      expect(si[k], k).not.toBe(en[k]);
+      // the brand name and the names of the languages are written the same in every language
+      if (!["assistantName", "langEn", "langSi"].includes(k)) expect(si[k], k).not.toBe(en[k]);
     }
     expect(html(createElement(ProductCardView, { card: phone, lang: "si" }))).toContain(si.mock);
   });

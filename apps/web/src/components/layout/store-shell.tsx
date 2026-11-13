@@ -6,6 +6,7 @@ import { getWaSettings } from "@/lib/whatsapp/settings";
 import { AssistantPanel } from "@/components/assistant/assistant-panel";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { assistantVisible } from "@/lib/assistant/preview";
+import { readVoiceCapabilities } from "@/lib/assistant/voice-config";
 import { activeSeason } from "@/lib/season";
 import { Footer } from "./footer";
 import { HalloweenDecor } from "./halloween";
@@ -35,7 +36,7 @@ export async function StoreShell({ children }: { children: React.ReactNode }) {
       {/* With the WhatsApp chat switched on (Admin, WhatsApp chat) visitors chat on the site; otherwise a plain WhatsApp link. */}
       {wa && wa.mode !== "off" ? <ChatWidget /> : <WhatsAppFloat number={store?.whatsapp} />}
       {/* The AI shopping assistant is a separate panel (bottom left). Off unless fully configured (see docs/AI_ASSISTANT_WEB_INTEGRATION.md). */}
-      {(await assistantVisible()) ? <AssistantPanel demo={process.env.AI_ASSISTANT_DEMO_DATA !== "false"} /> : null}
+      {(await assistantVisible()) ? <AssistantPanel demo={process.env.AI_ASSISTANT_DEMO_DATA !== "false"} voice={readVoiceCapabilities()} /> : null}
     </ToastProvider>
   );
 }

@@ -1,10 +1,17 @@
 import type { NextConfig } from "next";
 
+/**
+ * The microphone stays blocked for the whole site (as before) UNLESS voice input for the AI assistant is switched on with
+ * AI_ASSISTANT_VOICE=stt: then only this site's own pages may ask for it (the browser still asks the shopper). The header is fixed when
+ * the site is built, so the variable must be present at build time as well as at run time.
+ */
+const microphone = (process.env.AI_ASSISTANT_VOICE ?? "").toLowerCase().split(",").map((v) => v.trim()).includes("stt") ? "microphone=(self)" : "microphone=()";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Permissions-Policy", value: `camera=(), ${microphone}, geolocation=()` },
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
 ];
 

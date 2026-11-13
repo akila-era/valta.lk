@@ -28,7 +28,7 @@ test.describe("assistant widget", () => {
     const panel = page.getByRole("dialog", { name: "Shopping assistant" });
     await expect(panel).toBeVisible();
     await expect(panel).toContainText("demo data");
-    await panel.getByRole("button", { name: "Show me phones under 150000 rupees" }).click();
+    await panel.getByRole("button", { name: "Show me phones", exact: true }).click();
     await expect(panel.getByTestId("product-card")).toHaveCount(2);
     await expect(panel.getByText("Rs. 14,900.00")).toBeVisible();
     await expect(panel.getByText("Demo data").first()).toBeVisible();

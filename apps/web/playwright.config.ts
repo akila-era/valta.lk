@@ -42,6 +42,7 @@ export default defineConfig({
         AI_ASSISTANT_ENABLED: "true",
         AI_AGENT_URL: "http://127.0.0.1:4013",
         AI_AGENT_HMAC_KEY_ID: "web1",
+        AI_ASSISTANT_VOICE: "stt,tts", // shows the voice UI; the voice routes are intercepted per test (see assistant-voice.spec.ts)
         AI_AGENT_HMAC_SECRET: "e2e-agent-secret-0123456789-abcdefghij",
         ORDER_SYNC_BACKOFF_MS: "1500", // tests only: retry quickly instead of after minutes
         DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5499/postgres?sslmode=disable",
