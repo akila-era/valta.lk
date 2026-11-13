@@ -80,14 +80,15 @@ describe("model mode harness (against a FAKE Ollama: proves the harness, not any
 
   it("scores tool choice per language group, separates the first (cold) call, and records resident memory and free host memory", async () => {
     let free = 3000;
-    const r = await runModelBench({ baseUrl: fake.url, tag: MODELS.qwen, readHostFreeMb: () => (free -= 100) });
+    const probe = { freeMb: () => (free -= 10), load1: () => null, cpuTimes: () => null, ollamaRssMb: () => null, oomKills: () => null, swapUsedMb: () => null };
+    const r = await runModelBench({ baseUrl: fake.url, tag: MODELS.qwen, probe, allowColdLoad: true });
     expect(r.basis).toBe("measured");
     expect(r.errors).toBe(0);
     expect(r.totalCases).toBe(BENCH_CASES.length);
     expect(r.registryStatus).toBe("live");
-    expect(r.memory.modelResidentMbAfterFirstCall).toBe(1144); // 1.2e9 bytes reported by the fake /api/ps
-    expect(r.memory.hostFreeMbBefore).toBe(2900);
-    expect(r.memory.hostFreeMbAfter).toBe(2800);
+    expect(r.resources.modelResidentMbAfterFirstCall).toBe(1144); // 1.2e9 bytes reported by the fake /api/ps
+    expect(r.resources.hostFreeMbBefore).toBe(2990);
+    expect(r.resources.hostFreeMbMin).toBeLessThan(2900);
     expect(r.latencyMs.firstCall).not.toBeNull();
     for (const g of GROUPS) expect(r.perGroup[g].n).toBe(BENCH_CASES.filter((c) => c.group === g).length);
     // The pretend model calls search_products for every "phone" message: it is wrong for details/compare/stock cases and for "Open Google ... phone".
@@ -97,7 +98,7 @@ describe("model mode harness (against a FAKE Ollama: proves the harness, not any
 
   it("sends the shopping tool list and the fixed context budget, never a cloud model", async () => {
     fake.requests.length = 0;
-    await runModelBench({ baseUrl: fake.url, tag: MODELS.qwen, cases: BENCH_CASES.slice(0, 3) });
+    await runModelBench({ baseUrl: fake.url, tag: MODELS.qwen, cases: BENCH_CASES.slice(0, 3), allowColdLoad: true });
     expect(fake.requests.length).toBe(3);
     for (const q of fake.requests) {
       expect(q.hasTools).toBe(true);
@@ -106,8 +107,10 @@ describe("model mode harness (against a FAKE Ollama: proves the harness, not any
     }
   });
 
-  it("can benchmark an experimental model that is installed", async () => {
-    const r = await runModelBench({ baseUrl: fake.url, tag: "qwen3:4b-instruct-2507", cases: BENCH_CASES.slice(0, 2) });
+  it("can benchmark an experimental model that is installed, but only once the live model is unloaded (it never evicts one)", async () => {
+    await expect(runModelBench({ baseUrl: fake.url, tag: "qwen3:4b-instruct-2507", cases: BENCH_CASES.slice(0, 2), allowColdLoad: true })).rejects.toThrow(/evict/);
+    await fetch(`${fake.url}/api/chat`, { method: "POST", body: JSON.stringify({ model: MODELS.qwen, messages: [], keep_alive: 0, stream: false }) });
+    const r = await runModelBench({ baseUrl: fake.url, tag: "qwen3:4b-instruct-2507", cases: BENCH_CASES.slice(0, 2), allowColdLoad: true });
     expect(r.registryStatus).toBe("experimental");
   });
 
