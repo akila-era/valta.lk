@@ -292,6 +292,7 @@ describe("private preview", () => {
     process.env.AI_ASSISTANT_PREVIEW_KEY = KEY;
     const res = await getPreview(KEY);
     expect(res.status).toBe(303);
+    expect(res.headers.get("location")).toBe("/"); // never the internal host behind the proxy
     const cookie = res.headers.get("set-cookie") ?? "";
     expect(cookie.toLowerCase()).toContain("httponly");
     jar.set("volta_ai_preview", /volta_ai_preview=([^;]+)/.exec(cookie)![1]!);

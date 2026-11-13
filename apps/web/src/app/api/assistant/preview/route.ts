@@ -13,7 +13,8 @@ export async function GET(req: Request) {
   const blocked = guard(req, { name: "assistant-preview", limit: 10, windowMs: 60_000 });
   if (blocked) return blocked;
   if (!previewKeyMatches(cfg, new URL(req.url).searchParams.get("key"))) return errorResponse(404, "NOT_FOUND", "Not found.");
-  const res = NextResponse.redirect(new URL("/", req.url), 303);
+  // A relative Location: behind the reverse proxy req.url holds the internal address (0.0.0.0:3000), not the public host.
+  const res = new NextResponse(null, { status: 303, headers: { Location: "/" } });
   res.cookies.set(PREVIEW_COOKIE, previewCookieValue(cfg)!, { ...sessionCookieOptions(new Date(Date.now() + PREVIEW_MAX_AGE * 1000)), maxAge: PREVIEW_MAX_AGE });
   res.headers.set("Cache-Control", "no-store");
   return res;
