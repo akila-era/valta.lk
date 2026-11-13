@@ -68,6 +68,15 @@ describe("a catalogue whose categories do not match how shoppers speak", () => {
     expect(first?.fit?.tradeoffs).toContain("over_budget");
   });
 
+  it("naming a new kind of product the shop does not stock is a new subject: the previous brand and budget do not carry over", async () => {
+    const st = stack();
+    await run(st.pipeline, "fruitco products under 1500");
+    for (const m of ["laptop for office work", "show me laptops"]) {
+      const r = (await run(st.pipeline, m)).result;
+      expect(names(r), m).toEqual([]);
+    }
+  });
+
   it("a bare small number without a price word is still not taken as a budget (it may be a quantity)", async () => {
     const r = (await run(stack().pipeline, "show me 2 phones")).result;
     expect(names(r).length).toBeGreaterThan(0);

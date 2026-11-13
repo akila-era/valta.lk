@@ -290,7 +290,8 @@ export function routeMessage(input: RouteInput): RouteDecision {
       if (!args.category && !args.query && e.conceptWord) args.query = e.conceptWord;
       // A refinement of the previous search ("cheapest first", "100000 ta adu") keeps what that search was about.
       const slots = ctx.slots;
-      if (ctx.lastIntent === "search_products" && slots && !e.categorySlug && !e.brand && !e.queryWord && e.unknownTerms.length === 0 && e.products.length === 0) {
+      // Naming a kind of product (even one the catalogue has no category for) is a new subject, never a refinement.
+      if (ctx.lastIntent === "search_products" && slots && !e.categorySlug && !e.brand && !e.queryWord && !e.conceptWord && e.unknownTerms.length === 0 && e.products.length === 0) {
         if (slots.category) args.category = slots.category;
         if (slots.brand) args.brand = slots.brand;
         if (slots.query) args.query = slots.query;
