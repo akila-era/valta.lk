@@ -1,0 +1,361 @@
+{
+  "ranAt": "2026-11-13T08:21:40.601Z",
+  "set": "test",
+  "n": 124,
+  "perGroup": {
+    "si": {
+      "n": 31,
+      "correct": 30,
+      "correctPct": 96.8,
+      "abstained": 1,
+      "wrongIntent": 0,
+      "falseToolCalls": 0,
+      "entityChecked": 11,
+      "entityCorrect": 7
+    },
+    "singlish": {
+      "n": 31,
+      "correct": 19,
+      "correctPct": 61.3,
+      "abstained": 10,
+      "wrongIntent": 2,
+      "falseToolCalls": 0,
+      "entityChecked": 7,
+      "entityCorrect": 2
+    },
+    "en": {
+      "n": 31,
+      "correct": 28,
+      "correctPct": 90.3,
+      "abstained": 2,
+      "wrongIntent": 1,
+      "falseToolCalls": 0,
+      "entityChecked": 11,
+      "entityCorrect": 5
+    },
+    "mixed": {
+      "n": 31,
+      "correct": 29,
+      "correctPct": 93.5,
+      "abstained": 2,
+      "wrongIntent": 0,
+      "falseToolCalls": 0,
+      "entityChecked": 12,
+      "entityCorrect": 8
+    }
+  },
+  "perStyle": {
+    "plain": {
+      "n": 30,
+      "correct": 26,
+      "correctPct": 86.7
+    },
+    "colloquial": {
+      "n": 19,
+      "correct": 18,
+      "correctPct": 94.7
+    },
+    "short": {
+      "n": 29,
+      "correct": 23,
+      "correctPct": 79.3
+    },
+    "long": {
+      "n": 4,
+      "correct": 4,
+      "correctPct": 100
+    },
+    "paraphrase": {
+      "n": 29,
+      "correct": 26,
+      "correctPct": 89.7
+    },
+    "negative": {
+      "n": 12,
+      "correct": 8,
+      "correctPct": 66.7
+    },
+    "typo": {
+      "n": 1,
+      "correct": 1,
+      "correctPct": 100
+    }
+  },
+  "perWant": {
+    "search_products": {
+      "n": 20,
+      "correct": 20
+    },
+    "get_product_details": {
+      "n": 12,
+      "correct": 10
+    },
+    "compare_products": {
+      "n": 8,
+      "correct": 7
+    },
+    "check_stock": {
+      "n": 8,
+      "correct": 6
+    },
+    "get_accessories": {
+      "n": 8,
+      "correct": 7
+    },
+    "cart_add": {
+      "n": 4,
+      "correct": 4
+    },
+    "cart_remove": {
+      "n": 4,
+      "correct": 4
+    },
+    "cart_update_quantity": {
+      "n": 4,
+      "correct": 1
+    },
+    "cart_view": {
+      "n": 4,
+      "correct": 4
+    },
+    "order_status": {
+      "n": 8,
+      "correct": 7
+    },
+    "order_support": {
+      "n": 4,
+      "correct": 3
+    },
+    "checkout_handoff": {
+      "n": 4,
+      "correct": 3
+    },
+    "store_info": {
+      "n": 4,
+      "correct": 4
+    },
+    "website_policy": {
+      "n": 8,
+      "correct": 7
+    },
+    "smalltalk": {
+      "n": 8,
+      "correct": 8
+    },
+    "general": {
+      "n": 8,
+      "correct": 4
+    },
+    "external_site": {
+      "n": 4,
+      "correct": 4
+    },
+    "ambiguous": {
+      "n": 4,
+      "correct": 3
+    }
+  },
+  "overall": {
+    "n": 124,
+    "correct": 106,
+    "correctPct": 85.5,
+    "abstained": 15,
+    "wrongIntent": 3,
+    "falseToolCalls": 0,
+    "entityChecked": 41,
+    "entityCorrect": 22
+  },
+  "shoppingOnly": {
+    "n": 100,
+    "correct": 88,
+    "correctPct": 88
+  },
+  "scopeOnly": {
+    "n": 24,
+    "correct": 18,
+    "correctPct": 75,
+    "falseToolCalls": 0
+  },
+  "misses": [
+    {
+      "id": "test-si-211",
+      "group": "si",
+      "style": "short",
+      "text": "ඒක තුනක් කරන්න",
+      "want": "cart_update_quantity",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-231",
+      "group": "singlish",
+      "style": "plain",
+      "text": "ara phone eke battery eka kochchara thiyenawada",
+      "want": "get_product_details",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-233",
+      "group": "singlish",
+      "style": "plain",
+      "text": "me phone eka gana tikak kiyanna",
+      "want": "get_product_details",
+      "got": "store_info",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "test-singlish-234",
+      "group": "singlish",
+      "style": "colloquial",
+      "text": "me deken battery eka hondha kohomada",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-236",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "meka ada ganna labeida",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-237",
+      "group": "singlish",
+      "style": "short",
+      "text": "rathu color eka thiyenawada",
+      "want": "check_stock",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-238",
+      "group": "singlish",
+      "style": "plain",
+      "text": "me phone ekata screen guard ekak thiyenawada",
+      "want": "get_accessories",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-242",
+      "group": "singlish",
+      "style": "short",
+      "text": "eka thunak karanna",
+      "want": "cart_update_quantity",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-245",
+      "group": "singlish",
+      "style": "plain",
+      "text": "order eke status eka balanna one",
+      "want": "order_status",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-246",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "mama karapu order eka nawaththanna puluwanda",
+      "want": "order_support",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-249",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "ita sahathikayak thiyenawada",
+      "want": "website_policy",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-254",
+      "group": "singlish",
+      "style": "negative",
+      "text": "mata cover letter ekak liyanna udaw karanna",
+      "want": "general",
+      "got": "get_accessories",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-256",
+      "group": "singlish",
+      "style": "short",
+      "text": "eka gana thawath kiyanna",
+      "want": "ambiguous",
+      "got": "store_info",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "test-en-273",
+      "group": "en",
+      "style": "short",
+      "text": "change it to three",
+      "want": "cart_update_quantity",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-278",
+      "group": "en",
+      "style": "short",
+      "text": "time to pay",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-285",
+      "group": "en",
+      "style": "negative",
+      "text": "Help me write a cover letter",
+      "want": "general",
+      "got": "smalltalk",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "test-mixed-315",
+      "group": "mixed",
+      "style": "negative",
+      "text": "Moon එක හැඩය වෙනස් වෙන්නේ ඇයි",
+      "want": "general",
+      "got": "compare_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-316",
+      "group": "mixed",
+      "style": "negative",
+      "text": "cover letter එකක් ලියන්න help කරන්න",
+      "want": "general",
+      "got": "get_accessories",
+      "action": "clarify",
+      "kind": "abstained"
+    }
+  ]
+}

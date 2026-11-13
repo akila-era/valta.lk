@@ -1,0 +1,414 @@
+{
+  "ranAt": "2026-11-13T08:21:40.601Z",
+  "set": "holdout",
+  "n": 70,
+  "perGroup": {
+    "si": {
+      "n": 15,
+      "correct": 9,
+      "correctPct": 60,
+      "abstained": 5,
+      "wrongIntent": 1,
+      "falseToolCalls": 1,
+      "entityChecked": 1,
+      "entityCorrect": 1
+    },
+    "singlish": {
+      "n": 17,
+      "correct": 12,
+      "correctPct": 70.6,
+      "abstained": 1,
+      "wrongIntent": 4,
+      "falseToolCalls": 2,
+      "entityChecked": 3,
+      "entityCorrect": 1
+    },
+    "en": {
+      "n": 21,
+      "correct": 13,
+      "correctPct": 61.9,
+      "abstained": 7,
+      "wrongIntent": 1,
+      "falseToolCalls": 1,
+      "entityChecked": 4,
+      "entityCorrect": 3
+    },
+    "mixed": {
+      "n": 17,
+      "correct": 11,
+      "correctPct": 64.7,
+      "abstained": 4,
+      "wrongIntent": 2,
+      "falseToolCalls": 2,
+      "entityChecked": 3,
+      "entityCorrect": 3
+    }
+  },
+  "perStyle": {
+    "long": {
+      "n": 4,
+      "correct": 4,
+      "correctPct": 100
+    },
+    "paraphrase": {
+      "n": 27,
+      "correct": 13,
+      "correctPct": 48.1
+    },
+    "short": {
+      "n": 12,
+      "correct": 11,
+      "correctPct": 91.7
+    },
+    "plain": {
+      "n": 8,
+      "correct": 3,
+      "correctPct": 37.5
+    },
+    "negative": {
+      "n": 18,
+      "correct": 13,
+      "correctPct": 72.2
+    },
+    "typo": {
+      "n": 1,
+      "correct": 1,
+      "correctPct": 100
+    }
+  },
+  "perWant": {
+    "search_products": {
+      "n": 5,
+      "correct": 5
+    },
+    "get_product_details": {
+      "n": 7,
+      "correct": 7
+    },
+    "compare_products": {
+      "n": 4,
+      "correct": 3
+    },
+    "check_stock": {
+      "n": 4,
+      "correct": 0
+    },
+    "get_accessories": {
+      "n": 4,
+      "correct": 3
+    },
+    "cart_add": {
+      "n": 4,
+      "correct": 4
+    },
+    "cart_remove": {
+      "n": 4,
+      "correct": 0
+    },
+    "order_status": {
+      "n": 4,
+      "correct": 1
+    },
+    "order_support": {
+      "n": 4,
+      "correct": 0
+    },
+    "checkout_handoff": {
+      "n": 4,
+      "correct": 2
+    },
+    "store_info": {
+      "n": 4,
+      "correct": 3
+    },
+    "website_policy": {
+      "n": 5,
+      "correct": 5
+    },
+    "smalltalk": {
+      "n": 4,
+      "correct": 4
+    },
+    "general": {
+      "n": 9,
+      "correct": 4
+    },
+    "external_site": {
+      "n": 4,
+      "correct": 4
+    }
+  },
+  "overall": {
+    "n": 70,
+    "correct": 45,
+    "correctPct": 64.3,
+    "abstained": 17,
+    "wrongIntent": 8,
+    "falseToolCalls": 6,
+    "entityChecked": 11,
+    "entityCorrect": 8
+  },
+  "shoppingOnly": {
+    "n": 52,
+    "correct": 32,
+    "correctPct": 61.5
+  },
+  "scopeOnly": {
+    "n": 18,
+    "correct": 13,
+    "correctPct": 72.2,
+    "falseToolCalls": 0
+  },
+  "misses": [
+    {
+      "id": "hold-si-128",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මේක තවම විකුණන්න තියෙනවද",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-si-129",
+      "group": "si",
+      "style": "short",
+      "text": "ඒකේ බැක් කවර් එකක් තියෙනවද",
+      "want": "get_accessories",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-si-131",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මගේ කරත්තය හිස් කරන්න ඕන",
+      "want": "cart_remove",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-si-132",
+      "group": "si",
+      "style": "plain",
+      "text": "ඇණවුම කොහොමද ට්‍රැක් කරන්නේ",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-si-133",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මගේ ඇණවුම වෙනස් කරන්න ඕන",
+      "want": "order_support",
+      "got": "order_status",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "hold-si-135",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "බෙදාහැරීමට ගාස්තුවක් අය කරනවද",
+      "want": "store_info",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-singlish-143",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "meka thawama sale karanawada",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-singlish-146",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "mage cart eka empty karanna one",
+      "want": "cart_remove",
+      "got": "cart_view",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "hold-singlish-148",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "mage order eka wenas karanna one",
+      "want": "order_support",
+      "got": "order_status",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "hold-singlish-149",
+      "group": "singlish",
+      "style": "plain",
+      "text": "gewim karanne kohomada",
+      "want": "checkout_handoff",
+      "got": "smalltalk",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "hold-en-157",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "black or white, which one should I go for",
+      "want": "compare_products",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-en-158",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "is this still being sold",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-en-161",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "empty my cart please",
+      "want": "cart_remove",
+      "got": "cart_view",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "hold-en-162",
+      "group": "en",
+      "style": "plain",
+      "text": "how do I follow my order",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-en-163",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "I need to change my order",
+      "want": "order_support",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-mixed-173",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "මේක තවම sale කරනවද",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-mixed-176",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "මගේ cart එක empty කරන්න ඕන",
+      "want": "cart_remove",
+      "got": "cart_view",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "hold-mixed-177",
+      "group": "mixed",
+      "style": "plain",
+      "text": "order එක follow කරන්නේ කොහොමද",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-mixed-178",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "මගේ order එක change කරන්න ඕන",
+      "want": "order_support",
+      "got": "order_status",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "hold-mixed-179",
+      "group": "mixed",
+      "style": "plain",
+      "text": "payment එක කරන්නේ කොහොමද",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-en-185",
+      "group": "en",
+      "style": "negative",
+      "text": "Write a short description for my phone listing",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-en-187",
+      "group": "en",
+      "style": "negative",
+      "text": "what is the difference between RAM and storage",
+      "want": "general",
+      "got": "compare_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-en-188",
+      "group": "en",
+      "style": "negative",
+      "text": "tell me a story about a phone",
+      "want": "general",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-mixed-190",
+      "group": "mixed",
+      "style": "negative",
+      "text": "phone එකක් ගැන poem එකක් ලියන්න",
+      "want": "general",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "hold-singlish-192",
+      "group": "singlish",
+      "style": "negative",
+      "text": "phone eka gana kathandaraya liyanna",
+      "want": "general",
+      "got": "store_info",
+      "action": "static",
+      "kind": "wrongIntent"
+    }
+  ]
+}

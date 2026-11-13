@@ -1,0 +1,841 @@
+{
+  "ranAt": "2026-11-13T08:08:16.427Z",
+  "set": "test",
+  "n": 124,
+  "perGroup": {
+    "si": {
+      "n": 31,
+      "correct": 14,
+      "correctPct": 45.2,
+      "abstained": 14,
+      "wrongIntent": 3,
+      "falseToolCalls": 2,
+      "entityChecked": 4,
+      "entityCorrect": 3
+    },
+    "singlish": {
+      "n": 31,
+      "correct": 13,
+      "correctPct": 41.9,
+      "abstained": 15,
+      "wrongIntent": 3,
+      "falseToolCalls": 2,
+      "entityChecked": 5,
+      "entityCorrect": 2
+    },
+    "en": {
+      "n": 31,
+      "correct": 13,
+      "correctPct": 41.9,
+      "abstained": 16,
+      "wrongIntent": 2,
+      "falseToolCalls": 1,
+      "entityChecked": 6,
+      "entityCorrect": 4
+    },
+    "mixed": {
+      "n": 31,
+      "correct": 18,
+      "correctPct": 58.1,
+      "abstained": 12,
+      "wrongIntent": 1,
+      "falseToolCalls": 1,
+      "entityChecked": 7,
+      "entityCorrect": 6
+    }
+  },
+  "perStyle": {
+    "plain": {
+      "n": 30,
+      "correct": 19,
+      "correctPct": 63.3
+    },
+    "colloquial": {
+      "n": 19,
+      "correct": 11,
+      "correctPct": 57.9
+    },
+    "short": {
+      "n": 29,
+      "correct": 17,
+      "correctPct": 58.6
+    },
+    "long": {
+      "n": 4,
+      "correct": 4,
+      "correctPct": 100
+    },
+    "paraphrase": {
+      "n": 29,
+      "correct": 6,
+      "correctPct": 20.7
+    },
+    "negative": {
+      "n": 12,
+      "correct": 0,
+      "correctPct": 0
+    },
+    "typo": {
+      "n": 1,
+      "correct": 1,
+      "correctPct": 100
+    }
+  },
+  "perWant": {
+    "search_products": {
+      "n": 20,
+      "correct": 12
+    },
+    "get_product_details": {
+      "n": 12,
+      "correct": 7
+    },
+    "compare_products": {
+      "n": 8,
+      "correct": 5
+    },
+    "check_stock": {
+      "n": 8,
+      "correct": 3
+    },
+    "get_accessories": {
+      "n": 8,
+      "correct": 5
+    },
+    "cart_add": {
+      "n": 4,
+      "correct": 3
+    },
+    "cart_remove": {
+      "n": 4,
+      "correct": 2
+    },
+    "cart_update_quantity": {
+      "n": 4,
+      "correct": 1
+    },
+    "cart_view": {
+      "n": 4,
+      "correct": 3
+    },
+    "order_status": {
+      "n": 8,
+      "correct": 3
+    },
+    "order_support": {
+      "n": 4,
+      "correct": 0
+    },
+    "checkout_handoff": {
+      "n": 4,
+      "correct": 1
+    },
+    "store_info": {
+      "n": 4,
+      "correct": 1
+    },
+    "website_policy": {
+      "n": 8,
+      "correct": 0
+    },
+    "smalltalk": {
+      "n": 8,
+      "correct": 8
+    },
+    "general": {
+      "n": 8,
+      "correct": 0
+    },
+    "external_site": {
+      "n": 4,
+      "correct": 0
+    },
+    "ambiguous": {
+      "n": 4,
+      "correct": 4
+    }
+  },
+  "overall": {
+    "n": 124,
+    "correct": 58,
+    "correctPct": 46.8,
+    "abstained": 57,
+    "wrongIntent": 9,
+    "falseToolCalls": 6,
+    "entityChecked": 22,
+    "entityCorrect": 15
+  },
+  "shoppingOnly": {
+    "n": 100,
+    "correct": 54,
+    "correctPct": 54
+  },
+  "scopeOnly": {
+    "n": 24,
+    "correct": 4,
+    "correctPct": 16.7,
+    "falseToolCalls": 0
+  },
+  "misses": [
+    {
+      "id": "test-si-127",
+      "group": "si",
+      "style": "colloquial",
+      "text": "අලුතින්ම ආපු බඩු මොනවද",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-128",
+      "group": "si",
+      "style": "short",
+      "text": "හෙඩ්ෆෝන් වලින් මිල අඩුම එක",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-130",
+      "group": "si",
+      "style": "plain",
+      "text": "ඒ ෆෝන් එකේ බැටරිය කොච්චර වෙලා තියෙනවද",
+      "want": "get_product_details",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "test-si-135",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මේක අද ගන්න ලැබෙයිද",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-137",
+      "group": "si",
+      "style": "plain",
+      "text": "මේ ෆෝන් එකට ස්ක්‍රීන් ගාඩ් එකක් තියෙනවද",
+      "want": "get_accessories",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "test-si-139",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මේක මට ගන්න ඕන, කරත්තයට දාන්න",
+      "want": "cart_add",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-140",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "කරත්තයෙන් ඒක ඉවත් කරලා දාන්න",
+      "want": "cart_remove",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-141",
+      "group": "si",
+      "style": "short",
+      "text": "ඒක තුනක් කරන්න",
+      "want": "cart_update_quantity",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-142",
+      "group": "si",
+      "style": "plain",
+      "text": "කරත්තයේ තියෙන දේවල් පෙන්නන්න",
+      "want": "cart_view",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-143",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මගේ පාර්සලය කොයි වෙලාවටද එන්නේ",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-145",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මම කළ ඇණවුම නවත්වන්න පුළුවන්ද",
+      "want": "order_support",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-147",
+      "group": "si",
+      "style": "colloquial",
+      "text": "ගෙදරටම එවන්න කොච්චර ගාණක් යනවද",
+      "want": "store_info",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-148",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "භාණ්ඩයට සහතිකයක් තියෙනවද",
+      "want": "website_policy",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-149",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "අකැමති නම් මුදල් ආපසු දෙනවද",
+      "want": "website_policy",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-152",
+      "group": "si",
+      "style": "negative",
+      "text": "පෘථිවිය ඉරේ වටා කරකැවෙන්නේ ඇයි කියලා කියන්න",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-si-153",
+      "group": "si",
+      "style": "negative",
+      "text": "මට කවර් ලෙටර් එකක් ලියන්න උදව් කරන්න",
+      "want": "general",
+      "got": "smalltalk",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "test-si-154",
+      "group": "si",
+      "style": "negative",
+      "text": "වෙනත් වෙබ් අඩවියක මේකේ මිල බලලා එන්න",
+      "want": "external_site",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-158",
+      "group": "singlish",
+      "style": "colloquial",
+      "text": "aluthin ena items monawada thiyenne",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-161",
+      "group": "singlish",
+      "style": "plain",
+      "text": "ara phone eke battery eka kochchara thiyenawada",
+      "want": "get_product_details",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "test-singlish-163",
+      "group": "singlish",
+      "style": "plain",
+      "text": "me phone eka gana tikak kiyanna",
+      "want": "get_product_details",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-164",
+      "group": "singlish",
+      "style": "colloquial",
+      "text": "me deken battery eka hondha kohomada",
+      "want": "compare_products",
+      "got": "smalltalk",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "test-singlish-166",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "meka ada ganna labeida",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-167",
+      "group": "singlish",
+      "style": "short",
+      "text": "rathu color eka thiyenawada",
+      "want": "check_stock",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-168",
+      "group": "singlish",
+      "style": "plain",
+      "text": "me phone ekata screen guard ekak thiyenawada",
+      "want": "get_accessories",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "test-singlish-172",
+      "group": "singlish",
+      "style": "short",
+      "text": "eka thunak karanna",
+      "want": "cart_update_quantity",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-174",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "mage parcel eka kawadada enne",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-175",
+      "group": "singlish",
+      "style": "plain",
+      "text": "order eke status eka balanna one",
+      "want": "order_status",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-176",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "mama karapu order eka nawaththanna puluwanda",
+      "want": "order_support",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-177",
+      "group": "singlish",
+      "style": "short",
+      "text": "dan gewanna one",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-178",
+      "group": "singlish",
+      "style": "colloquial",
+      "text": "gedarama ewanna gaana kiyada",
+      "want": "store_info",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-179",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "ita sahathikayak thiyenawada",
+      "want": "website_policy",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-180",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "ayeth dunnoth salli denawada",
+      "want": "website_policy",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-183",
+      "group": "singlish",
+      "style": "negative",
+      "text": "prithiviya ira watha karakawenne aiy kiyala kiyanna",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-184",
+      "group": "singlish",
+      "style": "negative",
+      "text": "mata cover letter ekak liyanna udaw karanna",
+      "want": "general",
+      "got": "get_accessories",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-singlish-185",
+      "group": "singlish",
+      "style": "negative",
+      "text": "wena website ekakin meke mila balala enna",
+      "want": "external_site",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-187",
+      "group": "en",
+      "style": "plain",
+      "text": "Can you pick out a decent phone for me?",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-189",
+      "group": "en",
+      "style": "short",
+      "text": "what's just come in?",
+      "want": "search_products",
+      "got": "check_stock",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-190",
+      "group": "en",
+      "style": "short",
+      "text": "lowest priced headphones",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-195",
+      "group": "en",
+      "style": "colloquial",
+      "text": "which of the two lasts longer on a charge",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-196",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "put them side by side for me",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-197",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "will I be able to get this today",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-198",
+      "group": "en",
+      "style": "short",
+      "text": "do you still have the red one",
+      "want": "check_stock",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-199",
+      "group": "en",
+      "style": "plain",
+      "text": "is there a screen guard for this phone",
+      "want": "get_accessories",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-202",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "drop that from my cart",
+      "want": "cart_remove",
+      "got": "cart_view",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "test-en-203",
+      "group": "en",
+      "style": "short",
+      "text": "change it to three",
+      "want": "cart_update_quantity",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-205",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "when will my parcel get here",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-207",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "can you stop the order I made",
+      "want": "order_support",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-208",
+      "group": "en",
+      "style": "short",
+      "text": "time to pay",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-210",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "is there a guarantee on this",
+      "want": "website_policy",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-211",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "do I get my money back if I return it",
+      "want": "website_policy",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-214",
+      "group": "en",
+      "style": "negative",
+      "text": "Why does the moon change shape?",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-en-215",
+      "group": "en",
+      "style": "negative",
+      "text": "Help me write a cover letter",
+      "want": "general",
+      "got": "smalltalk",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "test-en-216",
+      "group": "en",
+      "style": "negative",
+      "text": "check the price on another website for me",
+      "want": "external_site",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-220",
+      "group": "mixed",
+      "style": "colloquial",
+      "text": "අලුතින්ම ආපු items මොනවද",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-221",
+      "group": "mixed",
+      "style": "short",
+      "text": "headphones වලින් price එක අඩුම එක",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-223",
+      "group": "mixed",
+      "style": "plain",
+      "text": "ඒ phone එකේ battery එක කොච්චර වෙලා තියෙනවද",
+      "want": "get_product_details",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "test-mixed-225",
+      "group": "mixed",
+      "style": "plain",
+      "text": "මේ phone එක ගැන details දෙන්න",
+      "want": "get_product_details",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-236",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "මගේ parcel එක කවදාද එන්නේ",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-238",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "මම කරපු order එක නවත්වන්න පුළුවන්ද",
+      "want": "order_support",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-239",
+      "group": "mixed",
+      "style": "short",
+      "text": "දැන් pay කරන්න ඕන",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-240",
+      "group": "mixed",
+      "style": "colloquial",
+      "text": "ගෙදරටම send කරන්න charge එක කීයද",
+      "want": "store_info",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-241",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "ඒකට warranty එකක් තියෙනවද",
+      "want": "website_policy",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-242",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "return කළොත් සල්ලි ආපහු දෙනවද",
+      "want": "website_policy",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-245",
+      "group": "mixed",
+      "style": "negative",
+      "text": "Moon එක හැඩය වෙනස් වෙන්නේ ඇයි",
+      "want": "general",
+      "got": "compare_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-246",
+      "group": "mixed",
+      "style": "negative",
+      "text": "cover letter එකක් ලියන්න help කරන්න",
+      "want": "general",
+      "got": "get_accessories",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "test-mixed-247",
+      "group": "mixed",
+      "style": "negative",
+      "text": "වෙන website එකක price එක check කරන්න",
+      "want": "external_site",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    }
+  ]
+}

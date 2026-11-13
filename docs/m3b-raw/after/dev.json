@@ -1,0 +1,191 @@
+{
+  "ranAt": "2026-11-13T08:21:40.599Z",
+  "set": "dev",
+  "n": 124,
+  "perGroup": {
+    "si": {
+      "n": 31,
+      "correct": 31,
+      "correctPct": 100,
+      "abstained": 0,
+      "wrongIntent": 0,
+      "falseToolCalls": 0,
+      "entityChecked": 12,
+      "entityCorrect": 11
+    },
+    "singlish": {
+      "n": 31,
+      "correct": 31,
+      "correctPct": 100,
+      "abstained": 0,
+      "wrongIntent": 0,
+      "falseToolCalls": 0,
+      "entityChecked": 12,
+      "entityCorrect": 6
+    },
+    "en": {
+      "n": 31,
+      "correct": 30,
+      "correctPct": 96.8,
+      "abstained": 1,
+      "wrongIntent": 0,
+      "falseToolCalls": 0,
+      "entityChecked": 11,
+      "entityCorrect": 8
+    },
+    "mixed": {
+      "n": 31,
+      "correct": 31,
+      "correctPct": 100,
+      "abstained": 0,
+      "wrongIntent": 0,
+      "falseToolCalls": 0,
+      "entityChecked": 12,
+      "entityCorrect": 12
+    }
+  },
+  "perStyle": {
+    "plain": {
+      "n": 57,
+      "correct": 57,
+      "correctPct": 100
+    },
+    "paraphrase": {
+      "n": 14,
+      "correct": 13,
+      "correctPct": 92.9
+    },
+    "long": {
+      "n": 3,
+      "correct": 3,
+      "correctPct": 100
+    },
+    "short": {
+      "n": 19,
+      "correct": 19,
+      "correctPct": 100
+    },
+    "colloquial": {
+      "n": 17,
+      "correct": 17,
+      "correctPct": 100
+    },
+    "negative": {
+      "n": 12,
+      "correct": 12,
+      "correctPct": 100
+    },
+    "typo": {
+      "n": 2,
+      "correct": 2,
+      "correctPct": 100
+    }
+  },
+  "perWant": {
+    "search_products": {
+      "n": 20,
+      "correct": 20
+    },
+    "get_product_details": {
+      "n": 12,
+      "correct": 12
+    },
+    "compare_products": {
+      "n": 8,
+      "correct": 8
+    },
+    "check_stock": {
+      "n": 8,
+      "correct": 8
+    },
+    "get_accessories": {
+      "n": 8,
+      "correct": 8
+    },
+    "cart_add": {
+      "n": 4,
+      "correct": 4
+    },
+    "cart_remove": {
+      "n": 4,
+      "correct": 4
+    },
+    "cart_update_quantity": {
+      "n": 4,
+      "correct": 3
+    },
+    "cart_view": {
+      "n": 4,
+      "correct": 4
+    },
+    "order_status": {
+      "n": 8,
+      "correct": 8
+    },
+    "order_support": {
+      "n": 4,
+      "correct": 4
+    },
+    "checkout_handoff": {
+      "n": 4,
+      "correct": 4
+    },
+    "store_info": {
+      "n": 4,
+      "correct": 4
+    },
+    "website_policy": {
+      "n": 8,
+      "correct": 8
+    },
+    "smalltalk": {
+      "n": 8,
+      "correct": 8
+    },
+    "general": {
+      "n": 8,
+      "correct": 8
+    },
+    "external_site": {
+      "n": 4,
+      "correct": 4
+    },
+    "ambiguous": {
+      "n": 4,
+      "correct": 4
+    }
+  },
+  "overall": {
+    "n": 124,
+    "correct": 123,
+    "correctPct": 99.2,
+    "abstained": 1,
+    "wrongIntent": 0,
+    "falseToolCalls": 0,
+    "entityChecked": 47,
+    "entityCorrect": 37
+  },
+  "shoppingOnly": {
+    "n": 100,
+    "correct": 99,
+    "correctPct": 99
+  },
+  "scopeOnly": {
+    "n": 24,
+    "correct": 24,
+    "correctPct": 100,
+    "falseToolCalls": 0
+  },
+  "misses": [
+    {
+      "id": "dev-en-079",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "make it two instead of one",
+      "want": "cart_update_quantity",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "recordedOn": "2026-11-13",
+  "note": "TEST and HOLDOUT are evaluation sets and are never used for tuning. Hashes are SHA-256 over the file text with LF line endings. HOLDOUT was written after the M3-B rules were frozen and has been run once (64.3%). TEST was run for baseline (46.8%) and after (85.5%) and is partly contaminated by author knowledge, as disclosed in docs/AI_M3B_REPORT.md. Historical results are in docs/m3b-raw and must not be rewritten.",
+  "files": {
+    "test.ts": "613e6a561495166e44d155cac51833725cfc3f6276239af9aa4bcd420f091b4b",
+    "holdout.ts": "cc0bd004e26b9fa1e8c77ac2c2658d95a6b9f4ba3c1ee1b804f01d43120bccb3"
+  }
+}

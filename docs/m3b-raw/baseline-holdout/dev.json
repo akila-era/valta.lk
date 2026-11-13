@@ -1,0 +1,741 @@
+{
+  "ranAt": "2026-11-13T08:20:22.132Z",
+  "set": "dev",
+  "n": 124,
+  "perGroup": {
+    "si": {
+      "n": 31,
+      "correct": 16,
+      "correctPct": 51.6,
+      "abstained": 13,
+      "wrongIntent": 2,
+      "falseToolCalls": 1,
+      "entityChecked": 8,
+      "entityCorrect": 8
+    },
+    "singlish": {
+      "n": 31,
+      "correct": 15,
+      "correctPct": 48.4,
+      "abstained": 14,
+      "wrongIntent": 2,
+      "falseToolCalls": 2,
+      "entityChecked": 6,
+      "entityCorrect": 2
+    },
+    "en": {
+      "n": 31,
+      "correct": 14,
+      "correctPct": 45.2,
+      "abstained": 15,
+      "wrongIntent": 2,
+      "falseToolCalls": 1,
+      "entityChecked": 6,
+      "entityCorrect": 4
+    },
+    "mixed": {
+      "n": 31,
+      "correct": 23,
+      "correctPct": 74.2,
+      "abstained": 8,
+      "wrongIntent": 0,
+      "falseToolCalls": 0,
+      "entityChecked": 12,
+      "entityCorrect": 12
+    }
+  },
+  "perStyle": {
+    "plain": {
+      "n": 57,
+      "correct": 40,
+      "correctPct": 70.2
+    },
+    "paraphrase": {
+      "n": 14,
+      "correct": 3,
+      "correctPct": 21.4
+    },
+    "long": {
+      "n": 3,
+      "correct": 2,
+      "correctPct": 66.7
+    },
+    "short": {
+      "n": 19,
+      "correct": 13,
+      "correctPct": 68.4
+    },
+    "colloquial": {
+      "n": 17,
+      "correct": 10,
+      "correctPct": 58.8
+    },
+    "negative": {
+      "n": 12,
+      "correct": 0,
+      "correctPct": 0
+    },
+    "typo": {
+      "n": 2,
+      "correct": 0,
+      "correctPct": 0
+    }
+  },
+  "perWant": {
+    "search_products": {
+      "n": 20,
+      "correct": 17
+    },
+    "get_product_details": {
+      "n": 12,
+      "correct": 10
+    },
+    "compare_products": {
+      "n": 8,
+      "correct": 2
+    },
+    "check_stock": {
+      "n": 8,
+      "correct": 5
+    },
+    "get_accessories": {
+      "n": 8,
+      "correct": 4
+    },
+    "cart_add": {
+      "n": 4,
+      "correct": 2
+    },
+    "cart_remove": {
+      "n": 4,
+      "correct": 3
+    },
+    "cart_update_quantity": {
+      "n": 4,
+      "correct": 3
+    },
+    "cart_view": {
+      "n": 4,
+      "correct": 3
+    },
+    "order_status": {
+      "n": 8,
+      "correct": 2
+    },
+    "order_support": {
+      "n": 4,
+      "correct": 4
+    },
+    "checkout_handoff": {
+      "n": 4,
+      "correct": 1
+    },
+    "store_info": {
+      "n": 4,
+      "correct": 2
+    },
+    "website_policy": {
+      "n": 8,
+      "correct": 0
+    },
+    "smalltalk": {
+      "n": 8,
+      "correct": 6
+    },
+    "general": {
+      "n": 8,
+      "correct": 0
+    },
+    "external_site": {
+      "n": 4,
+      "correct": 0
+    },
+    "ambiguous": {
+      "n": 4,
+      "correct": 4
+    }
+  },
+  "overall": {
+    "n": 124,
+    "correct": 68,
+    "correctPct": 54.8,
+    "abstained": 50,
+    "wrongIntent": 6,
+    "falseToolCalls": 4,
+    "entityChecked": 32,
+    "entityCorrect": 26
+  },
+  "shoppingOnly": {
+    "n": 100,
+    "correct": 64,
+    "correctPct": 64
+  },
+  "scopeOnly": {
+    "n": 24,
+    "correct": 4,
+    "correctPct": 16.7,
+    "falseToolCalls": 0
+  },
+  "misses": [
+    {
+      "id": "dev-si-005",
+      "group": "si",
+      "style": "long",
+      "text": "ටැබ්ලට් එකක් ගන්න හිතාගෙන ඉන්නේ, මොනවද තියෙන්නේ",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-009",
+      "group": "si",
+      "style": "plain",
+      "text": "මේ දෙක අතරින් හොඳ එක කුමක්ද?",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-011",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "මේක ගන්න පුළුවන්ද දැන්?",
+      "want": "check_stock",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-014",
+      "group": "si",
+      "style": "colloquial",
+      "text": "මේකට චාජර් එකක් ගන්න ඕන",
+      "want": "get_accessories",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "dev-si-015",
+      "group": "si",
+      "style": "plain",
+      "text": "මේක මගේ කරත්තයට දාගන්න",
+      "want": "cart_add",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-018",
+      "group": "si",
+      "style": "plain",
+      "text": "මගේ කරත්තයේ මොනවද තියෙන්නේ",
+      "want": "cart_view",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-019",
+      "group": "si",
+      "style": "colloquial",
+      "text": "මම දාපු ඇණවුම කොතනද ඇවිත් තියෙන්නේ",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-020",
+      "group": "si",
+      "style": "paraphrase",
+      "text": "ඇණවුම තාම ලැබුණේ නැහැ",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-023",
+      "group": "si",
+      "style": "plain",
+      "text": "බෙදා හැරීම් ගාස්තුව කීයද",
+      "want": "store_info",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-024",
+      "group": "si",
+      "style": "plain",
+      "text": "වරන්තිය කීයක් තියෙනවද",
+      "want": "website_policy",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-025",
+      "group": "si",
+      "style": "plain",
+      "text": "භාණ්ඩය ආපසු දෙන්න පුළුවන්ද",
+      "want": "website_policy",
+      "got": "order_support",
+      "action": "handoff",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "dev-si-026",
+      "group": "si",
+      "style": "colloquial",
+      "text": "කොහොමද, සනීපෙන්ද",
+      "want": "smalltalk",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-028",
+      "group": "si",
+      "style": "negative",
+      "text": "ජාවා කියන්නේ මොකක්ද කියලා පැහැදිලි කරන්න",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-029",
+      "group": "si",
+      "style": "negative",
+      "text": "මට සුභ පැතුම් පණිවිඩයක් ලියලා දෙන්න",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-si-030",
+      "group": "si",
+      "style": "negative",
+      "text": "ගූගල් එකේ සර්ච් කරලා බලන්න",
+      "want": "external_site",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-035",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "earbuds walin laabama eka kiyanna",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-038",
+      "group": "singlish",
+      "style": "short",
+      "text": "eke mila keeyada?",
+      "want": "get_product_details",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-039",
+      "group": "singlish",
+      "style": "plain",
+      "text": "meke wisthara monawada",
+      "want": "get_product_details",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-040",
+      "group": "singlish",
+      "style": "plain",
+      "text": "me deka athara hodama eka monawada",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-041",
+      "group": "singlish",
+      "style": "typo",
+      "text": "deka ma wenas kiyala denna",
+      "want": "compare_products",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-042",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "meka dan ganna puluwanda",
+      "want": "check_stock",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-044",
+      "group": "singlish",
+      "style": "plain",
+      "text": "phone ekata hari cover ekak thiyenawada",
+      "want": "get_accessories",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "dev-singlish-045",
+      "group": "singlish",
+      "style": "colloquial",
+      "text": "meta charger ekak ganna one",
+      "want": "get_accessories",
+      "got": "search_products",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "dev-singlish-051",
+      "group": "singlish",
+      "style": "paraphrase",
+      "text": "order eka thama labune ne",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-053",
+      "group": "singlish",
+      "style": "short",
+      "text": "gewanna yanna one",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-054",
+      "group": "singlish",
+      "style": "typo",
+      "text": "delivery gaana kiyada",
+      "want": "store_info",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-055",
+      "group": "singlish",
+      "style": "plain",
+      "text": "warranty eka kiyak thiyenawada",
+      "want": "website_policy",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-056",
+      "group": "singlish",
+      "style": "plain",
+      "text": "badu ayeth denna puluwanda",
+      "want": "website_policy",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-059",
+      "group": "singlish",
+      "style": "negative",
+      "text": "java kiyanne mokakda kiyala hariyatama kiyanna",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-060",
+      "group": "singlish",
+      "style": "negative",
+      "text": "mata birthday wish ekak liyala denna",
+      "want": "general",
+      "got": "search_products",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-singlish-061",
+      "group": "singlish",
+      "style": "negative",
+      "text": "google eke search karala balanna",
+      "want": "external_site",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-065",
+      "group": "en",
+      "style": "plain",
+      "text": "What are the newest arrivals?",
+      "want": "search_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-071",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "Between these two which would you pick?",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-072",
+      "group": "en",
+      "style": "short",
+      "text": "how are they different",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-073",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "Can I buy this today or is it sold out?",
+      "want": "check_stock",
+      "got": "cart_add",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-075",
+      "group": "en",
+      "style": "plain",
+      "text": "Do you sell cases that fit this phone?",
+      "want": "get_accessories",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-077",
+      "group": "en",
+      "style": "plain",
+      "text": "put this in my basket please",
+      "want": "cart_add",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-078",
+      "group": "en",
+      "style": "plain",
+      "text": "take that out of my cart",
+      "want": "cart_remove",
+      "got": "cart_view",
+      "action": "tool",
+      "kind": "falseToolCall"
+    },
+    {
+      "id": "dev-en-079",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "make it two instead of one",
+      "want": "cart_update_quantity",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-081",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "my parcel still hasn't turned up",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-082",
+      "group": "en",
+      "style": "colloquial",
+      "text": "where's the order I placed on Monday?",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-084",
+      "group": "en",
+      "style": "short",
+      "text": "I'm ready to pay",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-086",
+      "group": "en",
+      "style": "plain",
+      "text": "how long is the warranty",
+      "want": "website_policy",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-087",
+      "group": "en",
+      "style": "paraphrase",
+      "text": "can I send it back if I don't like it",
+      "want": "website_policy",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-089",
+      "group": "en",
+      "style": "colloquial",
+      "text": "cheers, that's all",
+      "want": "smalltalk",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-090",
+      "group": "en",
+      "style": "negative",
+      "text": "Can you explain how a database index works?",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-en-091",
+      "group": "en",
+      "style": "negative",
+      "text": "Help me write a thank-you note to a client",
+      "want": "general",
+      "got": "smalltalk",
+      "action": "static",
+      "kind": "wrongIntent"
+    },
+    {
+      "id": "dev-en-092",
+      "group": "en",
+      "style": "negative",
+      "text": "go to daraz and check the price there",
+      "want": "external_site",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-103",
+      "group": "mixed",
+      "style": "paraphrase",
+      "text": "දෙකේ difference එක කියන්න",
+      "want": "compare_products",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-112",
+      "group": "mixed",
+      "style": "colloquial",
+      "text": "මම දාපු order එක තාම ආවේ නෑ",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-115",
+      "group": "mixed",
+      "style": "short",
+      "text": "payment එක කරන්න යන්න ඕන",
+      "want": "checkout_handoff",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-117",
+      "group": "mixed",
+      "style": "plain",
+      "text": "warranty period එක කොච්චරද",
+      "want": "website_policy",
+      "got": "get_product_details",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-118",
+      "group": "mixed",
+      "style": "short",
+      "text": "return කරන්න පුළුවන්ද",
+      "want": "website_policy",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-121",
+      "group": "mixed",
+      "style": "negative",
+      "text": "Python වල loop එකක් කොහොමද ලියන්නේ කියලා කියන්න",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-122",
+      "group": "mixed",
+      "style": "negative",
+      "text": "client කෙනෙක්ට professional email එකක් ලියලා දෙන්න",
+      "want": "general",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    },
+    {
+      "id": "dev-mixed-123",
+      "group": "mixed",
+      "style": "negative",
+      "text": "Google එකේ search කරලා බලන්න",
+      "want": "external_site",
+      "got": "unknown",
+      "action": "clarify",
+      "kind": "abstained"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "basis": "measured",
+  "mode": "router",
+  "reviewStatus": "developer-authored, not native-reviewed, not independent",
+  "ranAt": "2026-11-13T08:22:11.360Z",
+  "node": "v24.12.0",
+  "totalCases": 98,
+  "perGroup": {
+    "si": {
+      "n": 24,
+      "supported": 18,
+      "intentCorrect": 16,
+      "intentAccuracyPct": 88.9,
+      "abstained": 2,
+      "entityChecked": 7,
+      "entityCorrect": 6,
+      "newCategory": 6,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 6
+    },
+    "singlish": {
+      "n": 24,
+      "supported": 19,
+      "intentCorrect": 19,
+      "intentAccuracyPct": 100,
+      "abstained": 0,
+      "entityChecked": 8,
+      "entityCorrect": 3,
+      "newCategory": 5,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 5
+    },
+    "en": {
+      "n": 26,
+      "supported": 19,
+      "intentCorrect": 19,
+      "intentAccuracyPct": 100,
+      "abstained": 0,
+      "entityChecked": 9,
+      "entityCorrect": 9,
+      "newCategory": 7,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 7
+    },
+    "mixed": {
+      "n": 24,
+      "supported": 19,
+      "intentCorrect": 19,
+      "intentAccuracyPct": 100,
+      "abstained": 0,
+      "entityChecked": 8,
+      "entityCorrect": 8,
+      "newCategory": 5,
+      "newCategoryRoutedToTool": 0,
+      "newCategoryNoTool": 5
+    }
+  },
+  "overall": {
+    "n": 98,
+    "supported": 75,
+    "intentCorrect": 73,
+    "intentAccuracyPct": 97.3,
+    "abstained": 2,
+    "entityChecked": 32,
+    "entityCorrect": 26,
+    "newCategory": 23,
+    "newCategoryRoutedToTool": 0,
+    "newCategoryNoTool": 23
+  },
+  "latencyMs": {
+    "p50": 0.7714000000000283,
+    "p95": 2.1368000000000507,
+    "max": 16.524999999999977
+  },
+  "misses": [
+    {
+      "group": "si",
+      "text": "ඇණවුම ට්‍රැක් කරන්නේ කොහොමද?",
+      "want": "order_status",
+      "got": "unknown",
+      "action": "clarify"
+    },
+    {
+      "group": "si",
+      "text": "බෙදාහැරීමේ ගාස්තුව කීයද?",
+      "want": "store_info",
+      "got": "get_product_details",
+      "action": "clarify"
+    }
+  ]
+}
