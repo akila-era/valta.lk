@@ -18,11 +18,6 @@ describe("tool schema conversion", () => {
     ["oneOf", obj({ a: { oneOf: [{ type: "string" }] } })],
     ["allOf", obj({ a: { allOf: [{ type: "string" }] } })],
     ["$ref", obj({ a: { $ref: "#/x" } })],
-    ["additionalProperties", obj({}, { additionalProperties: false })],
-    ["pattern", obj({ a: { type: "string", pattern: "^x$" } })],
-    ["minLength", obj({ a: { type: "string", minLength: 1 } })],
-    ["maxLength", obj({ a: { type: "string", maxLength: 9 } })],
-    ["uniqueItems", obj({ a: { type: "array", items: { type: "string" }, uniqueItems: true } })],
     ["not", obj({ a: { not: { type: "string" } } })],
     ["unknown type", obj({ a: { type: "null" } })],
     ["missing type", obj({ a: { description: "x" } })],
@@ -38,6 +33,28 @@ describe("tool schema conversion", () => {
       expect(() => toGeminiFunctionDeclaration(tool(params))).toThrow(/unsupported_schema/);
     });
   }
+  // Advisory constraints are removed from what is sent (the model does not enforce them; the tool executor enforces them in full on the original schema).
+  const advisory: [string, Record<string, unknown>, string][] = [
+    ["additionalProperties", obj({}, { additionalProperties: false }), "additionalProperties"],
+    ["pattern", obj({ a: { type: "string", pattern: "^x$" } }), "pattern"],
+    ["minLength", obj({ a: { type: "string", minLength: 1 } }), "minLength"],
+    ["maxLength", obj({ a: { type: "string", maxLength: 9 } }), "maxLength"],
+    ["uniqueItems", obj({ a: { type: "array", items: { type: "string" }, uniqueItems: true } }), "uniqueItems"],
+  ];
+  for (const [name, params, key] of advisory) {
+    it(`removes ${name} from what is sent and leaves the original schema untouched`, () => {
+      const before = JSON.stringify(params);
+      const out = toGeminiFunctionDeclaration(tool(params));
+      expect(JSON.stringify(out.parametersJsonSchema)).not.toContain(`"${key}"`);
+      expect(JSON.stringify(params)).toBe(before);
+    });
+  }
+  it("a PROPERTY that happens to be named like an advisory keyword is kept", () => {
+    const out = toGeminiFunctionDeclaration(tool(obj({ pattern: { type: "string", maxLength: 5 }, maxLength: { type: "integer" } })));
+    const props = (out.parametersJsonSchema as { properties: Record<string, Record<string, unknown>> }).properties;
+    expect(Object.keys(props).sort()).toEqual(["maxLength", "pattern"]);
+    expect(props.pattern).toEqual({ type: "string" });
+  });
   it("rejects a root that is not an object, too deep a schema, too many properties and too long an enum", () => {
     expect(() => toGeminiFunctionDeclaration(tool({ type: "string" }))).toThrow(/root_must_be_object/);
     let deep: Record<string, unknown> = { type: "string" };

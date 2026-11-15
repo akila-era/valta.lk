@@ -18,6 +18,8 @@ export interface LaneSnapshot {
   shadow: { tried: number; skippedNotReady: number; skippedSample: number; completed: number; degraded: number; errors: number; passed: number; repaired: number; languageAgrees: number; languageDiffers: number };
   on: { served: number; fellBack: number; refusedNoContractSource: number };
   failures: Record<string, number>;
+  /** Counts per fixed failure code (for example gateway:unknown_model_price). Codes are fixed strings: never text, ids or addresses. */
+  failureCodes: Record<string, number>;
   toolCalls: number;
   modelCalls: number;
   costLkr: number;
@@ -33,6 +35,7 @@ export class LaneStats {
       shadow: { tried: 0, skippedNotReady: 0, skippedSample: 0, completed: 0, degraded: 0, errors: 0, passed: 0, repaired: 0, languageAgrees: 0, languageDiffers: 0 },
       on: { served: 0, fellBack: 0, refusedNoContractSource: 0 },
       failures: {},
+      failureCodes: {},
       toolCalls: 0,
       modelCalls: 0,
       costLkr: 0,
@@ -52,6 +55,10 @@ export class LaneStats {
     else if (r.latencyMs < 10_000) b.lt10s++;
     else b.gte10s++;
     if (r.failure) this.s.failures[r.failure.kind] = (this.s.failures[r.failure.kind] ?? 0) + 1;
+    if (r.failure?.code) {
+      const key = `${r.failure.kind}:${r.failure.code}`;
+      this.s.failureCodes[key] = (this.s.failureCodes[key] ?? 0) + 1;
+    }
   }
   snapshot(): LaneSnapshot {
     return structuredClone(this.s);

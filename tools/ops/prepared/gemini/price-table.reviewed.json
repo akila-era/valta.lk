@@ -1,0 +1,32 @@
+{
+  "version": "official-2026-11-15",
+  "currency": "USD",
+  "search": {
+    "per1000Usd": 14,
+    "freeMonthly": 5000,
+    "treatAsBillableFromFirst": true,
+    "verified": true,
+    "source": "https://aistudio.google.com/docs/pricing (Google's own plain-text documentation https://aistudio.google.com/llms-full.txt, read directly 2026-11-15): grounding with Google Search 5,000 free requests per month shared across Gemini 3 and newer models, then $14 per 1,000 requests, daily cap 1,500. Search is NOT enabled in this deployment; treated as billable from the first request to stay conservative."
+  },
+  "models": [
+    {
+      "model": "gemini-3.5-flash-lite",
+      "verified": true,
+      "verifiedAt": "2026-11-15",
+      "source": "https://aistudio.google.com/docs/pricing (official plain text, read directly 2026-11-15): paid tier per 1M tokens: input $0.30 (text/image/video/audio); output $2.50 INCLUDING thinking tokens; context caching $0.03. Free tier: content is used to improve Google products; paid tier: it is not.",
+      "note": "Recommended for chat: fastest and cheapest current model. Thinking level default is minimal.",
+      "entries": [{ "inputPerM": 0.3, "outputPerM": 2.5, "cachedInputPerM": 0.03 }]
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "verified": true,
+      "verifiedAt": "2026-11-15",
+      "source": "https://aistudio.google.com/docs/pricing (official plain text, read directly 2026-11-15): input $0.75 through 2026-12-31 and $1.50 from 2027-01-01; output including thinking $3.75 through 2026-12-31 and $7.50 from 2027-01-01; caching $0.075 then $0.15.",
+      "note": "Default thinking level is medium (billed as output; minimal is rejected). Prices double on 2027-01-01.",
+      "entries": [
+        { "inputPerM": 0.75, "outputPerM": 3.75, "cachedInputPerM": 0.075 },
+        { "effectiveFrom": "2027-01-01", "inputPerM": 1.5, "outputPerM": 7.5, "cachedInputPerM": 0.15 }
+      ]
+    }
+  ]
+}

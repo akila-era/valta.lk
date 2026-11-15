@@ -15,7 +15,7 @@ export interface GatewayConfig {
   apiKey: Secret;
   baseUrl: string;
   models: { chat: string; fast: string; voice: string };
-  limits: { maxInputTokens: number; maxOutputTokens: number; maxThinkingTokens: number };
+  limits: { maxInputTokens: number; maxOutputTokens: number; maxThinkingTokens: number; thinkingLevel?: "minimal" | "low" | "medium" | "high" };
   budget: {
     monthlyLkr: number;
     softLkr: number;
@@ -148,6 +148,15 @@ export function loadGatewayConfig(env: Env): LoadedGatewayConfig {
     maxOutputTokens: num(env, "GEMINI_MAX_OUTPUT_TOKENS", 800, 16, 65_536, issues),
     maxThinkingTokens: num(env, "GEMINI_MAX_THINKING_TOKENS", 0, 0, 32_768, issues),
   };
+  // The documented control for current models. Thinking tokens are billed as output and count against GEMINI_MAX_OUTPUT_TOKENS, so this decides cost.
+  // "minimal" is accepted by Gemini 3.5 Flash-Lite (its default) but REJECTED by Gemini 3.8 Flash and Gemini 4.
+  const rawLevel = env.GEMINI_THINKING_LEVEL?.trim().toLowerCase();
+  let thinkingLevel: "minimal" | "low" | "medium" | "high" | undefined;
+  if (rawLevel) {
+    if (rawLevel === "minimal" || rawLevel === "low" || rawLevel === "medium" || rawLevel === "high") thinkingLevel = rawLevel;
+    else issues.push("GEMINI_THINKING_LEVEL must be one of: minimal, low, medium, high.");
+  }
+  const limitsWithLevel = thinkingLevel ? { ...limits, thinkingLevel } : limits;
 
   const monthlyLkr = num(env, "GATEWAY_BUDGET_MONTHLY_LKR", 3000, 1, 10_000_000, issues, false);
   const softLkr = num(env, "GATEWAY_BUDGET_SOFT_LKR", 2400, 0, 10_000_000, issues, false);
@@ -194,7 +203,7 @@ export function loadGatewayConfig(env: Env): LoadedGatewayConfig {
 
   return {
     status: { state: "ready" },
-    config: { apiKey, baseUrl, models: { chat, fast: fastRaw || chat, voice: voiceRaw || chat }, limits, budget, resilience, rate },
+    config: { apiKey, baseUrl, models: { chat, fast: fastRaw || chat, voice: voiceRaw || chat }, limits: limitsWithLevel, budget, resilience, rate },
   };
 }
 

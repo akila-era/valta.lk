@@ -243,7 +243,7 @@ export function createGateway(deps: GatewayDeps): Gateway {
     ...(req.tools ? { tools: req.tools } : {}),
     ...(req.toolMode ? { toolMode: req.toolMode } : {}),
     ...(req.allowedTools ? { allowedTools: req.allowedTools } : {}),
-    ...(req.thinkingLevel ? { thinkingLevel: req.thinkingLevel } : {}),
+    ...((req.thinkingLevel ?? p.cfg.limits.thinkingLevel) ? { thinkingLevel: (req.thinkingLevel ?? p.cfg.limits.thinkingLevel)! } : {}),
     ...(req.temperature !== undefined ? { temperature: req.temperature } : {}),
     ...(req.responseJson ? { responseJson: true } : {}),
   });

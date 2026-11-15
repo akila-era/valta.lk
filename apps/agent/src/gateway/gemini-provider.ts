@@ -7,22 +7,24 @@ import { toGeminiFunctionDeclaration } from "./schema";
 /**
  * Gemini adapter over the `generateContent` wire format, behind the provider-neutral ModelProvider interface.
  *
- * WHAT WAS VERIFIED against Google's documentation on 2026-11-14 (https://aistudio.google.com/api-reference/generate-content, read through a
- * summarising fetch tool): the endpoints `POST /v1beta/models/{model}:generateContent` and `:streamGenerateContent`; the Content shape (role
- * "user" | "model", parts with text, inlineData, functionCall {name, id, args}, functionResponse {name, response, id, parts}); tools[].
- * functionDeclarations[] with parametersJsonSchema; generationConfig names maxOutputTokens, temperature, topP, topK, seed, responseMimeType,
- * thinkingConfig {thinkingBudget, thinkingLevel, includeThoughts}; the response (candidates[].content.parts, finishReason values,
- * promptFeedback.blockReason, usageMetadata promptTokenCount / cachedContentTokenCount / candidatesTokenCount / toolUsePromptTokenCount /
- * thoughtsTokenCount / totalTokenCount, modelVersion); the API key header `x-goog-api-key` and base host (from the Interactions quickstart).
+ * VERIFIED against Google's OFFICIAL plain-text documentation (https://aistudio.google.com/llms-full.txt, read directly on 2026-11-15; the older summary-
+ * tool reading of 2026-11-14 is superseded): `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent` with header
+ * `x-goog-api-key`; Content roles "user" | "model"; function results are sent as a `user` turn whose part is `functionResponse {name, id, response}`;
+ * `tools[].functionDeclarations[] {name, description, parameters}`; `toolConfig.functionCallingConfig.mode` with values AUTO | ANY | NONE | VALIDATED
+ * and `allowedFunctionNames`; `generationConfig.maxOutputTokens` (it INCLUDES thinking tokens: a cap hit while thinking returns MAX_TOKENS with
+ * little or no text and the thinking is still billed) and `generationConfig.thinkingConfig.thinkingLevel` written in LOWERCASE ("minimal", "low",
+ * "medium", "high"; Gemini 3.8 Flash and Gemini 4 reject "minimal"; the default is "medium" for 3.8 Flash and Gemini 4 and "minimal" for 3.5
+ * Flash-Lite; Gemini 2.5 models use `thinkingBudget` instead and it is deprecated for Gemini 4); `usageMetadata` promptTokenCount, candidatesTokenCount,
+ * thoughtsTokenCount, totalTokenCount (total = prompt + candidates + thoughts, so thoughts are NOT inside candidates and are summed here for billing,
+ * which matches the price page: output price "including thinking tokens").
  *
- * UNVERIFIED (the pages could not be read or do not say): the generateContent REQUEST body page itself; toolConfig.functionCallingConfig
- * and its mode values; the role used for function-result turns (this adapter uses "user"); thoughtSignature handling (this adapter replays the
- * raw model part untouched via ToolCall.providerData, which is the safe choice); the `?alt=sse` query for generateContent (verified only
- * for the Interactions endpoint); whether candidatesTokenCount already includes thoughtsTokenCount (they are summed, which can only
- * over-estimate cost); the case/format of thinkingLevel. ALSO: the current docs present the newer Interactions API
- * (`POST /v1beta/interactions`, header `Api-Revision`) as the primary interface. This adapter is one implementation of ModelProvider; an
- * Interactions adapter can be added without touching the gateway. Hand-written fixtures in the tests prove only that this code matches
- * THESE shapes, not that Google's live service accepts them: that needs one approved, capped test call.
+ * STILL UNVERIFIED (no live call has ever been made): the exact `systemInstruction` body shape the live service accepts; whether `?alt=sse` is needed
+ * for `streamGenerateContent` (the official REST example omits it; the turn loop does not stream); thoughtSignature handling (this adapter replays the
+ * raw model part untouched via ToolCall.providerData, the safe choice); error body shapes. ALSO: the official index says the Interactions API
+ * (`POST /v1beta/interactions`) is the default for new work and `generateContent` is "still supported for existing integrations, but is considered a legacy
+ * API". This adapter is one implementation of ModelProvider; an Interactions adapter can be added without touching the gateway. Hand-written fixtures
+ * in the tests prove only that this code matches THESE documented shapes, not that Google's live service accepts them: that needs one approved,
+ * capped test call.
  */
 const MODEL_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/;
 const MAX_BODY_BYTES = 4_000_000;
@@ -81,8 +83,10 @@ export function buildGenerateContentRequest(req: ModelRequest, baseUrl: string, 
   if (req.maxOutputTokens !== undefined) gen.maxOutputTokens = req.maxOutputTokens;
   if (req.temperature !== undefined) gen.temperature = req.temperature;
   if (req.responseJson) gen.responseMimeType = "application/json";
-  if (req.thinkingLevel) gen.thinkingConfig = { thinkingLevel: req.thinkingLevel.toUpperCase() };
-  else if (req.maxThinkingTokens !== undefined) gen.thinkingConfig = { thinkingBudget: req.maxThinkingTokens };
+  // Documented (REST example): generationConfig.thinkingConfig.thinkingLevel, lowercase. A thinkingBudget is documented only for the 2.5 series (and is
+  // deprecated for Gemini 4), so it is sent only for those; for newer models the level is the control and the model's own default applies without it.
+  if (req.thinkingLevel) gen.thinkingConfig = { thinkingLevel: req.thinkingLevel };
+  else if (req.maxThinkingTokens !== undefined && /^gemini-2[.]5/.test(req.model)) gen.thinkingConfig = { thinkingBudget: req.maxThinkingTokens };
   if (Object.keys(gen).length > 0) body.generationConfig = gen;
   const path = `/${apiVersion}/models/${req.model}:${stream ? "streamGenerateContent?alt=sse" : "generateContent"}`;
   return { url: `${baseUrl.replace(/\/+$/, "")}${path}`, body };

@@ -8,6 +8,14 @@ import type { JsonSchema, ToolDeclaration } from "./provider";
  * maxLength, minProperties, maxProperties, uniqueItems and contains are not enforced, so they are rejected here and must be validated by the
  * application when the model's arguments come back (the executor does that).
  */
+/**
+ * Constraint keywords that only NARROW what a value may be. Google's structured-output documentation says several of them are not enforced by the model, and
+ * the shop's tool schemas (built from the strict argument validators) use them, so rejecting them made every real tool request fail. They are REMOVED from what
+ * is sent to the model; the application still enforces them in full when the arguments come back (the tool executor validates every call against the original
+ * schema, which this function never modifies). Structural keywords that change what the model must produce (anyOf, oneOf, $ref, ...) are still rejected.
+ */
+const ADVISORY_KEYS = new Set(["maxLength", "minLength", "pattern", "maxItems", "minItems", "uniqueItems", "additionalProperties", "$schema", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minProperties", "maxProperties"]);
+
 const ALLOWED_KEYS = new Set(["type", "properties", "required", "items", "enum", "description", "format", "minimum", "maximum", "title", "default"]);
 const TYPES = new Set(["string", "number", "integer", "boolean", "object", "array"]);
 const NAME = /^[A-Za-z_][A-Za-z0-9_.:-]{0,63}$/;
@@ -56,10 +64,27 @@ function check(node: unknown, path: string, depth: number): void {
   }
 }
 
+/** A copy of a schema node without the advisory keywords. Property NAMES are never treated as keywords. */
+function withoutAdvisoryKeys(node: unknown): unknown {
+  if (!node || typeof node !== "object" || Array.isArray(node)) return node;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+    if (ADVISORY_KEYS.has(k)) continue;
+    if (k === "properties" && v && typeof v === "object" && !Array.isArray(v)) {
+      const props: Record<string, unknown> = {};
+      for (const [name, child] of Object.entries(v as Record<string, unknown>)) props[name] = withoutAdvisoryKeys(child);
+      out[k] = props;
+    } else if (k === "items") out[k] = withoutAdvisoryKeys(v);
+    else out[k] = v;
+  }
+  return out;
+}
+
 export function toGeminiFunctionDeclaration(tool: ToolDeclaration): GeminiFunctionDeclaration {
   if (!NAME.test(tool.name)) bad("name");
   if (typeof tool.description !== "string" || tool.description.length === 0 || tool.description.length > 2_000) bad("description");
-  check(tool.parameters, "$", 0);
-  if ((tool.parameters as { type?: unknown }).type !== "object") bad("root_must_be_object");
-  return { name: tool.name, description: tool.description, parametersJsonSchema: tool.parameters };
+  const sent = withoutAdvisoryKeys(tool.parameters) as JsonSchema;
+  check(sent, "$", 0);
+  if ((sent as { type?: unknown }).type !== "object") bad("root_must_be_object");
+  return { name: tool.name, description: tool.description, parametersJsonSchema: sent };
 }

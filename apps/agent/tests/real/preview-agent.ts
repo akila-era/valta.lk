@@ -23,6 +23,9 @@ import { SiteErpTransport } from "../../src/backend/site-transport";
 import type { SiteData } from "../../src/backend/site";
 import { createLiveSiteData, type LiveSiteData } from "../../src/backend/live-site-data";
 import { loadVoiceConfig, VoiceService } from "../../src/voice";
+import { buildGateway } from "../../src/gateway";
+import type { ChatPipeline } from "../../src/http/pipeline";
+import { createLlmFirst, loadLlmFirstConfig } from "../../src/llm";
 
 const config = loadConfig({ ...process.env, AI_ASSISTANT_ENABLED: "true", AGENT_ENGLISH_MODE: "router-first" });
 const logger = createLogger(consoleSink);
@@ -49,6 +52,25 @@ const stack = createMockStack({ ...real, planner, englishMode: "router-first", .
 const voiceCfg = loadVoiceConfig(process.env);
 const voice = voiceCfg.stt.name !== "none" || voiceCfg.tts.name !== "none" ? new VoiceService(voiceCfg) : undefined;
 
-const app = createAgentServer({ config, pipeline: stack.pipeline, ollama, scheduler, logger, metrics, ...(voice ? { voice } : {}) });
+// LLM-first lane (same wiring as src/main.ts): OFF unless AGENT_LLM_FIRST is "shadow" or "on". Off = the legacy pipeline object itself, nothing is built.
+// A bad value stops the start, naming the variable (never the value).
+const llmCfg = loadLlmFirstConfig(process.env);
+if (llmCfg.issues.length) throw new Error(`Invalid configuration: ${llmCfg.issues.join(" ")}`);
+let pipeline: ChatPipeline = stack.pipeline;
+if (llmCfg.mode !== "off") {
+  const { gateway } = await buildGateway(process.env);
+  pipeline = createLlmFirst({ legacy: stack.pipeline, env: process.env, gateway, toolDeps: { registry: stack.registry } });
+}
+
+// Counts only (no text, session id or address): lets the owner watch a shadow trial in the journal. Silent until the lane has seen a request.
+const laneStats = (pipeline as { stats?: () => { requests: number } }).stats;
+if (typeof laneStats === "function") {
+  setInterval(() => {
+    const snap = laneStats.call(pipeline);
+    if (snap.requests > 0) process.stdout.write(JSON.stringify({ msg: "llm_lane_stats", ...snap }) + "\n");
+  }, llmCfg.statsSeconds * 1000).unref();
+}
+
+const app = createAgentServer({ config, pipeline, ollama, scheduler, logger, metrics, ...(voice ? { voice } : {}) });
 app.listen().then(({ host, port }) => process.stdout.write(`${JSON.stringify({ msg: "preview agent listening", host, port, catalogue: catalogueUrl ? "website (real)" : "mock", ollama: config.ollamaUrl })}\n`));
 for (const sig of ["SIGTERM", "SIGINT"] as const) process.on(sig, () => void app.close().then(() => process.exit(0)));

@@ -5,6 +5,7 @@
  *   AGENT_LLM_HISTORY            off | memory             (default off: no conversation history reaches any model)
  *   AGENT_LLM_HISTORY_TURNS      1..10                    (default 6)
  *   AGENT_LLM_SHADOW_SAMPLE      0..1                     (default 1: share of conversations the shadow lane tries)
+ *   AGENT_LLM_STATS_SECONDS      5..3600                  (default 300: how often the lane writes ONE counts-only line to the log)
  *   AGENT_LLM_LEGACY_SOURCE_LABEL true                    (default off; a shim, see lane.ts: until contract 1.4 has a source for model text)
  *
  * The loader never throws and never echoes a value: a bad setting names the variable and the rule, and falls back to the safe default.
@@ -26,6 +27,8 @@ export interface LlmFirstConfig {
   mode: LlmFirstMode;
   history: LlmHistoryConfig;
   shadowSample: number;
+  /** Seconds between the counts-only statistics lines. */
+  statsSeconds: number;
   /** Test-only shim: label model text with the one existing source value that exists today. Off by default: the "on" mode then refuses to serve. */
   legacySourceLabel: boolean;
   /** Names and rules of settings that were invalid (never values). */
@@ -71,6 +74,14 @@ export function loadLlmFirstConfig(env: Env): LlmFirstConfig {
     else issues.push("AGENT_LLM_SHADOW_SAMPLE must be a number between 0 and 1.");
   }
 
+  let statsSeconds = 300;
+  const rawStats = env.AGENT_LLM_STATS_SECONDS?.trim();
+  if (rawStats) {
+    const n = Number(rawStats);
+    if (Number.isInteger(n) && n >= 5 && n <= 3600) statsSeconds = n;
+    else issues.push("AGENT_LLM_STATS_SECONDS must be an integer between 5 and 3600.");
+  }
+
   const rawShim = env.AGENT_LLM_LEGACY_SOURCE_LABEL?.trim().toLowerCase();
   let legacySourceLabel = false;
   if (rawShim === "true") legacySourceLabel = true;
@@ -80,6 +91,7 @@ export function loadLlmFirstConfig(env: Env): LlmFirstConfig {
     mode,
     history: { ...DEFAULT_HISTORY, enabled: historyMode === "memory", maxTurns },
     shadowSample,
+    statsSeconds,
     legacySourceLabel,
     issues,
   };

@@ -39,10 +39,17 @@ describe("request building", () => {
     expect(body.toolConfig).toEqual({ functionCallingConfig: { mode: "AUTO" } });
   });
   it("generation limits and thinking go into generationConfig", () => {
+    // Newer models: the documented control is thinkingLevel; a thinkingBudget is NOT sent (it is documented for the 2.5 series and deprecated for Gemini 4).
     const a = buildGenerateContentRequest(req({ maxOutputTokens: 500, temperature: 0.2, maxThinkingTokens: 0, responseJson: true }), BASE).body;
-    expect(a.generationConfig).toEqual({ maxOutputTokens: 500, temperature: 0.2, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } });
+    expect(a.generationConfig).toEqual({ maxOutputTokens: 500, temperature: 0.2, responseMimeType: "application/json" });
+    // The level goes in lowercase, exactly as in the official REST example (generationConfig.thinkingConfig.thinkingLevel: "medium").
     const b = buildGenerateContentRequest(req({ thinkingLevel: "low", maxThinkingTokens: 5 }), BASE).body;
-    expect(b.generationConfig).toEqual({ thinkingConfig: { thinkingLevel: "LOW" } });
+    expect(b.generationConfig).toEqual({ thinkingConfig: { thinkingLevel: "low" } });
+    const c = buildGenerateContentRequest(req({ thinkingLevel: "minimal" }), BASE).body;
+    expect(c.generationConfig).toEqual({ thinkingConfig: { thinkingLevel: "minimal" } });
+    // The 2.5 series is the one documented to take a budget.
+    const d = buildGenerateContentRequest(req({ model: "gemini-2.5-flash-lite", maxThinkingTokens: 0 }), BASE).body;
+    expect(d.generationConfig).toEqual({ thinkingConfig: { thinkingBudget: 0 } });
   });
   it("omits generationConfig entirely when nothing is set", () => {
     expect(buildGenerateContentRequest(req(), BASE).body.generationConfig).toBeUndefined();
