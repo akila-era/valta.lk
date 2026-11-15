@@ -33,11 +33,16 @@ export interface QuestionContext {
 export function nextQuestion(state: ReasoningState, p: Profile, c: QuestionContext): QuestionKey | null {
   if (state.questionsInARow >= MAX_QUESTIONS_IN_A_ROW) return null;
   if (c.matches <= ASK_ONLY_ABOVE_MATCHES) return null;
-  const fresh = (k: QuestionKey) => !state.asked.includes(k);
+  // R0: "stop asking questions", "keep it short" and "don't ask my budget" are honoured for the rest of the conversation.
+  const prefs = state.prefs ?? {};
+  if (prefs.noQuestions || prefs.short) return null;
+  const fresh = (k: QuestionKey) => !state.asked.includes(k) && !(k === "budget" && prefs.noBudgetQuestion);
   if (c.kind === "phone" || c.kind === "laptop") {
     if (p.budgetMaxLkr === undefined && p.budgetMinLkr === undefined && fresh("budget")) return "budget";
     if (p.usage.length === 0 && fresh("usage")) return "usage";
-    if (c.kind === "phone" && !p.brand && c.brandsInResults >= 3 && fresh("brand")) return "brand";
+    // With both a budget and a use named, the ranking is already personal: a third question (a brand) would only delay the answer.
+    const personal = p.usage.length > 0 && (p.budgetMaxLkr !== undefined || p.budgetMinLkr !== undefined);
+    if (c.kind === "phone" && !p.brand && !personal && c.brandsInResults >= 3 && fresh("brand")) return "brand";
     return null;
   }
   if (c.kind === "accessory" && !c.hasProductContext && fresh("device")) return "device";

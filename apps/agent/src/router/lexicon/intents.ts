@@ -24,7 +24,7 @@ export const INTENT_CUES: Record<ScoredIntent, CueGroup[]> = {
     { w: 3, p: ["how much is", "how much does", "price of", "what is the price", "price", "how much", "cost", "costs", "kiyada", "කීයද", "මිල", "camera", "battery", "display", "screen", "ram", "storage", "processor", "chipset", "warranty", "weight", "colours", "colors", "කැමරා", "බැටරි", "තිරය", "රැම්", "ගබඩා", "වගකීම", "වර්ණ"] },
   ],
   compare_products: [
-    { w: 4, p: ["compare", "comparison", "versus", "vs", "difference between", "differences between", "which is better", "which one is better", "better than", "which is cheaper", "cheaper than", "දෙකෙන්", "වෙනස", "සසඳ", "wenasa", "!වෙනස් කරන්න", "!වෙනස් කිරීම"] },
+    { w: 4, p: ["compare", "comparison", "versus", "vs", "difference between", "differences between", "which is better", "which one is better", "better than", "which is cheaper", "cheaper than", "wada hondada", "wada honda", "ekata wada honda", "ට වඩා හොඳ", "වඩා හොඳද", "දෙකෙන්", "වෙනස", "සසඳ", "wenasa", "!වෙනස් කරන්න", "!වෙනස් කිරීම"] },
   ],
   check_stock: [
     { w: 4, p: ["in stock", "out of stock", "stock", "availability", "is it available", "available", "තොග", "තොගේ", "තොගයේ", "තොගයක්", "stock eke", "stock eka", "stock ekak", "come in", "comes in", "available in"] },
@@ -35,7 +35,7 @@ export const INTENT_CUES: Record<ScoredIntent, CueGroup[]> = {
     { w: 3, p: ["case", "cover", "charger", "cable", "protector", "power bank", "adaptor", "adapter", "කේස්", "කවරය", "චාජර්", "කේබල්", "ආරක්ෂක"] },
   ],
   cart_add: [
-    { w: 4, p: ["add to cart", "add to my cart", "add it to cart", "add this to cart", "add this to my cart", "add it to my cart", "add to basket", "put in cart", "put it in my cart", "cart ekata danna", "cart ekata dapan", "cart ekata ekathu karanna", "basket ekata danna", "cart එකට දාන්න", "cart එකට දාපන්", "cart එකට එකතු", "කාට් එකට", "කාර්ට් එකට", "ekathu karanna", "එකතු කරන්න", "i want to buy", "want to buy", "would like to buy", "buy this", "buy it", "i ll take", "i will take", "take this", "take it", "මේක ගන්නම්", "ගන්නම්"] },
+    { w: 4, p: ["add to cart", "add to my cart", "add it to cart", "add this to cart", "add this to my cart", "add it to my cart", "add to basket", "put in cart", "put it in my cart", "cart ekata danna", "cart ekata damanna", "cart ekata dala denna", "cart ekata dapan", "cart ekata ekathu karanna", "basket ekata danna", "cart එකට දාන්න", "cart එකට දාපන්", "cart එකට එකතු", "කාට් එකට", "කාර්ට් එකට", "ekathu karanna", "එකතු කරන්න", "i want to buy", "want to buy", "would like to buy", "buy this", "buy it", "i ll take", "i will take", "take this", "take it", "මේක ගන්නම්", "ගන්නම්"] },
     { w: 3, p: ["add"] },
     { w: 1, p: ["cart", "කාට්", "basket"] },
   ],

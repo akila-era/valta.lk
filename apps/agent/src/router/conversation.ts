@@ -36,8 +36,8 @@ export function isNeutralMessage(message: string): boolean {
   return tokens.length > 0 && tokens.every((t) => /\d/.test(t) || ACK_WORDS.has(t) || AMOUNT_FILLER.has(t));
 }
 
-const GREETING_TEMPLATES = new Set(["greeting", "how_are_you"]);
-const CONVERSATION_TEMPLATES = new Set(["thanks", "goodbye", "identity", "capabilities", "help_yes", "acknowledged", "language_support", "identity"]);
+const GREETING_TEMPLATES = new Set(["greeting", "greeting_again", "greeting_c", "how_are_you"]);
+const CONVERSATION_TEMPLATES = new Set(["thanks", "thanks_again", "thanks_c", "goodbye", "identity", "capabilities", "help_yes", "acknowledged", "language_support", "identity", "pref_lang_si", "pref_lang_en", "pref_short", "pref_no_questions", "pref_no_budget"]);
 
 /** Names the router's decision for the conversation layer. `message` is only used to tell a price question from other product questions. */
 export function conversationIntent(d: Pick<RouteDecision, "intent" | "action" | "template" | "reason">, message: string): ConversationIntent {

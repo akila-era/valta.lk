@@ -48,7 +48,7 @@ export const FRAMES: Partial<Record<ScoredIntent, Frame[]>> = {
     },
   ],
   cart_add: [
-    { w: 5, all: [CART_THING, ["add", "put", "drop in", "throw in", "place", "danna", "dagannna", "dagenna", "දාන්න", "දාගන්න", "දාලා", "එකතු", "ඇතුල්", "ekathu"]], not: [...REMOVE_WORD, "view", "show", "what", "total"] },
+    { w: 5, all: [CART_THING, ["add", "put", "drop in", "throw in", "place", "danna", "damanna", "dammanna", "dala denna", "dagannna", "dagenna", "දාන්න", "දාගන්න", "දාලා", "එකතු", "ඇතුල්", "ekathu"]], not: [...REMOVE_WORD, "view", "show", "what", "total"] },
     { w: 4, all: [["put", "add", "place"], ["basket", "cart", "bag"]], not: [...REMOVE_WORD] },
   ],
   cart_remove: [{ w: 5, all: [CART_THING, REMOVE_WORD] }],

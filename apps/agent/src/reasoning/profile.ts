@@ -29,9 +29,57 @@ export interface ReasoningState {
   lastResultIds: string[];
   /** Consecutive replies that ended with a question: capped so the assistant never interrogates. */
   questionsInARow: number;
+  /** Replies given so far, for wording variants (`pickVariant` in router/templates.ts). Optional: the pipeline increments it once it is wired. */
+  replies?: number;
+  /** The key of the template the previous reply ended with. Lets `varyFrom` (router/templates.ts) word a repeated reply differently. */
+  lastTemplate?: string;
+  /**
+   * What the shopper explicitly does NOT want ("don't recommend Samsung", "no chargers"). Unlike the profile it is NOT cleared when the topic changes: it
+   * stays until the shopper asks for that thing again. Ids, brand words and category slugs only, never message text.
+   */
+  exclusions: Exclusions;
+  /** Conversation preferences the shopper asked for ("reply in Sinhala", "keep it short", "stop asking questions"). This conversation only, in memory. */
+  prefs: ConversationPrefs;
+  /** The state as it was BEFORE the previous turn, so "that's not what I asked" can drop that turn's interpretation. Never holds message text. */
+  undo?: UndoSnapshot;
 }
 
-export const emptyReasoning = (): ReasoningState => ({ profile: { usage: [] }, asked: [], discussed: [], selected: [], lastResultIds: [], questionsInARow: 0 });
+export interface Exclusions {
+  /** Brand words, lower-case. */
+  brands: string[];
+  /** Catalogue category slugs. */
+  categories: string[];
+  /** Kinds of product named by a word that is not a category ("charger", "case"), lower-case. */
+  words: string[];
+  productIds: string[];
+}
+
+export interface ConversationPrefs {
+  replyLang?: "en" | "si";
+  /** Short answers: no follow-up question is appended. */
+  short?: boolean;
+  /** No follow-up questions at all. */
+  noQuestions?: boolean;
+  /** Everything except the budget question may still be asked. */
+  noBudgetQuestion?: boolean;
+}
+
+/** What a correction restores: the profile and question bookkeeping, the lists used to resolve "the second one", and the session's last search subject. */
+export interface UndoSnapshot {
+  profile: Profile;
+  asked: QuestionKey[];
+  questionsInARow: number;
+  lastResultIds: string[];
+  discussed: string[];
+  pending?: QuestionKey;
+  lastIntent?: string;
+  slots: { brand?: string; category?: string; budgetLkr?: number; query?: string };
+  lastShownProductIds: string[];
+}
+
+export const emptyExclusions = (): Exclusions => ({ brands: [], categories: [], words: [], productIds: [] });
+
+export const emptyReasoning = (): ReasoningState => ({ profile: { usage: [] }, asked: [], discussed: [], selected: [], lastResultIds: [], questionsInARow: 0, exclusions: emptyExclusions(), prefs: {} });
 
 export interface ProfileUpdate {
   category?: string;

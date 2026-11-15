@@ -10,9 +10,13 @@ const SINGLISH_STRONG = new Set([
   "kiyada", "kiyanna", "denna", "danna", "ganna", "mage", "oni", "ona", "puluwanda", "puluwan", "nadda", "neda", "balanna", "pennanna", "hoyanna", "karanna", "adu", "wadi",
   "hodama", "honda", "meka", "meke", "mekata", "meken", "oyata", "oyage", "mata", "karala", "ain", "kiyala", "tikak", "godak", "kohed", "kohe", "mokada", "wage", "nathnam",
   "walata", "ekakda", "ekaka", "dekak", "thunak", "pahak", "ekakma", "ayubowan", "istuti", "sthuthi", "ow", "nene", "naha", "hari",
+  // R0: short Singlish messages that carried no other marker ("login wenna ba", "ehema nemei", "Samsung nathuwa") were answered in English
+  "wenna", "baha", "bari", "marala", "amathaka", "nemei", "nemey", "nemeyi", "ehema", "kiwwe", "kiyuwe", "nathuwa", "nethuwa", "pissu", "pissa", "asanna", "ahanna", "kotin",
+  "bohoma", "sthuthiyi", "stuthiyi", "wadiyenma", "gahanawa", "gahanna", "gahanne", "hodai", "hondai", "damanna", "dammanna", "epa", "nane", "nehe", "poddak", "thawa", "thawath", "mulinma", "kalin", "kiyapu", "kiwwa", "palaweni", "deweni", "thunweni", "anthima",
 ]);
 /** Weak markers are common in English too, so two or more are needed. */
-const SINGLISH_WEAK = new Set(["one", "karanna", "ok", "api", "oya", "mama", "me", "ah"]);
+// "one", "me", "ok" and "ah" are ordinary English ("show me the third one"): counting them made English requests come back in Sinhala.
+const SINGLISH_WEAK = new Set(["karanna", "api", "oya", "mama"]);
 
 export interface LanguageOptions {
   /** The locale the website sent. It only breaks ties for Latin text with no Singlish markers; it never overrides script. */

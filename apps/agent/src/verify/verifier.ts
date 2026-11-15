@@ -126,11 +126,11 @@ function variantOk(card: NonNullable<ProductCard["variants"]>[number], src: Vari
 function productCardOk(c: ProductCard, src: ProductView | undefined): VerifyFailure | null {
   if (!src) return "unknown_product";
   const sale = src.saleCents !== null && src.saleCents < src.priceCents;
-  if (c.id !== src.id || c.slug !== src.slug || c.name !== src.name) return "product_mismatch";
-  if ((c.brand ?? undefined) !== (src.brand ?? undefined)) return "product_mismatch";
+  if (c.id !== src.id || c.slug !== src.slug || c.name !== src.name.slice(0, 200)) return "product_mismatch";
+  if ((c.brand ?? undefined) !== (src.brand?.slice(0, 80) ?? undefined)) return "product_mismatch";
   if (!moneyOk(c.price, effectiveCents(src))) return "product_mismatch";
   if (sale ? !moneyOk(c.listPrice, src.priceCents) : c.listPrice !== undefined) return "product_mismatch";
-  if ((c.offerName ?? undefined) !== (src.offerName ?? undefined)) return "product_mismatch";
+  if ((c.offerName ?? undefined) !== (src.offerName?.slice(0, 120) ?? undefined)) return "product_mismatch";
   if (c.available !== src.available) return "product_mismatch";
   if (c.url !== `/products/${src.slug}`) return "link_not_approved";
   if (c.imageUrl !== undefined && c.imageUrl !== src.imageUrl) return "product_mismatch";
@@ -201,6 +201,7 @@ export function verifyResponse(i: VerifyInput): VerifyResult {
       }
       case "comparison": {
         if (c.products.length < 2 || c.products.length > MAX_COMPARE_PRODUCTS) return fail("comparison_mismatch");
+        if (c.products.some((p) => p.fit !== undefined)) return fail("product_mismatch"); // fit is only ever attached to top-level product cards
         const sources: ProductView[] = [];
         for (const p of c.products) {
           const s = src.products.get(p.id);
@@ -225,6 +226,7 @@ export function verifyResponse(i: VerifyInput): VerifyResult {
         const list = src.accessories.find((a) => a.sourceId === c.forProductId);
         const item = list?.items.find((a) => a.product.id === c.product.id && a.kind === c.kind);
         if (!item) return fail("accessory_unauthorized");
+        if (c.product.fit !== undefined) return fail("product_mismatch");
         const f = productCardOk(c.product, item.product);
         if (f) return fail(f);
         break;

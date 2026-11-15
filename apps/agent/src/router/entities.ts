@@ -1,6 +1,7 @@
 import { parseAmounts, toPriceBounds } from "./amounts";
 import { anyPhrase, compilePhrase, makeHaystack, phraseMatches, type Haystack } from "./cues";
-import { COLORS, CONCEPTS, NUMBER_WORDS, ON_SALE, ORDINALS, PREVIOUS_REFS, REFERENT_PLURAL, REFERENT_SINGLE, SORT_CHEAP, SORT_EXPENSIVE, SORT_NEWEST, STOPWORDS } from "./lexicon/concepts";
+import { COLORS, CONCEPTS, FIRST_MENTION_REFS, NUMBER_WORDS, ON_SALE, ORDINALS, PREVIOUS_REFS, REFERENT_PLURAL, REFERENT_SINGLE, SORT_CHEAP, SORT_EXPENSIVE, SORT_NEWEST, STOPWORDS } from "./lexicon/concepts";
+import { isNegatedAt } from "./negation";
 import { editDistanceAtMost, normalizeDisplay, normalizeMatch, tokenize } from "./normalize";
 import type { Entities, ProductMatch, Vocabulary, VocabProduct } from "./types";
 
@@ -78,12 +79,40 @@ export function matchProducts(h: Haystack, vocab: Vocabulary): { products: Produ
   };
 }
 
-function matchBrand(h: Haystack, vocab: Vocabulary): string | undefined {
+/** Every catalogue brand the message names, with the token position of the mention (for the negation check). */
+function brandMentions(h: Haystack, vocab: Vocabulary): { brand: string; start: number }[] {
+  const out: { brand: string; start: number }[] = [];
   for (const brand of vocab.brands) {
     const b = normalizeMatch(brand);
-    if (b && h.tokens.some((t) => fuzzyEqual(t, b))) return brand;
+    if (!b) continue;
+    const at = h.tokens.findIndex((t) => fuzzyEqual(t, b));
+    if (at >= 0) out.push({ brand, start: at });
   }
-  return undefined;
+  return out.sort((a, b) => a.start - b.start);
+}
+
+/** The token positions [start, end) where a compiled concept phrase matches, or null. Sinhala phrases match inside a token. */
+function phraseSpan(h: Haystack, phrase: ReturnType<typeof compilePhrase>): [number, number] | null {
+  if (phrase.text === "") return null;
+  if (phrase.sinhala) {
+    const at = h.tokens.findIndex((t) => t.includes(phrase.text));
+    return at < 0 ? null : [at, at + 1];
+  }
+  const words = phrase.text.split(" ");
+  for (let i = 0; i + words.length <= h.tokens.length; i++) {
+    const last = words.length - 1;
+    const ok = words.every((w, k) => (k === last && phrase.prefix ? h.tokens[i + k]!.startsWith(w) : h.tokens[i + k] === w));
+    if (ok) return [i, i + words.length];
+  }
+  return null;
+}
+
+/** The token positions a product's name words matched in the message. */
+function productSpan(h: Haystack, vocab: Vocabulary, productId: string): [number, number] | null {
+  const ip = indexVocab(vocab).find((x) => x.product.id === productId);
+  if (!ip) return null;
+  const hits = h.tokens.map((t, i) => (ip.tokens.some((p) => fuzzyEqual(t, p)) ? i : -1)).filter((i) => i >= 0);
+  return hits.length === 0 ? null : [hits[0]!, hits[hits.length - 1]! + 1];
 }
 
 const CONCEPT_SEARCH_WORD: Record<string, string> = { phone: "phone", laptop: "laptop", tablet: "tablet" };
@@ -103,7 +132,7 @@ function resolveCategory(catalogueWords: string[], vocab: Vocabulary): string | 
   return undefined;
 }
 
-function unknownTerms(display: string, h: Haystack, vocab: Vocabulary, brand: string | undefined, hasProduct: boolean): string[] {
+function unknownTerms(display: string, h: Haystack, vocab: Vocabulary, brand: string | undefined, hasProduct: boolean, negated: ReadonlySet<string> = new Set()): string[] {
   if (brand || hasProduct) return [];
   const known = new Set<string>();
   for (const p of vocab.products) for (const t of tokenize(normalizeMatch(p.name))) known.add(t);
@@ -113,7 +142,7 @@ function unknownTerms(display: string, h: Haystack, vocab: Vocabulary, brand: st
     const word = raw.replace(/[^A-Za-z0-9]/g, "");
     if (word.length < 3 || /^\d+$/.test(word)) continue;
     const lower = word.toLowerCase();
-    if (STOPWORDS.has(lower) || known.has(lower) || h.tokenSet.has(lower) === false) continue;
+    if (STOPWORDS.has(lower) || known.has(lower) || h.tokenSet.has(lower) === false || negated.has(lower)) continue;
     if (KNOWN_BRAND_WORDS.has(lower)) {
       out.push(lower);
       continue;
@@ -136,17 +165,31 @@ export function extractEntities(rawMessage: string, vocab: Vocabulary): Entities
   const { amounts, unparsedCue } = parseAmounts(text);
   const bounds = toPriceBounds(amounts);
 
-  // Specific concept first (charger before phone). A concept resolves to a category only if the catalogue really has one.
+  // What the shopper explicitly does NOT want ("no chargers", "don't recommend Samsung", "Lumen P1 epa"), collected while the entities are read.
+  const excluded = { brands: [] as string[], categories: [] as string[], words: [] as string[], productIds: [] as string[] };
+  const negatedWords = new Set<string>();
+
+  // Specific concept first (charger before phone). A concept resolves to a category only if the catalogue really has one. A negated concept ("no cases")
+  // is an exclusion, not the thing to search for, and the next concept is tried.
   let categorySlug: string | undefined;
   let queryWord: string | undefined;
   let conceptWord: string | undefined;
   for (const c of CONCEPTS) {
-    if (c.words.some((w) => phraseMatches(h, compilePhrase(w)))) {
-      categorySlug = resolveCategory(c.catalogueWords, vocab);
-      if (c.queryWord) queryWord = c.queryWord;
-      conceptWord = c.queryWord ?? CONCEPT_SEARCH_WORD[c.id];
-      break;
+    const hit = c.words.map((w) => compilePhrase(w)).find((p) => phraseMatches(h, p));
+    if (!hit) continue;
+    const span = phraseSpan(h, hit);
+    if (span && isNegatedAt(h.tokens, span[0], span[1])) {
+      const slug = resolveCategory(c.catalogueWords, vocab);
+      // A specific accessory word ("charger") is excluded by its word; a broad concept ("phone") by its category.
+      if (c.queryWord) excluded.words.push(c.queryWord);
+      else if (slug) excluded.categories.push(slug);
+      else excluded.words.push(CONCEPT_SEARCH_WORD[c.id] ?? c.id);
+      continue;
     }
+    categorySlug = resolveCategory(c.catalogueWords, vocab);
+    if (c.queryWord) queryWord = c.queryWord;
+    conceptWord = c.queryWord ?? CONCEPT_SEARCH_WORD[c.id];
+    break;
   }
 
   const colors = Object.entries(COLORS)
@@ -167,17 +210,49 @@ export function extractEntities(rawMessage: string, vocab: Vocabulary): Entities
     }
   }
 
-  const { products, ambiguous } = matchProducts(h, vocab);
-  const brand = matchBrand(h, vocab);
+  const matched = matchProducts(h, vocab);
+  let products = matched.products;
+  let ambiguous = matched.ambiguous;
+  // "not the Lumen P1", "Lumen P1 epa": a negated product is excluded, never the one asked about.
+  const keptProducts = products.filter((p) => {
+    const span = productSpan(h, vocab, p.id);
+    if (span && isNegatedAt(h.tokens, span[0], span[1])) {
+      excluded.productIds.push(p.id);
+      return false;
+    }
+    return true;
+  });
+  if (keptProducts.length !== products.length) {
+    products = keptProducts;
+    if (products.length === 0) ambiguous = false;
+  }
+  // A brand is excluded when the words around it negate it; the first brand that is NOT negated is the one asked for.
+  const mentions = brandMentions(h, vocab);
+  let brand: string | undefined;
+  for (const m of mentions) {
+    if (isNegatedAt(h.tokens, m.start, m.start + 1)) excluded.brands.push(m.brand.toLowerCase());
+    else brand ??= m.brand;
+  }
+  // A well-known brand the catalogue does not carry ("Samsung" in a shop without it) can still be negated: it must not turn into a search by name.
+  for (let i = 0; i < h.tokens.length; i++) {
+    const t = h.tokens[i]!;
+    if (KNOWN_BRAND_WORDS.has(t) && isNegatedAt(h.tokens, i, i + 1)) {
+      negatedWords.add(t);
+      if (!excluded.brands.includes(t)) excluded.brands.push(t);
+    }
+  }
   // A word that is the MODEL of catalogue products ("iphone") is what the shopper is looking for, even when no product name contains it.
   if (!queryWord && !brand && products.length === 0) {
     const model = matchModelWord(h, vocab);
     if (model) queryWord = model;
   }
-  const ordinal = ORDINALS.find((o) => anyPhrase(h, o.words))?.n;
-  const previous = anyPhrase(h, PREVIOUS_REFS);
+  const ordinals = ORDINALS.filter((o) => anyPhrase(h, o.words)).map((o) => o.n);
+  const ordinal = ordinals[0];
+  const firstMention = anyPhrase(h, FIRST_MENTION_REFS);
+  // "the first one I mentioned" is not the first position of the list; "the one I mentioned before" is the previous product.
+  const previous = !firstMention && anyPhrase(h, PREVIOUS_REFS);
   const plural = anyPhrase(h, REFERENT_PLURAL);
-  const single = !plural && (ordinal !== undefined || previous || anyPhrase(h, REFERENT_SINGLE));
+  const single = !plural && (ordinal !== undefined || previous || firstMention || anyPhrase(h, REFERENT_SINGLE));
 
   const sort = anyPhrase(h, SORT_CHEAP) ? "price-asc" : anyPhrase(h, SORT_EXPENSIVE) ? "price-desc" : anyPhrase(h, SORT_NEWEST) ? "newest" : undefined;
   const onSale = anyPhrase(h, ON_SALE) && !/\b(give|apply|make)\b/.test(text);
@@ -197,11 +272,13 @@ export function extractEntities(rawMessage: string, vocab: Vocabulary): Entities
     products,
     productAmbiguous: ambiguous,
     ...(plural ? { referent: "plural" as const } : single ? { referent: "single" as const } : {}),
-    ...(ordinal !== undefined ? { ordinal } : {}),
+    ...(ordinal !== undefined && !firstMention ? { ordinal, ordinals } : {}),
     ...(previous ? { previous: true } : {}),
+    ...(firstMention ? { firstMention: true } : {}),
     ...(ref ? { orderRef: ref[0].toUpperCase() } : {}),
     ...(sort ? { sort } : {}),
     ...(onSale ? { onSale: true } : {}),
-    unknownTerms: unknownTerms(display, h, vocab, brand, products.length > 0),
+    unknownTerms: unknownTerms(display, h, vocab, brand, products.length > 0, negatedWords),
+    ...(excluded.brands.length + excluded.categories.length + excluded.words.length + excluded.productIds.length > 0 ? { exclusions: excluded } : {}),
   };
 }

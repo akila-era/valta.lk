@@ -20,6 +20,11 @@ const T: Record<TemplateKey, Template> = {
     si: "ආයුබෝවන්! VOLTA.LK වෙත සාදරයෙන් පිළිගන්නවා. අද මම ඔයාට කොහොමද උදව් කරන්න ඕන?",
     polishable: true,
   },
+  greeting_again: {
+    en: "Hello again! What can I help you find?",
+    si: "නැවතත් ආයුබෝවන්! මම ඔයාට මොනවද හොයලා දෙන්න ඕන?",
+    polishable: true,
+  },
   how_are_you: {
     en: "I'm doing well, thanks for asking! 😊 How are you? What are you looking for today?",
     si: "මට හොඳින් ඉන්නවා! 😊 ඔයාට කොහොමද? අද මොනවද හොයන්නේ?",
@@ -55,6 +60,16 @@ const T: Record<TemplateKey, Template> = {
     si: "ඔයා කියපු දේවල් අනුව, මේවා තමයි වඩාත්ම ගැළපෙන ඒවා.",
     polishable: false,
   },
+  recommend_intro_b: {
+    en: "Here are my top picks for what you've described.",
+    si: "ඔයා කියපු දේට ගැළපෙන හොඳම තේරීම් මෙන්න.",
+    polishable: false,
+  },
+  recommend_intro_c: {
+    en: "These match what you're after most closely.",
+    si: "ඔයා හොයන දේට වඩාත්ම ළං ඒවා මේවා.",
+    polishable: false,
+  },
   recommend_limited_data: {
     en: "Here are the closest matches. The store's product data doesn't list the details I'd need to rank them for that, so please check each product page.",
     si: "මෙන්න ළඟම ගැළපෙන ඒවා. ඒ අනුව ඒවා පෙළගස්වන්න ඕන විස්තර අපේ product දත්තවල නැති නිසා, එක් එක් product පිටුව බලන්න.",
@@ -84,6 +99,7 @@ const T: Record<TemplateKey, Template> = {
   ask_brand: { en: "Do you prefer a particular brand?", si: "ඔයා කැමති brand එකක් තියෙනවද?", polishable: false },
   ask_device: { en: "Which phone or device is it for?", si: "මේක මොන phone එකටද / device එකටද?", polishable: false },
   thanks: { en: "You're welcome! 😊 Let me know if you need anything else.", si: "ඕනෑම වෙලාවක! 😊 තවත් දෙයක් අවශ්‍ය නම් කියන්න.", polishable: true },
+  thanks_again: { en: "Happy to help! 😊 Just say the word if there's something else you'd like to see.", si: "සතුටුයි! 😊 තවත් මොනවා හරි බලන්න ඕන නම් කියන්න.", polishable: true },
   goodbye: { en: "Goodbye! Come back any time.", si: "ස්තූතියි, නැවත හමුවෙමු!", polishable: true },
   identity: {
     en: "I'm the VOLTA.LK shopping assistant. I show products and information from our store. I can't place orders or take payments.",
@@ -171,6 +187,58 @@ const T: Record<TemplateKey, Template> = {
     polishable: false,
   },
   tools_ran: { en: "Here is what I found.", si: "මෙන්න මට සොයාගත හැකි දේ.", polishable: false },
+  tools_ran_b: { en: "Here you go.", si: "මෙන්න බලන්න.", polishable: false },
+  tools_ran_c: { en: "This is what I can show you.", si: "මට පෙන්වන්න පුළුවන් දේ මෙන්න.", polishable: false },
+  clarify_what_b: {
+    en: "Sorry, I still didn't get that. Could you tell me the product, brand or budget you have in mind?",
+    si: "සමාවෙන්න, මට තාමත් තේරුණේ නැහැ. ඔයා හිතන product එක, brand එක හෝ budget එක කියන්න පුළුවන්ද?",
+    polishable: true,
+  },
+  no_match_alternatives_b: {
+    en: "Nothing matches that exactly, but here are some close options in the same category.",
+    si: "හරියටම ඒකට ගැළපෙන ඒවා නැහැ, ඒත් එකම ප්‍රවර්ගයේ ළඟම විකල්ප කිහිපයක් මෙන්න.",
+    polishable: false,
+  },
+  no_results_b: {
+    en: "Sorry, nothing matched that. Try another brand, category or budget.",
+    si: "සමාවෙන්න, ඒකට ගැළපෙන දෙයක් නැහැ. වෙන brand එකක්, ප්‍රවර්ගයක් හෝ budget එකක් උත්සාහ කරන්න.",
+    polishable: false,
+  },
+  greeting_c: { en: "Hi there! What would you like to look at?", si: "ආයුබෝවන්! ඔයාට මොනවද බලන්න ඕන?", polishable: true },
+  thanks_c: { en: "Glad I could help! 😊 Ask me anything else about the store.", si: "උදව් කරන්න පුළුවන් වුණාට සතුටුයි! 😊 store එක ගැන තව මොනවා හරි අහන්න.", polishable: true },
+  // R0: the shopper says the assistant misunderstood ("mama kiwwe eka nemei", "that's not what I asked"). No fact in any of these.
+  correction_ask: {
+    en: "Sorry, I misunderstood. What did you mean? Tell me what you're looking for.",
+    si: "සමාවෙන්න, මට වැරදුණා. ඔයා කිව්වේ මොකක්ද? ඔයාට ඕන දේ කියන්න.",
+    polishable: false,
+  },
+  correction_ask_b: {
+    en: "My mistake! Could you say it again, maybe with the product name, brand or budget?",
+    si: "මගේ වැරැද්ද! ආයෙත් කියන්න පුළුවන්ද, product නම, brand එක හෝ budget එකත් එක්ක?",
+    polishable: false,
+  },
+  correction_search: { en: "Sorry about that! Let me try again. Here is what I found.", si: "සමාවෙන්න! ආයෙත් බලමු. මෙන්න මට හොයාගත්ත දේ.", polishable: false },
+  correction_search_b: { en: "Got it, my mistake. Here is what matches that.", si: "තේරුණා, මගේ වැරැද්ද. ඒකට ගැළපෙන ඒවා මෙන්න.", polishable: false },
+  // R0: an explicit exclusion ("don't recommend Samsung", "Samsung epa") and what it leads to.
+  exclusion_noted: { en: "Noted, I'll leave that out. What are you looking for?", si: "හරි, ඒක මම අතහරිනවා. ඔයා හොයන්නේ මොකක්ද?", polishable: false },
+  exclusion_applied: { en: "Okay, leaving that out. Here is what's left.", si: "හරි, ඒක අතහැරලා. ඉතුරු ඒවා මෙන්න.", polishable: false },
+  no_results_excluded: {
+    en: "Once I leave out what you asked me not to show, nothing in stock matches. Try another brand, category or budget, or tell me if I should include it again.",
+    si: "ඔයා එපා කියපු දේ අතහැරියම, තොගයේ ගැළපෙන ඒවා නැහැ. වෙන brand එකක්, ප්‍රවර්ගයක් හෝ budget එකක් උත්සාහ කරන්න, නැත්නම් ඒක ආයෙත් ඇතුළත් කරන්න කියන්න.",
+    polishable: false,
+  },
+  // R0: conversation preferences ("reply in Sinhala", "keep it short", "stop asking questions"). Held for this conversation only, in memory.
+  pref_lang_si: { en: "Okay, I'll reply in Sinhala from now on.", si: "හරි, මම මෙතැන් සිට සිංහලෙන් පිළිතුරු දෙන්නම්.", polishable: false },
+  pref_lang_en: { en: "Okay, I'll reply in English from now on.", si: "හරි, මම මෙතැන් සිට ඉංග්‍රීසියෙන් පිළිතුරු දෙන්නම්.", polishable: false },
+  pref_short: { en: "Okay, I'll keep my answers short.", si: "හරි, මම පිළිතුරු කෙටියෙන් දෙන්නම්.", polishable: false },
+  pref_no_questions: { en: "Okay, I'll stop asking questions and just show you options.", si: "හරි, මම ප්‍රශ්න අහන එක නවත්තලා විකල්ප පෙන්වන්නම්.", polishable: false },
+  pref_no_budget: { en: "Okay, I won't ask about your budget.", si: "හරි, ඔයාගේ budget එක ගැන මම අහන්නේ නැහැ.", polishable: false },
+  // R0: password and sign-in trouble. The "Forgot password?" link exists on the sign-in form (src/components/account/auth-form.tsx).
+  account_help: {
+    en: "I can't see or reset passwords, and please don't type yours here. On the sign-in page, use the \"Forgot password?\" link to get a reset link by email. If that doesn't work, please contact the store.",
+    si: "මට මුරපද බලන්න හෝ වෙනස් කරන්න බැහැ, ඒ නිසා ඔබේ මුරපදය මෙතන ටයිප් කරන්න එපා. Sign in පිටුවේ \"Forgot password?\" link එක භාවිතා කරලා email එකට reset link එකක් ගන්න. ඒකෙන් හරි නොගියොත් වෙළඳසැල අමතන්න.",
+    polishable: false,
+  },
   tool_failed: {
     en: "Sorry, I couldn't get that information right now. Please try again in a moment.",
     si: "සමාවෙන්න, ඒ තොරතුරු දැන් ලබාගන්න බැරි වුණා. කරුණාකර ටිකකින් නැවත උත්සාහ කරන්න.",
@@ -256,6 +324,48 @@ export function renderTemplate(key: TemplateKey, lang: "en" | "si"): RenderedTem
 
 export const TEMPLATE_KEYS = Object.keys(T) as TemplateKey[];
 
+/**
+ * Wording variants of the same fixed reply, so consecutive replies are not word for word the same. Every variant is a registered template (the
+ * verifier checks the exact text of the key it is given), carries no fact, and says the same thing. `seed` is any per-conversation counter.
+ */
+const VARIANTS: Partial<Record<TemplateKey, readonly TemplateKey[]>> = {
+  recommend_intro: ["recommend_intro", "recommend_intro_b", "recommend_intro_c"],
+  greeting: ["greeting", "greeting_again"],
+  thanks: ["thanks", "thanks_again"],
+};
+export function pickVariant(key: TemplateKey, seed: number): TemplateKey {
+  const list = VARIANTS[key];
+  return list ? list[((seed % list.length) + list.length) % list.length]! : key;
+}
+
+/**
+ * Wording families (R0): replies that say the same thing in different words. `varyFrom` makes two consecutive replies of one family differ without any
+ * randomness or counter: it needs only the key of the PREVIOUS reply of this conversation. Every member is a registered template, so the verifier accepts
+ * each of them, none carries a fact, and the Sinhala members keep `needsNativeReview` like every other Sinhala text.
+ */
+const FAMILIES: readonly (readonly TemplateKey[])[] = [
+  ["greeting", "greeting_again", "greeting_c"],
+  ["thanks", "thanks_again", "thanks_c"],
+  ["tools_ran", "tools_ran_b", "tools_ran_c"],
+  ["recommend_intro", "recommend_intro_b", "recommend_intro_c"],
+  ["correction_ask", "correction_ask_b"],
+  ["correction_search", "correction_search_b"],
+  ["clarify_what", "clarify_what_b"],
+  ["no_match_alternatives", "no_match_alternatives_b"],
+  ["no_results", "no_results_b"],
+];
+
+/** The next member of `key`'s family after the previous reply's key; `key` itself when there is no previous reply of that family. */
+export function varyFrom(key: TemplateKey, previous: string | undefined): TemplateKey {
+  const family = FAMILIES.find((f) => f.includes(key));
+  if (!family || previous === undefined) return key;
+  const at = family.indexOf(previous as TemplateKey);
+  return at < 0 ? key : family[(at + 1) % family.length]!;
+}
+
+/** True for the reply keys that introduce search results (the family of "Here is what I found."): they are followed by refinement chips. */
+const isResultsIntro = (key: TemplateKey): boolean => key === "tools_ran" || key === "tools_ran_b" || key === "tools_ran_c";
+
 /** For tests and the native-review export: every Sinhala string that needs review. */
 export function allSinhalaTemplates(): Record<string, string> {
   return Object.fromEntries(TEMPLATE_KEYS.map((k) => [k, T[k].si]));
@@ -287,6 +397,7 @@ const CHIPS_SI = {
 
 const CHIP_SET: Partial<Record<TemplateKey, keyof typeof CHIPS_EN>> = {
   greeting: "start",
+  greeting_again: "start",
   how_are_you: "start",
   acknowledged: "start",
   help_yes: "start",
@@ -299,7 +410,25 @@ const CHIP_SET: Partial<Record<TemplateKey, keyof typeof CHIPS_EN>> = {
   capabilities: "start",
   language_support: "start",
   thanks: "start",
+  thanks_again: "start",
+  thanks_c: "start",
+  greeting_c: "start",
   clarify_what: "browse",
+  clarify_what_b: "browse",
+  no_results_b: "browse",
+  account_help: "browse",
+  correction_ask: "browse",
+  correction_ask_b: "browse",
+  correction_search: "after_search",
+  correction_search_b: "after_search",
+  exclusion_noted: "browse",
+  exclusion_applied: "after_search",
+  no_results_excluded: "browse",
+  pref_lang_si: "start",
+  pref_lang_en: "start",
+  pref_short: "start",
+  pref_no_questions: "start",
+  pref_no_budget: "start",
   clarify_product: "browse",
   clarify_ambiguous_product: "browse",
   clarify_two_products: "browse",
@@ -321,6 +450,6 @@ const CHIP_SET: Partial<Record<TemplateKey, keyof typeof CHIPS_EN>> = {
 
 export function suggestionsFor(key: TemplateKey, lang: "en" | "si", ctx: { afterSearch?: boolean } = {}): string[] {
   // Results of a search are followed by prompts that refine it; everything else uses the fixed set for its reply.
-  const set = key === "tools_ran" && ctx.afterSearch ? "after_search" : CHIP_SET[key];
+  const set = isResultsIntro(key) && ctx.afterSearch ? "after_search" : CHIP_SET[key];
   return set ? [...(lang === "si" ? CHIPS_SI[set] : CHIPS_EN[set])] : [];
 }

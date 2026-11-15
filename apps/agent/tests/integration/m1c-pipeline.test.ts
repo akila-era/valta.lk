@@ -52,9 +52,9 @@ const names = (r: PipelineResult) => r.cards.filter((c): c is Extract<Card, { ty
 
 describe("answers carry real cards, in every language, through the whole pipeline", () => {
   it("search: English and Sinhala return the same products with exact prices, and only Sinhala needs native review", async () => {
-    const s = stack();
-    const en = (await run(s.pipeline, "Show me phones under 150000 rupees")).result;
-    const si = (await run(s.pipeline, "රුපියල් 150000ට අඩු phones පෙන්වන්න")).result;
+    // Two separate conversations: in ONE conversation the second recommendation intro is worded differently from the first (R0), which is not what this test is about.
+    const en = (await run(stack().pipeline, "Show me phones under 150000 rupees")).result;
+    const si = (await run(stack().pipeline, "රුපියල් 150000ට අඩු phones පෙන්වන්න")).result;
     expect(names(en).sort()).toEqual(["Nova Lite Smartphone", "Nova X1 Smartphone"]);
     expect(names(si).sort()).toEqual(names(en).sort());
     expect(en.cards.map((c) => (c as { price: { text: string } }).price.text).sort()).toEqual(["Rs. 129,900.00", "Rs. 64,900.00"]);

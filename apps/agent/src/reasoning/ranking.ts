@@ -48,6 +48,14 @@ export function rankProducts(items: readonly ProductView[], profile: Profile): {
     if (vals.length > 0) range.set(m, { min: Math.min(...vals), max: Math.max(...vals), count: vals.length });
   }
 
+  // For a use with no single deciding number (office, studies, everyday), larger listed storage is a weak tie-breaker. It never makes a fit claim (the
+  // fit codes name no storage reason), needs at least two products with a listed size, and does nothing when no size is listed.
+  const storageRange = ((): { min: number; max: number } | undefined => {
+    if (wanted.length > 0 || profile.usage.length === 0) return undefined;
+    const vals = items.map((p) => facts.get(p.id)!.storageGb).filter((v): v is number => v !== undefined);
+    return vals.length >= 2 && Math.max(...vals) > Math.min(...vals) ? { min: Math.min(...vals), max: Math.max(...vals) } : undefined;
+  })();
+
   const ranked = items.map((p): Ranked => {
     const f = facts.get(p.id)!;
     const price = effectiveCents(p);
@@ -90,6 +98,7 @@ export function rankProducts(items: readonly ProductView[], profile: Profile): {
         }
       }
     }
+    if (storageRange && f.storageGb !== undefined) score += ((f.storageGb - storageRange.min) / (storageRange.max - storageRange.min)) * 0.4;
     if (items.length >= 2 && price === minPrice) {
       reasons.add("lowest_price");
       score += 1;

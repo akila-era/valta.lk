@@ -187,6 +187,7 @@ export const SET_C: Case[] = [
   { text: "cancel it please", intent: "order_support", tag: "en" },
   { text: "thx!", intent: "smalltalk", tag: "en" },
   { text: "tell me a joke", intent: "general", tag: "abstain" }, // M3-B: a general request (same clarify behaviour)
-  { text: "How do I reset my password", intent: "unknown", tag: "abstain" },
+  // R0: password trouble is answered (account help, store_info) instead of abstaining; this developer-authored, in-sample label was the old abstention.
+  { text: "How do I reset my password", intent: "store_info", tag: "en" },
   { text: "ඔයාගේ නම මොකක්ද", intent: "smalltalk", tag: "si" },
 ];

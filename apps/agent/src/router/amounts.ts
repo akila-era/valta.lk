@@ -20,7 +20,8 @@ const LAKH_WORDS = /^\s?(lakh|lakhs|lak|laks|ලක්ෂ|ලක්ෂය|ලක
 const CURRENCY_BEFORE = /(?:rs|lkr|rupees?|රු|රුපියල්|රුපියල)\s*$/;
 const CURRENCY_AFTER = /^\s?(?:rs|lkr|rupees?|රු|රුපියල්|රුපියල)/;
 
-const MAX_CUES = [/\b(under|below|less than|upto|up to|within|at most|max|maximum|budget|cheaper than|not more than)\b/, /(ට අඩු|ට වඩා අඩු|ඇතුළත|දක්වා|බජට්|\badu\b|walata adu|ට වඩා අඩුවෙන්|ටත් අඩු)/];
+// "not above 100000", "no more than 100000", "never over 100000": a budget exclusion is a ceiling. These are listed before MIN_CUES is consulted (roleFor).
+const MAX_CUES = [/\b(under|below|less than|upto|up to|within|at most|max|maximum|budget|cheaper than|not more than|not above|not over|not exceeding|no more than|no higher than|never above|never over|nothing above|nothing over|don t exceed|dont exceed|do not exceed|must not exceed|not beyond)\b/, /(ට අඩු|ට වඩා අඩු|ඇතුළත|දක්වා|බජට්|\badu\b|walata adu|ට වඩා අඩුවෙන්|ටත් අඩු)/];
 const MIN_CUES = [/\b(above|over|more than|at least|min|minimum|starting from|from)\b/, /(ට වැඩි|ට වඩා වැඩි|ඉදන්|සිට|\bwadi\b|walata wadi)/];
 const AROUND_CUES = [/\b(around|about|approximately|roughly|approx)\b/, /(විතර|ආසන්න|පමණ)/];
 const RANGE_CUES = [/\b(between|to|and)\b/, /(අතර|සිට|දක්වා)/];
@@ -93,7 +94,9 @@ export function parseAmounts(text: string): AmountResult {
 
   // Number words the parser does not read (thousands as words) must trigger a question, not a default.
   const spokenNumber = /(දහස|දාහ|දහසක්|දාහක්|hajar|dahasak|thousand|hundred|hari soo|ලක්ෂ දෙක)/.test(cleaned);
-  const budgetCue = /(budget|බජට්|බජෙට්)/.test(cleaned);
+  // "no budget", "budget ekak nane": the shopper says there IS no budget, which is an answer and not an amount the parser failed to read.
+  const noBudgetStated = /\b(?:no|without|any)\s+(?:a\s+)?budget\b|\bbudget\s+(?:eka\s+|ekak\s+)?(?:nane|naha|nehe|na)\b|බජට්\s*(?:එකක්\s*)?(?:නෑ|නැහැ)/.test(cleaned);
+  const budgetCue = /(budget|බජට්|බජෙට්)/.test(cleaned) && !noBudgetStated;
   const unparsedCue = amounts.length === 0 && (spokenNumber || budgetCue);
 
   return { amounts, unparsedCue };

@@ -108,8 +108,8 @@ describe("recommendations", () => {
 });
 
 describe("the contract and the verifier", () => {
-  it("is contract 1.2, and a client older than 1.2 never receives fit", async () => {
-    expect(CONTRACT_VERSION).toBe("1.2");
+  it("is contract 1.3 (adds only the optional browser panel), and a client older than 1.2 never receives fit", async () => {
+    expect(CONTRACT_VERSION).toBe("1.3");
     const withFit = (await run(rich().pipeline, "phone with good camera under 100000")).result.cards[0]!;
     expect(Card.safeParse(withFit).success).toBe(true);
     expect((withFit as { fit?: unknown }).fit).toBeDefined();

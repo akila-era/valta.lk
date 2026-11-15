@@ -42,6 +42,8 @@ const SPELLING_VARIANTS: Record<string, string> = {
   oyta: "oyata", mta: "mata",
   compair: "compare", comapre: "compare", comper: "compare", comparre: "compare",
   fone: "phone", phn: "phone", phon: "phone", fones: "phones",
+  // R0: everyday typos of spec and usage words (unambiguous: none is also a real word)
+  batary: "battery", batery: "battery", baterry: "battery", bateri: "battery", battary: "battery", gamming: "gaming", gamin: "gaming", gamng: "gaming",
   labtop: "laptop", laptap: "laptop", lappy: "laptop",
   chargar: "charger", chrger: "charger", charjer: "charger",
   avilable: "available", availble: "available", avaliable: "available",
@@ -56,6 +58,17 @@ const SPELLING_VARIANTS: Record<string, string> = {
   thx: "thanks", thanx: "thanks", thankyou: "thank you", thnks: "thanks",
 };
 
+/**
+ * Everyday question words that end in the particle "da" ("puluwanda", "thiyenawada"). A separately typed "da" is joined to the word before it only
+ * when the result is one of these (or a spelling variant of one): joining it to ANY word ("laptop" + "da") would break category and brand words.
+ */
+const QUESTION_WORDS_WITH_DA = new Set([
+  "puluwanda", "thiyenawada", "tiyenawada", "thiyanawada", "hondada", "kiyada", "kiyanawada", "monawada", "mokada", "kohomada", "koheda", "kauda", "kothanada", "labenawada", "denawada", "wenawada", "karanawada", "kochcharada", "nadda",
+]);
+function isQuestionWord(w: string): boolean {
+  return QUESTION_WORDS_WITH_DA.has(w) || QUESTION_WORDS_WITH_DA.has(SPELLING_VARIANTS[w] ?? "");
+}
+
 export function normalizeMatch(input: string): string {
   let s = input.normalize("NFKC").toLowerCase();
   s = s.replace(CONTROL, " ").replace(BIDI_AND_INVISIBLE, "").replace(JOINERS, "");
@@ -68,8 +81,9 @@ export function normalizeMatch(input: string): string {
   s = s.replace(/[:/+\-]+/g, (m) => (m === "-" ? "-" : " "));
   s = s.replace(/([a-z])\1{2,}/g, "$1$1");
   s = s.replace(/\s+/g, " ").trim();
-  // The Sinhala question particle is often typed as its own word ("puluwan da"): join it to the verb, as in "puluwanda".
-  s = s.replace(/([a-z]{3,}) da/g, "$1da");
+  // The Sinhala question particle is often typed as its own word ("puluwan da", "thiyenawa da"): join it to the verb, as in "puluwanda", so the
+  // lexicon's question words match. Only a join that makes a KNOWN question word is made: "laptop da" or "phone da" must keep their category word.
+  s = s.replace(/\b([a-z]{3,}) da\b/g, (whole, stem: string) => (isQuestionWord(`${stem}da`) ? `${stem}da` : whole));
   return s.replace(/[a-z]+/g, (w) => canonicalSinglish(SPELLING_VARIANTS[w] ?? w));
 }
 

@@ -1,5 +1,8 @@
 import type { ProductView, ToolResult } from "../backend/types";
 import type { Fit } from "../contract/schemas";
+import { anyPhrase, makeHaystack } from "../router/cues";
+import { NO_PREFERENCE } from "../router/followups";
+import { normalizeMatch } from "../router/normalize";
 import type { Entities, PlannedCall } from "../router/types";
 import type { ToolOutcome } from "../tools/runner";
 import { brandsOf, categoryKind, nextQuestion, type CategoryKind } from "./questions";
@@ -55,6 +58,10 @@ export function answerPending(state: ReasoningState, message: string, e: Entitie
   }
   const words = message.trim().split(/\s+/).length;
   if (words > 6) return null;
+  // "no budget", "any", "not sure", "budget ekak nane": no preference. The search goes ahead with what is known, and this question is not asked again.
+  if ((pending === "budget" || pending === "usage" || pending === "brand") && e.amounts.length === 0 && !e.categorySlug && !e.brand && e.products.length === 0 && anyPhrase(makeHaystack(normalizeMatch(message)), NO_PREFERENCE)) {
+    return { call: { name: "search_products", arguments: profileSearchArgs(state.profile) }, usages: [], reason: "no_preference" };
+  }
   if (pending === "budget") {
     // The shopper answered with what they will use it for instead of an amount: take that, the budget question stays asked.
     const usages = extractUsages(message);

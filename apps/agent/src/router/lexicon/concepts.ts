@@ -61,6 +61,9 @@ export const ORDINALS: { n: number; words: string[] }[] = [
 /** "the one I mentioned before". Provisional. */
 export const PREVIOUS_REFS = ["kalin kiyapu", "kalin kiwwa", "kalin kiyapu eka", "kalin eka", "the one i mentioned", "the one you mentioned", "the one before", "the earlier one", "the previous one", "previous one", "කලින් කියපු", "කලින් කිව්ව", "කලින් එක"];
 
+/** "the one I mentioned first": the earliest product of the conversation. Provisional. */
+export const FIRST_MENTION_REFS = ["mulinma kiyapu", "mulinma kiwwa", "mulinma kiyapu eka", "palamuwa kiyapu", "palamuwenma kiyapu", "the first one i mentioned", "the first one you mentioned", "the first one i asked", "the very first one", "the one i asked first", "මුලින්ම කියපු", "මුලින්ම කිව්ව", "පළමුව කියපු"];
+
 /** Spoken small quantities. Provisional. */
 export const NUMBER_WORDS: Record<number, string[]> = {
   1: ["එකක්", "ekak"],
@@ -70,8 +73,8 @@ export const NUMBER_WORDS: Record<number, string[]> = {
   5: ["පහක්", "pahak"],
 };
 
-export const SORT_CHEAP = ["cheapest", "cheap", "lowest price", "ලාභම", "ලාභ", "ලාභයි", "කුඩා මිල", "adu mila", "ලාභම"];
-export const SORT_EXPENSIVE = ["most expensive", "premium", "highest price", "මිල වැඩිම", "ඉහළම"];
+export const SORT_CHEAP = ["cheapest", "cheap", "lowest price", "ලාභම", "ලාභ", "ලාභයි", "කුඩා මිල", "adu mila", "ලාභම", "sort by price", "sort to price", "sorted by price", "order by price", "price low to high", "low to high", "price ascending"];
+export const SORT_EXPENSIVE = ["most expensive", "premium", "highest price", "මිල වැඩිම", "ඉහළම", "price high to low", "high to low", "price descending"];
 export const SORT_NEWEST = ["newest", "latest", "new arrivals", "new", "අලුත්ම", "අලුත්", "අලුත"];
 export const ON_SALE = ["on sale", "sale", "discount", "discounts", "offers", "offer", "වට්ටම්", "වට්ටමක්", "වට්ටම"];
 

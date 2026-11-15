@@ -88,7 +88,8 @@ describe("conversation context", () => {
     expect(first.cards.every((c) => /smartphone/i.test((c as unknown as { name?: string }).name ?? ""))).toBe(true);
     expect(first.cards.some((c) => /samsung/i.test(JSON.stringify(c)))).toBe(false);
     const second = (await run(s.pipeline, "100000 ta adu")).result;
-    expect(second.reply.text).toBe(textOf("no_match_alternatives", "si"));
+    // R0: the second "no close match" reply of a conversation is worded differently from the first (the same message, no_match_alternatives_b).
+    expect(second.reply.text).toBe(textOf("no_match_alternatives_b", "si"));
     expect(Math.max(...prices(second))).toBeLessThanOrEqual(100000);
   });
 

@@ -96,11 +96,20 @@ export interface Entities {
   ordinal?: number;
   /** "the one I mentioned before": the product discussed before the current one. */
   previous?: boolean;
+  /** Every position named ("the first and the last one" is [1, -1]); `ordinal` is the first of them. */
+  ordinals?: number[];
+  /** "the one I mentioned first": the earliest product of the conversation. */
+  firstMention?: boolean;
   orderRef?: string;
   sort?: "price-asc" | "price-desc" | "newest";
   onSale?: boolean;
   /** Latin words that look like a brand or model but are not in the vocabulary (for example "samsung"). */
   unknownTerms: string[];
+  /**
+   * Things the shopper said they do NOT want ("don't recommend Samsung", "no chargers", "Lumen P1 epa"). They are never reported as the positive
+   * brand, category or product above. Absent when the message excludes nothing.
+   */
+  exclusions?: { brands: string[]; categories: string[]; words: string[]; productIds: string[] };
 }
 
 export interface RouteContext {
@@ -113,6 +122,8 @@ export interface RouteContext {
   cart: { productId: string; variantKey: string; quantity: number }[];
   /** What the previous turn was, and what the last search was about, so a follow-up such as "100000 ta adu" refines it. */
   lastIntent?: string;
+  /** The fixed reply the previous turn ended with (a template key). Lets the router word a second greeting or thanks differently; absent = unknown. */
+  lastTemplate?: string;
   slots?: { brand?: string; category?: string; query?: string; budgetMaxLkr?: number };
 }
 
@@ -123,7 +134,10 @@ export interface PlannedCall {
 
 export type TemplateKey =
   | "greeting"
+  | "greeting_again"
   | "recommend_intro"
+  | "recommend_intro_b"
+  | "recommend_intro_c"
   | "recommend_limited_data"
   | "no_match_alternatives"
   | "brand_advice"
@@ -139,6 +153,7 @@ export type TemplateKey =
   | "clarify_budget_what"
   | "opinion_facts"
   | "thanks"
+  | "thanks_again"
   | "goodbye"
   | "identity"
   | "capabilities"
@@ -163,6 +178,27 @@ export type TemplateKey =
   | "no_results"
   | "popular_unavailable"
   | "language_support"
+  // R0: account help, corrections, exclusions, conversation preferences and extra wording variants
+  | "account_help"
+  | "correction_ask"
+  | "correction_ask_b"
+  | "correction_search"
+  | "correction_search_b"
+  | "exclusion_noted"
+  | "exclusion_applied"
+  | "no_results_excluded"
+  | "pref_lang_si"
+  | "pref_lang_en"
+  | "pref_short"
+  | "pref_no_questions"
+  | "pref_no_budget"
+  | "greeting_c"
+  | "thanks_c"
+  | "tools_ran_b"
+  | "tools_ran_c"
+  | "clarify_what_b"
+  | "no_match_alternatives_b"
+  | "no_results_b"
   | "no_accessories"
   | "cart_proposed"
   | "cart_unavailable"

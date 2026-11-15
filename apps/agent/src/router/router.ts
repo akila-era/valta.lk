@@ -6,6 +6,9 @@ import { normalizeMatch } from "./normalize";
 import { FRAMES } from "./lexicon/frames";
 import { scopeOf } from "./scope";
 import { ACK_WORDS, AMOUNT_FILLER } from "./conversation";
+import { GENERIC_DEVICE, exclusionDecision, followUpDecision, isBareProduct, isBareReference, isBudgetFollowUpWord, wantsUnknownThing } from "./followups";
+import { isAccountTrouble } from "./account";
+import { varyFrom } from "./templates";
 import type { Entities, Intent, PlannedCall, RouteContext, RouteDecision, ScoredIntent, Vocabulary } from "./types";
 
 /** An intent needs this much weighted evidence, and a lead of at least MIN_MARGIN over the runner-up, or the router asks. */
@@ -39,6 +42,11 @@ const BROWSE_PHRASES = ["monawada product", "monawada products", "monawada thiye
 
 /** Category names that contain a cue word. Only exact English phrases, so no other wording changes meaning. */
 const CATEGORY_NAME_PHRASES = /\b(?:computer|pc) accessor(?:y|ies)\b/g;
+
+const STORE_ADDRESSES = /\b(?:valta\.hexalyte\.com|volta\.lk|valta\.lk)\b/gi;
+const ADDRESS_LIKE = /(?:https?:\/\/|\bwww\.|\b\d{1,3}(?:\.\d{1,3}){3}\b|\blocalhost\b|\b[a-z0-9-]{2,}\.(?:com|net|org|io|dev|app|co|lk|info|xyz)\b)/i;
+/** True when the message holds a web or IP address other than the store's own. */
+export const hasAddressOutsideStore = (raw: string): boolean => ADDRESS_LIKE.test(raw.replace(STORE_ADDRESSES, " "));
 
 const SCORED = Object.keys(INTENT_CUES) as ScoredIntent[];
 
@@ -82,6 +90,8 @@ function scoreIntents(h: Haystack, e: Entities, cartItems: number): Record<Score
   if (e.products.length >= 2 && score.compare_products > 0) score.compare_products += 2;
   if (e.referent === "plural" && score.compare_products > 0) score.compare_products += 1;
   if (e.referent === "single") for (const i of ["get_product_details", "check_stock", "get_accessories", "cart_add"] as const) if (score[i] > 0) score[i] += 1;
+  // "compare it with the Orbit A7 Camera Edition": a clear compare word beats a spec word that is part of a product's own name.
+  if (e.products.length === 1 && e.referent === "single" && score.compare_products >= 4) score.compare_products += 2;
   // A named product turns "do you have X?" into a stock question, so brand/category evidence only counts when no product is named.
   if ((e.brand || e.categorySlug || e.queryWord) && !hasProduct && score.search_products > 0) score.search_products += 1;
   if (hasProduct && e.products.length === 1 && !e.productAmbiguous && score.check_stock > 0) score.check_stock += 1;
@@ -120,11 +130,18 @@ function resolveProducts(e: Entities, ctx: RouteContext, want: 1 | 2): Resolved 
   const named = e.products.map((p) => p.id);
   if (want === 2) {
     if (named.length >= 2) return { productIds: named.slice(0, MAX_COMPARE_PRODUCTS), needs: "none" };
+    // "the first and the last one": two positions of the last list.
+    if (e.ordinals && e.ordinals.length >= 2) {
+      const list = ctx.lastResultIds ?? [];
+      const ids = [...new Set(e.ordinals.map((n) => (n === -1 ? list[list.length - 1] : list[n - 1])))].filter((id): id is string => id !== undefined);
+      if (ids.length >= 2) return { productIds: ids.slice(0, MAX_COMPARE_PRODUCTS), needs: "none" };
+    }
     if (e.referent === "plural") {
       const pool = [...new Set([...ctx.lastShownProductIds, ...ctx.cart.map((c) => c.productId)])];
       if (pool.length >= 2) return { productIds: pool.slice(0, 2), needs: "none" };
     }
-    if (named.length === 1 && ctx.contextProductId && ctx.contextProductId !== named[0]) return { productIds: [ctx.contextProductId, named[0]!], needs: "none" };
+    const other = ctx.contextProductId ?? (ctx.lastShownProductIds.length === 1 ? ctx.lastShownProductIds[0] : undefined);
+    if (named.length === 1 && other && other !== named[0]) return { productIds: [other, named[0]!], needs: "none" };
     return { productIds: named, needs: "two_products" };
   }
   if (named.length >= 1) return { productIds: [named[0]!], needs: "none" };
@@ -134,6 +151,8 @@ function resolveProducts(e: Entities, ctx: RouteContext, want: 1 | 2): Resolved 
     const id = e.ordinal === -1 ? list[list.length - 1] : list[e.ordinal - 1];
     return id ? { productIds: [id], needs: "none" } : { productIds: [], needs: "product" };
   }
+  // "the one I mentioned first": the earliest product of the conversation (the list is newest first).
+  if (e.firstMention && ctx.discussedIds && ctx.discussedIds.length > 0) return { productIds: [ctx.discussedIds[ctx.discussedIds.length - 1]!], needs: "none" };
   if (e.previous && ctx.discussedIds && ctx.discussedIds.length > 0) return { productIds: [ctx.discussedIds[1] ?? ctx.discussedIds[0]!], needs: "none" };
   if (e.referent === "single" || e.referent === undefined) {
     const fromContext = ctx.contextProductId ?? ctx.lastShownProductIds[0];
@@ -176,6 +195,10 @@ export function routeMessage(input: RouteInput): RouteDecision {
   if (STORE_NAMES.has(input.matchText.trim().toLowerCase().replace(/[!?.]+$/, ""))) {
     return { intent: "smalltalk", action: "static", calls: [], template: "identity", reason: "store_name", confidence: { score: 4, margin: 4 }, entities: e };
   }
+  // "I forgot my password", "my password is wrong for the website": help with the site's own account recovery, never a refusal and never a request for the password.
+  if (isAccountTrouble(h)) {
+    return { intent: "store_info", action: "static", calls: [], template: "account_help", reason: "account_help", confidence: { score: 4, margin: 4 }, entities: e };
+  }
 
   const ctx0 = input.context;
   const tokens = h.tokens;
@@ -186,7 +209,8 @@ export function routeMessage(input: RouteInput): RouteDecision {
   // A bare amount ("200000", "rs 150000", "100000 ta adu") is the answer to "what is your budget?": it refines the previous search,
   // and with nothing to refine the assistant asks what to search for instead of listing everything under that price.
   const wordsAround = tokens.filter((t) => !/\d/.test(t));
-  if (e.amounts.length > 0 && e.amounts[0]!.value >= 100 && wordsAround.every((t) => AMOUNT_FILLER.has(t)) && e.products.length === 0) {
+  // Also "actually make it 60000", "I can go up to 100000" and "100000 ta adu, camera ekata": an amount with only change words or usage words around it.
+  if (e.amounts.length > 0 && e.amounts[0]!.value >= 100 && tokens.length <= 9 && wordsAround.every((t) => isBudgetFollowUpWord(t, AMOUNT_FILLER)) && e.products.length === 0) {
     const slots = ctx0.slots;
     const hasSubject = ctx0.lastIntent === "search_products" && slots !== undefined && Boolean(slots.category ?? slots.brand ?? slots.query);
     const conf = { score: 4, margin: 4 };
@@ -229,6 +253,14 @@ export function routeMessage(input: RouteInput): RouteDecision {
     return { intent: "get_product_details", action: "tool", calls: [{ name: "get_product_details", arguments: { productId } }], reason: "opinion", confidence: conf, entities: e };
   }
 
+  // "Don't recommend Samsung", "Samsung epa": an explicit exclusion is decided BEFORE the reaction rules below, because "epa" there means "not this one".
+  const exclusion = exclusionDecision(input, e);
+  if (exclusion) return exclusion;
+
+  // What the shopper means by a short reaction to what was just shown ("something cheaper", "show me more", "battery eka kohomada", "is the X good?").
+  const follow = followUpDecision(input, e, h);
+  if (follow) return follow;
+
   const ranked = [...SCORED].sort((a, b) => score[b] - score[a]);
   const top = ranked[0]!;
   const topScore = score[top];
@@ -239,6 +271,9 @@ export function routeMessage(input: RouteInput): RouteDecision {
 
   // Scope guard: another website, or a general request with no catalogue anchor, never becomes a shopping tool call.
   const shoppingScore = Math.max(...SCORED.filter((i) => i !== "smalltalk").map((i) => score[i]));
+  // A URL, a web address or an IP address in a message is never opened or searched (the Agent has no such tool): it is answered with the same
+  // fixed "only this website" text as a request for another site, instead of letting the rest of the sentence start a product search.
+  if (hasAddressOutsideStore(input.rawText)) return decide({ intent: "external_site", action: "static", calls: [], template: "external_site_refused", reason: "address_in_message" });
   const scope = scopeOf({ h, entities: e, shoppingScore });
   if (scope === "external_site") return decide({ intent: "external_site", action: "static", calls: [], template: "external_site_refused", reason: "external_site" });
   if (scope === "live_info") return decide({ intent: "general", action: "static", calls: [], template: "live_info_unavailable", reason: "live_info" });
@@ -248,20 +283,33 @@ export function routeMessage(input: RouteInput): RouteDecision {
     return decide({ intent: "search_products", action: "tool", calls: [{ name: "search_products", arguments: { inStockOnly: true, sort: "newest", limit: 5 } }], template: "popular_unavailable", reason: "popularity_unavailable" });
   }
 
-  // A short message that is just a specific item or a brand ("power bank", "Samsung phones") is a search for it. A bare category ("phones") still asks what the shopper wants.
-  const bareNounSearch = topScore < MIN_SCORE && h.tokens.length <= 4 && e.products.length === 0 && !e.productAmbiguous && Boolean(e.queryWord ?? e.brand);
+  // A short message that is just a specific item, a brand or a category ("power bank", "Samsung phones", "phones", "laptop ekak") is a search for it (R0: a bare
+  // category used to ask what the shopper wants; the question policy now asks the ONE useful follow-up after the first results instead). Messages about a
+  // phone's number or contact details are not searches.
+  const aboutNumber = anyPhrase(h, ["number", "numbers", "nambara", "contact", "අංකය", "අංක"]);
+  const bareNounSearch = topScore < MIN_SCORE && h.tokens.length <= (e.amounts.length > 0 ? 8 : 4) && e.products.length === 0 && !e.productAmbiguous && !aboutNumber && Boolean(e.queryWord ?? e.brand ?? e.categorySlug ?? e.conceptWord);
+
+  // "the second one", "mulinma kiyapu eka", "Lumen P1": a pointer or a name on its own asks about that product.
+  const abstains = topScore < MIN_SCORE || margin < MIN_MARGIN;
+  if ((abstains && (isBareProduct(e, h.tokens.length) || isBareReference(e, h.tokens.length))) || (top === "search_products" && isBareReference(e, h.tokens.length))) {
+    const r = resolveProducts(e, input.context, 1);
+    if (r.needs === "none" && r.productIds[0]) return decide({ intent: "get_product_details", action: "tool", calls: [{ name: "get_product_details", arguments: { productId: r.productIds[0] } }], reason: "details" });
+  }
+  // "do you have the Pixel 9", "I want a Sony camera": a name the catalogue does not know is searched for by name.
+  const unknownThing = abstains && wantsUnknownThing(h, e);
 
   // "charger ekak oni": a search cue and an accessory cue tie, but nothing was named it should fit, so the shopper wants the item itself.
   const second = ranked[1]!;
   const accessoryTie = topScore >= MIN_SCORE && (top === "search_products" || top === "get_accessories") && (second === "search_products" || second === "get_accessories") && Boolean(e.queryWord) && e.products.length === 0 && !e.referent && !anyPhrase(h, COMPATIBILITY_PHRASES);
 
-  if ((topScore < MIN_SCORE || margin < MIN_MARGIN) && !bareNounSearch && !accessoryTie) {
+  if ((topScore < MIN_SCORE || margin < MIN_MARGIN) && !bareNounSearch && !accessoryTie && !unknownThing) {
     return decide({ intent: "unknown", action: "clarify", calls: [], template: "clarify_what", reason: topScore < MIN_SCORE ? "below_min_score" : "below_min_margin" });
   }
 
-  let intent: Intent = bareNounSearch || accessoryTie ? "search_products" : top;
+  let intent: Intent = bareNounSearch || accessoryTie || unknownThing ? "search_products" : top;
   // "phone case", "charger ekak oni": looking for the accessory itself, not asking what fits a product that was never named.
-  if (intent === "get_accessories" && e.products.length === 0 && !e.referent && Boolean(e.queryWord) && !anyPhrase(h, COMPATIBILITY_PHRASES)) intent = "search_products";
+  // "a charger for my phone": a kind of device, not a named product, so there is nothing to check compatibility against: search for the item.
+  if (intent === "get_accessories" && e.products.length === 0 && !e.referent && Boolean(e.queryWord) && (!anyPhrase(h, COMPATIBILITY_PHRASES) || GENERIC_DEVICE.test(input.matchText))) intent = "search_products";
 
   // An availability question ("is there ...?") is a search for a brand or category, but a stock check for a named product.
   const availabilityQuestion = anyPhrase(h, AVAILABILITY_PHRASES);
@@ -276,6 +324,9 @@ export function routeMessage(input: RouteInput): RouteDecision {
   }
   // "is the black one available?" with no brand or category is a question about the product being discussed, not a search.
   if (intent === "search_products" && availabilityQuestion && (e.colors.length > 0 || e.storages.length > 0) && !e.brand && !e.categorySlug && e.products.length === 0 && e.amounts.length === 0) intent = "check_stock";
+
+  // "I want to buy a phone": buying a KIND of thing is a search; only a named or pointed-at product, or an explicit cart word, is a cart request.
+  if (intent === "cart_add" && e.products.length === 0 && !e.referent && !e.productAmbiguous && Boolean(e.categorySlug ?? e.queryWord ?? e.brand ?? e.conceptWord) && !anyPhrase(h, ["cart", "basket", "කාට්", "කාර්ට්"])) intent = "search_products";
 
   const ctx = input.context;
   switch (intent) {
@@ -369,7 +420,7 @@ export function routeMessage(input: RouteInput): RouteDecision {
     case "smalltalk": {
       const t = anyPhrase(h, ["sinhalen katha", "sinhala katha", "sinhalen puluwan", "sinhala puluwan", "speak sinhala", "sinhala support", "singlish", "සිංහලෙන් කතා", "සිංහලෙන් පුළුවන්"])
         ? "language_support"
-        : anyPhrase(h, ["thanks", "thank you", "thx", "ස්තූතියි", "ස්තුතියි", "istuti", "sthuthi", "පිං"])
+        : anyPhrase(h, ["thanks", "thank you", "thank u", "thanx", "thx", "ස්තූතියි", "ස්තුතියි", "istuti", "sthuthi", "sthuthiyi", "stuthiyi", "stuti", "පිං"])
           ? "thanks"
           : anyPhrase(h, ["bye", "goodbye", "see you"])
             ? "goodbye"
@@ -384,7 +435,11 @@ export function routeMessage(input: RouteInput): RouteDecision {
                     : anyPhrase(h, HOW_ARE_YOU)
                       ? "how_are_you"
                       : "greeting";
-      return decide({ intent, action: "static", calls: [], template: t, reason: "smalltalk" });
+      // A second greeting or thanks in a row is worded differently (when the pipeline tells us what the last reply was), so the assistant does not repeat itself word for word.
+      // R0: the wording rotates through the family (greeting, greeting_again, greeting_c), so a THIRD "hi" differs from the second as well.
+      const prev = ctx.lastTemplate === "how_are_you" ? "greeting" : ctx.lastTemplate;
+      const again = t === "greeting" || t === "thanks" ? varyFrom(t, prev) : t;
+      return decide({ intent, action: "static", calls: [], template: again, reason: "smalltalk" });
     }
     default:
       return decide({ intent: "unknown", action: "clarify", calls: [], template: "clarify_what", reason: "unhandled" });

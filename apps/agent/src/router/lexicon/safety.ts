@@ -5,6 +5,12 @@
  *
  * They are deliberately narrow: "free delivery?" or "any discounts?" are ordinary shopping questions and must not match.
  */
+/**
+ * Harmless role-play wishes ("pretend you are my friend and recommend a phone", "act as my shopping assistant"): a persona that is itself no
+ * instruction override. Used only to narrow the "pretend / act as" patterns below; a persona with "no rules" is still refused (see the last pattern).
+ */
+const BENIGN_PERSONA = String.raw`(?!\s+(?:(?:my|a|an|the|our)\s+)*(?:friend|buddy|helpful|shopping|shop|sales|salesperson|salesman|tech|expert|assistant|advisor|adviser|guide)\b)`;
+
 export const INJECTION_PATTERNS: string[] = [
   // direct instruction override
   String.raw`\bignore\b.{0,25}\b(previous|prior|above|earlier|all|any|your|the)\b.{0,25}\b(instructions?|rules?|prompts?|guidelines?|polic(?:y|ies))\b`,
@@ -13,8 +19,10 @@ export const INJECTION_PATTERNS: string[] = [
   String.raw`\b(system|developer|hidden|secret|initial)\s+(prompt|message|instructions?)\b`,
   String.raw`\b(reveal|print|show|repeat|output|leak|display)\b.{0,25}\b(your|the)\b.{0,15}\b(prompt|instructions?|rules)\b`,
   String.raw`\byou are now\b`,
-  String.raw`\bact as\b`,
-  String.raw`\bpretend\b.{0,15}\b(to be|you are|you're)\b`,
+  String.raw`\bact as\b` + BENIGN_PERSONA,
+  String.raw`\bpretend\b.{0,15}\b(to be|you are|you're)\b` + BENIGN_PERSONA,
+  // a persona is never a way around the rules, however friendly it sounds
+  String.raw`\b(pretend|act|roleplay|role-play|behave|respond|answer)\b.{0,60}\b(no|without|free of|zero)\s+(?:any\s+)?(rules|restrictions|limits|limitations|filters|guidelines|boundaries|censorship)\b`,
   String.raw`\b(developer|admin|debug|jailbreak|dan|god)\s+mode\b`,
   String.raw`\bnew\s+(rules?|instructions?)\s*:`,
   String.raw`\b(bypass|override|disable|turn off)\b.{0,25}\b(rules?|filters?|safety|restrictions?|checks?|guardrails?)\b`,
@@ -44,7 +52,8 @@ export const INJECTION_PATTERNS: string[] = [
 
 export const PRICE_MANIPULATION_PATTERNS: string[] = [
   String.raw`\b(give|get|make|set|apply|offer|grant)\b.{0,12}\b(me|it|this|that)?\b.{0,22}(?:\b\d{1,3}\s?%|\b(?:\d{1,3}\s?percent|free(?!\s+(?:delivery|shipping|returns?))|discount|coupon|voucher|half price)\b)`,
-  String.raw`\b(change|lower|reduce|drop|cut|set|edit|modify)\b.{0,10}\b(the\s+)?(price|total|amount)\b`,
+  // "set the price filter to 50000", "price range", "price limit" and "sort by price" are instructions about how to LOOK, not attempts to change a price.
+  String.raw`\b(change|lower|reduce|drop|cut|set|edit|modify)\b.{0,10}\b(the\s+)?(price|total|amount)\b(?!\s+(?:filter|filters|range|ranges|limit|limits|sort|sorting|order|ordering|slider|alert|alerts|band|bracket|cap|ceiling|max|maximum|min|minimum|bar)\b)`,
   String.raw`\b(pretend|assume|imagine|suppose|consider|say|claim)\b.{0,50}\b(costs?|price[ds]?|priced|worth|is only|is just)\b.{0,20}\b\d`,
   String.raw`\bfor\s+free\b`,
   String.raw`\bfree of charge\b`,
@@ -72,19 +81,25 @@ export const EXFILTRATION_PATTERNS: string[] = [
   String.raw`\b(someone else'?s?|another (person|customer)'?s?)\s+(order|address|phone|account)\b`,
 ];
 
+/**
+ * What follows "my password is" when the shopper is describing a PROBLEM, not sharing the password ("my password is wrong", "my pin is not working"). A
+ * shared secret is a value, never one of these words, so the patterns below skip them and everything else is still refused.
+ */
+const TROUBLE_WORD = String.raw`(?:wrong|incorrect|invalid|not|expired|forgotten|lost|locked|blocked|rejected|missing|failing|failed|being|still|always|never|too|very|working|accepted|correct|weak|saved|stored)\b`;
+
 /** Messages that look like someone sharing a secret. They are refused and never retained, even with consent. */
 export const SENSITIVE_VALUE_PATTERNS: string[] = [
   String.raw`\b(cvv|cvc|cvn|cid)\s*[:=]?\s*\d{3,4}\b`,
   String.raw`\b(otp|one[- ]time (pass)?code|verification code)\s*(is|[:=])?\s*\d{4,8}\b`,
-  String.raw`\b(password|passcode|pin)\s*(is|[:=])\s*\S{3,}`,
-  String.raw`\bmy\s+(password|passcode|pin)\s+is\b`,
+  String.raw`\b(password|passcode|pin)\s*(is|[:=])\s*(?!` + TROUBLE_WORD + String.raw`)\S{3,}`,
+  String.raw`\bmy\s+(password|passcode|pin)\s+is(?:\s+(?!` + TROUBLE_WORD + String.raw`)\S+|\s*$)`,
   String.raw`\b\d{9}[vx]\b`,
   String.raw`\b(19|20)\d{10}\b`,
   "මුරපදය\\s*(වන්නේ|[:=])\\s*\\S+",
   "(card|කාඩ්|කාඩ්පත්).{0,18}\\d{12,19}",
   // OTP, PIN or CVV followed shortly by its digits, in any wording ("otp eka is 559900")
   String.raw`\b(otp|pin|cvv|cvc)\b.{0,14}\b\d{3,8}\b`,
-  String.raw`\b(password|passcode)\s+(eka\s+)?(is|[:=])\s*\S{3,}`,
+  String.raw`\b(password|passcode)\s+(eka\s+)?(is|[:=])\s*(?!` + TROUBLE_WORD + String.raw`)\S{3,}`,
   // API keys, authentication tokens and other secrets (M1-D)
   String.raw`\bbearer\s+[a-z0-9._~+/=-]{16,}`,
   String.raw`\beyj[a-z0-9_-]{8,}\.[a-z0-9_-]{8,}\.[a-z0-9_-]{4,}`,
