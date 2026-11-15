@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { readCatalogueAuthConfig, verifyCatalogueRequest } from "@/lib/assistant/catalogue-auth";
 import { erpRequest } from "@/lib/erp/client";
+import { publishedSpecRows } from "@/lib/erp/content-overlay";
 import { ErpError } from "@/lib/erp/errors";
 import { errorResponse, json } from "@/lib/security/api";
 import { rateLimit } from "@/lib/security/rate-limit";
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Read-only catalogue relay for the AI Agent: the Agent asks THIS site and the site asks the ERP, so the ERP credential never
- * leaves the site. Three GET routes only (settings, product list, one product); orders, customers and every write endpoint are
+ * leaves the site. Four GET routes only (settings, product list, one product, published specification rows); orders, customers and every write endpoint are
  * not reachable here. Signed with its own key (see catalogue-auth.ts). Off (404) unless AI_CATALOGUE_ENABLED=true and the key is set;
  * a bad or missing signature also answers 404.
  */
@@ -24,6 +25,15 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
   if (!rateLimit("ai-catalogue", 120, 60_000).ok) return errorResponse(429, "RATE_LIMITED", "Too many requests.");
 
   const parts = (await ctx.params).path;
+  // Staff-entered, PUBLISHED specification rows (the website's own content, not the ERP): id and rows only, no description, no draft.
+  if (parts.length === 1 && parts[0] === "content") {
+    if (url.search) return errorResponse(400, "INVALID", "Invalid request.");
+    try {
+      return json({ success: true, data: { items: await publishedSpecRows() } });
+    } catch {
+      return errorResponse(503, "CONTENT_UNAVAILABLE", "The content is unavailable.");
+    }
+  }
   let erpPath: string;
   if (parts.length === 1 && parts[0] === "settings") {
     erpPath = "/settings";

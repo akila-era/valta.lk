@@ -2,8 +2,8 @@
  * Browser-side client of the two voice routes of THIS website:
  *   POST /api/assistant/voice/transcribe   body: the recorded audio; answer: { text }
  *   POST /api/assistant/voice/speak        body: { text, lang }; answer: audio
- * These routes are not implemented yet. Until they are, every call here fails with "unavailable" (HTTP 404/501) and the modal says
- * so. Nothing here fakes a result. The recognised text goes back into the text box for the shopper to check and edit; it reaches the
+ * The routes exist; when voice is not enabled (404) or the Agent has no speech engine (501) every call here fails with "unavailable"
+ * and the modal says so. Nothing here fakes a result. The recognised text goes back into the text box for the shopper to check and edit; it reaches the
  * assistant only through the normal chat route (HMAC, verification and safety are all unchanged).
  */
 export type VoiceFailure = "unavailable" | "too_large" | "rate_limited" | "failed";

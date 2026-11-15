@@ -67,12 +67,17 @@ export function ProductCardView({ card, lang = "en", compact = false, demo = tru
         </h3>
         <p className="mt-1 flex flex-wrap items-baseline gap-2">
           <span className="text-lg font-bold text-slate-900">{card.price.text}</span>
-          {card.listPrice ? <s className="text-sm text-slate-500">{card.listPrice.text}</s> : null}
+          {card.listPrice ? (
+            <>
+              <span className="sr-only">{t.originalPrice}: </span>
+              <s className="text-sm text-slate-500">{card.listPrice.text}</s>
+            </>
+          ) : null}
           {card.offerName ? <span className="rounded bg-blue-50 px-1.5 text-xs font-medium text-[#2563EB]">{card.offerName}</span> : null}
         </p>
         <p className={`mt-1 text-sm font-medium ${card.available ? "text-emerald-700" : "text-slate-500"}`}>{card.available ? (demo ? t.inStock : t.inStockLive) : demo ? t.outOfStock : t.outOfStockLive}</p>
         {card.fit && (card.fit.reasons.length > 0 || card.fit.tradeoffs.length > 0) ? (
-          <ul className="mt-2 flex flex-wrap gap-1.5 text-xs" data-testid="fit-codes">
+          <ul className="mt-2 flex flex-wrap gap-1.5 text-xs" data-testid="fit-codes" aria-label={t.fitWhy}>
             {card.fit.reasons.filter((c) => FIT_LABELS[lang][c]).map((c) => (
               <li key={c} className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-800" data-fit={c}>
                 {FIT_LABELS[lang][c]}
@@ -108,25 +113,32 @@ export function ComparisonView({ card, lang = "en", demo = true }: { card: Compa
         <h3 className="text-base font-semibold text-slate-900">{t.compare}</h3>
         {demo ? <MockBadge lang={lang} /> : null}
       </div>
-      <table className="w-full min-w-[20rem] border-collapse text-sm">
+      {card.products.length > 2 ? (
+        <p className="mb-2 text-xs text-slate-500 sm:hidden" data-testid="comparison-scroll-hint">
+          {t.compareScrollHint}
+        </p>
+      ) : null}
+      <table className={`w-full border-collapse text-sm ${card.products.length > 2 ? "min-w-[26rem]" : "min-w-[20rem]"}`}>
         <thead>
           <tr>
-            <td className="w-28 p-2" />
+            <td className="w-28 p-2">
+              <span className="sr-only">{t.compareFeature}</span>
+            </td>
             {card.products.map((p) => (
-              <th key={p.id} scope="col" className="p-2 text-left font-semibold text-slate-900">
+              <th key={p.id} scope="col" className="min-w-[7rem] break-words p-2 text-left font-semibold text-slate-900">
                 {p.name}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {card.rows.map((r) => (
-            <tr key={r.label} className={r.differs ? "bg-blue-50/60" : ""}>
+          {card.rows.map((r, ri) => (
+            <tr key={`${r.label}-${ri}`} className={r.differs ? "bg-blue-50/60" : ""}>
               <th scope="row" className="p-2 text-left font-normal text-slate-500">
                 {r.label}
               </th>
               {r.values.map((v, i) => (
-                <td key={i} className={`p-2 ${v === null ? "text-slate-400" : "text-slate-900"}`}>
+                <td key={i} className={`break-words p-2 ${v === null ? "text-slate-400" : "text-slate-900"}`}>
                   {v ?? t.unavailable}
                 </td>
               ))}

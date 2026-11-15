@@ -8,6 +8,14 @@ import { z } from "zod";
  */
 export const MAX_MESSAGE_CHARS = 800;
 export const AGENT_CONTRACT_VERSION = "1.2";
+/**
+ * Contract 1.3 (optional `browser` panel, `context.path`). The website still SPEAKS 1.2 (the constant above): nothing here changes what the live site sends. The 1.3
+ * schemas exist so the feature can be switched on later (AI_ASSISTANT_BROWSER=1 plus raising the version on purpose) without touching the 1.2 behaviour.
+ */
+export const AGENT_CONTRACT_VERSION_BROWSER = "1.3";
+
+/** The path (and query) of the page the shopper is on: same shape the Agent accepts for `context.path` (one leading slash, bounded, no scheme or host). */
+export const PAGE_PATH = /^\/(?![\/\\])[A-Za-z0-9._~!$&'()*+,;=:@%\/?\-]*$/;
 
 const NO_CONTROL = /^[^\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]*$/;
 const ProductId = z.string().min(1).max(100);
@@ -20,6 +28,8 @@ export const BrowserRequest = z.strictObject({
     .max(20)
     .default([]),
   page: z.enum(["home", "listing", "product", "cart", "checkout", "track", "other"]).optional(),
+  /** Only sent by a widget that has the browser feature on; the chat route may forward it as `context.path` once the version is 1.3. */
+  path: z.string().max(200).regex(PAGE_PATH).optional(),
 });
 export type BrowserRequest = z.infer<typeof BrowserRequest>;
 
@@ -95,26 +105,74 @@ export const AgentAction = z.discriminatedUnion("type", [
 ]);
 export type AgentAction = z.infer<typeof AgentAction>;
 
+const SinhalaRule = (r: { language: string; reply: { text: string; source: string }; needsNativeReview: boolean }, ctx: z.RefinementCtx) => {
+  // The Agent promises this; a response that breaks the promise is not shown.
+  if ((r.language !== "en" || /[඀-෿]/.test(r.reply.text) || r.reply.source === "sinhala-llm") && !r.needsNativeReview) {
+    ctx.addIssue({ code: "custom", path: ["needsNativeReview"], message: "Sinhala output must carry needsNativeReview." });
+  }
+};
+
+const NO_CTRL_TEXT = /^[^\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]*$/;
+
+/**
+ * Contract 1.3: progress of a page task and, when something needs the shopper's approval, ONE proposal. Everything in it came from the page or from the Agent's
+ * own fixed templates: it is shown as plain text, never as HTML, never as a verified price or stock (`source` is always "page").
+ */
+export const BROWSER_STEPS = ["open", "read", "find", "act", "verify", "close"] as const;
+export const BrowserProgress = z.strictObject({ step: z.enum(BROWSER_STEPS), status: z.enum(["done", "failed", "skipped"]), label: z.string().min(1).max(80).regex(NO_CTRL_TEXT) });
+export const BrowserProposal = z.strictObject({
+  proposalId: z.string().regex(/^bp_[A-Za-z0-9_-]{16,40}$/),
+  description: z.string().min(1).max(200).regex(NO_CTRL_TEXT),
+  page: z.string().min(1).max(200).regex(PAGE_PATH),
+  actionClass: z.enum(["reversible", "sensitive"]),
+  expiresInSec: z.number().int().positive().max(600),
+});
+export const BrowserPanel = z.strictObject({ progress: z.array(BrowserProgress).max(8), confirmation: BrowserProposal.optional(), source: z.literal("page") });
+export type BrowserPanel = z.infer<typeof BrowserPanel>;
+export type BrowserStep = (typeof BROWSER_STEPS)[number];
+
+const chatCommon = {
+  requestId: z.string().min(1).max(80),
+  sessionId: z.string().min(1).max(80),
+  language: z.enum(["si", "en", "mixed"]),
+  reply: z.strictObject({ text: z.string().min(1).max(2000), source: z.enum(["template", "sinhala-llm", "qwen"]) }),
+  needsNativeReview: z.boolean(),
+  cards: z.array(AgentCard).max(8),
+  actions: z.array(AgentAction).max(4),
+  suggestions: z.array(z.string().min(1).max(80)).max(4),
+};
+const metaOf = <V extends string>(v: V) => z.strictObject({ model: z.string().nullable(), degraded: z.boolean(), queuedMs: z.number().nonnegative(), latencyMs: z.number().nonnegative(), contractVersion: z.literal(v) });
+
 /** What the browser receives. The Agent's meta (model, queue time) is deliberately not forwarded. */
-export const AgentChatResponse = z
-  .strictObject({
-    requestId: z.string().min(1).max(80),
-    sessionId: z.string().min(1).max(80),
-    language: z.enum(["si", "en", "mixed"]),
-    reply: z.strictObject({ text: z.string().min(1).max(2000), source: z.enum(["template", "sinhala-llm", "qwen"]) }),
-    needsNativeReview: z.boolean(),
-    cards: z.array(AgentCard).max(8),
-    actions: z.array(AgentAction).max(4),
-    suggestions: z.array(z.string().min(1).max(80)).max(4),
-    meta: z.strictObject({ model: z.string().nullable(), degraded: z.boolean(), queuedMs: z.number().nonnegative(), latencyMs: z.number().nonnegative(), contractVersion: z.literal(AGENT_CONTRACT_VERSION) }),
-  })
-  .superRefine((r, ctx) => {
-    // The Agent promises this; a response that breaks the promise is not shown.
-    if ((r.language !== "en" || /[඀-෿]/.test(r.reply.text) || r.reply.source === "sinhala-llm") && !r.needsNativeReview) {
-      ctx.addIssue({ code: "custom", path: ["needsNativeReview"], message: "Sinhala output must carry needsNativeReview." });
-    }
-  });
+export const AgentChatResponse = z.strictObject({ ...chatCommon, meta: metaOf(AGENT_CONTRACT_VERSION) }).superRefine(SinhalaRule);
 export type AgentChatResponse = z.infer<typeof AgentChatResponse>;
+
+/** Contract 1.3 response: the same, plus the optional `browser` panel. Used only when the feature is on and the version has been raised on purpose. */
+export const AgentChatResponse13 = z.strictObject({ ...chatCommon, browser: BrowserPanel.optional(), meta: metaOf(AGENT_CONTRACT_VERSION_BROWSER) }).superRefine(SinhalaRule);
+export type AgentChatResponse13 = z.infer<typeof AgentChatResponse13>;
+
+/** The browser's request to approve or cancel ONE proposal. The conversation id is derived on the server from the cookie; the browser never sends one. */
+export const BrowserDecisionBody = z.strictObject({ proposalId: BrowserProposal.shape.proposalId });
+export type BrowserDecisionBody = z.infer<typeof BrowserDecisionBody>;
+
+/** What the Agent answers to /v1/browser/confirm and /cancel (mirror of apps/agent BrowserDecisionResponse). */
+export const AgentDecisionResponse = z.strictObject({
+  requestId: z.string().min(1).max(80),
+  sessionId: z.string().min(1).max(80),
+  outcome: z.enum(["done", "failed", "cancelled", "expired"]),
+  reply: z.strictObject({ text: z.string().min(1).max(2000), source: z.literal("template") }),
+  needsNativeReview: z.boolean(),
+  browser: BrowserPanel,
+});
+export type AgentDecisionResponse = z.infer<typeof AgentDecisionResponse>;
+
+/** What the browser receives after a decision. */
+export interface PublicDecision {
+  outcome: "done" | "failed" | "cancelled" | "expired";
+  reply: { text: string };
+  needsNativeReview: boolean;
+  browser: BrowserPanel;
+}
 
 export interface PublicChatResponse {
   language: "si" | "en" | "mixed";
@@ -123,6 +181,8 @@ export interface PublicChatResponse {
   cards: AgentCard[];
   actions: AgentAction[];
   suggestions: string[];
+  /** Contract 1.3 only; absent for every 1.2 answer. */
+  browser?: BrowserPanel;
 }
 
 /**
@@ -164,4 +224,12 @@ function stripUnsafeImages<T>(value: T, env: Readonly<Record<string, string | un
   return value;
 }
 
-export const toPublic = (r: AgentChatResponse, env: Readonly<Record<string, string | undefined>> = process.env): PublicChatResponse => ({ language: r.language, reply: { text: r.reply.text }, needsNativeReview: r.needsNativeReview, cards: stripUnsafeImages(r.cards, env), actions: r.actions, suggestions: r.suggestions });
+export const toPublic = (r: AgentChatResponse | AgentChatResponse13, env: Readonly<Record<string, string | undefined>> = process.env): PublicChatResponse => ({
+  language: r.language,
+  reply: { text: r.reply.text },
+  needsNativeReview: r.needsNativeReview,
+  cards: stripUnsafeImages(r.cards, env),
+  actions: r.actions,
+  suggestions: r.suggestions,
+  ...("browser" in r && r.browser ? { browser: r.browser } : {}),
+});

@@ -211,7 +211,11 @@ export function VoicePlayerView({
       <button type="button" onClick={onMute} aria-label={muted ? t.voiceUnmute : t.voiceMute} aria-pressed={muted} className="flex h-8 w-8 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100">
         {muted ? <VolumeX className="h-4 w-4" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
       </button>
-      {phase === "error" ? <span className="px-1 text-[11px] text-amber-700">{t.voicePlayFailed}</span> : null}
+      {phase === "error" ? (
+        <span role="status" className="px-1 text-[11px] text-amber-700">
+          {t.voicePlayFailed}
+        </span>
+      ) : null}
     </div>
   );
 }

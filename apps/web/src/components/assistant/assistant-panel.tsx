@@ -7,11 +7,14 @@ import { SendHorizontal, Sparkles, X } from "lucide-react";
 import { cartActions, useCart } from "@/store/cart";
 import { lineKey } from "@/lib/utils/cart-math";
 import { realVoiceApi, type VoiceApi } from "@/lib/assistant/voice-client";
+import { parseBrowserPanel, visibleBrowserPanel } from "@/lib/assistant/browser-client";
+import { pagePathFor } from "@/lib/assistant/page-path";
 import type { AgentAction, AgentCard, PublicChatResponse } from "@/lib/assistant/schema";
+import { BrowserTask } from "./browser-task";
 import { AssistantCards, CartProposalConfirm } from "./cards";
 import { labels } from "./labels";
 import { BrandMark, ClearConfirm, LanguageSelector, PanelHeader, SpokenReply, TypingIndicator, Welcome, type Locale } from "./panel-parts";
-import type { AssistantLang, CartAction, ProductCardData } from "./types";
+import type { AssistantLang, BrowserDecisionData, BrowserPanelData, CartAction, ProductCardData } from "./types";
 import { useVoiceRecorder, type RecorderDeps } from "./voice/use-voice-recorder";
 import { VoiceComposer, MicButton } from "./voice/voice-ui";
 
@@ -27,7 +30,7 @@ import { VoiceComposer, MicButton } from "./voice/voice-ui";
  */
 type Entry =
   | { id: number; role: "you"; text: string }
-  | { id: number; role: "assistant"; text: string; cards: AgentCard[]; actions: AgentAction[]; names: Record<string, string>; suggestions: string[]; lang: AssistantLang; review: boolean; spoken: boolean }
+  | { id: number; role: "assistant"; text: string; cards: AgentCard[]; actions: AgentAction[]; names: Record<string, string>; suggestions: string[]; lang: AssistantLang; review: boolean; spoken: boolean; browser?: BrowserPanelData }
   | { id: number; role: "error"; text: string; retry?: string };
 
 const STARTERS = ["Show me phones", "Show me laptops", "What is on sale?", "Show my cart"];
@@ -42,9 +45,11 @@ export interface AssistantPanelProps {
   /** Test seams only: the real voice client and browser recorder are used when these are not given. */
   voiceApi?: VoiceApi;
   recorderDeps?: RecorderDeps;
+  /** The browser-task feature (progress and approval prompts, contract 1.3). OFF by default: nothing about it renders and no page path is sent. Set from AI_ASSISTANT_BROWSER by the server. */
+  browser?: boolean;
 }
 
-export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }, voiceApi, recorderDeps }: AssistantPanelProps) {
+export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }, voiceApi, recorderDeps, browser = false }: AssistantPanelProps) {
   const path = usePathname();
   const { lines: cartLines } = useCart();
   const api = voiceApi ?? realVoiceApi;
@@ -109,10 +114,11 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
       setMicNotice(false);
       setBusy(true);
       try {
+        const pagePath = browser ? pagePathFor(path, window.location.search) : undefined;
         const res = await fetch("/api/assistant/chat", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ message: m, locale, cart: cartLines.map((l) => ({ productId: l.productId, variantKey: l.variantKey, quantity: l.quantity })).slice(0, 20), page: pageOf(path) }),
+          body: JSON.stringify({ message: m, locale, cart: cartLines.map((l) => ({ productId: l.productId, variantKey: l.variantKey, quantity: l.quantity })).slice(0, 20), page: pageOf(path), ...(pagePath ? { path: pagePath } : {}) }),
         });
         const data = (await res.json().catch(() => null)) as (PublicChatResponse & { error?: { message?: string } }) | null;
         if (!res.ok || !data || !("reply" in data)) {
@@ -121,6 +127,7 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
         }
         remember(data.cards);
         const l: AssistantLang = data.language === "en" ? "en" : "si";
+        const panel = visibleBrowserPanel(parseBrowserPanel(data.browser) ?? undefined, browser);
         setReplyLang(l);
         setEntries((e) => [
           ...e,
@@ -135,6 +142,7 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
             lang: l,
             review: data.needsNativeReview,
             spoken: true,
+            ...(panel ? { browser: panel } : {}),
           },
         ]);
       } catch {
@@ -143,8 +151,16 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
         setBusy(false);
       }
     },
-    [busy, cartLines, locale, path],
+    [browser, busy, cartLines, locale, path],
   );
+
+  /** The Agent's answer to an approval the shopper decided: its fixed reply and the steps it took, as a new message (never read aloud: it can quote the page). */
+  const onBrowserResolved = (d: BrowserDecisionData) => {
+    const lang: AssistantLang = /[඀-෿]/.test(d.reply.text) ? "si" : "en";
+    const progress: BrowserPanelData = { progress: d.browser.progress, source: "page" };
+    setEntries((e) => [...e, { id: next.current++, role: "assistant", text: d.reply.text, cards: [], actions: [], names: {}, suggestions: [], lang, review: d.needsNativeReview, spoken: false, browser: progress }]);
+    inputRef.current?.focus();
+  };
 
   /** Applies one confirmed proposal to the browser cart, at most once per action id. Returns a short note for the transcript. */
   const applyConfirmed = (a: CartAction): string => {
@@ -250,6 +266,7 @@ export function AssistantPanel({ demo = true, voice = { stt: false, tts: false }
                       />
                     ) : null}
                     {e.cards.length ? <AssistantCards cards={e.cards as never} lang={e.lang} demo={demo} /> : null}
+                    {visibleBrowserPanel(e.browser, browser) ? <BrowserTask panel={e.browser!} lang={e.lang} onResolved={onBrowserResolved} /> : null}
                     {e.actions.map((a) =>
                       a.type === "navigate" ? (
                         <Link key={a.actionId} href={a.href} onClick={() => setOpen(false)} className="inline-flex min-h-11 items-center rounded-lg border border-[#2563EB] px-4 text-sm font-semibold text-[#2563EB] hover:bg-blue-50">

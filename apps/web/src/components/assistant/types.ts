@@ -50,3 +50,29 @@ export type CartAction =
   | { type: "cart.remove"; actionId: string; productId: string; variantKey: string; confirm: "none" | "ask" };
 
 export type AssistantLang = "en" | "si";
+
+/** Contract 1.3 browser panel as the browser receives it (validated server side; see lib/assistant/schema.ts). Plain data: page-derived text is rendered as text only. */
+export type BrowserStepName = "open" | "read" | "find" | "act" | "verify" | "close";
+export interface BrowserProgressItem {
+  step: BrowserStepName;
+  status: "done" | "failed" | "skipped";
+}
+export interface BrowserProposalData {
+  proposalId: string;
+  description: string;
+  page: string;
+  actionClass: "reversible" | "sensitive";
+  expiresInSec: number;
+}
+export interface BrowserPanelData {
+  progress: BrowserProgressItem[];
+  confirmation?: BrowserProposalData;
+  source: "page";
+}
+export type DecisionOutcome = "done" | "failed" | "cancelled" | "expired";
+export interface BrowserDecisionData {
+  outcome: DecisionOutcome;
+  reply: { text: string };
+  needsNativeReview: boolean;
+  browser: BrowserPanelData;
+}

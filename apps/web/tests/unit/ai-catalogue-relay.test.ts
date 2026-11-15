@@ -6,6 +6,8 @@ import { ErpError } from "@/lib/erp/errors";
 const erpRequest = vi.fn();
 vi.mock("@/lib/erp/client", () => ({ erpRequest: (...a: unknown[]) => erpRequest(...a) }));
 vi.mock("@/lib/security/rate-limit", () => ({ rateLimit: () => ({ ok: true, retryAfterSec: 0 }) }));
+const publishedSpecRows = vi.fn();
+vi.mock("@/lib/erp/content-overlay", () => ({ publishedSpecRows: (...a: unknown[]) => publishedSpecRows(...a) }));
 
 import { GET } from "@/app/api/internal/ai/erp/[...path]/route";
 
@@ -43,6 +45,8 @@ beforeEach(() => {
   resetCatalogueNonces();
   erpRequest.mockReset();
   erpRequest.mockResolvedValue({ items: [], nextCursor: null });
+  publishedSpecRows.mockReset();
+  publishedSpecRows.mockResolvedValue([{ id: "p1", specs: [{ name: "Battery", value: "5000 mAh" }] }]);
 });
 
 describe("AI catalogue relay: access control", () => {
@@ -116,5 +120,27 @@ describe("AI catalogue relay: only three read routes", () => {
     expect(JSON.stringify(await down.json())).not.toMatch(/10\.0\.0\.1|ECONNREFUSED/);
     erpRequest.mockRejectedValueOnce(new ErpError("BAD_RESPONSE", 502, "Unexpected shape"));
     expect((await call("/api/internal/ai/erp/settings")).status).toBe(502);
+  });
+});
+
+describe("AI catalogue relay: published specification rows", () => {
+  it("returns only the published rows (ids and name/value pairs), signed, with no ERP call and no query allowed", async () => {
+    const res = await call("/api/internal/ai/erp/content");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true, data: { items: [{ id: "p1", specs: [{ name: "Battery", value: "5000 mAh" }] }] } });
+    expect(erpRequest).not.toHaveBeenCalled();
+    expect((await call("/api/internal/ai/erp/content?id=p1")).status).toBe(400);
+  });
+
+  it("is as closed as the other routes: unsigned, replayed and disabled all answer 404, and a failing content read is a fixed 503", async () => {
+    expect((await call("/api/internal/ai/erp/content", { unsigned: true })).status).toBe(404);
+    expect((await call("/api/internal/ai/erp/content", { nonce: "0123456789abcdef0123456789abcdef" })).status).toBe(200);
+    expect((await call("/api/internal/ai/erp/content", { nonce: "0123456789abcdef0123456789abcdef" })).status).toBe(404);
+    publishedSpecRows.mockRejectedValueOnce(new Error("db password leaked here"));
+    const down = await call("/api/internal/ai/erp/content");
+    expect(down.status).toBe(503);
+    expect(JSON.stringify(await down.json())).not.toContain("password");
+    setEnv(false);
+    expect((await call("/api/internal/ai/erp/content")).status).toBe(404);
   });
 });

@@ -1,4 +1,3 @@
-import { isIP } from "node:net";
 import { cookies } from "next/headers";
 import { getCurrentCustomer, sessionCookieOptions } from "@/lib/auth/session";
 import { readAssistantConfig } from "@/lib/assistant/config";
@@ -7,7 +6,7 @@ import { AGENT_CONTRACT_VERSION, AgentChatResponse, BrowserRequest, toPublic } f
 import { agentSessionId, ASSISTANT_COOKIE, ASSISTANT_COOKIE_MAX_AGE, isAssistantToken, newAssistantToken } from "@/lib/assistant/session-id";
 import { signAgentRequest, type AgentIdentity } from "@/lib/assistant/sign";
 import { errorResponse, guard, json, readJson } from "@/lib/security/api";
-import { clientIp } from "@/lib/security/rate-limit";
+import { agentClientAddress } from "@/lib/assistant/client-address";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -48,7 +47,7 @@ export async function POST(req: Request) {
   const existing = (await cookies()).get(ASSISTANT_COOKIE)?.value;
   const token = isAssistantToken(existing) ? existing : newAssistantToken();
   const sessionId = agentSessionId(cfg.secret, token, identity);
-  const ip = isIP(clientIp(req)) !== 0 ? clientIp(req) : "0.0.0.0";
+  const ip = agentClientAddress(req);
 
   const body = JSON.stringify({
     sessionId,

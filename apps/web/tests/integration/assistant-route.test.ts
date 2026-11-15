@@ -174,7 +174,8 @@ describe("what the Agent is sent", () => {
     expect(new Set(seen.map((s) => s.headers["x-volta-nonce"])).size).toBe(2);
     seen = [];
     await call({ message: "c" }, { "x-forwarded-for": "not-an-ip" });
-    expect(seen[0]!.headers["x-volta-client-ip"]).toBe("0.0.0.0");
+    // an unusable address gets the reserved documentation marker (not the all-zero address), see lib/assistant/client-address.ts
+    expect(seen[0]!.headers["x-volta-client-ip"]).toBe("192.0.2.1");
   });
 });
 

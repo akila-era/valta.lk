@@ -41,6 +41,21 @@ async function content(): Promise<{ at: number; map: Map<string, ContentDoc> }> 
   return g.__voltaContent;
 }
 
+/**
+ * The PUBLISHED specification rows per product, for the AI Agent (read-only; drafts are never read). A row's unit is joined to its value
+ * ("5000" + "mAh" -> "5000 mAh"). Capped so a large content table cannot make an unbounded answer.
+ */
+export async function publishedSpecRows(max = 5000): Promise<{ id: string; specs: { name: string; value: string }[] }[]> {
+  const c = await content();
+  const out: { id: string; specs: { name: string; value: string }[] }[] = [];
+  for (const [id, doc] of c.map) {
+    const specs = doc.specs.slice(0, 24).map((s) => ({ name: s.name.slice(0, 60), value: (s.unit ? `${s.value} ${s.unit}` : s.value).slice(0, 200) }));
+    if (specs.length > 0) out.push({ id, specs });
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
 /** Called after staff publish or unpublish, so the storefront changes at once instead of after the TTL. */
 export function invalidateContent() {
   g.__voltaContent = undefined;
