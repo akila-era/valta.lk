@@ -35,6 +35,31 @@ export interface LlmToolDeps {
   };
   /** Allow-list of official documentation domains per product key, for `lookup_documentation`. */
   docDomains?: Readonly<Record<string, readonly string[]>>;
+  /** Read-only PUBLIC website information (store details, page text). Without it the site tools are not offered. */
+  siteInfo?: SiteInfoSource;
+}
+
+/** The website's published store details, exactly as the relay returns them (see `backend/site-transport.ts`). */
+export interface SiteInfo {
+  name: string;
+  phone: string;
+  phone2: string;
+  whatsapp: string;
+  email: string;
+  address: string;
+  hours: string[];
+  deliveryTime: string;
+  pickupInfo: string;
+  paymentMethods: string[];
+  bankTransferOffered: boolean;
+  instalments: { providers: string[]; parts: number } | null;
+  pages: string[];
+}
+
+export interface SiteInfoSource {
+  info(signal?: AbortSignal): Promise<SiteInfo>;
+  /** The text of one public page, or null when the site has no such page. */
+  page(slug: string, signal?: AbortSignal): Promise<{ slug: string; path: string; text: string } | null>;
 }
 
 export interface LlmToolContext {
@@ -66,6 +91,8 @@ export interface LlmTool<S extends z.ZodObject = z.ZodObject> {
   /** JSON schema in the shape Ollama's `tools` parameter expects. */
   parameters: Record<string, unknown>;
   timeoutMs: number;
+  /** A dependency the tool cannot run without: when it is missing the tool is not offered to the model (and is listed as unavailable). */
+  needs?: "siteInfo";
   /** Upper bound on the text shown to the model for one result. */
   maxResultChars: number;
   execute(args: z.output<S>, ctx: LlmToolContext): Promise<ToolRun>;

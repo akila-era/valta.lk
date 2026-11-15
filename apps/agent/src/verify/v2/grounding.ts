@@ -40,11 +40,13 @@ const sameMoney = (claim: number, truth: number, shorthand: boolean): boolean =>
 /** Words that mark an amount as the customer's BUDGET or limit rather than the price of something ("under your budget of Rs. 100,000", "100000 wada adu"). */
 const BUDGET_CUE = /(budget|under|below|within|up to|upto|limit|ceiling|at most|no more than|wada adu|adu wage|walata|ekata|ඇතුලත|ඇතුළත|දක්වා|අඩු|බජට්|සීමාව)/;
 
-function allowedMoney(a: Amount, pool: readonly ProductFacts[], c: GroundingContext, userAmounts: readonly number[], calcMinor: readonly number[], sentence: string): boolean {
+function allowedMoney(a: Amount, pool: readonly ProductFacts[], c: GroundingContext, userAmounts: readonly number[], calcMinor: readonly number[], sentence: string, siteMinor: readonly number[]): boolean {
   // An amount the customer typed may be echoed when no store product is in the sentence, or when the sentence plainly restates their budget. It is NOT accepted
   // as a store product's price ("the Lumen P1 costs Rs. 100,000" when the budget was 100,000): that is checked against the shop's price below.
   if ((pool.length === 0 || BUDGET_CUE.test(sentence)) && userAmounts.some((u) => sameMoney(a.minor, u, a.shorthand))) return true;
   if (calcMinor.some((u) => sameMoney(a.minor, u, a.shorthand))) return true;
+  // an amount the shop's own site text states (a delivery fee, a minimum order, a warranty limit) may be repeated, but never as a product's price
+  if (pool.length === 0 && siteMinor.some((u) => sameMoney(a.minor, u, a.shorthand))) return true;
   const prices = [...new Set(pool.flatMap((p) => p.pricesMinor))];
   if (prices.some((p) => sameMoney(a.minor, p, a.shorthand))) return true;
   // a difference or a sum of two of the prices in play ("Rs. 10,000 cheaper", "Rs. 195,000 together")
@@ -74,6 +76,7 @@ export function checkGrounding(c: GroundingContext): Issue[] {
   const userAmounts = userAmountsOf(c.input.userMessage);
   const calcs = calculations(c.input.toolEvidence);
   const calcMinor = calcs.map((x) => x.minor);
+  const siteMinor = c.input.toolEvidence.flatMap((e) => (e.kind === "site_info" && e.siteText ? extractAmounts(fold(e.siteText)).map((a) => a.minor) : []));
   let prev: ProductFacts[] = [];
 
   for (const s of c.spans) {
@@ -87,7 +90,7 @@ export function checkGrounding(c: GroundingContext): Issue[] {
     for (const a of extractAmounts(f)) {
       // "2 lakh people" is not a price; but next to a store product, shorthand ("150k") is read as the product's price
       if (!a.currencyMarked && !MONEY_CUE.test(f) && ctxP.length === 0) continue;
-      if (allowedMoney(a, pool, c, userAmounts, calcMinor, f)) continue;
+      if (allowedMoney(a, pool, c, userAmounts, calcMinor, f, siteMinor)) continue;
       const abs = s.start + a.start;
       if (ctxP.length > 0) {
         issues.push(makeIssue("claim_price_mismatch", c.spans, abs, s.start + a.end, { amountMinor: a.minor, known: ctxP.flatMap((p) => p.pricesMinor).length }));

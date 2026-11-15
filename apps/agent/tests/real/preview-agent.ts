@@ -59,7 +59,7 @@ if (llmCfg.issues.length) throw new Error(`Invalid configuration: ${llmCfg.issue
 let pipeline: ChatPipeline = stack.pipeline;
 if (llmCfg.mode !== "off") {
   const { gateway } = await buildGateway(process.env);
-  pipeline = createLlmFirst({ legacy: stack.pipeline, env: process.env, gateway, toolDeps: { registry: stack.registry } });
+  pipeline = createLlmFirst({ legacy: stack.pipeline, env: process.env, gateway, toolDeps: { registry: stack.registry, ...(siteTransport ? { siteInfo: siteTransport.asSiteInfoSource() } : {}) } });
 }
 
 // Counts only (no text, session id or address): lets the owner watch a shadow trial in the journal. Silent until the lane has seen a request.

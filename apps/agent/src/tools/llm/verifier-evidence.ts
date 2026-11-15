@@ -81,6 +81,11 @@ export function toVerifierEvidence(evidence: readonly ToolEvidence[]): V2Evidenc
         if (result !== undefined && Number.isFinite(result)) out.push({ tool: e.tool, kind: "calculation", calculation: { result, ...(str(f.expression) ? { expression: str(f.expression)! } : {}) } });
         break;
       }
+      case "site_info": {
+        const text = str(f.text, 8_000);
+        if (text) out.push({ tool: e.tool, kind: "site_info", siteText: text });
+        break;
+      }
       case "search_source":
       case "page_excerpt": {
         if (!e.sourceUrl) break;

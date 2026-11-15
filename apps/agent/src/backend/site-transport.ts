@@ -2,6 +2,7 @@ import { z } from "zod";
 import { isLoopbackHost } from "../config";
 import { signRequest } from "../auth/hmac";
 import { ErpUnavailableError, type ErpTransport } from "./transport";
+import type { SiteInfo, SiteInfoSource } from "../tools/llm/types";
 import { CataloguePage, RawProduct, RawSettings, type RawOrder } from "./wire";
 
 /** The website's published specification rows, as the relay returns them. Strictly shaped and capped: it is untrusted input. */
@@ -10,6 +11,25 @@ const ContentRows = z.object({
     .array(z.object({ id: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/), specs: z.array(z.object({ name: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(24) }))
     .max(5000),
 });
+
+const Line = (max: number) => z.string().max(max);
+/** The site's own public details; strictly shaped and capped because the answer is untrusted input. */
+const SiteInfoWire = z.object({
+  name: Line(120),
+  phone: Line(40),
+  phone2: Line(40),
+  whatsapp: Line(40),
+  email: Line(160),
+  address: Line(300),
+  hours: z.array(Line(80)).max(6),
+  deliveryTime: Line(200),
+  pickupInfo: Line(300),
+  paymentMethods: z.array(Line(40)).max(10),
+  bankTransferOffered: z.boolean(),
+  instalments: z.object({ providers: z.array(Line(20)).max(4), parts: z.number().int().min(1).max(12) }).nullable(),
+  pages: z.array(z.string().regex(/^[a-z0-9-]{1,40}$/)).max(30),
+});
+const SitePageWire = z.object({ slug: z.string().regex(/^[a-z0-9-]{1,40}$/), path: z.string().regex(/^\/[a-z0-9-]{1,40}$/), text: Line(8_000) });
 
 export interface SiteTransportOptions {
   /** The website, for example https://valta.hexalyte.com (https only; http is accepted for a loopback test double). */
@@ -22,6 +42,7 @@ export interface SiteTransportOptions {
 }
 
 const RELAY = "/api/internal/ai/erp";
+const SITE_RELAY = "/api/internal/ai/site";
 /** The website is untrusted input: no answer may be larger than this (a full page of 100 products is a few hundred KB). */
 const MAX_BODY_BYTES = 3_000_000;
 
@@ -77,9 +98,9 @@ export class SiteErpTransport implements ErpTransport {
     this.timeoutMs = opts.timeoutMs ?? 8_000;
   }
 
-  private async get<S extends z.ZodType>(path: string, schema: S, signal?: AbortSignal, notFoundIsNull = false): Promise<z.infer<S> | null> {
+  private async get<S extends z.ZodType>(path: string, schema: S, signal?: AbortSignal, notFoundIsNull = false, relay = RELAY, notFoundCode = "PRODUCT_NOT_FOUND"): Promise<z.infer<S> | null> {
     const timeout = AbortSignal.timeout(this.timeoutMs);
-    const full = RELAY + path;
+    const full = relay + path;
     let res: Response;
     try {
       res = await this.fetchImpl(this.origin + full, {
@@ -96,7 +117,7 @@ export class SiteErpTransport implements ErpTransport {
       // The relay answers 404 for "unknown product" with an error body, and also (indistinguishably) when it is off or the signature is wrong.
       // Only a body that says PRODUCT_NOT_FOUND counts as "no such product"; anything else is a failure, never a silent empty answer.
       try {
-        if ((JSON.parse(text) as { error?: { code?: string } }).error?.code === "PRODUCT_NOT_FOUND") return null;
+        if ((JSON.parse(text) as { error?: { code?: string } }).error?.code === notFoundCode) return null;
       } catch {
         /* fall through */
       }
@@ -144,6 +165,22 @@ export class SiteErpTransport implements ErpTransport {
     const out: Record<string, { specs: { name: string; value: string }[] }> = {};
     for (const i of data.items) if (i.specs.length > 0) out[i.id] = { specs: i.specs };
     return out;
+  }
+
+  /** Public store details (contact, hours, payments, instalments) the website publishes. Read-only. */
+  async getSiteInfo(signal?: AbortSignal): Promise<SiteInfo> {
+    return (await this.get("/info", SiteInfoWire, signal, false, SITE_RELAY))!;
+  }
+
+  /** The text of one public page, or null when the website has no such page. Read-only. */
+  getSitePage(slug: string, signal?: AbortSignal): Promise<{ slug: string; path: string; text: string } | null> {
+    if (!/^[a-z0-9-]{1,40}$/.test(slug)) return Promise.resolve(null);
+    return this.get(`/pages/${slug}`, SitePageWire, signal, true, SITE_RELAY, "PAGE_NOT_FOUND");
+  }
+
+  /** The tool layer's view of the two read-only site routes. */
+  asSiteInfoSource(): SiteInfoSource {
+    return { info: (s) => this.getSiteInfo(s), page: (slug, s) => this.getSitePage(slug, s) };
   }
 
   /** Orders belong to customers: this transport never asks for them. */

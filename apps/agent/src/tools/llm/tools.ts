@@ -128,6 +128,59 @@ const volta_stock_and_price = defineLlmTool({
   },
 });
 
+// ---------- the shop's own public website (read-only) ----------
+
+const SITE_PAGE_SLUGS = ["about", "contact", "faqs", "shipping-policy", "returns-policy", "warranty-policy", "privacy-policy", "terms", "wholesale", "track-order"] as const;
+
+const volta_store_info = defineLlmTool({
+  name: "volta_store_info",
+  description: "VOLTA.LK store details published on the website: phone, WhatsApp, email, address, opening hours, delivery time, pickup, payment methods and instalment options. The only source for these facts.",
+  auth: "read",
+  needs: "siteInfo",
+  args: z.strictObject({}),
+  async execute(_a, ctx) {
+    try {
+      const i = await ctx.deps.siteInfo!.info(ctx.signal);
+      const facts = {
+        ...(i.name ? { store: i.name } : {}),
+        ...(i.phone ? { phone: i.phone } : {}),
+        ...(i.phone2 ? { phone2: i.phone2 } : {}),
+        ...(i.whatsapp ? { whatsapp: i.whatsapp } : {}),
+        ...(i.email ? { email: i.email } : {}),
+        ...(i.address ? { address: i.address } : {}),
+        ...(i.hours.length ? { hours: i.hours } : {}),
+        ...(i.deliveryTime ? { deliveryTime: i.deliveryTime } : {}),
+        ...(i.pickupInfo ? { pickup: i.pickupInfo } : {}),
+        ...(i.paymentMethods.length ? { paymentMethods: i.paymentMethods } : {}),
+        bankTransferOffered: i.bankTransferOffered,
+        instalments: i.instalments ? `${i.instalments.providers.join(" / ")} in ${i.instalments.parts} parts` : "not offered",
+        pagesYouCanRead: i.pages,
+      };
+      return { ok: true, untrusted: true, data: facts, evidence: [{ tool: "volta_store_info", kind: "site_info", facts: { text: JSON.stringify(facts) }, title: "VOLTA.LK store details" }] };
+    } catch {
+      return fail("SITE_UNAVAILABLE", "The website information is not reachable right now. Say so and point the shopper to the Contact page.");
+    }
+  },
+});
+
+const volta_site_page = defineLlmTool({
+  name: "volta_site_page",
+  description: "Read one public VOLTA.LK website page as text: about, contact, faqs, shipping-policy, returns-policy, warranty-policy, privacy-policy, terms, wholesale or track-order (how tracking works). Use it for policy, delivery, warranty, return and how-to questions.",
+  auth: "read",
+  needs: "siteInfo",
+  args: z.strictObject({ page: z.enum(SITE_PAGE_SLUGS) }),
+  maxResultChars: 6_500,
+  async execute(a, ctx) {
+    try {
+      const p = await ctx.deps.siteInfo!.page(a.page, ctx.signal);
+      if (!p) return fail("PAGE_NOT_FOUND", "That page does not exist on the website.");
+      return { ok: true, untrusted: true, data: { page: p.slug, path: p.path, text: p.text }, evidence: [{ tool: "volta_site_page", kind: "site_info", facts: { text: p.text }, title: p.slug }] };
+    } catch {
+      return fail("SITE_UNAVAILABLE", "That page could not be read right now. Say so and point the shopper to the page itself.");
+    }
+  },
+});
+
 // ---------- calculator ----------
 
 const calculator = defineLlmTool({
@@ -400,9 +453,9 @@ export interface CreateLlmToolsOptions {
 }
 
 export function createLlmTools(opts: CreateLlmToolsOptions = {}): LlmTool[] {
-  const all = [volta_search_products, volta_product_details, volta_stock_and_price, calculator, web_search, fetch_page, lookup_documentation, recall_conversation, propose_cart_change, get_order_status, get_order_history, run_code] as unknown as LlmTool[];
+  const all = [volta_search_products, volta_product_details, volta_stock_and_price, volta_store_info, volta_site_page, calculator, web_search, fetch_page, lookup_documentation, recall_conversation, propose_cart_change, get_order_status, get_order_history, run_code] as unknown as LlmTool[];
   const skip = new Set(opts.exclude ?? []);
   return all.filter((t) => !skip.has(t.name));
 }
 
-export const LLM_TOOL_NAMES = ["volta_search_products", "volta_product_details", "volta_stock_and_price", "calculator", "web_search", "fetch_page", "lookup_documentation", "recall_conversation", "propose_cart_change", "get_order_status", "get_order_history", "run_code"] as const;
+export const LLM_TOOL_NAMES = ["volta_search_products", "volta_product_details", "volta_stock_and_price", "volta_store_info", "volta_site_page", "calculator", "web_search", "fetch_page", "lookup_documentation", "recall_conversation", "propose_cart_change", "get_order_status", "get_order_history", "run_code"] as const;

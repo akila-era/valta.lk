@@ -148,6 +148,7 @@ export class LlmToolExecutor {
 
   private isOffered(t: LlmTool, deps: LlmToolDeps): boolean {
     if (t.auth === "disabled") return false;
+    if (t.needs && !deps[t.needs]) return false;
     const availability = { provider: deps.search?.provider, providerEnabled: deps.search?.providerEnabled, quota: deps.search?.quota };
     if (t.auth === "search") return shouldOfferSearch(availability);
     if (t.auth === "external") return shouldOfferFetch(availability);

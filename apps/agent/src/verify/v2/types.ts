@@ -19,7 +19,7 @@ export interface SpecFact {
   text?: string;
 }
 
-export type EvidenceKind = "product" | "stock" | "price" | "spec" | "calculation" | "search_source" | "page_excerpt";
+export type EvidenceKind = "product" | "stock" | "price" | "spec" | "calculation" | "search_source" | "page_excerpt" | "site_info";
 
 /**
  * One piece of evidence the SERVER obtained this turn (never text the model wrote). A product's price, stock and specs may travel in one
@@ -50,6 +50,8 @@ export interface ToolEvidence {
   source?: { url: string; title?: string; fetchedAt?: string };
   /** For `page_excerpt` / `search_source`: fetched text. ALWAYS untrusted data, never instructions. */
   excerpt?: string;
+  /** For `site_info`: the shop's OWN public website text (store details, policy pages). Amounts written in it may be repeated; it is not a product price. */
+  siteText?: string;
 }
 
 export interface HonorificPolicy {

@@ -10,6 +10,7 @@ import { ConfigError, loadConfig, type AgentConfig } from "./config";
 import { buildGateway } from "./gateway";
 import type { ChatPipeline } from "./http/pipeline";
 import { createAgentServer, type RunningServer } from "./http/server";
+import type { SiteInfoSource } from "./tools/llm";
 import { createLlmFirst, loadLlmFirstConfig } from "./llm";
 import { consoleSink, createLogger, verifierFailureLogger } from "./observability/logger";
 import { meteredOllama } from "./observability/metered-ollama";
@@ -85,6 +86,7 @@ export async function createAgent(env: NodeJS.ProcessEnv = process.env, override
   let transport: ErpTransport;
   let site: SiteData;
   let stopSite: () => void = () => {};
+  let siteInfo: SiteInfoSource | undefined;
   if (overrides.transport && overrides.site) {
     transport = overrides.transport;
     site = overrides.site;
@@ -102,6 +104,7 @@ export async function createAgent(env: NodeJS.ProcessEnv = process.env, override
     void live.refresh();
     stopSite = live.start();
     transport = relay;
+    siteInfo = relay.asSiteInfoSource();
     site = live;
   }
 
@@ -125,7 +128,7 @@ export async function createAgent(env: NodeJS.ProcessEnv = process.env, override
   let pipeline: ChatPipeline = stack.pipeline;
   if (llmCfg.mode !== "off") {
     const { gateway } = await buildGateway(env);
-    pipeline = createLlmFirst({ legacy: stack.pipeline, env, gateway, toolDeps: { registry: stack.registry } });
+    pipeline = createLlmFirst({ legacy: stack.pipeline, env, gateway, toolDeps: { registry: stack.registry, ...(siteInfo ? { siteInfo } : {}) } });
   }
 
   const voice = voiceCfg.stt.name !== "none" || voiceCfg.tts.name !== "none" ? new VoiceService(voiceCfg, { metrics: metrics.voiceHook() }) : undefined;

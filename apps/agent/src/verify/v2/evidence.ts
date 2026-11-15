@@ -19,7 +19,7 @@ const keyOf = (e: ToolEvidence, i: number): string => (e.productId ? `id:${e.pro
 export function indexProducts(evidence: readonly ToolEvidence[]): ProductFacts[] {
   const byKey = new Map<string, ProductFacts>();
   evidence.forEach((e, i) => {
-    if (e.kind === "calculation" || e.kind === "search_source" || e.kind === "page_excerpt") return;
+    if (e.kind === "calculation" || e.kind === "search_source" || e.kind === "page_excerpt" || e.kind === "site_info") return;
     if (!e.productId && !e.productName) return;
     const k = keyOf(e, i);
     let p = byKey.get(k);
