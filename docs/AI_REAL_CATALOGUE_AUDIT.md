@@ -24,7 +24,7 @@ Status: **read-only.** The catalogue was read through the website's signed, read
 |---|---|---|
 | Brand | 7 of 7 (Apple 5, Xiaomi 1, Samsung 1) | **Reliable** |
 | Category | 7 of 7 present, but filed inconsistently: "apple" (3), "jhhj" (1, gibberish), "Cables" (a watch), "Mobile Phones" (1), "watch" (1) | **Unreliable.** Only one product (out of stock) is in a category that says "phone"; the iPhones are not |
-| Price | 7 of 7 | Present, but six prices are 1,000 to 1,200: placeholder-looking values, including for iPhones. **Cannot be treated as real prices** |
+| Price | 7 of 7 | Present, but five prices are 1,000 to 1,200 (corrected from "six"; the other two are 12,500 and 17,000): placeholder-looking values, including for iPhones. **Cannot be treated as real prices** |
 | Sale price / discount | 0 of 7 active | Nothing to test |
 | Stock availability | 7 of 7 (availability and purchasable quantity), live on each read | **Reliable as a field.** Two products are out of stock |
 | Storage | 4 of 7, only inside variants (128GB, 256GB) | Partial; not a product-level field |

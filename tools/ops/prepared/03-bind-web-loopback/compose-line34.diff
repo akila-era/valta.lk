@@ -1,0 +1,10 @@
+# PREPARED, NOT RUN: needs the owner's approval. Documented change for /opt/valta/docker-compose.yml on the website server.
+# The audit saw the web service's port mapping at line 34 (inside `ports:` at line 33): "${WEB_PORT:-8090}:3000".
+# nginx proxies to http://127.0.0.1:8090, so binding to 127.0.0.1 keeps the site working and removes the public listener (IPv4 and IPv6).
+# Note: the compose file in /opt/valta already has one unrelated uncommitted change (git status showed " M docker-compose.yml"); this diff touches only this line.
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -33,3 +33,3 @@
+     ports:
+-      - "${WEB_PORT:-8090}:3000"
++      - "127.0.0.1:${WEB_PORT:-8090}:3000"

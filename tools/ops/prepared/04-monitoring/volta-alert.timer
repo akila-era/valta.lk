@@ -1,0 +1,12 @@
+# PREPARED, NOT RUN: needs the owner's approval. Install as /etc/systemd/system/volta-alert.timer on the AI server (see volta-alert.service).
+[Unit]
+Description=Run the VOLTA AI health check every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Persistent=false
+
+[Install]
+WantedBy=timers.target

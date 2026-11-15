@@ -1,0 +1,24 @@
+====================================================================== 
+qwen3.5:4b-q4_K_M
+capabilities: ['completion', 'vision', 'tools', 'thinking'] | context: {'qwen35.context_length': 262144} | params: 4.2B Q4_K_M
+digest: d8b0f5e9760cd1682034f292d7ef72ec46f432149be0df7574bf2d6e92e38c04
+reply: 'I can assist VOLTA.LK shoppers by providing real-time product availability, delivery estimates, and personalized shopping recommendations based on their locatio'
+load=17.4s prompt_eval=2.19s gen=4.4 tok/s wall=26.1s
+ollama ps: [('qwen3.5:4b-q4_K_M', 3.15, 0.0)]  host RAM used 652 -> 4160 MB
+unloaded; loaded now: [] | RAM used 634 MB
+====================================================================== 
+gemma4:e4b-it-q4_K_M
+capabilities: ['completion', 'vision', 'audio', 'tools', 'thinking'] | context: {'gemma4.context_length': 131072} | params: 7.5B Q4_K_M
+digest: dc35e8d9c6061baa6f0fa870975ab6932e2542b579b13ea0f199fa4bb7300c9c
+reply: 'I can help a VOLTA.LK shopper by providing information and answering questions about their needs.'
+load=33.6s prompt_eval=1.14s gen=2.0 tok/s wall=44.7s
+ollama ps: [('gemma4:e4b-it-q4_K_M', 1.93, 0.0)]  host RAM used 635 -> 7256 MB
+unloaded; loaded now: [] | RAM used 635 MB
+====================================================================== 
+qwen3.5:9b-q4_K_M
+capabilities: ['completion', 'vision', 'tools', 'thinking'] | context: {'qwen35.context_length': 262144} | params: 9.0B Q4_K_M
+digest: 56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90
+reply: 'I can assist VOLTA.LLK shoppers by providing product information, helping locate stores, and offering guidance on promotions.'
+load=30.7s prompt_eval=3.61s gen=2.8 tok/s wall=42.8s
+ollama ps: [('qwen3.5:9b-q4_K_M', 6.19, 0.0)]  host RAM used 632 -> 7252 MB
+unloaded; loaded now: [] | RAM used 611 MB

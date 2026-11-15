@@ -34,7 +34,7 @@ For each card the verifier re-derives from the same tool results: every field (i
 
 - The Agent only sends `fit` to clients that ask for 1.2, so **the Agent can be deployed first** without affecting the website that is live today (it asks for 1.1 and validates strictly).
 - The website then moves to 1.2 and renders the codes with its own fixed wording in English and Sinhala (no wording comes from the Agent).
-- Rollback: the Agent's previous bundle and the website's previous image keep working with each other in both directions.
+- **Rollback (corrected after the independent review, finding F-09):** an OLD website (asks for 1.1) works with the NEW Agent, so **roll back the website first**. A NEW website (always asks for 1.2) does **not** work with an OLD Agent built before 1.2: every chat would be refused with HTTP 422, which the website shows as "That message could not be processed". So never roll the Agent back while the 1.2 website is live. The earlier statement that both directions work was wrong. A safer design (the website asks the Agent which version it speaks, or retries with 1.1 on that exact 422) is not built.
 
 ## Limits
 

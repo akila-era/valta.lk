@@ -1,0 +1,22 @@
+# PREPARED, NOT RUN: needs the owner's approval. Install as /etc/systemd/system/volta-alert.service on the AI server, together with
+# /usr/local/sbin/volta-health-check.sh (a copy of volta-health-check.sh, mode 755, owner root), then `systemctl daemon-reload` and
+# `systemctl enable --now volta-alert.timer`. Rollback: `systemctl disable --now volta-alert.timer`, remove both unit files and the script.
+# Installing this unit is the approved act, which is why it sets I_HAVE_APPROVAL for the script.
+[Unit]
+Description=VOLTA AI health check and alerts (read-only)
+After=volta-agent.service ollama.service
+
+[Service]
+Type=oneshot
+User=root
+Environment=I_HAVE_APPROVAL=yes
+ExecStart=/usr/local/sbin/volta-health-check.sh
+StateDirectory=volta-alert
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+TimeoutStartSec=60

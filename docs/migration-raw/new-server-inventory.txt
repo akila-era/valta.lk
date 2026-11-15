@@ -1,0 +1,123 @@
+
+==== Identity ====
+vmi3751957
+2026-11-13T14:48:53Z
+Linux 6.8.0-147-generic x86_64
+Ubuntu 24.04.5 LTS
+up 19 minutes
+virtualization: kvm
+
+==== CPU ====
+Architecture:                            x86_64
+CPU(s):                                  6
+Model name:                              AMD EPYC Processor (with IBPB)
+Thread(s) per core:                      1
+Core(s) per socket:                      6
+Socket(s):                               1
+Flags: ... avx2 ...
+avx2 f16c fma 
+
+==== Memory and swap ====
+               total        used        free      shared  buff/cache   available
+Mem:           11960         443       11160           1         609       11516
+Swap:              0           0           0
+SwapTotal:             0 kB
+HugePages_Total:       0
+vm.swappiness=60
+
+==== Storage ====
+NAME     SIZE TYPE FSTYPE  ROTA MOUNTPOINT
+sda      200G disk            0 
+├─sda1   199G part ext4       0 /
+├─sda14    4M part            0 
+├─sda15  106M part vfat       0 /boot/efi
+└─sda16  913M part ext4       0 /boot
+sr0        4M rom  iso9660    1 
+Filesystem     Type  Size  Used Avail Use% Mounted on
+/dev/sda1      ext4  193G  2.0G  191G   2% /
+/dev/sda16     ext4  881M   64M  756M   8% /boot
+/dev/sda15     vfat  105M  6.2M   99M   6% /boot/efi
+--- fs speed hint (read-only): 0 1 1 1 1 1 1 1 0 1 
+
+==== Network ====
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             109.199.108.76/20 2a02:c207:2375:1957::1/64 fe80::250:56ff:fe69:8131/64 
+default via 109.199.96.1 dev eth0 proto static 
+109.199.96.0/20 via 109.199.96.1 dev eth0 
+eth0 speed: -1 Mb/s
+
+==== Time sync ====
+                Time zone: Europe/Berlin (CET, +0100)
+System clock synchronized: yes
+              NTP service: active
+
+==== Listening ports (who listens where) ====
+State  Recv-Q Send-Q Local Address:Port Peer Address:PortProcess                                               
+LISTEN 0      4096         0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=987,fd=3),("systemd",pid=1,fd=91))
+LISTEN 0      4096   127.0.0.53%lo:53        0.0.0.0:*    users:(("systemd-resolve",pid=635,fd=15))            
+LISTEN 0      4096      127.0.0.54:53        0.0.0.0:*    users:(("systemd-resolve",pid=635,fd=17))            
+LISTEN 0      4096            [::]:22           [::]:*    users:(("sshd",pid=987,fd=4),("systemd",pid=1,fd=92))
+
+==== Firewall and brute-force protection (status only) ====
+Status: inactive
+fail2ban: inactive
+unattended-upgrades: active
+
+==== Services of interest (state) ====
+cron.service active running
+ssh.service active running
+systemd-timesyncd.service active running
+ufw.service active exited
+
+==== Containers (if Docker) ====
+(no docker)
+
+==== Ollama ====
+
+==== VOLTA Agent (unit and variable NAMES only) ====
+volta-agent: inactive
+
+==== SSH (effective settings, key fingerprints only) ====
+port 22
+permitrootlogin yes
+pubkeyauthentication yes
+passwordauthentication yes
+x11forwarding yes
+allowtcpforwarding yes
+permitopen any
+root:0:/bin/bash
+ubuntu:1000:/bin/bash
+voltaadmin:1001:/bin/bash
+sudo:x:27:ubuntu,voltaadmin
+[root] authorized keys:
+[ubuntu] authorized keys:
+[voltaadmin] authorized keys:
+   256 SHA256:AxJH9+QBA/u7DOMZim1aMAEWiIN8xaQBvd2mdAwB2n8 claude-migration-2026-11-13-REMOVE-AFTER-MIGRATION (ED25519)
+
+==== Scheduled jobs and backups ====
+e2scrub_all
+staticroute
+sysstat
+Fri 2026-11-13 15:50:00 CET   1min 6s Fri 2026-11-13 15:40:07 CET    8min ago sysstat-collect.timer          sysstat-collect.service
+Fri 2026-11-13 16:56:58 CET   1h 8min Fri 2026-11-13 15:27:45 CET           - fwupd-refresh.timer            fwupd-refresh.service
+Fri 2026-11-13 22:33:39 CET        6h Fri 2026-11-13 15:27:45 CET           - apt-daily.timer                apt-daily.service
+Fri 2026-11-13 23:03:25 CET        7h Fri 2026-11-13 15:27:45 CET           - motd-news.timer                motd-news.service
+Sat 2026-11-14 00:00:00 CET        8h Fri 2026-11-13 15:27:45 CET           - dpkg-db-backup.timer           dpkg-db-backup.service
+Sat 2026-11-14 00:00:00 CET        8h Fri 2026-11-13 15:27:45 CET           - logrotate.timer                logrotate.service
+Sat 2026-11-14 00:07:00 CET        8h -                                     - sysstat-summary.timer          sysstat-summary.service
+Sat 2026-11-14 06:46:16 CET       14h Fri 2026-11-13 15:27:45 CET           - apt-daily-upgrade.timer        apt-daily-upgrade.service
+/var/backups:
+total 8
+drwxr-xr-x  2 root root 4096 Apr 22  2024 .
+drwxr-xr-x 13 root root 4096 Nov 13 15:27 ..
+
+==== Load right now ====
+ 15:48:53 up 19 min,  2 users,  load average: 0.35, 0.08, 0.03
+USER        %MEM% COMMAND
+root         0.2% /sbin/multipathd
+root         0.1% /usr/bin/python3
+root         0.1% /usr/lib/systemd/systemd-journald
+root         0.1% /usr/libexec/udisks2/udisksd
+root         0.1% /sbin/init
+
+==== Done (nothing was changed) ====
