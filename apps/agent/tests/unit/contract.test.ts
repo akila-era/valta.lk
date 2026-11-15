@@ -118,14 +118,15 @@ describe("Card", () => {
     for (const n of [2, 3, 4]) expect(Card.safeParse(cmp(n)).success, String(n)).toBe(true);
   });
 
-  it("is contract 1.2, accepts 1, 1.1 and 1.2 from a client, and rejects any other version", () => {
-    expect(CONTRACT_VERSION).toBe("1.2");
+  it("is contract 1.3, accepts 1, 1.1, 1.2 and 1.3 from a client, and rejects any other version", () => {
+    expect(CONTRACT_VERSION).toBe("1.3");
     const req = { sessionId: "sess_0123456789abcdef", message: "hi" };
     expect(ChatRequest.safeParse(req).success).toBe(true); // absent: a 1.0 client
     expect(ChatRequest.safeParse({ ...req, contractVersion: "1" }).success).toBe(true);
     expect(ChatRequest.safeParse({ ...req, contractVersion: "1.1" }).success).toBe(true);
     expect(ChatRequest.safeParse({ ...req, contractVersion: "1.2" }).success).toBe(true);
-    for (const v of ["2", "1.3", "", 1, null]) expect(ChatRequest.safeParse({ ...req, contractVersion: v }).success, String(v)).toBe(false);
+    expect(ChatRequest.safeParse({ ...req, contractVersion: "1.3" }).success).toBe(true);
+    for (const v of ["2", "1.4", "", 1, null]) expect(ChatRequest.safeParse({ ...req, contractVersion: v }).success, String(v)).toBe(false);
   });
 });
 

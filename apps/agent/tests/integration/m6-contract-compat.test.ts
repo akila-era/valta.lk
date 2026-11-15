@@ -85,7 +85,7 @@ describe("one conversation, three client versions, over HTTP", () => {
 
   it("refuses a version it does not know, with a validation error and no cards", async () => {
     const url = await start(rich().pipeline);
-    for (const v of ["1.3", "2", "0.9", ""]) {
+    for (const v of ["1.4", "2", "0.9", ""]) {
       const res = await post(url, { sessionId: "sess_hhhhhhhhhhhhhhhh", message: "hi", contractVersion: v });
       const json = (await res.json()) as Json;
       expect(res.status, v).toBe(422);

@@ -9,9 +9,14 @@ import { checkSafety, type SafetyReason } from "../router/safety";
 import { routeMessage } from "../router/router";
 import { conversationIntent, isNeutralMessage, type ConversationIntent } from "../router/conversation";
 import { extractEntities } from "../router/entities";
-import { renderTemplate, suggestionsFor, REPLY_PART_SEPARATOR } from "../router/templates";
+import { renderTemplate, suggestionsFor, varyFrom, REPLY_PART_SEPARATOR } from "../router/templates";
 import type { PlannedCall, RouteDecision, TemplateKey, Vocabulary } from "../router/types";
+import { detectCorrection } from "../router/corrections";
+import { acknowledgementFor, detectPreferences } from "../router/preferences";
 import { answerPending, CANDIDATE_LIMIT, fitFor, looksLikeAccessory, profileSearchArgs, reasonAboutSearch, searchIndex, updateProfileFromSearch, type ReasonedSearch } from "../reasoning/engine";
+import { addExclusions, filterOutcomes, filterProducts, hasExclusions, withdrawExclusions } from "../reasoning/exclusions";
+import { emptyExclusions } from "../reasoning/profile";
+import { restoreSnapshot, takeSnapshot } from "../reasoning/undo";
 import { extractUsages } from "../reasoning/usage";
 import { emptySession, sessionKey, type SessionState, type TtlLruStore } from "../session/store";
 import type { ToolRegistry } from "../tools/registry";
@@ -61,6 +66,12 @@ const REFUSAL: Record<SafetyReason, TemplateKey> = {
 };
 
 const newActionId = () => randomUUID().replace(/-/g, "").slice(0, 24);
+
+/** Router reasons that REFINE the search the shopper already had ("make it 60000", "cheaper", "show me more", "sort by price"): they need that search to refine. */
+const REFINEMENT_REASONS = new Set(["budget_follow_up", "relative_price", "other_results", "sort_instruction", "refine_usage"]);
+
+/** Reply kinds worded differently from the previous reply of the same kind (greeting and thanks are varied by the router itself). */
+const PIPELINE_VARIED = new Set<TemplateKey>(["tools_ran", "recommend_intro", "correction_ask", "correction_search", "clarify_what", "no_match_alternatives", "no_results"]);
 
 /** Product ids that exist in the vocabulary, so a model can never reach a tool with an id it made up. */
 function unknownIdIn(call: PlannedCall, known: Set<string>): boolean {
@@ -131,14 +142,20 @@ export class RoutingPipeline implements ChatPipeline {
     const priority = identity.kind === "customer" ? "customer" : "guest";
     const key = sessionKey(identity, request.sessionId);
     const session = deps_get(this.deps.sessions, key);
+    // A session built before these fields existed (or by a test) gets them here, so every later line can rely on them.
+    session.reasoning.exclusions ??= emptyExclusions();
+    session.reasoning.prefs ??= {};
+    const prefs = session.reasoning.prefs;
     // Language of the reply. An explicit choice in the page (English or Sinhala) always wins. In Auto mode the reply follows the
     // message (Singlish gets the same Sinhala-style reply as Sinhala script, not a switch to English); a neutral message such as
     // "ok" or "200000" keeps the language the conversation was already in.
     const neutral = isNeutralMessage(message);
     const keepSession = request.locale !== "en" && request.locale !== "si" && neutral && (session.language === "si" || session.language === "mixed");
     const lang = keepSession ? ({ script: session.language === "si" ? "si" : "si-latin", language: session.language!, path: "sinhala", reason: "conversation language" } as typeof detected) : detected;
-    const tplLang: "en" | "si" =
-      request.locale === "en" ? "en" : request.locale === "si" ? "si" : lang.script === "si" || lang.script === "mixed" || lang.script === "si-latin" ? "si" : "en";
+    // The page's explicit choice wins; then the shopper's own instruction ("reply in Sinhala"); then the language of the message. Re-read after a preference is set.
+    const pickReplyLang = (): "en" | "si" =>
+      request.locale === "en" ? "en" : request.locale === "si" ? "si" : prefs.replyLang ? prefs.replyLang : lang.script === "si" || lang.script === "mixed" || lang.script === "si-latin" ? "si" : "en";
+    let tplLang: "en" | "si" = pickReplyLang();
 
     emit({ type: "status", phase: "routing" });
 
@@ -170,28 +187,88 @@ export class RoutingPipeline implements ChatPipeline {
       return finish("tool_failed");
     }
     const reasoning = session.reasoning;
-    const profile = reasoning.profile;
-    const ctx = {
-      ...(request.context?.productId ? { contextProductId: request.context.productId } : {}),
-      lastShownProductIds: session.lastShownProductIds,
-      lastResultIds: reasoning.lastResultIds,
-      discussedIds: reasoning.discussed,
-      cart: request.cart,
-      ...(session.lastIntent ? { lastIntent: session.lastIntent } : {}),
-      slots: {
-        ...(profile.brand ? { brand: profile.brand } : {}),
-        ...(profile.category ? { category: profile.category } : {}),
-        ...(profile.query ? { query: profile.query } : {}),
-        ...(profile.budgetMaxLkr !== undefined ? { budgetMaxLkr: profile.budgetMaxLkr } : {}),
-      },
+
+    // R0: how the shopper asked the assistant to talk in this conversation ("reply in Sinhala", "keep it short", "stop asking questions").
+    const prefsUpdate = detectPreferences(message);
+    if (prefsUpdate) {
+      Object.assign(prefs, prefsUpdate);
+      tplLang = pickReplyLang();
+    }
+
+    // R0: "that's not what I asked", "mama kiwwe eka nemei", "I meant a laptop": the previous turn's interpretation is DROPPED (the state is put back as it was before
+    // that turn), and what is left of the message after the correction cue is routed as a fresh request. The original message is never altered: `work` is only
+    // what the router reads; the planner and the chat lane below still see the shopper's own words.
+    const correction = detectCorrection(message);
+    const priorUndo = reasoning.undo;
+    const work = correction && correction.remainder !== "" ? correction.remainder : message;
+
+    // The router's view of the conversation, built from the state AS IT IS NOW (a correction changes the state, so this is a function, not a constant).
+    const routeContext = () => {
+      const p = reasoning.profile;
+      return {
+        ...(request.context?.productId ? { contextProductId: request.context.productId } : {}),
+        lastShownProductIds: session.lastShownProductIds,
+        lastResultIds: reasoning.lastResultIds,
+        discussedIds: reasoning.discussed,
+        cart: request.cart,
+        ...(session.lastIntent ? { lastIntent: session.lastIntent } : {}),
+        ...(reasoning.lastTemplate ? { lastTemplate: reasoning.lastTemplate } : {}),
+        slots: {
+          ...(p.brand ? { brand: p.brand } : {}),
+          ...(p.category ? { category: p.category } : {}),
+          ...(p.query ? { query: p.query } : {}),
+          ...(p.budgetMaxLkr !== undefined ? { budgetMaxLkr: p.budgetMaxLkr } : {}),
+        },
+      };
     };
-    const matchText = normalizeMatch(message);
-    let det = routeMessage({ matchText, rawText: message, vocab, context: ctx });
+    const matchText = normalizeMatch(work);
+    let correctionApplied = false;
+    let det: RouteDecision;
+    if (correction) {
+      const stateBeforeCorrection = takeSnapshot(session);
+      restoreSnapshot(session, priorUndo);
+      det = routeMessage({ matchText, rawText: work, vocab, context: routeContext() });
+      let unusable = correction.remainder === "" || det.intent === "unknown" || det.intent === "general" || det.intent === "external_site";
+      if (unusable && correction.remainder !== "") {
+        // "that's wrong, make it 60000": what is left only REFINES what the shopper was looking at, so it is tried on the state as it was before the correction.
+        restoreSnapshot(session, stateBeforeCorrection);
+        const refined = routeMessage({ matchText, rawText: work, vocab, context: routeContext() });
+        if (REFINEMENT_REASONS.has(refined.reason)) {
+          det = refined;
+          unusable = false;
+        } else restoreSnapshot(session, priorUndo);
+      }
+      // Nothing usable left after the cue (only "that's not what I asked", or a remainder the router cannot act on): acknowledge and ask ONE short question.
+      if (unusable) {
+        reasoning.pending = undefined;
+        this.deps.onDecision?.({ intent: "clarification", routerIntent: "unknown", reason: "correction", template: "correction_ask", language: lang.language });
+        return finish("correction_ask");
+      }
+      correctionApplied = true;
+    } else {
+      det = routeMessage({ matchText, rawText: work, vocab, context: routeContext() });
+    }
+    // The state this turn starts from (after any correction): what a later "that's not what I asked" goes back to.
+    const before = takeSnapshot(session);
+    const profile = reasoning.profile;
+
+    // R0: what the shopper does NOT want ("don't recommend Samsung", "no chargers") is remembered for the whole conversation, until they ask for it again.
+    const e0 = det.entities;
+    withdrawExclusions(reasoning.exclusions, { brand: e0.brand, categorySlug: e0.categorySlug, words: e0.queryWord ? [e0.queryWord] : [], productIds: e0.products.map((p) => p.id) });
+    addExclusions(reasoning.exclusions, e0.exclusions);
+
+    // A message that only sets a preference ("keep it short") is acknowledged; one that sets it AND asks for something ("just show me phones") is answered.
+    if (prefsUpdate && (det.intent === "unknown" || det.intent === "general")) {
+      reasoning.pending = undefined;
+      this.deps.onDecision?.({ intent: "general_conversation", routerIntent: det.intent, reason: "preference", template: acknowledgementFor(prefsUpdate), language: lang.language });
+      return finish(acknowledgementFor(prefsUpdate));
+    }
+
     // The shopper's short reply to the question just asked (a usage, a brand, the device an accessory is for) becomes the search it means.
-    const pendingAnswer = answerPending(reasoning, message, det.entities, session.lastIntent === "search_products", det.reason);
+    const pendingAnswer = answerPending(reasoning, work, det.entities, session.lastIntent === "search_products", det.reason);
     reasoning.pending = undefined;
     if (pendingAnswer) det = { ...det, intent: pendingAnswer.call.name === "get_accessories" ? "get_accessories" : "search_products", action: "tool", calls: [pendingAnswer.call], reason: pendingAnswer.reason, confidence: { score: 4, margin: 4 } };
-    const usages = pendingAnswer ? pendingAnswer.usages : extractUsages(message);
+    const usages = pendingAnswer ? pendingAnswer.usages : extractUsages(work);
     this.deps.onDecision?.({ intent: conversationIntent(det, message), routerIntent: det.intent, reason: det.reason, template: det.template ?? null, language: lang.language });
 
     // Guests are never given an order lookup by the assistant, in any language: hand them to the existing Track order page.
@@ -213,13 +290,14 @@ export class RoutingPipeline implements ChatPipeline {
         const p = id ? vocab.products.find((x) => x.id === id) : undefined;
         if (p) known.set(p.id, { id: p.id, name: p.name });
       };
-      for (const p of extractEntities(message, vocab).products) add(p.id);
+      for (const p of extractEntities(work, vocab).products) add(p.id);
       add(request.context?.productId);
       for (const id of session.lastShownProductIds.slice(0, 3)) add(id);
       for (const c of request.cart.slice(0, 3)) add(c.productId);
 
       emit({ type: "status", phase: "routing" });
       const plan = await this.deps.planner.plan({
+        // The planner (a model) always sees the shopper's own words, never the router's cleaned-up remainder.
         message,
         actor: actor.kind,
         priority,
@@ -261,6 +339,8 @@ export class RoutingPipeline implements ChatPipeline {
     const idOk = calls.filter((c) => !unknownIdIn(c, known));
     const safeCalls = idOk.filter((c) => !unknownFilterIn(c, categories, brands));
     if (safeCalls.length === 0) return finish(idOk.length === 0 ? "clarify_product" : "clarify_what", { model, queuedMs });
+    // From here the turn changes the shopping state: what it was before is what a later "that's not what I asked" goes back to.
+    reasoning.undo = before;
 
     // A search is a statement of what the shopper wants: fold it (and any usage they mention) into their profile, then fetch enough
     // candidates (up to 8) to rank them for this shopper.
@@ -274,6 +354,12 @@ export class RoutingPipeline implements ChatPipeline {
       this.deps.metrics.toolBatchMs(this.now() - toolStart);
       for (const o of outcomes) this.deps.metrics.tool(o.tool, o.status);
     }
+    // R0: what the shopper said they do NOT want never reaches ranking, a card, a comparison or a fit code: it is taken out of the search and accessory results here,
+    // before anything else looks at them (so the verifier sees the same, already filtered, products).
+    const exclusions = reasoning.exclusions;
+    const filtered = filterOutcomes(outcomes, exclusions);
+    outcomes = filtered.outcomes;
+    let excludedAway = filtered.removed;
 
     const actions: ClientAction[] = [];
     for (const o of outcomes) {
@@ -305,7 +391,7 @@ export class RoutingPipeline implements ChatPipeline {
           const ri = searchIndex(retry);
           if (ri >= 0) {
             const found = retry[ri] as { tool: string; status: "ok"; data: { kind: "search"; total: number; items: ProductView[] } };
-            const real = found.data.items.filter((p) => !looksLikeAccessory(p));
+            const real = filterProducts(found.data.items.filter((p) => !looksLikeAccessory(p)), exclusions);
             if (real.length > 0) {
               outcomes = [...outcomes.slice(0, si), { ...found, data: { ...found.data, total: real.length, items: real } }, ...outcomes.slice(si + 1)];
               delete profile.category;
@@ -327,7 +413,7 @@ export class RoutingPipeline implements ChatPipeline {
           if (ai < 0) continue;
           const hit = alt[ai] as { tool: string; status: "ok"; data: { kind: "search"; total: number; items: ProductView[] } };
           // A by-name attempt must not turn up accessories (a phone case is not an alternative to a phone).
-          const items = altArgs.category === undefined ? hit.data.items.filter((p) => !looksLikeAccessory(p)) : hit.data.items;
+          const items = filterProducts(altArgs.category === undefined ? hit.data.items.filter((p) => !looksLikeAccessory(p)) : hit.data.items, exclusions);
           if (items.length > 0) {
             outcomes = [...outcomes.slice(0, si), { ...hit, data: { ...hit.data, total: items.length, items } }, ...outcomes.slice(si + 1)];
             alternatives = true;
@@ -388,6 +474,10 @@ export class RoutingPipeline implements ChatPipeline {
       else if (reasoned.metricsWithoutData > 0) replyKey = "recommend_limited_data";
       else if (personal) replyKey = "recommend_intro";
     }
+    // R0: the replies that tell the shopper what happened to their correction or exclusion. An exclusion that leaves nothing is said honestly.
+    if (replyKey === "no_results" && hasExclusions(exclusions) && (excludedAway > 0 || decision.reason === "exclusion_applied")) replyKey = "no_results_excluded";
+    else if (decision.reason === "exclusion_applied" && (replyKey === "tools_ran" || replyKey === "recommend_intro" || replyKey === "recommend_limited_data")) replyKey = "exclusion_applied";
+    else if (correctionApplied && (replyKey === "tools_ran" || replyKey === "recommend_intro")) replyKey = "correction_search";
     let followUp: TemplateKey | undefined;
     if (reasoned?.question) {
       const q = reasoned.question;
@@ -433,6 +523,8 @@ export class RoutingPipeline implements ChatPipeline {
     session: SessionState,
     sessionKeyValue: string,
   ): PipelineResult {
+    // R0: a repeated reply of the same kind is worded differently from the one before it (the router already varies greetings and thanks itself).
+    if (PIPELINE_VARIED.has(key)) key = varyFrom(key, session.reasoning.lastTemplate);
     let tpl = renderTemplate(key, tplLang);
     let templateKey = key;
     let cards = (extra.cards ?? []).slice(0, 8);
@@ -493,6 +585,9 @@ export class RoutingPipeline implements ChatPipeline {
     for (const a of actions) emit({ type: "action", action: a });
     if (shown.length) session.lastShownProductIds = [...new Set([...shown, ...session.lastShownProductIds])].slice(0, 5);
     session.language = lang.language;
+    // What this reply ended with, so the next one can be worded differently (a verification failure counts too: it is what the shopper saw).
+    session.reasoning.lastTemplate = templateKey;
+    session.reasoning.replies = (session.reasoning.replies ?? 0) + 1;
     this.deps.sessions.set(sessionKeyValue, session);
     return {
       language: lang.language,

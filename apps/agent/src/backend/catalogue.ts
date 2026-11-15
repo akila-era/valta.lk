@@ -21,7 +21,9 @@ export const productSlug = (name: string, id: string): string => `${slugify(name
 /** Description text from the ERP/website is untrusted: strip markup and control characters and cap the length. */
 export function plainText(input: string | null | undefined, max = 300): string | undefined {
   if (!input) return undefined;
-  const text = input
+  // Untrusted text: only the first part can matter, and cutting it BEFORE the patterns run keeps a hostile description (tens of thousands of "<") from
+  // stalling the single Node thread.
+  const text = input.slice(0, 4000)
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;|&#39;/g, " ")
     .replace(/[\u0000-\u001F\u007F]/g, " ")

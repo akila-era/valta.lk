@@ -109,6 +109,8 @@ export interface GuardOptions {
   challengeMode?: ChallengeMode;
   /** How long a key stays "challenge required" after a violation. */
   challengeTtlSec?: number;
+  /** Called with a FIXED limiter name (ip, session, identity, new_session, shop_ceiling, concurrency, cooldown, auth_failures) whenever a limiter refuses. Never a key, address or identity. */
+  onLimit?: (limiter: string) => void;
 }
 
 const MINUTE = 60_000;
@@ -116,6 +118,9 @@ const HOUR = 3_600_000;
 
 const busy = (retryAfterSec = 5) => new ApiError("QUEUE_FULL", "The assistant is busy. Please try again shortly.", { retryAfterSec });
 const limited = (retryAfterSec: number) => new ApiError("RATE_LIMITED", "Too many requests. Please slow down.", { retryAfterSec: Math.max(1, Math.ceil(retryAfterSec)) });
+
+/** Shop-wide ceiling on new conversations per hour, a protection against floods from many addresses, far above normal traffic. */
+export const NEW_SESSIONS_SHOP_WIDE_PER_HOUR = 2_000;
 
 export class AbuseGuard {
   private readonly store: RateStore;
@@ -132,6 +137,24 @@ export class AbuseGuard {
     this.store = opts.store ?? new MemoryRateStore();
     this.now = opts.now ?? Date.now;
     this.mode = opts.challengeMode ?? "off";
+  }
+
+  private report(limiter: string): void {
+    try {
+      this.opts.onLimit?.(limiter);
+    } catch {
+      // a broken metrics hook must never change what the limiter does
+    }
+  }
+
+  private static limiterOf(key: string): string {
+    if (key.startsWith("ip:")) return "ip";
+    if (key.startsWith("id:")) return "identity";
+    if (key.startsWith("sess:")) return "session";
+    if (key === "newsess:*") return "shop_ceiling";
+    if (key.startsWith("newsess:")) return "new_session";
+    if (key.startsWith("conc:")) return "concurrency";
+    return "ip";
   }
 
   /** Runs a counter operation and converts any storage failure into a safe refusal. */
@@ -152,6 +175,7 @@ export class AbuseGuard {
 
   /** A violation: counted per key, and enough of them in a minute start a cooldown. Always throws RATE_LIMITED. */
   private violate(key: string, now: number, retryMs: number): never {
+    this.report(AbuseGuard.limiterOf(key));
     this.safely(() => {
       const v = this.store.hit(`viol:${key}`, MINUTE, now);
       if (v.count >= this.config.cooldownAfter) this.cooldownUntil.set(key, now + this.config.cooldownSec * 1000);
@@ -163,7 +187,10 @@ export class AbuseGuard {
 
   private count(key: string, limit: number, windowMs: number, now: number): void {
     const cd = this.inCooldown(key, now);
-    if (cd > 0) throw limited(cd / 1000);
+    if (cd > 0) {
+      this.report("cooldown");
+      throw limited(cd / 1000);
+    }
     const r = this.safely(() => this.store.hit(key, windowMs, now));
     if (r.count > limit) this.violate(key, now, r.oldestAt + windowMs - now);
   }
@@ -182,7 +209,10 @@ export class AbuseGuard {
   checkAuthFailures(socketAddress: string): void {
     const now = this.now();
     const failures = this.safely(() => this.store.peek(`auth:${socketAddress}`, MINUTE, now));
-    if (failures >= this.config.authFailPerMin) throw limited(MINUTE / 1000);
+    if (failures >= this.config.authFailPerMin) {
+      this.report("auth_failures");
+      throw limited(MINUTE / 1000);
+    }
   }
 
   /** After authentication: limits on the signed client IP and, for customers, the signed customer id. */
@@ -197,9 +227,31 @@ export class AbuseGuard {
     this.count(`sess:${p.identityKey}|${p.sessionId}`, this.config.sessionPerMin, MINUTE, this.now());
   }
 
-  /** A session id seen for the first time by this identity counts against an hourly allowance. */
-  checkNewSession(identityKey: string): void {
-    this.count(`newsess:${identityKey}`, this.config.newSessionsPerHour, HOUR, this.now());
+  /** For the metrics gauges: how many new conversations the shop-wide counter holds for the last hour, and the two limits. Counts only. */
+  newSessionStats(): { lastHour: number; shopCeiling: number; perCallerLimit: number } {
+    let lastHour = 0;
+    try {
+      lastHour = this.store.peek("newsess:*", HOUR, this.now());
+    } catch {
+      lastHour = 0;
+    }
+    return { lastHour, shopCeiling: NEW_SESSIONS_SHOP_WIDE_PER_HOUR, perCallerLimit: this.config.newSessionsPerHour };
+  }
+
+  /**
+   * A session id seen for the first time counts against an hourly allowance PER CALLER: a guest is the signed client IP, a customer is the
+   * customer id (every guest shares the identity "anon", so keying on it made one counter for the whole shop). A separate, generous
+   * shop-wide ceiling still limits a flood from many addresses. A bare identity key is accepted for older callers and keeps the old behaviour.
+   */
+  checkNewSession(p: string | { identityKey: string; clientIp: string }): void {
+    const now = this.now();
+    if (typeof p === "string") {
+      this.count(`newsess:${p}`, this.config.newSessionsPerHour, HOUR, now);
+      return;
+    }
+    const key = p.identityKey.startsWith("cust:") ? p.identityKey : `ip:${p.clientIp}`;
+    this.count(`newsess:${key}`, this.config.newSessionsPerHour, HOUR, now);
+    this.count("newsess:*", NEW_SESSIONS_SHOP_WIDE_PER_HOUR, HOUR, now);
   }
 
   /**

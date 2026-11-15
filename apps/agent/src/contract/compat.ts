@@ -1,4 +1,4 @@
-import { LEGACY_MAX_COMPARE_PRODUCTS, type Card, type ContractVersion, LEGACY_CONTRACT_VERSION, CONTRACT_VERSION } from "./schemas";
+import { LEGACY_MAX_COMPARE_PRODUCTS, type Card, type ContractVersion, LEGACY_CONTRACT_VERSION, FIT_CONTRACT_VERSION, contractAtLeast } from "./schemas";
 import { formatLkr } from "../backend/wire";
 
 type ComparisonCard = Extract<Card, { type: "comparison" }>;
@@ -28,7 +28,7 @@ function downgradeComparison(card: ComparisonCard): ComparisonCard {
 
 /** Shapes a card for the contract version the client asked for. Current-version clients get it unchanged. */
 export function cardForVersion(card: Card, version: ContractVersion): Card {
-  const current = version === CONTRACT_VERSION;
+  const current = contractAtLeast(version, FIT_CONTRACT_VERSION); // 1.2 and newer clients know `fit`
   const stripFit = <T extends { fit?: unknown }>(p: T): T => {
     if (current || p.fit === undefined) return p;
     const { fit: _fit, ...rest } = p;

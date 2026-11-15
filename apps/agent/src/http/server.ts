@@ -7,7 +7,10 @@ import {
   Card,
   ChatResponse,
   ClientAction,
+  BROWSER_CONTRACT_VERSION,
+  BrowserDecisionRequest,
   CONTRACT_VERSION,
+  contractAtLeast,
   LEGACY_CONTRACT_VERSION,
   type ContractVersion,
   HealthResponse,
@@ -17,6 +20,10 @@ import {
 import { cardForVersion } from "../contract/compat";
 import { AbuseGuard, type ChallengeProvider } from "../security/rate-limit";
 import { SessionRegistry } from "../security/sessions";
+import { isVoiceRoute, serveVoice, VOICE_ROUTES, type VoiceService } from "../voice";
+import { BodyBudget, DEFAULT_PRE_AUTH_SLOTS, preAuthenticate, readBodyGuarded } from "./preauth";
+import type { BrowserAgent } from "../browser-agent/agent";
+import { hasSinhala } from "../util/script";
 import { renderTemplate } from "../router/templates";
 import { verifyVersionShape } from "../verify/verifier";
 import { ApiError, type ErrorCode } from "../errors";
@@ -45,6 +52,18 @@ export interface ServerDeps {
   memory?: () => Promise<MemoryReading>;
   /** Operational counters and latencies, served (signed) at /v1/metrics. Counts and durations only. */
   metrics?: Metrics;
+  /** Speech-to-text and text-to-speech. Absent unless an operator configured an engine: then the /v1/voice routes do not exist (404). */
+  voice?: VoiceService;
+  /**
+   * The browser integration (explicit page requests, approvals). ABSENT unless the operator turned it on (AGENT_BROWSER_ENABLED=true) AND a driver
+   * was constructed: then chat behaves exactly as before and the /v1/browser routes do not exist (404).
+   */
+  browser?: BrowserAgent;
+  /** How many request bodies may be read at once BEFORE authentication (default 8). Test seam and an operations knob. */
+  preAuthBodySlots?: number;
+  /** Test seams: whole-body and idle deadlines for the pre-authentication read. */
+  bodyDeadlineMs?: number;
+  bodyIdleMs?: number;
 }
 
 export interface RunningServer {
@@ -53,39 +72,9 @@ export interface RunningServer {
   close(): Promise<void>;
 }
 
-const ROUTES: Record<string, string> = { "/v1/chat": "POST", "/v1/chat/stream": "POST", "/v1/health": "GET", "/v1/metrics": "GET" };
+const isBrowserRoute = (route: string): boolean => route === "/v1/browser/confirm" || route === "/v1/browser/cancel";
 
-function readBody(req: IncomingMessage, maxBytes: number): Promise<Buffer> {
-  const declared = Number(req.headers["content-length"]);
-  if (Number.isFinite(declared) && declared > maxBytes) return Promise.reject(new ApiError("PAYLOAD_TOO_LARGE", "Request body is too large."));
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    let size = 0;
-    let settled = false;
-    req.on("data", (chunk: Buffer) => {
-      if (settled) return;
-      size += chunk.length;
-      if (size > maxBytes) {
-        settled = true;
-        reject(new ApiError("PAYLOAD_TOO_LARGE", "Request body is too large."));
-        return;
-      }
-      chunks.push(chunk);
-    });
-    req.on("end", () => {
-      if (!settled) {
-        settled = true;
-        resolve(Buffer.concat(chunks));
-      }
-    });
-    req.on("error", (e) => {
-      if (!settled) {
-        settled = true;
-        reject(e);
-      }
-    });
-  });
-}
+const ROUTES: Record<string, string> = { "/v1/chat": "POST", "/v1/chat/stream": "POST", "/v1/health": "GET", "/v1/metrics": "GET", "/v1/browser/confirm": "POST", "/v1/browser/cancel": "POST", ...Object.fromEntries(Object.entries(VOICE_ROUTES).map(([k, v]) => [k, v.method])) };
 
 /** Maps anything a pipeline or backend throws to a safe ApiError. Messages here never contain request content. */
 export function toApiError(e: unknown): ApiError {
@@ -106,12 +95,13 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
   const logger = deps.logger ?? nullLogger;
   const now = deps.now ?? Date.now;
   const replay = deps.replay ?? new ReplayCache({ now });
-  const guard = deps.guard ?? new AbuseGuard(config.rate, { now, challengeMode: config.challengeMode, ...(deps.challenge ? { challenge: deps.challenge } : {}) });
+  const guard = deps.guard ?? new AbuseGuard(config.rate, { now, challengeMode: config.challengeMode, ...(deps.challenge ? { challenge: deps.challenge } : {}), ...(deps.metrics ? { onLimit: (l: string) => deps.metrics?.rateLimited(l) } : {}) });
   const sessionRegistry = deps.sessionRegistry ?? new SessionRegistry({ now });
   const memory = deps.memory ?? readMemory;
   const chatSchema = makeChatRequestSchema(config.maxMessageChars);
   const startedAt = now();
   let inFlight = 0;
+  const bodyBudget = new BodyBudget(deps.preAuthBodySlots ?? DEFAULT_PRE_AUTH_SLOTS);
 
   const envelope = (e: ApiError, requestId: string): ErrorEnvelope => ({
     error: {
@@ -135,13 +125,13 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
     res.end(text);
   }
 
-  function sendError(res: ServerResponse, req: IncomingMessage, e: ApiError, requestId: string): void {
+  function sendError(res: ServerResponse, req: IncomingMessage, e: ApiError, requestId: string, dropConnection = false): void {
     const extra: Record<string, string> = {};
     if (e.retryAfterSec !== undefined) extra["retry-after"] = String(e.retryAfterSec);
-    if (e.code === "PAYLOAD_TOO_LARGE") {
-      // Stop reading the rest of an oversized body: answer, then drop the connection.
+    if (e.code === "PAYLOAD_TOO_LARGE" || e.code === "REQUEST_TIMEOUT" || dropConnection) {
+      // The rest of the body was not (or must not be) read: answer, then drop the connection after a short grace so the client can read the answer.
       extra.connection = "close";
-      res.once("finish", () => req.socket.destroy());
+      res.once("finish", () => setTimeout(() => req.socket.destroy(), 200).unref());
     }
     if (e.code === "METHOD_NOT_ALLOWED") extra.allow = ROUTES[new URL(req.url ?? "/", "http://x").pathname] ?? "";
     sendJson(res, e.status, envelope(e, requestId), extra);
@@ -216,7 +206,7 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
       // The id belongs to another identity (for example a guest session reused after login): never share or take it over.
       throw new ApiError("VALIDATION_FAILED", "The request is not valid.", { fields: { sessionId: "This session id cannot be used. Start a new session." } });
     }
-    if (touched.status === "new") guard.checkNewSession(formatIdentity(identity));
+    if (touched.status === "new") guard.checkNewSession({ identityKey: formatIdentity(identity), clientIp });
 
     const deadlineAt = t0 + config.deadlineMs;
     const abort = new AbortController();
@@ -230,6 +220,46 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
     });
     // A client that does not name a contract version is a 1.0 client (comparisons of at most 3 products).
     const version: ContractVersion = parsed.data.contractVersion ?? LEGACY_CONTRACT_VERSION;
+
+    // Explicit page requests (only when the browser integration is on). Everything else, including ordinary shopping, goes to the pipeline unchanged.
+    if (deps.browser) {
+      const browse = await deps.browser.handle({
+        requestId,
+        sessionId: parsed.data.sessionId,
+        identityKey: formatIdentity(identity),
+        message: parsed.data.message,
+        pathHint: parsed.data.context?.path,
+        pageKind: parsed.data.context?.page,
+        canConfirm: contractAtLeast(version, BROWSER_CONTRACT_VERSION),
+      });
+      if (browse) {
+        clearTimeout(timer);
+        const modern = contractAtLeast(version, BROWSER_CONTRACT_VERSION);
+        const out = ChatResponse.safeParse({
+          requestId,
+          sessionId: parsed.data.sessionId,
+          language: browse.language,
+          reply: { text: browse.text, source: "template" },
+          needsNativeReview: browse.needsNativeReview || hasSinhala(browse.text),
+          cards: [],
+          actions: [],
+          suggestions: [],
+          ...(modern ? { browser: browse.browser } : {}),
+          meta: { model: null, degraded: false, queuedMs: 0, latencyMs: Math.max(0, now() - t0), contractVersion: version },
+        });
+        if (!out.success) throw new ApiError("INTERNAL", "Internal error.");
+        if (!stream) {
+          sendJson(res, 200, out.data);
+        } else {
+          res.writeHead(200, { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no", "x-content-type-options": "nosniff" });
+          sse(res, "text", { text: out.data.reply.text, source: out.data.reply.source, needsNativeReview: out.data.needsNativeReview });
+          if (out.data.browser) sse(res, "browser", out.data.browser);
+          sse(res, "done", { meta: out.data.meta });
+          res.end();
+        }
+        return { degraded: false };
+      }
+    }
     const input = { requestId, identity, clientIp, request: parsed.data, signal: abort.signal, deadlineAt };
 
     try {
@@ -335,10 +365,22 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
     };
 
     void (async () => {
-      inFlight++;
+      let counted = false;
+      let dropConnection = false;
       try {
+        if (deps.voice && isVoiceRoute(route)) {
+          const v = await serveVoice({ req, res, route, requestId, voice: deps.voice, keys: config.hmacKeys, replay, guard, now });
+          status = v.status;
+          errorCode = v.errorCode;
+          authReason = v.authReason;
+          identityKind = v.identityKind;
+          return;
+        }
         const expected = ROUTES[route];
-        if (!expected) throw new ApiError("NOT_FOUND", "Not found.");
+        if (!expected || (isVoiceRoute(route) && !deps.voice) || (isBrowserRoute(route) && !deps.browser)) throw new ApiError("NOT_FOUND", "Not found.");
+        // Voice requests are not counted here (they have their own bounded queue), so stalled voice uploads cannot take chat's slots.
+        inFlight++;
+        counted = true;
         if (req.method !== expected) throw new ApiError("METHOD_NOT_ALLOWED", "Method not allowed.");
         if (inFlight > config.maxInFlight) throw new ApiError("QUEUE_FULL", "The assistant is busy. Please try again shortly.", { retryAfterSec: 2 });
         // Before anything is trusted: a socket that keeps failing authentication is slowed down. The key is the socket's own address,
@@ -356,7 +398,26 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
         if (expected === "POST" && !String(req.headers["content-type"] ?? "").toLowerCase().startsWith("application/json")) {
           throw new ApiError("UNSUPPORTED_MEDIA_TYPE", "Content-Type must be application/json.");
         }
-        const body = await readBody(req, expected === "POST" ? config.maxBodyBytes : 0);
+        // Headers first: a request that cannot possibly authenticate never has its body read (the connection is dropped instead).
+        const early = preAuthenticate(req, route, config.hmacKeys, now());
+        if (!early.ok) {
+          guard.recordAuthFailure(socketAddress);
+          authReason = early.reason;
+          dropConnection = true;
+          throw new ApiError("UNAUTHORIZED", "Unauthorized.");
+        }
+        // Only a few bodies may be read at the same time; the rest are refused before anything is buffered.
+        const releaseBody = bodyBudget.tryAcquire();
+        if (!releaseBody) {
+          dropConnection = true;
+          throw new ApiError("QUEUE_FULL", "The assistant is busy. Please try again shortly.", { retryAfterSec: 2 });
+        }
+        let body: Buffer;
+        try {
+          body = await readBodyGuarded(req, expected === "POST" ? config.maxBodyBytes : 0, deps.bodyDeadlineMs, deps.bodyIdleMs);
+        } finally {
+          releaseBody(); // the unauthenticated read is over, whatever happened
+        }
 
         const verdict = verifyRequest({
           header: (name) => {
@@ -384,11 +445,46 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
           if (deps.metrics) {
             if (deps.scheduler) deps.metrics.fromScheduler(deps.scheduler.state());
             deps.metrics.setGauge("in_flight", inFlight);
+            const ns = guard.newSessionStats();
+            deps.metrics.setGauge("new_sessions_last_hour", ns.lastHour);
+            deps.metrics.setGauge("new_sessions_shop_ceiling", ns.shopCeiling);
+            deps.metrics.setGauge("new_sessions_per_caller_limit", ns.perCallerLimit);
+            deps.metrics.setGauge("pre_auth_bodies_in_progress", bodyBudget.inUse());
             sendJson(res, 200, deps.metrics.snapshot());
           } else {
             throw new ApiError("NOT_FOUND", "Not found.");
           }
           status = 200;
+        } else if (isBrowserRoute(route) && deps.browser) {
+          // The shopper's decision about ONE proposal. Same authentication and limits as chat; the proposal is bound to the session and identity
+          // that created it, is removed on first use, and expires. Anything that does not match looks exactly like an unknown proposal.
+          const identityKey = formatIdentity(verdict.identity);
+          guard.checkRequest({ clientIp: verdict.clientIp, identityKey });
+          let json: unknown;
+          try {
+            json = JSON.parse(body.toString("utf8"));
+          } catch {
+            throw new ApiError("INVALID_REQUEST", "The request body is not valid JSON.");
+          }
+          const parsed = BrowserDecisionRequest.safeParse(json);
+          if (!parsed.success) throw new ApiError("VALIDATION_FAILED", "The request is not valid.");
+          guard.checkSession({ identityKey, sessionId: parsed.data.sessionId });
+          const release = guard.acquire({ clientIp: verdict.clientIp, identityKey });
+          try {
+            const input = { requestId, sessionId: parsed.data.sessionId, identityKey, proposalId: parsed.data.proposalId };
+            const decision = route === "/v1/browser/confirm" ? await deps.browser.confirm(input) : await deps.browser.cancel(input);
+            sendJson(res, 200, {
+              requestId,
+              sessionId: parsed.data.sessionId,
+              outcome: decision.outcome,
+              reply: { text: decision.text, source: "template" },
+              needsNativeReview: decision.needsNativeReview || hasSinhala(decision.text),
+              browser: decision.browser,
+            });
+            status = 200;
+          } finally {
+            release();
+          }
         } else {
           const identityKey = formatIdentity(verdict.identity);
           guard.checkRequest({ clientIp: verdict.clientIp, identityKey });
@@ -405,10 +501,10 @@ export function createAgentServer(deps: ServerDeps): RunningServer {
         const api = toApiError(e);
         errorCode = api.code;
         status = api.status;
-        if (!(e as { alreadyResponded?: boolean }).alreadyResponded && !res.headersSent) sendError(res, req, api, requestId);
+        if (!(e as { alreadyResponded?: boolean }).alreadyResponded && !res.headersSent) sendError(res, req, api, requestId, dropConnection);
         else if (!res.writableEnded) res.end();
       } finally {
-        inFlight--;
+        if (counted) inFlight--;
         finish();
       }
     })();

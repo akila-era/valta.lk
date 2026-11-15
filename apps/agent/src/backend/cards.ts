@@ -10,18 +10,21 @@ import { money } from "./wire";
  */
 type ProductCard = Extract<Card, { type: "product" }>;
 
+/** True when the id and slug can satisfy the card contract (the URL pattern and id length). Others are skipped instead of failing the whole answer. */
+export const cardable = (p: ProductView): boolean => p.id.length >= 1 && p.id.length <= 100 && /^[A-Za-z0-9._~-]{1,200}$/.test(p.slug);
+
 export function productCard(p: ProductView, opts: { specs?: boolean } = {}): ProductCard {
   const sale = p.saleCents !== null && p.saleCents < p.priceCents;
   return {
     type: "product",
     id: p.id,
     slug: p.slug,
-    name: p.name,
-    ...(p.brand ? { brand: p.brand } : {}),
+    name: p.name.slice(0, 200),
+    ...(p.brand ? { brand: p.brand.slice(0, 80) } : {}),
     ...(p.imageUrl ? { imageUrl: p.imageUrl } : {}),
     price: money(effectiveCents(p)),
     ...(sale ? { listPrice: money(p.priceCents) } : {}),
-    ...(p.offerName ? { offerName: p.offerName } : {}),
+    ...(p.offerName ? { offerName: p.offerName.slice(0, 120) } : {}),
     available: p.available,
     ...(p.variants.length ? { variants: p.variants.slice(0, 24).map((v) => ({ key: v.key, label: v.label.slice(0, 120), available: v.available, price: money(effectiveCents(v)) })) } : {}),
     url: `/products/${p.slug}`,
@@ -67,17 +70,19 @@ export function buildCards(outcomes: ToolOutcome[]): BuiltCards {
     if (!r || typeof r !== "object" || !("kind" in r)) continue;
     switch (r.kind) {
       case "search":
-        for (const p of r.items.slice(0, 5)) {
+        for (const p of r.items.filter(cardable).slice(0, 5)) {
           cards.push(productCard(p));
           shown.push(p.id);
         }
         break;
       case "details":
+        if (!cardable(r.product)) break;
         cards.push(productCard(r.product, { specs: true }));
         shown.push(r.product.id);
         break;
       case "compare": {
-        const products = r.products.slice(0, MAX_COMPARE_PRODUCTS);
+        const products = r.products.filter(cardable).slice(0, MAX_COMPARE_PRODUCTS);
+        if (products.length < 2) break;
         const prices = products.map(effectiveCents);
         const spread = Math.max(...prices) - Math.min(...prices);
         cards.push({
@@ -101,7 +106,7 @@ export function buildCards(outcomes: ToolOutcome[]): BuiltCards {
         shown.push(r.productId);
         break;
       case "accessories":
-        for (const a of r.items.slice(0, 5)) {
+        for (const a of r.items.filter((x) => cardable(x.product)).slice(0, 5)) {
           cards.push({ type: "accessory", forProductId: r.sourceId, kind: a.kind, product: productCard(a.product) });
           shown.push(a.product.id);
         }

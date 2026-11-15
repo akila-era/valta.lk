@@ -7,16 +7,25 @@ import { hasSinhala } from "../util/script";
  * 1.1 (M1-C): a comparison card may hold 2 to 4 products (1.0 allowed 2 to 3).
  * 1.2 (M5): a product card may carry `fit`, codes saying why the product suits (or does not suit) what the shopper asked for. Codes only:
  * the website writes the wording in the shopper's language. A 1.0 or 1.1 client never receives `fit`.
+ * 1.3 (wave 2): a response may carry `browser` (progress steps and, for an action that needs the shopper's approval, a confirmation proposal) and a
+ * request may carry `context.path` (the page the shopper is on). Only a 1.3 client ever receives `browser`; older clients get none of it, and the
+ * Agent never offers them a browser action that needs an approval they could not give.
  * A client that does not send `contractVersion` is treated as 1.0 and never receives a comparison of more than 3 products;
  * a client that sends 1.1 gets up to 4; any other value is rejected as a validation error.
  */
-export const CONTRACT_VERSION = "1.2";
+export const CONTRACT_VERSION = "1.3";
 export const LEGACY_CONTRACT_VERSION = "1";
 /** 1.1 added comparisons of up to 4 products. */
 export const COMPARE4_CONTRACT_VERSION = "1.1";
-export const SUPPORTED_CONTRACT_VERSIONS = [LEGACY_CONTRACT_VERSION, COMPARE4_CONTRACT_VERSION, CONTRACT_VERSION] as const;
+/** 1.2 added `fit` on product cards. */
+export const FIT_CONTRACT_VERSION = "1.2";
+/** 1.3 added the optional `browser` panel and `context.path`. */
+export const BROWSER_CONTRACT_VERSION = "1.3";
+export const SUPPORTED_CONTRACT_VERSIONS = [LEGACY_CONTRACT_VERSION, COMPARE4_CONTRACT_VERSION, FIT_CONTRACT_VERSION, BROWSER_CONTRACT_VERSION] as const;
 export const ContractVersion = z.enum(SUPPORTED_CONTRACT_VERSIONS);
 export type ContractVersion = z.infer<typeof ContractVersion>;
+/** True when `version` is `min` or newer (the list above is in release order). */
+export const contractAtLeast = (version: ContractVersion, min: ContractVersion): boolean => SUPPORTED_CONTRACT_VERSIONS.indexOf(version) >= SUPPORTED_CONTRACT_VERSIONS.indexOf(min);
 export const MAX_COMPARE_PRODUCTS = 4;
 export const LEGACY_MAX_COMPARE_PRODUCTS = 3;
 export const MAX_MESSAGE_CHARS = 800;
@@ -53,6 +62,8 @@ export function makeChatRequestSchema(maxMessageChars: number = MAX_MESSAGE_CHAR
       .strictObject({
         page: z.enum(["home", "listing", "product", "cart", "checkout", "track", "other"]).optional(),
         productId: ProductId.optional(),
+        /** 1.3: the path (and query) of the page the shopper is on, e.g. "/products?q=laptop". An untrusted hint: it is re-checked against the URL policy before any browser use. */
+        path: z.string().max(200).regex(/^\/(?![\/\\])[A-Za-z0-9._~!$&'()*+,;=:@%\/?\-]*$/).optional(),
       })
       .optional(),
     /** The contract version the client understands. Absent means 1.0. */
@@ -200,6 +211,46 @@ export const Meta = z.strictObject({
   contractVersion: ContractVersion,
 });
 
+// ---------- browser (1.3): progress of a page task and, when needed, a proposal the shopper must approve ----------
+
+export const BROWSER_STEPS = ["open", "read", "find", "act", "verify", "close"] as const;
+export const BrowserProgress = z.strictObject({
+  step: z.enum(BROWSER_STEPS),
+  status: z.enum(["done", "failed", "skipped"]),
+  /** A fixed label chosen by the Agent (never page text). The website may translate it from `step`. */
+  label: z.string().min(1).max(80),
+});
+export const BrowserProposal = z.strictObject({
+  /** The id the shopper's approval is bound to. One use, expires, tied to the session and identity that created it. */
+  proposalId: z.string().regex(/^bp_[A-Za-z0-9_-]{16,40}$/),
+  /** Built from the element's accessible name by the Agent (sanitised, capped), never from page instructions. */
+  description: z.string().min(1).max(200),
+  /** The address (path only) of the page involved. */
+  page: z.string().min(1).max(200),
+  actionClass: z.enum(["reversible", "sensitive"]),
+  expiresInSec: z.number().int().positive().max(600),
+});
+export const BrowserPanel = z.strictObject({
+  progress: z.array(BrowserProgress).max(8),
+  confirmation: BrowserProposal.optional(),
+  /** What the shopper is told the text came from: always "page" (untrusted page content, never a verified price or stock). */
+  source: z.literal("page"),
+});
+export type BrowserPanel = z.infer<typeof BrowserPanel>;
+
+/** POST /v1/browser/confirm and /v1/browser/cancel (signed like chat; the identity and session must match the proposal's). */
+export const BrowserDecisionRequest = z.strictObject({ sessionId: SessionId, proposalId: BrowserProposal.shape.proposalId });
+export type BrowserDecisionRequest = z.infer<typeof BrowserDecisionRequest>;
+export const BrowserDecisionResponse = z.strictObject({
+  requestId: z.string().min(1).max(80),
+  sessionId: SessionId,
+  outcome: z.enum(["done", "failed", "cancelled", "expired"]),
+  reply: z.strictObject({ text: z.string().min(1).max(2000), source: z.literal("template") }),
+  needsNativeReview: z.boolean(),
+  browser: BrowserPanel,
+});
+export type BrowserDecisionResponse = z.infer<typeof BrowserDecisionResponse>;
+
 export const ChatResponse = z
   .strictObject({
     requestId: z.string().min(1).max(80),
@@ -214,6 +265,8 @@ export const ChatResponse = z
     cards: z.array(Card).max(8).default([]),
     actions: z.array(ClientAction).max(4).default([]),
     suggestions: z.array(z.string().min(1).max(80)).max(4).default([]),
+    /** 1.3 only. Never present for a client that did not declare 1.3. */
+    browser: BrowserPanel.optional(),
     meta: Meta,
   })
   .superRefine((r, ctx) => {
@@ -258,6 +311,8 @@ export const StreamEvent = z.discriminatedUnion("event", [
   z.strictObject({ event: z.literal("action"), data: ClientAction }),
   z.strictObject({ event: z.literal("token"), data: z.strictObject({ text: z.string().max(400) }) }),
   z.strictObject({ event: z.literal("text"), data: z.strictObject({ text: z.string().min(1).max(2000), source: ReplySource, needsNativeReview: z.boolean() }) }),
+  /** 1.3 only: progress steps and, when an action needs the shopper's approval, the proposal. */
+  z.strictObject({ event: z.literal("browser"), data: BrowserPanel }),
   z.strictObject({ event: z.literal("done"), data: z.strictObject({ meta: Meta }) }),
   z.strictObject({ event: z.literal("error"), data: ErrorEnvelope }),
 ]);

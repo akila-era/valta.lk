@@ -179,7 +179,15 @@ describe("agent restart: what is lost, and what is not", () => {
 
   it("writes nothing to disk: no file, database or log store is used for messages, sessions, counters or metrics", () => {
     const root = fileURLToPath(new URL("../../src", import.meta.url));
-    const files = (readdirSync(root, { recursive: true, withFileTypes: true }) as import("node:fs").Dirent[]).filter((e) => e.isFile() && e.name.endsWith(".ts")).map((e) => path.join(e.parentPath, e.name));
+    // NARROW, DELIBERATE EXCEPTION: the Gemini gateway's spend ledger (src/gateway/budget-store.ts) must survive restarts, otherwise a restart
+    // would reset the monthly spend. It is the ONLY file allowed to write to disk, and it stores NUMBERS ONLY (micro-USD counters per day and
+    // month, reservation ids, model names, timestamps): never message text, session ids, addresses or identities. That is asserted by
+    // gateway-budget.test.ts ("the ledger file holds numeric counters only"). Every other file is still scanned and must not write.
+    const ALLOWED_LEDGER_FILE = "gateway/budget-store.ts";
+    const files = (readdirSync(root, { recursive: true, withFileTypes: true }) as import("node:fs").Dirent[])
+      .filter((e) => e.isFile() && e.name.endsWith(".ts"))
+      .map((e) => path.join(e.parentPath, e.name))
+      .filter((f) => path.relative(root, f).split(path.sep).join("/") !== ALLOWED_LEDGER_FILE);
     const text = files.map((f) => readFileSync(f, "utf8")).join("\n");
     expect(text).not.toMatch(/writeFile|appendFile|createWriteStream|writeSync|sqlite|localStorage|indexedDB|\.mkdir\(/);
   });
