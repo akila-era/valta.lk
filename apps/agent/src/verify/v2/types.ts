@@ -137,6 +137,7 @@ export type IssueCode =
   | "repetitive_honorific"
   | "repeated_reply"
   | "language_mismatch"
+  | "unexpected_script"
   | "empty_answer"
   // format
   | "text_too_long"
@@ -214,6 +215,7 @@ export const ISSUE_SEVERITY: Record<IssueCode, Severity> = {
   repetitive_honorific: "error",
   repeated_reply: "error",
   language_mismatch: "warn",
+  unexpected_script: "error",
   empty_answer: "error",
   text_too_long: "error",
   active_markup: "error",
@@ -245,6 +247,7 @@ export const ISSUE_CATEGORY: Record<IssueCode, IssueCategory> = {
   repetitive_honorific: "quality",
   repeated_reply: "quality",
   language_mismatch: "quality",
+  unexpected_script: "quality",
   empty_answer: "quality",
   text_too_long: "format",
   active_markup: "format",

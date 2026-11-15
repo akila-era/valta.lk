@@ -32,6 +32,31 @@ describe("text utilities", () => {
   });
 });
 
+describe("(a0) amounts the customer typed may be echoed (found with real model output)", () => {
+  it("a bare number the customer wrote is accepted when the answer repeats it with a currency word and separators", () => {
+    const msg = "mata phone ekak penna, 100000 wada adu";
+    expect(v("Rs. 100,000 wada adu phones kipayak thiyenawa. Meken mona ekakda balanna kamathi?", { userMessage: msg }).ok).toBe(true);
+    expect(v("Your budget of 100,000 rupees is fine.", { userMessage: msg }).ok).toBe(true);
+    expect(v("Budget eka Rs. 100000 nisa me phones balanna puluwan.", { userMessage: "budget eka 100,000" }).ok).toBe(true);
+  });
+  it("near-miss: a number the customer did NOT write is still an ungrounded price", () => {
+    const r = v("Rs. 100,000 wada adu phones kipayak thiyenawa.", { userMessage: "mata phone ekak penna" });
+    expect(r.ok).toBe(false);
+    expect(has(r, "ungrounded_price")).toBe(true);
+  });
+  it("near-miss: a different number than the one typed is still flagged, and a store product price is still checked", () => {
+    expect(has(v("Rs. 120,000 wada adu phones thiyenawa.", { userMessage: "100000 wada adu" }), "ungrounded_price")).toBe(true);
+    expect(v("The Lumen P1 costs Rs. 100,000.", { userMessage: "100000 wada adu" }).ok).toBe(false);
+  });
+  it("a sentence that restates the budget AND quotes the product's real price is accepted", () => {
+    expect(v("Within your budget of Rs. 150,000, the Lumen P1 costs Rs. 110,000.", { userMessage: "150000 wada adu phone ekak" }).ok).toBe(true);
+    expect(v("The Lumen P1 costs Rs. 110,000, which is under 150000.", { userMessage: "150000 wada adu phone ekak" }).ok).toBe(true);
+  });
+  it("tiny numbers the customer typed do not become allowed amounts", () => {
+    expect(has(v("Rs. 5 only for the Lumen P1.", { userMessage: "I need 5 phones" }), "claim_price_mismatch") || has(v("Rs. 5 only for the Lumen P1.", { userMessage: "I need 5 phones" }), "ungrounded_price")).toBe(true);
+  });
+});
+
 describe("(a) price grounding", () => {
   it("accepts prices that equal the list or the offer price, in any format", () => {
     expect(v("The Lumen P1 costs Rs. 110,000 right now.").ok).toBe(true);

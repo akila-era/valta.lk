@@ -43,6 +43,7 @@ const turn = (over: Partial<LlmTurnResult> = {}): LlmTurnResult => ({
   source: "llm",
   degraded: false,
   verdict: { verdict: "pass", ok: true, issueCount: 0, codes: {}, severities: {}, categories: {} } as unknown as LlmTurnResult["verdict"],
+  firstVerdict: null,
   repairsApplied: [],
   modelCalls: 2,
   costLkr: 0.12,
@@ -150,6 +151,20 @@ describe("mode shadow", () => {
     expect(dump).not.toContain("sess_private_session_id");
     expect(dump).not.toContain("203.0.113.9");
     expect(dump).not.toContain("model answer");
+  });
+});
+
+describe("verifier codes of the first answer are counted (codes only)", () => {
+  it("sums the codes that the first check found, even when a repair later passed, and holds no text", async () => {
+    const first = { verdict: "repairable", ok: false, issueCount: 3, codes: { ungrounded_price: 2, unprompted_honorific: 1 }, severities: {}, categories: {} } as unknown as LlmTurnResult["verdict"];
+    const results = [turn({ firstVerdict: first, repairsApplied: ["regenerate"] }), turn({ firstVerdict: first, repairsApplied: ["autofix"] }), turn()];
+    let i = 0;
+    const lane = createLaneWrapper({ legacy: new Legacy(), config: cfg({ AGENT_LLM_FIRST: "shadow" }), runner: async () => results[i++]!, ready: () => true });
+    for (let n = 0; n < 3; n++) await lane.run(request(), emit);
+    await tick();
+    const s = lane.stats();
+    expect(s.verifierFirstCodes).toEqual({ ungrounded_price: 4, unprompted_honorific: 2 });
+    expect(JSON.stringify(s)).not.toContain(SECRET_TEXT);
   });
 });
 

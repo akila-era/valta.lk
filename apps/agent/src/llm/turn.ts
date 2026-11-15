@@ -57,6 +57,8 @@ export interface LlmTurnResult {
   failure?: { kind: LlmTurnFailureKind; code?: string };
   /** Counts and codes only: never text. */
   verdict: VerdictSummary | null;
+  /** What the FIRST check of the model's answer found when it did not pass (codes and counts only), kept even when a repair later succeeds. */
+  firstVerdict: VerdictSummary | null;
   repairsApplied: string[];
   modelCalls: number;
   costLkr: number;
@@ -110,7 +112,8 @@ export async function runLlmTurn(deps: LlmTurnDeps, input: LlmTurnInput): Promis
   const modelNames = new Set<string>();
   const repairsApplied: string[] = [];
 
-  const base = (): Pick<LlmTurnResult, "modelCalls" | "costLkr" | "modelNames" | "tools" | "evidenceCount" | "sources" | "proposals" | "latencyMs" | "language"> => ({
+  let firstVerdict: VerdictSummary | null = null;
+  const base = (): Pick<LlmTurnResult, "modelCalls" | "costLkr" | "modelNames" | "tools" | "evidenceCount" | "sources" | "proposals" | "latencyMs" | "language" | "firstVerdict"> => ({
     modelCalls: calls,
     costLkr,
     modelNames: [...modelNames],
@@ -120,6 +123,7 @@ export async function runLlmTurn(deps: LlmTurnDeps, input: LlmTurnInput): Promis
     proposals: turn.proposals,
     latencyMs: Math.max(0, now() - t0),
     language: input.language,
+    firstVerdict,
   });
 
   const degraded = (kind: LlmTurnFailureKind, text: string, needsReview: boolean, code?: string, verdict: VerdictSummary | null = null): LlmTurnResult => ({
@@ -221,6 +225,7 @@ export async function runLlmTurn(deps: LlmTurnDeps, input: LlmTurnInput): Promis
   let current = answer;
   let result = verifyAnswerV2(verifyInput(current));
   if (result.verdict === "pass") return accept(current, explainVerdict(result));
+  firstVerdict = explainVerdict(result);
 
   for (const repair of planRepair(result, verifyInput(current))) {
     if (repair.kind === "autofix") {
@@ -232,7 +237,12 @@ export async function runLlmTurn(deps: LlmTurnDeps, input: LlmTurnInput): Promis
     } else if (repair.kind === "regenerate") {
       if (calls >= maxCalls || timedOut()) continue;
       repairsApplied.push("regenerate");
-      messages.push(modelMessage(current), userMessage(repair.feedback));
+      // The feedback names the problems; it must also restate what the customer asked, or the model may answer the feedback instead of the customer
+      // (seen with real model output: an apology unrelated to the question).
+      messages.push(
+        modelMessage(current),
+        userMessage(`${repair.feedback}\n\nThe customer's message was: "${input.message}"\nAnswer that message directly and naturally, in the same language and style. Use only verified facts; if something cannot be verified, say so plainly instead of guessing.`),
+      );
       const res = await deps.gateway.generate({ class: "chat", system, messages: [...messages], toolMode: "none", ...(input.signal ? { signal: input.signal } : {}) }, { sessionId: input.sessionKey });
       calls++;
       if (!res.ok) return gatewayFailure(res);

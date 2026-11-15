@@ -37,8 +37,13 @@ const QUANTITY: RegExp[] = [
 
 const sameMoney = (claim: number, truth: number, shorthand: boolean): boolean => claim === truth || (shorthand && truth > 0 && Math.abs(claim - truth) <= truth * 0.01);
 
-function allowedMoney(a: Amount, pool: readonly ProductFacts[], c: GroundingContext, userAmounts: readonly number[], calcMinor: readonly number[]): boolean {
-  if (userAmounts.some((u) => sameMoney(a.minor, u, a.shorthand))) return true;
+/** Words that mark an amount as the customer's BUDGET or limit rather than the price of something ("under your budget of Rs. 100,000", "100000 wada adu"). */
+const BUDGET_CUE = /(budget|under|below|within|up to|upto|limit|ceiling|at most|no more than|wada adu|adu wage|walata|ekata|ඇතුලත|ඇතුළත|දක්වා|අඩු|බජට්|සීමාව)/;
+
+function allowedMoney(a: Amount, pool: readonly ProductFacts[], c: GroundingContext, userAmounts: readonly number[], calcMinor: readonly number[], sentence: string): boolean {
+  // An amount the customer typed may be echoed when no store product is in the sentence, or when the sentence plainly restates their budget. It is NOT accepted
+  // as a store product's price ("the Lumen P1 costs Rs. 100,000" when the budget was 100,000): that is checked against the shop's price below.
+  if ((pool.length === 0 || BUDGET_CUE.test(sentence)) && userAmounts.some((u) => sameMoney(a.minor, u, a.shorthand))) return true;
   if (calcMinor.some((u) => sameMoney(a.minor, u, a.shorthand))) return true;
   const prices = [...new Set(pool.flatMap((p) => p.pricesMinor))];
   if (prices.some((p) => sameMoney(a.minor, p, a.shorthand))) return true;
@@ -56,7 +61,12 @@ function allowedMoney(a: Amount, pool: readonly ProductFacts[], c: GroundingCont
 
 /** The customer's own amounts (a budget they stated may be echoed). */
 function userAmountsOf(message: string): number[] {
-  return extractAmounts(fold(message)).map((a) => a.minor);
+  const folded = fold(message);
+  const out = new Set(extractAmounts(folded).map((a) => a.minor));
+  // A plain number the customer typed ("100000 wada adu", "budget 150,000") may be echoed as an amount too, with or without separators and a currency
+  // word. Found with real model output: the verifier used to flag "Rs. 100,000" in an answer to "100000 wada adu" and then deleted the harmless sentence.
+  for (const n of numbersIn(folded)) if (Number.isFinite(n.value) && n.value >= 100) out.add(Math.round(n.value * 100));
+  return [...out];
 }
 
 export function checkGrounding(c: GroundingContext): Issue[] {
@@ -77,7 +87,7 @@ export function checkGrounding(c: GroundingContext): Issue[] {
     for (const a of extractAmounts(f)) {
       // "2 lakh people" is not a price; but next to a store product, shorthand ("150k") is read as the product's price
       if (!a.currencyMarked && !MONEY_CUE.test(f) && ctxP.length === 0) continue;
-      if (allowedMoney(a, pool, c, userAmounts, calcMinor)) continue;
+      if (allowedMoney(a, pool, c, userAmounts, calcMinor, f)) continue;
       const abs = s.start + a.start;
       if (ctxP.length > 0) {
         issues.push(makeIssue("claim_price_mismatch", c.spans, abs, s.start + a.end, { amountMinor: a.minor, known: ctxP.flatMap((p) => p.pricesMinor).length }));

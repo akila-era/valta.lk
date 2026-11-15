@@ -167,6 +167,15 @@ describe("system prompt", () => {
     expect(buildSystemPrompt({ ...base, language: "mixed" })).toMatch(/mixes Sinhala and English/);
   });
 
+  it("tells the model its knowledge may be out of date for anything that can change, and not to present it as current", () => {
+    const p = buildSystemPrompt(base);
+    expect(p).toMatch(/cutoff date and may be out of date/);
+    expect(p).toMatch(/labelled as possibly outdated/);
+  });
+  it("asks for Singlish to be answered in Latin letters, not Sinhala script", () => {
+    expect(buildSystemPrompt({ ...base, language: "singlish" })).toMatch(/Latin\) letters/);
+    expect(buildSystemPrompt({ ...base, language: "singlish" })).toMatch(/Do NOT switch to Sinhala script/);
+  });
   it("holds no customer message: only the fields the server passes in", () => {
     const p = buildSystemPrompt(base);
     expect(p).not.toMatch(/FAKE_TEST_KEY|password:|api[_-]?key/i);

@@ -96,6 +96,20 @@ describe("shop facts come only from tool results", () => {
     expect(result.modelCalls).toBe(3);
   });
 
+  it("the repair request restates what the customer asked, so the model cannot answer the feedback instead of the customer", async () => {
+    const { h } = await run(
+      [call("volta_search_products", { query: "Lumen P1" }), reply("The Lumen P1 Smartphone costs Rs. 49,900."), reply("The Lumen P1 Smartphone costs Rs. 59,900.")],
+      input("How much is the Lumen P1?"),
+    );
+    const lastRequest = h.provider.requests[h.provider.requests.length - 1]!;
+    const lastUser = lastRequest.messages[lastRequest.messages.length - 1]!;
+    expect(lastUser.role).toBe("user");
+    const text = JSON.stringify(lastUser);
+    expect(text).toContain("The customer's message was");
+    expect(text).toContain("How much is the Lumen P1?");
+    expect(lastRequest.toolMode).toBe("none");
+  });
+
   it("if the model keeps inventing a price, the customer gets an honest notice, not the invention", async () => {
     const wrong = reply("The Lumen P1 Smartphone costs Rs. 49,900.");
     const { result } = await run([call("volta_search_products", { query: "Lumen P1" }), wrong, wrong, wrong, wrong], input("How much is the Lumen P1?"));

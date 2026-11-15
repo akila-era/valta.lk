@@ -164,6 +164,7 @@ const GUIDANCE: Partial<Record<IssueCode, string>> = {
   repetitive_honorific: "Do not repeat a title in consecutive sentences.",
   repeated_reply: "Your answer repeats your previous reply. Answer the customer's latest message directly and differently.",
   language_mismatch: "Reply in the customer's language.",
+  unexpected_script: "Use only English letters and Sinhala script (and any script the customer used). Remove stray characters from other writing systems.",
   empty_answer: "Give a real, direct answer to the customer's question.",
   text_too_long: "Make the answer shorter.",
   active_markup: "Use plain text only, without HTML or scripts.",

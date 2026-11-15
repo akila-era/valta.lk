@@ -253,3 +253,29 @@ describe("a clean search-grounded answer and a calculation pass end to end", () 
     expect(codes(verifyAnswerV2(input({ answerText: "15% of 2400 is 350.", toolEvidence: [CALC_15_OF_2400] })))).toContain("claim_calculation_mismatch");
   });
 });
+
+describe("stray scripts (found with a real model: a Bengali fragment inside a Singlish word)", () => {
+  const run = (answerText: string, over: Partial<Omit<Parameters<typeof input>[0], "answerText">> = {}) => verifyAnswerV2(input({ ...over, answerText }));
+  it("flags letters of a script the customer did not use and that the shop data does not contain", () => {
+    const r = run("Oyaata specifically balanna oগুলen brand ekak hari model ekak hari thiyenawada?", { language: "singlish", userMessage: "mama kiwwe phone ekak" });
+    expect(has(r, "unexpected_script")).toBe(true);
+    expect(r.verdict).not.toBe("pass");
+  });
+  it("never flags clean English, Sinhala, Singlish, digits, symbols, emoji or Greek units", () => {
+    for (const t of ["The Lumen P1 is a good phone for you.", "මෙය ඔබට හොඳ තේරීමක් නිසා බලන්න.", "Meka oyaata hondai, balanna puluwan.", "It has a 5000 mAh battery • 5G ✅", "A resistor of 10 kΩ and an angle of π/2."]) {
+      expect(has(run(t, { language: /[඀-෿]/.test(t) ? "si" : "en" }), "unexpected_script"), t).toBe(false);
+    }
+  });
+  it("allows a script the customer wrote themselves", () => {
+    const tamil = "வணக்கம்";
+    expect(has(run(`${tamil}! How can I help you today with your phone?`, { userMessage: `${tamil} I need a phone` }), "unexpected_script")).toBe(false);
+  });
+  it("allows characters that appear in the shop's own tool results (a product name)", () => {
+    const evidence = [{ ...LUMEN, productName: "小米 Lumen P1" }];
+    expect(has(run("The 小米 Lumen P1 is a good phone for you today.", { toolEvidence: evidence }), "unexpected_script")).toBe(false);
+  });
+  it("the repair request names the problem", () => {
+    const r = run("Oyaata oগুলen balanna puluwan, hari model ekak?", { language: "singlish", userMessage: "phone ekak" });
+    expect(buildFeedback(input({ answerText: "x", language: "singlish" }), r.issues)).toMatch(/other writing systems/);
+  });
+});

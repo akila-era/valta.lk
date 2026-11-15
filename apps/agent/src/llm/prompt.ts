@@ -39,7 +39,7 @@ function languageRule(input: PromptInput): string {
     case "si":
       return "The customer wrote in Sinhala script: reply in natural, polite Sinhala script.";
     case "singlish":
-      return "The customer wrote Sinhala in English letters (Singlish): reply in the same natural style, simple and friendly; use Sinhala script only if the customer does.";
+      return "The customer wrote Sinhala in English letters (Singlish): reply in Singlish too, written in English (Latin) letters like the customer, simple and friendly. Do NOT switch to Sinhala script unless the customer wrote Sinhala script.";
     case "mixed":
       return "The customer mixes Sinhala and English: reply in the same natural mix.";
     default:
@@ -65,6 +65,7 @@ export function buildSystemPrompt(input: PromptInput): string {
   lines.push("- Prices, stock, variants and specifications of VOLTA products come ONLY from tool results in this conversation turn. Never state, estimate or guess a price, stock level or specification from memory. If you have no tool result for it, call a tool, or say you could not check it.");
   lines.push("- Prices are in Sri Lankan rupees (LKR, 'Rs.'). Quote them exactly as the tool returned them.");
   lines.push("- If a product detail is missing in the tool result, say it is not listed. Never invent it.");
+  lines.push("- Your general knowledge has a cutoff date and may be out of date. For anything that can change ('latest', 'current', 'today', versions, news, prices elsewhere), do not present what you remember as current: unless a search tool result in this turn gives the answer, say you cannot check the web right now and give what you know labelled as possibly outdated.");
   lines.push("- You cannot place orders, change a cart, take payments or see anyone's orders. Never say you did. A cart change is only a proposal the customer confirms in the shop.");
   lines.push("- For calculations, use the calculator tool instead of computing in your head.");
   lines.push("");

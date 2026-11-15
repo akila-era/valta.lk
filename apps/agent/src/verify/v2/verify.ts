@@ -1,7 +1,7 @@
 import { indexProducts } from "./evidence";
 import { checkCitations } from "./citations";
 import { checkGrounding } from "./grounding";
-import { checkEmpty, checkFormat, checkHonorifics, checkLanguage, checkRepetition } from "./quality";
+import { checkEmpty, checkFormat, checkHonorifics, checkLanguage, checkRepetition, checkScripts } from "./quality";
 import { planRepair, redactUnsupportedSentences } from "./repair";
 import { checkSafetyClasses } from "./safety";
 import { MAX_ANALYSED_CHARS, fold, splitSentences } from "./text";
@@ -29,6 +29,7 @@ export function verifyAnswerV2(input: VerifyV2Input): VerifyV2Result {
     ...checkHonorifics(text, spans, input),
     ...checkRepetition(text, spans, input),
     ...checkLanguage(text, spans, input),
+    ...checkScripts(text, spans, input),
   ];
   issues.sort((a, b) => a.start - b.start || a.end - b.end);
 

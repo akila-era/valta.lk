@@ -20,6 +20,8 @@ export interface LaneSnapshot {
   failures: Record<string, number>;
   /** Counts per fixed failure code (for example gateway:unknown_model_price). Codes are fixed strings: never text, ids or addresses. */
   failureCodes: Record<string, number>;
+  /** Verifier issue codes found in the FIRST answer of a turn (before any repair), summed. Fixed codes only. */
+  verifierFirstCodes: Record<string, number>;
   toolCalls: number;
   modelCalls: number;
   costLkr: number;
@@ -36,6 +38,7 @@ export class LaneStats {
       on: { served: 0, fellBack: 0, refusedNoContractSource: 0 },
       failures: {},
       failureCodes: {},
+      verifierFirstCodes: {},
       toolCalls: 0,
       modelCalls: 0,
       costLkr: 0,
@@ -55,6 +58,7 @@ export class LaneStats {
     else if (r.latencyMs < 10_000) b.lt10s++;
     else b.gte10s++;
     if (r.failure) this.s.failures[r.failure.kind] = (this.s.failures[r.failure.kind] ?? 0) + 1;
+    if (r.firstVerdict) for (const [code, n] of Object.entries(r.firstVerdict.codes)) this.s.verifierFirstCodes[code] = (this.s.verifierFirstCodes[code] ?? 0) + (n ?? 0);
     if (r.failure?.code) {
       const key = `${r.failure.kind}:${r.failure.code}`;
       this.s.failureCodes[key] = (this.s.failureCodes[key] ?? 0) + 1;

@@ -194,6 +194,24 @@ export function checkLanguage(text: string, spans: readonly SentenceSpan[], inpu
   return [];
 }
 
+/**
+ * Scripts that sometimes leak into a model's answer as a stray fragment (seen with a real model: a Bengali fragment inside a Singlish word). Letters of these
+ * scripts are flagged unless the customer wrote that script or the same characters appear in the shop's own tool results (a product name). Latin, Sinhala,
+ * digits, punctuation, emoji and Greek (which maths and units use) are never flagged.
+ */
+const STRAY_SCRIPT = /[\p{Script=Bengali}\p{Script=Devanagari}\p{Script=Tamil}\p{Script=Telugu}\p{Script=Malayalam}\p{Script=Kannada}\p{Script=Gujarati}\p{Script=Gurmukhi}\p{Script=Oriya}\p{Script=Arabic}\p{Script=Cyrillic}\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}\p{Script=Hebrew}]/u;
+const STRAY_SCRIPT_ALL = new RegExp(STRAY_SCRIPT.source, "gu");
+
+export function checkScripts(text: string, spans: readonly SentenceSpan[], input: VerifyV2Input): Issue[] {
+  const first = STRAY_SCRIPT.exec(text);
+  if (!first) return [];
+  if (STRAY_SCRIPT.test(input.userMessage)) return [];
+  const known = JSON.stringify(input.toolEvidence);
+  const stray = (text.match(STRAY_SCRIPT_ALL) ?? []).filter((ch) => !known.includes(ch));
+  if (stray.length === 0) return [];
+  return [makeIssue("unexpected_script", spans, first.index, first.index + first[0].length, { chars: stray.length })];
+}
+
 const FILLER = /^(?:ok(?:ay)?|sure|yes|no|alright|understood|i understand|got it|noted|hmm+|well|right|ඔව්|හරි|හොඳයි)[.!\s]*$/iu;
 
 export function checkEmpty(text: string, spans: readonly SentenceSpan[]): Issue[] {
