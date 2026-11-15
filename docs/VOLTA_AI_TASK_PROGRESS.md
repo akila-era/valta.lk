@@ -110,3 +110,9 @@ Known failing/unfinished: `tests/unit/tools-llm-calculator.test.ts` (TOO_LONG vs
 ## 8. Non-destructive operations log
 
 No destructive operation has been executed in this work: no server, container, image, model, backup, log or database was deleted; the old server was never contacted; no production file was edited. The 51 MB partial download `scratchpad/llm/dl/ollama-windows-amd64.zip` is scratch only and may be deleted by the owner at will.
+
+## 2d. Real Gemini API test (2026-11-15)
+- Commits 80dfc86 (adapter and schema fixes, shadow wiring in preview entry), 028ddb6 (fixes from the first real test), 431b404 (test report).
+- Capped real-API test with invented prompts: 14/14 OK, about LKR 5 for the final run, 1 to 6 s per turn. Details: docs/VOLTA_AI_GEMINI_REAL_TEST_REPORT.md.
+- Live shadow trial NOT started. Needs owner answers: billed project, privacy approval, budget numbers, systemd drop-in (StateDirectory) and one restart, deploy of a bundle from 028ddb6 or later.
+- The pasted Gemini key is exposed in chat and must be revoked by the owner.

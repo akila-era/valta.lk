@@ -79,3 +79,6 @@ Because `src/voice/` and other new directories are untracked, snapshot archives 
 ## 8. Standing restrictions (unchanged)
 
 No commit/push/merge/deploy; no production change; no VPS shutdown or deletion; no DNS/tunnel/firewall change; no paid Gemini call; **the Gemini key pasted in chat must never be used and should be revoked**; frozen EVAL/HOLDOUT/TEST sets never modified or tuned on; one SSH session per server at a time and only for owner-requested read-only audits; shell tool: never write regex backslashes through heredocs.
+
+## Update 2026-11-15
+Real Gemini test done locally (see docs/VOLTA_AI_GEMINI_REAL_TEST_REPORT.md). Latest commit 431b404 on feature/ai-agent-m1. Next step: wait for owner answers, then follow docs/VOLTA_AI_GEMINI_SHADOW_ROLLOUT_PLAN.md section 5. No live change was made in this step.
