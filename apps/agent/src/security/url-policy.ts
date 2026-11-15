@@ -97,25 +97,56 @@ export function checkUrl(input: string, policy: UrlPolicy): UrlCheck {
   return pathCheck(url, policy);
 }
 
-function pathCheck(url: URL, policy: UrlPolicy): UrlCheck {
-  // Decode (repeatedly, so %2561 cannot hide an "a") and re-normalise before comparing; a path that cannot be decoded is refused.
-  let path = url.pathname;
+// Zero-width, bidirectional-control, BOM, Unicode TAG and variation-selector characters can hide a path spelling from a human reader.
+// eslint-disable-next-line no-control-regex
+const HIDDEN_IN_PATH = /[\u0000-\u001F\u007F-\u009F\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFE00-\uFE0F\uFEFF]|\uDB40[\uDC00-\uDDEF]/;
+const LOCALE_SEGMENT = /^[a-z]{2}(?:-[a-z]{2})?$/;
+
+/** Decode (repeatedly, so %2561 cannot hide an "a"), drop path parameters (`/api;x`) and normalise; null when the path cannot be read safely. */
+function normalPath(rawPath: string): string | null {
+  let path = rawPath;
   for (let i = 0; i < 3 && path.includes("%"); i++) {
     try {
       path = decodeURIComponent(path);
     } catch {
-      return { ok: false, reason: "path_not_allowed" };
+      return null;
     }
   }
+  if (HIDDEN_IN_PATH.test(path)) return null; // a NUL byte or a hidden character in a path is never a real shop route
   path = path.replace(/\\/g, "/").replace(/\/{2,}/g, "/").toLowerCase();
   const segments: string[] = [];
-  for (const s of path.split("/")) {
+  for (const raw of path.split("/")) {
+    const s = raw.split(";")[0]!; // `/api;x` means `/api` to most servers
     if (s === "..") segments.pop();
     else if (s !== "." && s !== "") segments.push(s);
   }
-  const normal = `/${segments.join("/")}`;
-  for (const prefix of policy.blockedPathPrefixes) {
-    if (normal === prefix || normal.startsWith(`${prefix}/`)) return { ok: false, reason: "path_not_allowed" };
+  return `/${segments.join("/")}`;
+}
+
+function isBlockedNormalPath(normal: string, policy: UrlPolicy): boolean {
+  const segments = normal.split("/").filter(Boolean);
+  // Blocked prefixes are matched at the root AND after one locale segment (`/en/checkout`, `/si-lk/admin`).
+  const candidates = [normal];
+  if (segments.length > 1 && LOCALE_SEGMENT.test(segments[0]!)) candidates.push(`/${segments.slice(1).join("/")}`);
+  return candidates.some((c) => policy.blockedPathPrefixes.some((prefix) => c === prefix || c.startsWith(`${prefix}/`)));
+}
+
+function pathCheck(url: URL, policy: UrlPolicy): UrlCheck {
+  const normal = normalPath(url.pathname);
+  if (normal === null || isBlockedNormalPath(normal, policy)) return { ok: false, reason: "path_not_allowed" };
+  // The framework's image optimiser fetches the address in `url` on the server's side: that address must be an allowed path too.
+  if (normal === "/_next/image") {
+    const inner = url.searchParams.get("url");
+    if (inner !== null) {
+      let innerPath: string;
+      try {
+        innerPath = inner.startsWith("/") ? new URL(inner, "https://x.invalid").pathname : new URL(inner).pathname;
+      } catch {
+        return { ok: false, reason: "path_not_allowed" };
+      }
+      const innerNormal = normalPath(innerPath);
+      if (innerNormal === null || isBlockedNormalPath(innerNormal, policy)) return { ok: false, reason: "path_not_allowed" };
+    }
   }
   return { ok: true, url };
 }
@@ -207,6 +238,11 @@ export function isBlockedAddress(ip: string): boolean {
   if ((g[0]! & 0xff00) === 0xff00) return true; // multicast
   if (g.slice(0, 5).every((x) => x === 0) && g[5] === 0xffff) return blockedV4([g[6]! >> 8, g[6]! & 255, g[7]! >> 8, g[7]! & 255]); // IPv4-mapped
   if (g[0] === 0x0064 && g[1] === 0xff9b) return true; // NAT64: could reach anything
+  if (g.slice(0, 6).every((x) => x === 0)) return true; // ::/96 IPv4-compatible (deprecated): ::127.0.0.1 and ::a9fe:a9fe must not be reachable
+  if (g.slice(0, 4).every((x) => x === 0) && g[4] === 0xffff && g[5] === 0) return true; // ::ffff:0:0:0/96 IPv4-translated
+  if (g[0] === 0x2002) return true; // 2002::/16 6to4: embeds an IPv4 address (loopback and metadata included)
+  if (g[0] === 0x2001 && g[1] === 0x0000) return true; // 2001::/32 Teredo
+  if ((g[0]! & 0xffc0) === 0xfec0) return true; // fec0::/10 deprecated site-local
   if (g[0] === 0x2001 && g[1] === 0x0db8) return true; // documentation
   return false;
 }

@@ -55,6 +55,9 @@ export interface MockOptions {
   failNextGotos?: number;
 }
 
+/** The options of the mock shop's "Sort by" dropdown: sort parameter -> visible option text. */
+export const SORT_LABELS: Record<string, string> = { newest: "Newest", "price-asc": "Price: low to high", name: "Name" };
+
 const el = (n: number, role: string, name: string, extra: Partial<DriverElement> = {}): DriverElement => ({ ref: `e${n}`, role, name, enabled: true, visible: true, ...extra });
 
 export class MockBrowserDriver implements BrowserDriver {
@@ -62,6 +65,7 @@ export class MockBrowserDriver implements BrowserDriver {
   readonly contexts = new Map<string, Context>();
   readonly closedSessions: string[] = [];
   readonly clicks: { sessionId: string; name: string }[] = [];
+  readonly selects: { sessionId: string; name: string; option: string }[] = [];
   failNextGotos: number;
   private shots = 0;
 
@@ -146,6 +150,7 @@ export class MockBrowserDriver implements BrowserDriver {
       if (sort === "price-asc") list = [...list].sort((a, b) => a.priceLkr - b.priceLkr);
       text = `${list.length} products. ${list.map((p) => `${p.name} Rs. ${p.priceLkr.toLocaleString("en-US")}`).join(". ")}`;
       for (const p of list) els.push(el(n++, "link", p.name, { href: `/products/${p.slug}` }));
+      els.push(el(n++, "combobox", "Sort by", { tag: "select", value: SORT_LABELS[sort ?? "newest"] ?? "Newest" }));
     } else if (path.startsWith("/products/") && path !== "/products/evil-listing") {
       const p = PRODUCTS.find((x) => x.slug === path.slice("/products/".length));
       if (!p) {
@@ -169,6 +174,7 @@ export class MockBrowserDriver implements BrowserDriver {
       title = "Your cart";
       text = c.cart.length ? `Cart: ${c.cart.map((s) => PRODUCTS.find((p) => p.slug === s)?.name).join(", ")}` : "Your cart is empty.";
       els.push(el(n++, "link", "Proceed to checkout", { href: "/checkout" }));
+      els.push(el(n++, "combobox", "Update quantity", { tag: "select", value: c.typed["qty"] ?? "1" }));
     } else if (path === "/warranty-policy") {
       title = "Warranty policy";
       text = "All devices carry a 12 month warranty against manufacturing defects.";
@@ -235,6 +241,25 @@ export class MockBrowserDriver implements BrowserDriver {
     c.typed[target.name === "Search the catalogue" ? "search" : target.name] = text;
     if (submit) return this.goto(sessionId, `https://${this.opts.policy.hosts[0]}/products?q=${encodeURIComponent(text)}`);
     return this.current(sessionId);
+  }
+
+  async select(sessionId: string, ref: string, option: string): Promise<DriverPage> {
+    const c = this.ctx(sessionId);
+    const page = this.current(sessionId);
+    const target = page.elements.find((e) => e.ref === ref);
+    if (!target || target.tag !== "select") throw new DriverError("unknown_element");
+    if (target.name === "Update quantity") {
+      if (!["1", "2", "3"].includes(option.trim())) throw new DriverError("unknown_element");
+      this.selects.push({ sessionId, name: target.name, option });
+      c.typed["qty"] = option.trim();
+      return this.current(sessionId);
+    }
+    const key = Object.entries(SORT_LABELS).find(([, label]) => label.toLowerCase() === option.trim().toLowerCase())?.[0];
+    if (!key) throw new DriverError("unknown_element");
+    this.selects.push({ sessionId, name: target.name, option });
+    const u = new URL(page.url);
+    u.searchParams.set("sort", key);
+    return this.goto(sessionId, u.toString());
   }
 
   async scroll(sessionId: string, direction: "up" | "down"): Promise<DriverPage> {

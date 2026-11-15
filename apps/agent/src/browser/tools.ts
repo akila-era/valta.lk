@@ -11,6 +11,7 @@ export const BROWSER_TOOL_NAMES = [
   "browser.find_elements",
   "browser.click",
   "browser.type_text",
+  "browser.select",
   "browser.search",
   "browser.scroll",
   "browser.go_back",
@@ -21,7 +22,7 @@ export const BROWSER_TOOL_NAMES = [
 export type BrowserToolName = (typeof BROWSER_TOOL_NAMES)[number];
 
 const SessionId = z.string().regex(/^bs_[A-Za-z0-9_-]{16,64}$/);
-const Ref = z.string().regex(/^e[0-9]{1,5}$/);
+const Ref = z.string().regex(/^e[0-9]{1,6}(?:-[0-9]{1,5})?$/);
 const Confirmation = z.string().regex(/^[A-Za-z0-9_-]{20,64}$/);
 // eslint-disable-next-line no-control-regex
 const Plain = (max: number) => z.string().trim().min(1).max(max).regex(/^[^\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]*$/);
@@ -41,6 +42,8 @@ export const TOOL_ARGS = {
     .strict(),
   "browser.click": z.object({ sessionId: SessionId, ref: Ref, confirmation: Confirmation.optional() }).strict(),
   "browser.type_text": z.object({ sessionId: SessionId, ref: Ref, text: Plain(200), submit: z.boolean().default(false) }).strict(),
+  /** `option` is the VISIBLE text of one option of a real dropdown (never a value attribute, never script). */
+  "browser.select": z.object({ sessionId: SessionId, ref: Ref, option: Plain(100), confirmation: Confirmation.optional() }).strict(),
   "browser.search": z
     .object({
       sessionId: SessionId.optional(),

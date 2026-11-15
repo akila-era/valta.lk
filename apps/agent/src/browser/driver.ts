@@ -15,6 +15,8 @@ export interface DriverElement {
   enabled: boolean;
   visible: boolean;
   href?: string;
+  /** The HTML tag (`select`, `input`, `a`...), when the driver knows it: lets the tool layer require a real `<select>` for browser.select. */
+  tag?: string;
   /** For form fields. Never the value of password-type fields. */
   inputType?: string;
   value?: string;
@@ -33,13 +35,19 @@ export interface DriverPage {
   cartCount?: number;
   /** Requests the driver's own interception refused while loading this page. */
   blockedRequests: number;
+  /** Vertical scroll position in CSS pixels, when the driver can report it: lets a scroll be verified instead of assumed. */
+  scrollY?: number;
+  /** How many text pieces were left out of `text` because a shopper could not see them (transparent, off-screen, zero-size, clipped, same colour as the background). */
+  hiddenTextDropped?: number;
+  /** A short sample of what was left out. For the injection signal and the audit ONLY: it must never be shown to a model. */
+  hiddenTextSample?: string;
 }
 
 export type DriverErrorCode = "timeout" | "unknown_element" | "blocked_request" | "page_error" | "closed";
 
 export class DriverError extends Error {
   readonly code: DriverErrorCode;
-  constructor(code: DriverErrorCode, message = code) {
+  constructor(code: DriverErrorCode, message: string = code) {
     super(message);
     this.name = "DriverError";
     this.code = code;
@@ -52,10 +60,14 @@ export interface BrowserDriver {
   snapshot(sessionId: string): Promise<DriverPage>;
   click(sessionId: string, ref: string): Promise<DriverPage>;
   type(sessionId: string, ref: string, text: string, submit: boolean): Promise<DriverPage>;
+  /** Chooses the option of a real `<select>` whose visible text equals `option` (case-insensitive). Same element checks as `click` and `type`. */
+  select(sessionId: string, ref: string, option: string): Promise<DriverPage>;
   scroll(sessionId: string, direction: "up" | "down"): Promise<DriverPage>;
   back(sessionId: string): Promise<DriverPage>;
   forward(sessionId: string): Promise<DriverPage>;
   screenshot(sessionId: string): Promise<{ id: string }>;
+  /** The stored bytes of a screenshot this session took, or null when expired or not found. Optional: a driver without a store omits it. */
+  getScreenshot?(sessionId: string, id: string): Buffer | null;
   /** Destroys the whole context: pages, cookies, storage, cache. Must be safe to call twice. */
   close(sessionId: string): Promise<void>;
 }

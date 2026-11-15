@@ -12,7 +12,7 @@ import { ACTION_CLASSES } from "../tools/action-classes";
  *  - every request is `.strict()`: unknown fields are rejected, not ignored.
  * Page text always comes back flagged `untrusted: true`: it is data, never instructions.
  */
-const Ref = z.string().regex(/^e[0-9]{1,5}$/);
+const Ref = z.string().regex(/^e[0-9]{1,6}(?:-[0-9]{1,5})?$/);
 const TaskId = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/);
 const TypedText = z
   .string()

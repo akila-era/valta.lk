@@ -30,7 +30,7 @@ function fail(tool: BrowserToolName | "unknown", reason: BrowserFailure, extra: 
 
 /** A page "changed" when its address, text, element list or cart count differs. Used to verify clicks and scrolls instead of assuming. */
 export function pageChanged(a: DriverPage, b: DriverPage): boolean {
-  return a.url !== b.url || a.text !== b.text || a.elements.length !== b.elements.length || a.cartCount !== b.cartCount || a.title !== b.title;
+  return a.url !== b.url || a.text !== b.text || a.elements.length !== b.elements.length || a.cartCount !== b.cartCount || a.title !== b.title || a.scrollY !== b.scrollY;
 }
 
 export class BrowserToolService {
@@ -110,7 +110,8 @@ export class BrowserToolService {
       title: sanitizeText(page.title, 120),
       text: wrapUntrusted(text),
       untrusted: true,
-      injectionSuspected: looksLikeInjection(text),
+      // Text the driver left out because a shopper cannot see it is never shown to the model, but if it reads like an instruction it raises the flag.
+      injectionSuspected: looksLikeInjection(text) || (page.hiddenTextSample ? looksLikeInjection(sanitizeText(page.hiddenTextSample, 500)) : false),
       elementCount: page.elements.length,
       ...(page.cartCount !== undefined ? { cartCount: page.cartCount } : {}),
       blockedRequests: page.blockedRequests,
@@ -189,6 +190,8 @@ export class BrowserToolService {
         return this.click(owner, a as ToolArgs<"browser.click">);
       case "browser.type_text":
         return this.typeText(owner, a as ToolArgs<"browser.type_text">);
+      case "browser.select":
+        return this.selectOption(owner, a as ToolArgs<"browser.select">);
       case "browser.scroll":
       case "browser.go_back":
       case "browser.go_forward": {
@@ -252,6 +255,36 @@ export class BrowserToolService {
     const page = await this.deps.driver.click(s.id, x.ref);
     const r = await this.view(tool, s.id, page, before);
     return "ok" in r ? r : { ok: true, tool, sessionId: s.id, verified: r.verified, page: r.view };
+  }
+
+  /** Chooses an option of a real dropdown. Same refusals as typing (secret, personal and discount fields) and the same confirmation rules as a click. */
+  private async selectOption(owner: SessionOwner, x: ToolArgs<"browser.select">): Promise<BrowserToolResult> {
+    const tool = "browser.select" as const;
+    const s = await this.deps.sessions.use(x.sessionId, owner);
+    const before = this.pages.get(s.id);
+    const el = before?.elements.find((e) => e.ref === x.ref);
+    if (!before || !el) return fail(tool, "unknown_element", { sessionId: s.id });
+    if (el.tag !== "select") return fail(tool, "unknown_element", { sessionId: s.id });
+    if (!el.enabled || !el.visible) return fail(tool, "element_disabled", { sessionId: s.id });
+    if (fieldRefusal(el) !== null || containsSensitive(x.option)) return this.block(tool, "refused_sensitive_field", "sensitive_field");
+    const cls = classifyElement(el);
+    if (cls.actionClass === "financial") return this.block(tool, "refused_financial", "financial");
+    // The confirmation is bound to the dropdown AND the chosen option: confirming one choice never allows another.
+    const hash = actionHash(tool, el, new URL(before.url).pathname, x.option);
+    if (cls.needsConfirmation) {
+      if (!x.confirmation) {
+        return fail(tool, "confirmation_required", { sessionId: s.id, proposal: { actionHash: hash, description: `Set "${sanitizeText(el.name, 60)}" to "${sanitizeText(x.option, 60)}"`, actionClass: cls.actionClass as "reversible" | "sensitive" } });
+      }
+      if (this.deps.confirmations.consume(x.confirmation, s.id, hash) !== "ok") return this.block(tool, "confirmation_invalid", "confirmation_invalid");
+      this.audit(cleanAudit({ at: this.now(), type: "confirmation_used", sessionRef: sessionRef(s.id), tool }));
+    }
+    const page = await this.deps.driver.select(s.id, x.ref, x.option);
+    const r = await this.view(tool, s.id, page, before);
+    if ("ok" in r) return r;
+    // Verified only when the live page now shows that option as the dropdown's value.
+    const after = r.page.elements.find((e) => e.tag === "select" && e.name === el.name);
+    const chosenOk = after?.value?.trim().toLowerCase() === x.option.trim().toLowerCase();
+    return { ok: true, tool, sessionId: s.id, verified: chosenOk, page: r.view };
   }
 
   private async typeText(owner: SessionOwner, x: ToolArgs<"browser.type_text">): Promise<BrowserToolResult> {

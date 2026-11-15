@@ -51,8 +51,9 @@ export function fieldRefusal(el: ElementInfo): FieldRefusal {
 }
 
 // Zero-width, bidirectional-control and BOM characters can hide text from a human but not from a model.
+// Also: soft hyphen, Arabic letter mark, Mongolian vowel separator, variation selectors and Unicode TAG characters (an invisible ASCII-smuggling channel).
 // eslint-disable-next-line no-control-regex
-const INVISIBLE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F​-‏‪-‮⁠-⁤⁦-⁩﻿]/g;
+const INVISIBLE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFE00-\uFE0F\uFEFF]|\uDB40[\uDC00-\uDC7F\uDD00-\uDDEF]/g;
 
 export function sanitizeText(input: string, maxChars: number): string {
   const clean = input.replace(INVISIBLE, "").replace(/\s+/g, " ").trim();
@@ -77,9 +78,10 @@ export function looksLikeInjection(text: string): boolean {
   return verdict.blocked && (verdict.reason === "injection" || verdict.reason === "exfiltration" || verdict.reason === "price_manipulation");
 }
 
-/** The same action must hash the same, and a different action must not: this is what a confirmation is bound to. */
-export function actionHash(tool: string, el: ElementInfo, pathname: string): string {
-  return createHash("sha256").update(JSON.stringify({ tool, role: el.role, name: el.name, href: el.href ?? "", pathname })).digest("hex");
+/** The same action must hash the same, and a different action must not: this is what a confirmation is bound to (session, element, page and, where there is one, the data). */
+export function actionHash(tool: string, el: ElementInfo, pathname: string, payload?: string): string {
+  // `payload` (for example the option a dropdown would be set to) is part of the hash only when given, so earlier hashes are unchanged.
+  return createHash("sha256").update(JSON.stringify({ tool, role: el.role, name: el.name, href: el.href ?? "", pathname, ...(payload !== undefined ? { payload } : {}) })).digest("hex");
 }
 
 /** Shopping-intent URL for the search tool: filters are plain query parameters on the catalogue page, built here, never typed by a model. */
