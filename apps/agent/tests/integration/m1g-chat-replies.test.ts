@@ -16,6 +16,7 @@ afterEach(async () => {
 
 const GOOD = "Happy to help! Let me know what kind of gadget you are after, such as a phone or a laptop, and I will take it from there.";
 const NO_ANSWER = renderTemplate("clarify_what", "en").text;
+const NO_ANSWER_B = renderTemplate("clarify_what_b", "en").text;
 const say = (text: string) => fake.setResponder(() => ({ content: text }));
 /** The messages the router has no tool for (Latin script, so the model may answer them). */
 const CHAT = "asdf qwerty zzz";
@@ -79,7 +80,10 @@ describe("model-written chat replies", () => {
     const { s } = build();
     for (const mode of ["http500", "malformed", "notjson"] as const) {
       fake.setMode(mode);
-      expect((await run(s.pipeline, CHAT)).result.reply).toEqual({ text: NO_ANSWER, source: "template" });
+      // R0: a repeated fallback in the same conversation is worded differently from the one before it, so the text is either member of the clarify_what family.
+      const reply = (await run(s.pipeline, CHAT)).result.reply;
+      expect(reply.source).toBe("template");
+      expect([NO_ANSWER, NO_ANSWER_B]).toContain(reply.text);
     }
     fake.setMode("ok");
     say(GOOD);

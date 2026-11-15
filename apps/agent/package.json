@@ -9,6 +9,9 @@
   },
   "scripts": {
     "test": "vitest run",
+    "test:real-browser": "vitest run -c vitest.real-browser.config.ts",
+    "bundle": "node scripts/bundle.mjs",
+    "bundle:browser": "node scripts/bundle.mjs --browser",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

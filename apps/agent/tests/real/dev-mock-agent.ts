@@ -22,6 +22,6 @@ const port = Number(process.env.AGENT_DEV_PORT ?? 18787);
 
 const metrics = new Metrics();
 const stack = createMockStack({ metrics, onVerifierFailure: (f) => metrics.verifierRejected(f.code) });
-const config = loadConfig({ AGENT_HMAC_KEYS: `${keyId}:${secret}`, AGENT_HOST: "127.0.0.1", AGENT_PORT: String(port), AI_ASSISTANT_ENABLED: "true" });
+const config = loadConfig({ AGENT_HMAC_KEYS: `${keyId}:${secret}`, AGENT_HOST: "127.0.0.1", AGENT_PORT: String(port), AI_ASSISTANT_ENABLED: "true", AGENT_NEW_SESSIONS_PER_HOUR: "200", AGENT_RATE_IP_PER_MIN: "300", AGENT_RATE_SESSION_PER_MIN: "300", AGENT_RATE_IDENTITY_PER_MIN: "300" }); // dev only: lets the QA control center run many scenarios
 const app = createAgentServer({ config, pipeline: stack.pipeline, metrics, memory: async () => ({ availableMb: null, swapUsedMb: null }) });
 app.listen().then(({ host, port: p }) => process.stdout.write(`mock Agent on http://${host}:${p} (key ${keyId})\n`));

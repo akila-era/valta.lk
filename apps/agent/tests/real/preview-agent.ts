@@ -21,6 +21,8 @@ import { InferenceScheduler } from "../../src/queue/scheduler";
 import { createMockStack } from "../../src/mock/stack";
 import { SiteErpTransport } from "../../src/backend/site-transport";
 import type { SiteData } from "../../src/backend/site";
+import { createLiveSiteData, type LiveSiteData } from "../../src/backend/live-site-data";
+import { loadVoiceConfig, VoiceService } from "../../src/voice";
 
 const config = loadConfig({ ...process.env, AI_ASSISTANT_ENABLED: "true", AGENT_ENGLISH_MODE: "router-first" });
 const logger = createLogger(consoleSink);
@@ -33,12 +35,20 @@ const registry = createMockStack().registry;
 const planner = new EnglishPlanner({ ollama, scheduler, registry });
 const chat = config.chatReplies ? new ChatResponder({ ollama, scheduler }) : undefined;
 const catalogueUrl = process.env.AGENT_CATALOGUE_URL?.trim();
-const emptySite: SiteData = { links: [], promotions: [], content: {}, customerOrders: new Map() };
-const real = catalogueUrl
-  ? { transport: new SiteErpTransport({ siteUrl: catalogueUrl, keyId: process.env.AGENT_CATALOGUE_KEY_ID ?? "", secret: process.env.AGENT_CATALOGUE_SECRET ?? "" }), site: emptySite }
-  : {};
+const siteTransport = catalogueUrl ? new SiteErpTransport({ siteUrl: catalogueUrl, keyId: process.env.AGENT_CATALOGUE_KEY_ID ?? "", secret: process.env.AGENT_CATALOGUE_SECRET ?? "" }) : undefined;
+// Staff-entered specification rows come from the website in the background (last good copy served); orders, links and promotions stay empty.
+const liveSite: LiveSiteData | undefined = siteTransport ? createLiveSiteData(() => siteTransport.getContent()) : undefined;
+if (liveSite) {
+  void liveSite.refresh();
+  liveSite.start();
+}
+const real = siteTransport && liveSite ? { transport: siteTransport, site: liveSite as SiteData } : {};
 const stack = createMockStack({ ...real, planner, englishMode: "router-first", ...(chat ? { chat } : {}), metrics, onVerifierFailure: verifierFailureLogger(logger) });
 
-const app = createAgentServer({ config, pipeline: stack.pipeline, ollama, scheduler, logger, metrics });
+// Voice routes exist only when an operator configured a speech engine (loopback); otherwise they are 404 and nothing changes.
+const voiceCfg = loadVoiceConfig(process.env);
+const voice = voiceCfg.stt.name !== "none" || voiceCfg.tts.name !== "none" ? new VoiceService(voiceCfg) : undefined;
+
+const app = createAgentServer({ config, pipeline: stack.pipeline, ollama, scheduler, logger, metrics, ...(voice ? { voice } : {}) });
 app.listen().then(({ host, port }) => process.stdout.write(`${JSON.stringify({ msg: "preview agent listening", host, port, catalogue: catalogueUrl ? "website (real)" : "mock", ollama: config.ollamaUrl })}\n`));
 for (const sig of ["SIGTERM", "SIGINT"] as const) process.on(sig, () => void app.close().then(() => process.exit(0)));

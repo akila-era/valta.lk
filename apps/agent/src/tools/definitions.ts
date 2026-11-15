@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { effectiveCents, type ToolResult } from "../backend/types";
 import { MAX_COMPARE_PRODUCTS, ORDER_REF } from "../contract/schemas";
 import type { OllamaToolSchema } from "../ollama/models";
 import { defineTool, type ActorKind, type ToolContext, type ToolDef, ToolRegistry } from "./registry";
@@ -43,6 +44,53 @@ export interface SearchProductsArgs {
 
 const BOTH: ActorKind[] = ["guest", "customer"];
 
+/** Search arguments only the router may set; they are not shown to a model. */
+export const INTERNAL_SEARCH_ARGS: readonly string[] = ["excludeIds", "cheaperThanId", "pricierThanId"];
+interface RefineArgs {
+  excludeIds?: string[] | undefined;
+  cheaperThanId?: string | undefined;
+  pricierThanId?: string | undefined;
+}
+
+/**
+ * "Something cheaper" is cheaper than the product that was shown, "something else" leaves out what was shown. Both are resolved here from catalogue
+ * data (the product's own price, never the shopper's or a model's), then the ordinary search runs. Excluded products are removed after the search
+ * (a few extra are requested so the list can still be filled).
+ */
+async function refinedSearch(b: ToolBackend, a: SearchProductsArgs & RefineArgs, ctx: ToolContext): Promise<unknown> {
+  const { excludeIds, cheaperThanId, pricierThanId, ...base } = a;
+  const args: SearchProductsArgs = { ...base };
+  const priceOf = async (id: string): Promise<number | undefined> => {
+    try {
+      const r = (await b.get_product_details({ productId: id }, ctx)) as ToolResult;
+      return r.kind === "details" ? effectiveCents(r.product) / 100 : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+  if (cheaperThanId) {
+    const price = await priceOf(cheaperThanId);
+    if (price !== undefined) {
+      const below = Math.ceil(price) - 1;
+      args.maxPriceLkr = args.maxPriceLkr === undefined ? below : Math.min(args.maxPriceLkr, below);
+    }
+  }
+  if (pricierThanId) {
+    const price = await priceOf(pricierThanId);
+    if (price !== undefined) {
+      const above = Math.floor(price) + 1;
+      args.minPriceLkr = args.minPriceLkr === undefined ? above : Math.max(args.minPriceLkr, above);
+    }
+  }
+  if (args.minPriceLkr !== undefined && args.maxPriceLkr !== undefined && args.minPriceLkr > args.maxPriceLkr) return { kind: "search", total: 0, items: [] } satisfies ToolResult;
+  if (!excludeIds || excludeIds.length === 0) return b.search_products(args, ctx);
+  const result = (await b.search_products({ ...args, limit: Math.min(30, args.limit + excludeIds.length) }, ctx)) as ToolResult;
+  if (result.kind !== "search") return result;
+  const drop = new Set(excludeIds);
+  const items = result.items.filter((p) => !drop.has(p.id)).slice(0, args.limit);
+  return { kind: "search", total: Math.max(0, result.total - result.items.filter((p) => drop.has(p.id)).length), items } satisfies ToolResult;
+}
+
 export function createToolRegistry(b: ToolBackend): ToolRegistry {
   const r = new ToolRegistry();
 
@@ -60,11 +108,15 @@ export function createToolRegistry(b: ToolBackend): ToolRegistry {
         onSale: z.boolean().optional(),
         sort: z.enum(["newest", "price-asc", "price-desc", "name"]).optional(),
         limit: z.number().int().min(1).max(30).default(5),
+        // Internal refinements built by the router for "cheaper", "something else", "show me more": hidden from the model's tool list (INTERNAL_SEARCH_ARGS).
+        excludeIds: z.array(ProductId).max(12).optional(),
+        cheaperThanId: ProductId.optional(),
+        pricierThanId: ProductId.optional(),
       },
       allow: BOTH,
       effect: "read",
       check: (a) => (a.minPriceLkr !== undefined && a.maxPriceLkr !== undefined && a.minPriceLkr > a.maxPriceLkr ? "minPriceLkr is above maxPriceLkr" : null),
-      execute: (a, ctx) => b.search_products(a as SearchProductsArgs, ctx),
+      execute: (a, ctx) => refinedSearch(b, a as SearchProductsArgs & RefineArgs, ctx),
     }),
   );
 
@@ -184,6 +236,7 @@ export function toOllamaTools(registry: ToolRegistry, kind: ActorKind): OllamaTo
     delete schema.additionalProperties;
     const props = (schema.properties ?? {}) as Record<string, Record<string, unknown>>;
     for (const p of Object.values(props)) delete p.default; // keeps the prompt short; defaults are applied server-side
+    for (const k of INTERNAL_SEARCH_ARGS) delete props[k]; // router-only refinements are not offered to a model
     return { type: "function" as const, function: { name: t.name, description: t.description, parameters: schema } };
   });
 }
