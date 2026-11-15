@@ -1,5 +1,30 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const webEnv = {
+    NEXT_DIST_DIR: ".next-e2e",
+    HX_API_BASE: "http://localhost:4011/api/v1/store-api",
+    HX_STORE_CREDENTIAL: "hxs_test.testsecret",
+    SITE_URL: "http://localhost:3100",
+    SITE_CONTACT_PHONE: "+94 70 000 0000",
+    // Test-only videos: local thumbnails, so no request leaves the machine until play is pressed
+    HOME_VIDEOS_TITLE: "Watch our videos",
+    HOME_VIDEOS: JSON.stringify([
+      { id: "AAAAAAAAAAA", title: "Test video one", channel: "Test channel", thumbnail: "/images/e2e-video-thumb.svg" },
+      { id: "BBBBBBBBBBB", title: "Test video two", thumbnail: "/images/e2e-video-thumb.svg" },
+    ]),
+    ADMIN_EMAILS: "admin@example.test",
+    SETTINGS_ENCRYPTION_KEY: "e2e-settings-key-0123456789-abcdefghij",
+    ORDER_SYNC_SECRET: "e2e-sync-secret-0123456789",
+    WA_GRAPH_BASE: "http://localhost:4031",
+    AI_ASSISTANT_ENABLED: "true",
+    AI_AGENT_URL: "http://127.0.0.1:4013",
+    AI_AGENT_HMAC_KEY_ID: "web1",
+    AI_ASSISTANT_VOICE: "stt,tts", // shows the voice UI; the voice routes are intercepted per test (see assistant-voice.spec.ts)
+    AI_AGENT_HMAC_SECRET: "e2e-agent-secret-0123456789-abcdefghij",
+    ORDER_SYNC_BACKOFF_MS: "1500", // tests only: retry quickly instead of after minutes
+    DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5499/postgres?sslmode=disable",
+};
+
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: false,
@@ -7,8 +32,10 @@ export default defineConfig({
   reporter: [["list"]],
   use: { baseURL: "http://localhost:3100", trace: "retain-on-failure" },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] }, grepInvert: /@mobile/, testIgnore: /assistant-real-agent\.spec\.ts/ },
-    { name: "mobile", use: { ...devices["Pixel 7"] }, grep: /@mobile/, testIgnore: /assistant-real-agent\.spec\.ts/ },
+    { name: "desktop", use: { ...devices["Desktop Chrome"] }, grepInvert: /@mobile/, testIgnore: /(ai-qa|assistant-real-agent)\.spec\.ts/ },
+    { name: "mobile", use: { ...devices["Pixel 7"] }, grep: /@mobile/, testIgnore: /(ai-qa|assistant-real-agent)\.spec\.ts/ },
+    { name: "qa-desktop", use: { ...devices["Desktop Chrome"], baseURL: "http://localhost:3101" }, testMatch: /ai-qa\.spec\.ts/, grepInvert: /@mobile/ },
+    { name: "qa-mobile", use: { ...devices["Pixel 7"], baseURL: "http://localhost:3101" }, testMatch: /ai-qa\.spec\.ts/, grep: /@mobile/ },
   ],
   webServer: [
     { command: "npx tsx tests/mock-erp/server.ts", port: 4011, reuseExistingServer: false, env: { MOCK_ERP_PORT: "4011" } },
@@ -23,30 +50,16 @@ export default defineConfig({
       port: 3100,
       timeout: 240_000,
       reuseExistingServer: false, // always a fresh build and a fresh mock: never share state with dev servers
-      env: {
-        NEXT_DIST_DIR: ".next-e2e",
-        HX_API_BASE: "http://localhost:4011/api/v1/store-api",
-        HX_STORE_CREDENTIAL: "hxs_test.testsecret",
-        SITE_URL: "http://localhost:3100",
-        SITE_CONTACT_PHONE: "+94 70 000 0000",
-        // Test-only videos: local thumbnails, so no request leaves the machine until play is pressed
-        HOME_VIDEOS_TITLE: "Watch our videos",
-        HOME_VIDEOS: JSON.stringify([
-          { id: "AAAAAAAAAAA", title: "Test video one", channel: "Test channel", thumbnail: "/images/e2e-video-thumb.svg" },
-          { id: "BBBBBBBBBBB", title: "Test video two", thumbnail: "/images/e2e-video-thumb.svg" },
-        ]),
-        ADMIN_EMAILS: "admin@example.test",
-        SETTINGS_ENCRYPTION_KEY: "e2e-settings-key-0123456789-abcdefghij",
-        ORDER_SYNC_SECRET: "e2e-sync-secret-0123456789",
-        WA_GRAPH_BASE: "http://localhost:4031",
-        AI_ASSISTANT_ENABLED: "true",
-        AI_AGENT_URL: "http://127.0.0.1:4013",
-        AI_AGENT_HMAC_KEY_ID: "web1",
-        AI_ASSISTANT_VOICE: "stt,tts", // shows the voice UI; the voice routes are intercepted per test (see assistant-voice.spec.ts)
-        AI_AGENT_HMAC_SECRET: "e2e-agent-secret-0123456789-abcdefghij",
-        ORDER_SYNC_BACKOFF_MS: "1500", // tests only: retry quickly instead of after minutes
-        DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5499/postgres?sslmode=disable",
-      },
+      env: webEnv,
+    },
+    // A DEVELOPMENT server for the QA control center only: a production build refuses to serve it by design, so the QA tests run
+    // against `next dev` with AI_QA_ENABLED. Separate output folder and port; same fakes and disposable database as above.
+    {
+      command: "npx next dev -p 3101",
+      port: 3101,
+      timeout: 240_000,
+      reuseExistingServer: false,
+      env: { ...webEnv, NEXT_DIST_DIR: ".next-e2e-dev", AI_QA_ENABLED: "true", SITE_URL: "http://localhost:3101" },
     },
   ],
 });
