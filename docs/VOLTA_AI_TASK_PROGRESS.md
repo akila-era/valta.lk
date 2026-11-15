@@ -15,7 +15,9 @@ Background agents (sub-agents) die with the session. If one was running when the
 | Local development, local tests, docs | **Granted** |
 | Commit, push, merge | **Not granted** (nothing has been committed or pushed since `96db7c9`; large uncommitted tree) |
 | Any production change: deploy, restart, env var, DNS, tunnel, firewall, SSH config, proxy, model, registry | **Not granted** |
-| Production Step A (cap 200) / Step B (minimal bundle `e3b40e6f…a21e`) | **Pending approval** (prepared, never run) |
+| Production Step B (minimal bundle `e3b40e6f…a21e` + `AGENT_NEW_SESSIONS_PER_HOUR=30`) | **DEPLOYED 2026-11-15 04:09 CET with the owner's explicit approval ("Step B only")**; verified, see section 2b. Step A (cap 200 alone) was not needed (superseded) |
+| Full new Agent bundle from the committed tree; website deploy (client-address hardening, UI) | **Not deployed; not approved** (the owner chose "Step B only"); website needs disk pruning approval, branch push and a tunnel recreate |
+| Push of the committed branches | **Not pushed; not approved** |
 | Prepared ops scripts in `tools/ops/prepared/` (log redaction, port 8090 block, loopback bind, monitoring) | **Pending approval**; every script refuses to run without `I_HAVE_APPROVAL=yes` |
 | Real Gemini API calls, keys, billing, paid search/voice | **Not granted.** A key was pasted in chat: treat it as exposed, **never use it**, recommend revocation |
 | Sending customer text to any hosted provider | **Not granted** (privacy design, DPA, customer notice, legal review pending) |
@@ -26,9 +28,19 @@ Background agents (sub-agents) die with the session. If one was running when the
 | Persistent customer history/memory | **Not granted** (privacy design first) |
 | Frozen EVAL/HOLDOUT/TEST sets | **Never modify, never tune on** (guard tests exist) |
 
-## 2. Production state (verified by read-only audits on 2026-11-14)
+## 2. Production state (verified by read-only audits on 2026-11-14; **UPDATED 2026-11-15: the AI-server Agent bundle and `AGENT_NEW_SESSIONS_PER_HOUR` below changed: see section 2b, defect F-A is fixed**)
 
 Website server 46.62.143.151: commit `6898dff` live (contract 1.2), tunnel container `volta-ai-tunnel-new`, disk 91% full (3.4 GB free). AI server 109.199.108.76: Agent bundle sha256 `a1d3f8aff347…3e25` (= commit `96db7c9` code), Qwen3-1.7B (`qwen3:1.7b-q4_K_M`), `AGENT_NEW_SESSIONS_PER_HOUR` unset, so **live defect F-A: all guests share one counter of 10 new conversations/hour** (confirmed in the live bundle; not hit in the 12 h journal window). Port 8090 external reachability **unproven**; preview key in nginx logs is harmless now (value empty). No alerting. Old server untouched.
+
+## 2b. Production change record: Step B (2026-11-15, owner-approved)
+
+- **Done on the AI server 109.199.108.76 (one SSH session, host key verified against the pinned fingerprint):** uploaded `agent.min5.mjs` (sha256 `e3b40e6f4aa2cdf68f6387871a31dfd8b6fca136877b28ee5361d0d82dd3a21e`) and `tools/ops/deploy-agent.sh`; backed up the env file to `/etc/volta-agent/agent.env.bak-20261115-040944` (root:voltaagent 640, holds secrets, never printed); appended ONLY `AGENT_NEW_SESSIONS_PER_HOUR=30` (the file already ended with a newline check; 9 -> 10 lines, variable names unchanged apart from the new one); `deploy-agent.sh` backed up the old bundle to `/opt/volta-agent/agent.mjs.bak-20261115-040945` (sha `a1d3f8af…3e25`), installed the new one, restarted `volta-agent` once, health OK (exit 0).
+- **Verified after:** live bundle sha256 = the audited value; `volta-agent` and `ollama` active; `/v1/health` 401; running process holds `AGENT_NEW_SESSIONS_PER_HOUR=30`; NRestarts 0; listeners only 127.0.0.1:8787 and :11434; no model loaded; no error lines. From the website server (one session): site 200, both containers up, a guest chat through the website route and the tunnel from two different client addresses returned HTTP 200 ("hi" answered; "laptop for office work" answered honestly that no matching products exist in the 7-product real catalogue), tunnel health 401, 0 error lines in the web container log.
+- **Effect:** the live defect F-A is fixed in production: new guest conversations are limited per signed client address (30/hour) with a shop-wide ceiling of 2,000/hour, instead of one shared counter of 10/hour. Real shoppers saw a restart of a few seconds and in-memory conversations were reset.
+- **Not changed:** the website (still commit `6898dff`, contract 1.2), nginx, Docker, DNS, tunnel, firewall, Ollama, models, any other environment variable. Leftovers: `/tmp/agent.new.mjs` and `/tmp/deploy-agent.sh` on the AI server (harmless uploads; deletion left to the owner).
+- **Rollback (not needed):** `sudo cp -p /opt/volta-agent/agent.mjs.bak-20261115-040945 /opt/volta-agent/agent.mjs && sudo cp -p /etc/volta-agent/agent.env.bak-20261115-040944 /etc/volta-agent/agent.env && sudo systemctl restart volta-agent`.
+- **Still true:** the per-address protection is only as strong as the client address: port 8090 external reachability is still unproven (decisive test from another network); IPv6 /64 grouping and the website hardening are NOT deployed (website unchanged); no alerting.
+- **Commits (local only, not pushed):** Agent repo `feature/ai-agent-m1`: a77dcbd docs+ops, 7b90407 voice, d1e6bf5 browser, 8864155 core hardening, 860602f R0/M8/catalogue, 3e0d781 Gemini gateway + LLM-first lane (all off). Website worktree `feature/ai-widget`: bdc1efb QA centre, bed898d assistant hardening/contract 1.3/voice routes, b126cee screenshots. `apps/web/tsconfig.json` (auto-generated) left uncommitted.
 
 ## 3. Completed phases (each with the evidence that closed it)
 

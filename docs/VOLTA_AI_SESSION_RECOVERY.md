@@ -2,6 +2,10 @@
 
 Checkpoint taken: 2026-11-15 00:15 (Asia/Colombo), because the session may end. Written for: whoever resumes (the owner, or a new Claude session). Companion: `docs/VOLTA_AI_TASK_PROGRESS.md` (phases, approval matrix, lessons). **Nothing here has been committed, pushed or deployed. No production system, VPS, DNS record, tunnel, environment variable or model was touched. No Gemini API call was made and no key was used.**
 
+## 0. LATEST (2026-11-15 ~04:10 CET): everything is COMMITTED locally; Step B is DEPLOYED to production
+
+All work is committed (Agent repo `feature/ai-agent-m1`: 6 commits a77dcbd..3e0d781; website worktree `feature/ai-widget`: 3 commits bdc1efb, bed898d, b126cee; nothing pushed). The owner approved **"Step B only"**: the audited minimal Agent bundle (sha256 `e3b40e6f…a21e`) and `AGENT_NEW_SESSIONS_PER_HOUR=30` were deployed to the AI server and verified (details, backups and rollback commands in `docs/VOLTA_AI_TASK_PROGRESS.md` section 2b). Nothing else in production changed. The committed tree also passes: `tsc` clean, 2,735 of 2,736 Agent tests (the one miss is a wall-clock bound in `verify-v2-fuzz` that passes 3/3 alone), website 515 passed. The full new Agent bundle and the website are NOT deployed (need the owner's approval, disk pruning and a branch push for the website). Sections 1 to 8 below describe the earlier checkpoint and remain valid history.
+
 ## 1. Incident found and repaired during this checkpoint (read this first)
 
 `apps/agent/src/voice/audio.ts` was found as a **0-byte file** (last written 2026-11-14 23:58:07, the minute the gateway agent began creating `src/gateway/**`). The `src/voice/` directory has never been committed, so git had no copy; the IDE local history also recorded the empty file. Consequence at that moment: `tsc` failed and 66 tests failed.
