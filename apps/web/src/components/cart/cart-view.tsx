@@ -12,85 +12,7 @@ import { EmptyState } from "@/components/ui/states";
 import { lineKey, MAX_LINE_QTY } from "@/lib/utils/cart-math";
 import { addMoney, formatLkr, fromCents, multiplyMoney, toCents } from "@/lib/utils/money";
 import { cartActions, useCart } from "@/store/cart";
-
-interface LiveLine {
-  productId: string;
-  variantKey: string;
-  available: boolean;
-  unitPrice: number | null;
-  listPrice: number | null;
-  offerName: string | null;
-  maxQuantity: number | null;
-}
-
-interface CheckoutInfo {
-  enabled: boolean;
-  deliveryCharge: number | null;
-}
-
-/**
- * Fetches live availability/prices from the server (which asks the ERP) so the cart reflects ERP state, never only stale
- * local data. Price changes are applied to the cart and remembered as notices so the customer sees what changed.
- */
-export function useLiveCart() {
-  const { lines } = useCart();
-  const [live, setLive] = useState<LiveLine[] | null>(null);
-  const [failed, setFailed] = useState(false);
-  const [priceNotes, setPriceNotes] = useState<Record<string, { from: number; to: number }>>({});
-  const [attempt, setAttempt] = useState(0);
-  const signature = lines.map((l) => `${lineKey(l)}x${l.quantity}`).join("|");
-  const linesRef = useRef(lines);
-  useEffect(() => {
-    linesRef.current = lines; // read inside the fetch callback; effects run in order, so this is current when it fires
-  });
-
-  useEffect(() => {
-    if (!lines.length) return;
-    const ctl = new AbortController();
-    fetch("/api/store/availability", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lines: lines.map((l) => ({ productId: l.productId, variantKey: l.variantKey, quantity: l.quantity })) }),
-      signal: ctl.signal,
-    })
-      .then(async (r) => {
-        if (!r.ok) throw new Error();
-        const data = (await r.json()) as { lines: LiveLine[] };
-        setLive(data.lines);
-        setFailed(false);
-        const current = linesRef.current;
-        const changed = data.lines.filter((d) => d.unitPrice != null).map((d) => ({ productId: d.productId, variantKey: d.variantKey, unitPrice: d.unitPrice as number }));
-        const notes: Record<string, { from: number; to: number }> = {};
-        for (const c of changed) {
-          const l = current.find((x) => x.productId === c.productId && x.variantKey === c.variantKey);
-          if (l && l.unitPrice !== c.unitPrice) notes[lineKey(l)] = { from: l.unitPrice, to: c.unitPrice };
-        }
-        if (Object.keys(notes).length) {
-          setPriceNotes((p) => ({ ...p, ...notes }));
-          cartActions.applyPrices(changed);
-        }
-      })
-      .catch((e) => e?.name !== "AbortError" && setFailed(true));
-    return () => ctl.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signature, attempt]);
-
-  return { live, failed, priceNotes, retry: () => setAttempt((n) => n + 1) };
-}
-
-/** Delivery charge and whether ordering is possible right now (both come from the ERP through the server). */
-function useCheckoutInfo(): CheckoutInfo | null {
-  const [info, setInfo] = useState<CheckoutInfo | null>(null);
-  useEffect(() => {
-    const ctl = new AbortController();
-    fetch("/api/store/settings", { signal: ctl.signal })
-      .then((r) => r.json())
-      .then((d) => setInfo({ enabled: Boolean(d.enabled), deliveryCharge: typeof d.deliveryCharge === "number" ? d.deliveryCharge : null }))
-      .catch(() => undefined);
-    return () => ctl.abort();
-  }, []);
-  return info;
-}
+import { useCheckoutInfo, useLiveCart } from "./use-live-cart";
 
 export function CartView() {
   const { lines, subtotal } = useCart();
@@ -164,19 +86,19 @@ export function CartView() {
           </p>
         )}
 
-        <ul className="divide-y divide-border rounded-2xl border border-border bg-bg">
+        <ul className="divide-y divide-border border-y border-border">
           {lines.map((l) => {
             const key = lineKey(l);
             const d = liveFor(l);
             const note = priceNotes[key];
             const max = d?.maxQuantity ?? null;
             return (
-              <li key={key} className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-3 p-4 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-center" data-testid="cart-line">
-                <Link href={`/products/${l.slug}`} className="relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-xl bg-surface sm:h-[5.5rem] sm:w-[5.5rem]" aria-label={`View ${l.name}`}>
-                  {l.image ? <Image src={l.image} alt="" fill sizes="88px" className="object-contain p-2" /> : <Smartphone className="m-auto h-full w-8 text-muted" aria-hidden />}
+              <li key={key} className="grid grid-cols-[5rem_minmax(0,1fr)] gap-x-4 gap-y-3 py-5 sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:items-center sm:gap-x-6" data-testid="cart-line">
+                <Link href={`/products/${l.slug}`} className="relative h-20 w-20 overflow-hidden rounded-2xl bg-surface sm:h-28 sm:w-28" aria-label={`View ${l.name}`}>
+                  {l.image ? <Image src={l.image} alt="" fill sizes="112px" className="object-contain p-2" /> : <Smartphone className="m-auto h-full w-8 text-muted" aria-hidden />}
                 </Link>
                 <div className="min-w-0">
-                  <Link href={`/products/${l.slug}`} className="type-product hover:underline">{l.name}</Link>
+                  <Link href={`/products/${l.slug}`} className="type-product -my-2 inline-block py-2 hover:underline">{l.name}</Link>
                   {l.variantLabel && <p className="text-sm text-muted">{l.variantLabel}</p>}
                   {l.sku && <p className="text-xs text-muted">SKU: <span data-testid="line-sku">{l.sku}</span></p>}
                   <p className="mt-1 text-sm text-muted">{formatLkr(l.unitPrice)} each</p>
@@ -249,7 +171,7 @@ export function CartView() {
         <AccessoryRail productIds={lines.map((l) => l.productId)} selections={lines.map((l) => ({ productId: l.productId, variantKey: l.variantKey }))} />
       </div>
 
-      <aside ref={summaryRef} className="card h-fit p-5 lg:sticky lg:top-40" aria-label="Order summary">
+      <aside ref={summaryRef} className="h-fit rounded-3xl bg-surface p-6 lg:sticky lg:top-40" aria-label="Order summary">
         <h2 className="text-lg font-semibold">Order summary</h2>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between"><dt>Subtotal</dt><dd data-testid="subtotal">{formatLkr(subtotal)}</dd></div>
@@ -270,21 +192,21 @@ export function CartView() {
           ))}
           <div className="flex items-baseline justify-between border-t border-border pt-3 text-base">
             <dt className="font-semibold">{total != null ? "Total" : "Total before delivery"}</dt>
-            <dd className="text-xl font-extrabold tabular-nums text-brand-600" data-testid="total">{formatLkr(total ?? subtotal)}</dd>
+            <dd className="text-xl font-extrabold tabular-nums text-ink" data-testid="total">{formatLkr(total ?? subtotal)}</dd>
           </div>
         </dl>
         <p className="mt-3 text-xs text-muted">Payment is cash on delivery. Prices and stock are confirmed again when you place your order.</p>
         <Link href="/checkout" className={`btn-primary mt-5 w-full ${blocked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={blocked} tabIndex={blocked ? -1 : undefined}>
           Proceed to checkout
         </Link>
-        <Link href="/products" className="btn-secondary mt-3 w-full">Continue shopping</Link>
+        <Link href="/products" className="btn-secondary mt-3 w-full bg-transparent">Continue shopping</Link>
       </aside>
       {dockSummary && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <p className="min-w-0 flex-1">
               <span className="block text-xs text-muted">{total != null ? "Total" : "Total before delivery"}</span>
-              <span className="text-lg font-extrabold tabular-nums text-brand-600">{formatLkr(total ?? subtotal)}</span>
+              <span className="text-lg font-extrabold tabular-nums text-ink">{formatLkr(total ?? subtotal)}</span>
             </p>
             <Link href="/checkout" className={`btn-primary shrink-0 ${blocked ? "pointer-events-none opacity-50" : ""}`} aria-disabled={blocked} aria-label="Checkout" tabIndex={blocked ? -1 : undefined}>
               Checkout

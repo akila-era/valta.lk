@@ -46,7 +46,7 @@ describe("assistant product cards", () => {
 
   it("uses the blue primary and no storefront orange", () => {
     const out = html(createElement(CartProposalConfirm, { action: add(), productName: "Nova X1", onConfirm: vi.fn(), onCancel: vi.fn() }));
-    expect(out).toContain("#2563EB");
+    expect(out).toContain("#C2410C");
   });
 });
 

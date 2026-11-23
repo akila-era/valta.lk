@@ -18,7 +18,7 @@ interface Entry {
 }
 
 const FIELD = "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900";
-const BTN = "inline-flex min-h-11 items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-semibold text-white hover:bg-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]";
+const BTN = "inline-flex min-h-11 items-center justify-center rounded-lg bg-[#C2410C] px-4 text-sm font-semibold text-white hover:bg-[#9a3412] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C2410C]";
 const BTN2 = "inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -66,7 +66,7 @@ export function AssistantDemoShell() {
 
   return (
     <div className="mx-auto max-w-5xl bg-white text-slate-900" data-testid="assistant-demo">
-      <div role="note" className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-slate-800">
+      <div role="note" className="rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-slate-800">
         <p className="flex flex-wrap items-center gap-2 font-semibold">
           Local demo <MockBadge />
         </p>

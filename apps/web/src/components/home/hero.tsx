@@ -1,88 +1,116 @@
 import Link from "next/link";
-import { ArrowRight, Headset, PackageSearch, Truck, Wallet } from "lucide-react";
-import { siteConfig } from "@/lib/site-config";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ProductImage } from "@/components/products/product-card";
+import { discountPercent, effectivePrice, isNewArrival } from "@/lib/erp/product-utils";
+import type { ErpProduct } from "@/lib/erp/types";
 import { formatLkr } from "@/lib/utils/money";
-import { HeroSlides } from "./hero-slides";
+import { HeroSlider } from "./hero-slider";
 
-interface HeroProps {
-  phonesHref?: string;
-  accessoriesHref?: string;
-  cod: boolean;
-  deliveryCharge: number | null;
+export interface HeroSlide {
+  product: ErpProduct;
+  /** Why this product is here. Only what the data supports: staff-marked featured, newest in the catalogue, or a real sale price. */
+  kind: "featured" | "new" | "offer";
 }
 
-/** Full-width campaign. The photograph slides; the headline and actions stay as HTML on the left. */
-export function Hero({ phonesHref, accessoriesHref, cod, deliveryCharge }: HeroProps) {
+interface HeroProps {
+  /** Where "Discover Brands" goes; omitted when the catalogue has too few brands to browse. */
+  brandsHref?: string;
+  /** Up to three real, in-stock products with photographs. Empty shows the branded fallback. */
+  slides: HeroSlide[];
+}
+
+function tag({ product, kind }: HeroSlide) {
+  if (kind === "offer") {
+    const pct = discountPercent(product);
+    return pct ? `Offer · -${pct}%` : "Offer";
+  }
+  if (kind === "featured") return "Featured";
+  return isNewArrival(product.publishedAt) ? "New arrival" : "Latest in the catalogue";
+}
+
+/** One lit display window: the real product photograph on a soft studio surface, with its name, price and stock beneath. */
+function ProductStage({ slide, priority }: { slide: HeroSlide; priority: boolean }) {
+  const { product: p, kind } = slide;
+  const title = p.content?.displayTitle || p.name;
+  const pct = discountPercent(p);
   return (
-    <>
-      <section aria-labelledby="hero-title" className="bg-bg">
-        <div className="container-wide py-4 sm:py-5">
-          <div className="overflow-hidden rounded-[1.5rem] bg-[#f7f1ea] sm:rounded-[1.75rem] md:relative md:h-[clamp(21rem,36vw,27rem)]">
-            <div className="relative aspect-[16/9] md:absolute md:inset-0 md:aspect-auto">
-              <HeroSlides />
-            </div>
-            <div className="pointer-events-none relative z-10 flex flex-col justify-center px-5 py-6 sm:px-8 md:absolute md:inset-y-0 md:left-0 md:w-[46%] md:bg-gradient-to-r md:from-white/70 md:via-white/30 md:to-transparent md:pb-20 md:pl-16 md:pr-4 md:pt-6 lg:pl-20">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-600 sm:text-xs">Latest technology</p>
-              <h1 id="hero-title" className="mt-2 max-w-[11ch] text-[2rem] font-black leading-[0.98] tracking-[-0.04em] text-ink sm:text-4xl lg:text-[2.9rem]">
-                Technology that <span className="text-brand-500">moves</span> you.
-              </h1>
-              <p className="mt-3 max-w-md text-sm leading-6 text-ink/70 sm:mt-4 sm:text-base sm:leading-7">
-                Discover smartphones, everyday tech and accessories at VALTA.LK.
-              </p>
-              <div className="pointer-events-auto mt-5 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
-                <Link href="/products" className="btn-primary rounded-full px-4 shadow-[0_8px_20px_-10px_rgb(255_92_0/0.7)] sm:btn-lg sm:px-7">
-                  Shop now <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-                {phonesHref && (
-                  <Link href={phonesHref} className="btn-outline rounded-full bg-white px-4 sm:btn-lg sm:px-7">
-                    Explore latest phones
-                  </Link>
-                )}
-              </div>
-              {accessoriesHref && (
-                <Link href={accessoriesHref} className="pointer-events-auto group mt-3 inline-flex min-h-10 w-fit items-center gap-1.5 rounded-sm text-sm font-semibold text-ink underline-offset-4 hover:underline">
-                  Explore accessories <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-      <ServiceBar cod={cod} deliveryCharge={deliveryCharge} />
-    </>
+    <Link
+      href={`/products/${p.slug}`}
+      aria-label={`${title}, ${formatLkr(effectivePrice(p))}`}
+      className="group relative isolate flex h-full flex-col overflow-hidden rounded-[2rem] bg-[radial-gradient(ellipse_at_50%_38%,#ffffff_0%,#eceef3_68%,#dfe3ec_100%)] text-ink shadow-[0_0_90px_-14px_rgba(249,115,22,0.65)] ring-1 ring-white/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+    >
+      <span className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-xs font-semibold ${kind === "offer" ? "bg-brand-500 text-on-brand" : "bg-ink text-white"}`}>{tag(slide)}</span>
+      {/* multiply blends the photograph's white background into the studio surface, so the product looks lit, not pasted */}
+      <span className="relative block flex-1 mix-blend-multiply">
+        <span className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none">
+          <ProductImage src={p.images[0]} alt="" priority={priority} sizes="(min-width:1024px) 38vw, 92vw" padding="p-6 pt-12 sm:p-10 sm:pt-14" />
+        </span>
+      </span>
+      <span aria-hidden className="pointer-events-none absolute inset-x-[22%] bottom-[19%] h-5 rounded-[50%] bg-ink/20 blur-xl" />
+      <span className="relative flex items-center justify-between gap-4 px-5 pb-4 pt-1 sm:px-7 sm:pb-6">
+        <span className="min-w-0">
+          <span className="block truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">{p.brand ?? "VALTA.LK"}</span>
+          <span className="line-clamp-2 block text-base font-bold leading-snug sm:text-lg">{title}</span>
+          <span className="mt-1 flex flex-wrap items-baseline gap-x-2 text-sm tabular-nums">
+            <span className="text-base font-bold sm:text-lg">{formatLkr(effectivePrice(p))}</span>
+            {pct ? <s className="text-muted">{formatLkr(p.price)}</s> : null}
+            <span className="text-xs font-medium text-success">In stock</span>
+          </span>
+        </span>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">
+          <ArrowUpRight className="h-5 w-5" aria-hidden />
+        </span>
+      </span>
+    </Link>
   );
 }
 
-function ServiceBar({ cod, deliveryCharge }: { cod: boolean; deliveryCharge: number | null }) {
-  const items = [
-    { icon: Truck, title: deliveryCharge != null ? `Delivery ${formatLkr(deliveryCharge)}` : "Delivery charge", text: "Shown before you order", href: "/shipping-policy" },
-    cod && { icon: Wallet, title: "Cash on Delivery", text: "Pay when your order arrives" },
-    { icon: PackageSearch, title: "Track Your Order", text: "Follow it online", href: "/track-order" },
-    { icon: Headset, title: "Customer Support", text: siteConfig.phone ? `Call ${siteConfig.phone}` : "Here to help you", href: "/contact" },
-  ].filter(Boolean) as { icon: typeof Truck; title: string; text: string; href?: string }[];
+/** Shown only when the catalogue has no photographed in-stock product: a branded stage, never a made-up product. */
+function BrandedStage() {
+  return (
+    <div aria-hidden className="flex h-full items-center justify-center overflow-hidden rounded-[2rem] bg-[radial-gradient(ellipse_at_50%_38%,#ffffff_0%,#eceef3_68%,#dfe3ec_100%)] shadow-[0_0_90px_-14px_rgba(249,115,22,0.65)] ring-1 ring-white/20">
+      <span className="select-none text-[22vw] font-black leading-none tracking-[-0.06em] text-ink/[0.07] lg:text-[9rem]">VALTA</span>
+    </div>
+  );
+}
+
+/**
+ * Premium hero: a dark studio scene with an orange light, a large editorial headline, and real catalogue products shown one at a
+ * time in a lit display window with numbered progress indicators (only when there is more than one real product).
+ */
+export function Hero({ brandsHref, slides }: HeroProps) {
+  const intro = (
+    <>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">VALTA.LK &middot; Sri Lanka</p>
+      <h1 id="hero-title" className="mt-4 max-w-[9ch] text-[2.75rem] font-bold leading-[0.95] tracking-[-0.045em] min-[390px]:text-5xl sm:text-6xl lg:text-[5rem]">
+        Technology. <span className="text-brand-500">Elevated.</span>
+      </h1>
+      <p className="mt-5 max-w-md text-base leading-7 text-white/80 sm:text-lg">Discover premium technology and accessories designed for the way you live and work.</p>
+      <div className="mt-7 flex flex-col gap-3 min-[430px]:flex-row min-[430px]:items-center">
+        <Link href="/products" className="btn-primary btn-lg rounded-full">
+          Explore Products <ArrowRight className="h-4 w-4" aria-hidden />
+        </Link>
+        {brandsHref && (
+          <Link href={brandsHref} className="btn btn-lg rounded-full border border-white/35 text-white hover:bg-white/10">
+            Discover Brands
+          </Link>
+        )}
+      </div>
+    </>
+  );
+  const stages = slides.length ? slides.map((s, i) => <ProductStage key={s.product.id} slide={s} priority={i === 0} />) : [<BrandedStage key="brand" />];
+  const labels = slides.map((s) => s.product.content?.displayTitle || s.product.name);
 
   return (
-    <section aria-label="Shopping with VALTA.LK" className="border-y border-border bg-bg">
-      <ul className="container-page grid grid-cols-1 gap-y-4 py-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-0 lg:divide-x lg:divide-border">
-        {items.map(({ icon: I, title, text, href }) => {
-          const body = (
-            <>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface text-ink">
-                <I className="h-5 w-5" strokeWidth={1.6} aria-hidden />
-              </span>
-              <span>
-                <span className="block text-base font-semibold text-ink">{title}</span>
-                {text && <span className="block text-sm text-muted">{text}</span>}
-              </span>
-            </>
-          );
-          return (
-            <li key={title} className="flex lg:justify-center lg:px-6 lg:first:justify-start lg:first:pl-0 lg:last:justify-end lg:last:pr-0">
-              {href ? <Link href={href} className="flex items-center gap-4 hover:text-brand-600">{body}</Link> : <div className="flex items-center gap-4">{body}</div>}
-            </li>
-          );
-        })}
-      </ul>
+    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-ink text-white">
+      {/* Studio scene: an orange light from the right and two soft beams. Decorative only. */}
+      <div aria-hidden className="absolute inset-0 -z-10">
+        <div className="absolute -right-[12%] -top-[25%] h-[150%] w-[75%] bg-[radial-gradient(closest-side,rgba(249,115,22,0.5),transparent)]" />
+        <div className="absolute -top-10 right-[22%] h-[140%] w-24 rotate-[24deg] bg-gradient-to-b from-white/[0.07] to-transparent" />
+        <div className="absolute -top-10 right-[38%] h-[140%] w-10 rotate-[24deg] bg-gradient-to-b from-brand-500/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/50 to-transparent" />
+      </div>
+      <HeroSlider intro={intro} slides={stages} labels={labels} />
     </section>
   );
 }

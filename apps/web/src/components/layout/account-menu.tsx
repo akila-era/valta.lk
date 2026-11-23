@@ -39,7 +39,7 @@ export function AccountMenu({ customer, enabled }: { customer: { name: string } 
         aria-controls={`${id}-menu`}
         aria-label={customer ? `My account, signed in as ${customer.name}` : "My account, sign in or register"}
         onClick={() => setOpenedAt(open ? null : pathname)}
-        className="inline-flex min-h-11 items-center gap-2 px-2 text-sm font-medium hover:text-brand-600 md:px-5"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 text-sm font-medium hover:text-brand-600 md:px-5"
       >
         <User className="h-5 w-5" strokeWidth={1.5} aria-hidden />
         <span className="hidden max-w-[9rem] truncate lg:inline">{customer ? `Hi, ${first}` : "My Account"}</span>

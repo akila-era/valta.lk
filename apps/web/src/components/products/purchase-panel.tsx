@@ -28,8 +28,8 @@ export interface PanelProduct {
 /** One delivery / payment fact under the buy buttons. Only facts the store really offers are passed in. */
 function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-3 rounded-xl border border-border bg-bg p-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+    <li className="flex items-start gap-3 py-3">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-ink">
         <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
       </span>
       <span className="min-w-0">
@@ -40,7 +40,7 @@ function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: s
   );
 }
 
-export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean }) {
+export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, compact = false, onAdded }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; compact?: boolean; onAdded?: () => void }) {
   const router = useRouter();
   const mustChoose = variantChoiceRequired(product.variants.length);
   const only = product.variants.length === 1 ? product.variants[0].key : "";
@@ -53,6 +53,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
   const [showBar, setShowBar] = useState(false);
   const lock = useRef(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<HTMLFieldSetElement>(null);
 
   const variant = product.variants.find((v) => v.key === variantKey);
   const chosen = !mustChoose || Boolean(variant);
@@ -67,22 +68,23 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
 
   useEffect(() => {
     const el = actionsRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
+    if (compact || !el || typeof IntersectionObserver === "undefined") return;
     const observer = new IntersectionObserver(([entry]) => setShowBar(!entry.isIntersecting), { threshold: 0.2 });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [compact]);
 
   useEffect(() => {
+    if (compact) return;
     // Pad the whole page (not just <main>) so the footer and back-to-top button stay reachable above the fixed bar.
     const main = document.body;
     if (!main) return;
     const narrow = window.matchMedia("(max-width: 1023px)").matches;
-    main.style.paddingBottom = showBar && narrow ? "6.5rem" : "";
+    main.style.paddingBottom = showBar && narrow ? "calc(5.75rem + env(safe-area-inset-bottom))" : "";
     return () => {
       main.style.paddingBottom = "";
     };
-  }, [showBar]);
+  }, [showBar, compact]);
 
   function choose(key: string) {
     setVariantKey(key);
@@ -107,6 +109,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       quantity: qty,
     });
     setAdded(true);
+    onAdded?.();
     window.setTimeout(() => {
       lock.current = false;
       setAdded(false);
@@ -122,7 +125,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       </div>
 
       {product.variants.length > 0 && (
-        <fieldset>
+        <fieldset ref={optionsRef} className="scroll-mt-28">
           <legend className="label">Options</legend>
           <div className="flex flex-wrap gap-2">
             {product.variants.map((v) => (
@@ -164,10 +167,10 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>
         </div>
         <div className="flex flex-1 gap-3">
-          <button type="button" className="btn-primary min-w-0 flex-1 whitespace-nowrap shadow-[0_8px_20px_-12px_rgb(255_92_0/0.8)]" disabled={!purchasable || added} onClick={add}>
+          <button type="button" className="btn-primary min-w-0 flex-1 whitespace-nowrap " disabled={!purchasable || added} onClick={add}>
             {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : "Add to cart"}
           </button>
-          <button
+          {!compact && <button
             type="button"
             className="btn-dark min-w-0 flex-1 whitespace-nowrap"
             disabled={!purchasable || added}
@@ -176,10 +179,10 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
             }}
           >
             Buy now
-          </button>
+          </button>}
         </div>
       </div>
-      <ul className="grid gap-2 text-sm sm:grid-cols-2" aria-label="Delivery and payment">
+      {!compact && <ul className="grid divide-y divide-border border-y border-border text-sm sm:grid-cols-2 sm:divide-y-0 sm:[&>li:nth-child(n+3)]:border-t sm:[&>li:nth-child(n+3)]:border-border" aria-label="Delivery and payment">
         {deliveryCharge != null ? (
           <Assurance icon={Truck} title={`Delivery ${formatLkr(deliveryCharge)}`}>
             <Link href="/shipping-policy" className="underline underline-offset-2 hover:text-ink">Shipping policy</Link>
@@ -190,20 +193,40 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           <Link href="/returns-policy" className="underline underline-offset-2 hover:text-ink">Returns policy</Link>
         </Assurance>
         <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
-      </ul>
-      {showBar ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/95 p-3 shadow-overlay backdrop-blur lg:hidden">
-          <div className="mx-auto flex max-w-lg items-center gap-3">
-            <p className="min-w-0 flex-1 truncate text-base font-extrabold text-brand-600 tabular-nums">{formatLkr(unit)}</p>
-            <button type="button" className="btn-primary shrink-0" disabled={!purchasable || added} aria-label={added ? `${product.name} added to cart` : `Add ${product.name} to cart`} onClick={add}>
-              {added ? "Added" : "Add to cart"}
-            </button>
+      </ul>}
+      {showBar && !compact ? (
+        <div className="pb-safe fixed inset-x-0 bottom-0 z-40 !m-0 border-t border-border bg-bg/95 px-3 pt-3 shadow-overlay backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-lg items-center gap-2">
+            <p className="min-w-0 flex-1 truncate text-base font-extrabold tabular-nums text-ink">{formatLkr(unit)}</p>
+            {mustChoose && !variant ? (
+              // A variant product cannot be added until an option is chosen: take the shopper to the options instead of a dead button.
+              <button type="button" className="btn-dark shrink-0 px-5" onClick={() => optionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}>
+                Select option
+              </button>
+            ) : (
+              <>
+                <button type="button" className="btn-primary shrink-0 px-4" disabled={!purchasable || added} aria-label={added ? `${product.name} added to cart` : `Add ${product.name} to cart`} onClick={add}>
+                  {added ? "Added" : (<><span className="min-[375px]:hidden">Add</span><span className="hidden min-[375px]:inline">Add to cart</span></>)}
+                </button>
+                <button
+                  type="button"
+                  className="btn-dark shrink-0 px-4"
+                  disabled={!purchasable || added}
+                  aria-label={`Buy ${product.name} now`}
+                  onClick={() => {
+                    if (add()) router.push("/checkout");
+                  }}
+                >
+                  Buy now
+                </button>
+              </>
+            )}
           </div>
         </div>
       ) : null}
 
       <div role="status" aria-live="polite" className="-mt-2 text-sm">
-        {added && (
+        {added && !compact && (
           <Link href="/cart" className="font-semibold text-brand-600 underline">
             View cart
           </Link>

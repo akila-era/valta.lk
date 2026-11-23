@@ -32,24 +32,24 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
 
   return (
     <nav aria-label="Categories" className="hidden border-t border-border md:block">
-      <div className="container-wide flex flex-wrap items-center gap-x-6 gap-y-1 py-2">
+      <div className="container-wide flex flex-nowrap items-center gap-x-5 overflow-x-auto py-2 [scrollbar-width:none] lg:gap-x-7 [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           aria-haspopup="dialog"
           onClick={() => setOpenedAt(pathname)}
-          className="my-1 inline-flex min-h-10 items-center gap-2 rounded-full bg-brand-500 px-4 text-sm font-semibold text-ink hover:bg-brand-600"
+          className="my-1 inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full bg-ink px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-500 hover:text-on-brand"
         >
           <Menu className="h-4 w-4" aria-hidden /> All Categories <ChevronDown className="h-4 w-4" aria-hidden />
         </button>
         <CategoryDrawer open={open} onClose={close} categories={categories} hasDeals={showDeals} />
-        <ul className="contents">
+        <ul className="hidden xl:contents">
           {categories.map((c) => {
             const active = pathname === `/categories/${c.slug}`;
             const Icon = iconFor(c.name);
             return (
               <li key={c.slug}>
                 <Link href={`/categories/${c.slug}`} aria-current={active ? "page" : undefined} className={item(active)}>
-                  {Icon ? <Icon className="mr-1.5 h-4 w-4" strokeWidth={1.75} aria-hidden /> : null}
+                  {Icon ? <Icon className="mr-1.5 hidden h-4 w-4 2xl:block" strokeWidth={1.75} aria-hidden /> : null}
                   {c.name}
                 </Link>
               </li>
@@ -60,17 +60,17 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
           <Link
             href="/products?sale=1"
             aria-current={dealsActive ? "page" : undefined}
-            className={`inline-flex min-h-10 shrink-0 items-center text-sm font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
+            className={`inline-flex min-h-11 shrink-0 items-center px-1 text-sm font-bold ${dealsActive ? "text-brand-600" : "text-brand-600 hover:underline"}`}
           >
             Deals
           </Link>
         )}
         {showBrands && (
-          <Link href="/#brands" className="inline-flex min-h-10 shrink-0 items-center text-sm font-semibold text-ink hover:text-brand-600">
+          <Link href="/brands" className="inline-flex min-h-11 shrink-0 items-center px-1 text-sm font-semibold text-ink hover:text-brand-600">
             Brands
           </Link>
         )}
-        <Link href="/#products" className="inline-flex min-h-10 shrink-0 items-center text-sm font-semibold text-ink hover:text-brand-600">
+        <Link href="/#products" className="inline-flex min-h-11 shrink-0 items-center px-1 text-sm font-semibold text-ink hover:text-brand-600">
           New Arrivals
         </Link>
       </div>

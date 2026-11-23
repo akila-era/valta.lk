@@ -24,10 +24,13 @@ export function AddToCartButton({ line, label = "Add to cart", compact, bar }: {
       onClick={add}
       disabled={done}
       aria-label={done ? `${line.name} added to cart` : `${label}: ${line.name}`}
-      className={bar ? "flex min-h-11 w-full items-center justify-center gap-2 bg-brand-500 px-3 text-xs font-bold uppercase tracking-[0.08em] text-ink transition-colors hover:bg-brand-600 hover:text-white disabled:cursor-default disabled:bg-success disabled:text-white motion-reduce:transition-none" : `btn-primary w-full ${compact ? "min-h-10 px-3" : ""}`}
+      className={bar ? "flex min-h-11 flex-1 items-center justify-center gap-1.5 bg-brand-500 px-2 sm:gap-2 sm:px-3 whitespace-nowrap text-xs font-bold uppercase tracking-[0.06em] text-on-brand transition-colors hover:bg-brand-600 hover:text-white disabled:cursor-default disabled:bg-success disabled:text-white motion-reduce:transition-none" : `btn-primary w-full ${compact ? "min-h-10 px-3" : ""}`}
     >
       {done ? <Check className="h-4 w-4" aria-hidden /> : <ShoppingCart className="h-4 w-4" aria-hidden />}
-      <span>{done ? "Added" : label}</span>
+      {done ? <span>Added</span> : bar ? (
+        // Narrow cards (two-up on phones) get the short label; the card is a container, so wider cards show the full one.
+        <><span className="@[12rem]:hidden">Add</span><span className="hidden @[12rem]:inline">{label}</span></>
+      ) : <span>{label}</span>}
     </button>
   );
 }

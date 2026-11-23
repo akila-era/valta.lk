@@ -11,9 +11,11 @@ export default async function TrackOrderPage({ searchParams }: { searchParams: P
   const { ref } = await searchParams;
   return (
     <>
+      <div className="mx-auto max-w-3xl">
       <h1 className="page-title mb-2">Track your order</h1>
       <p className="mb-6 max-w-2xl text-sm text-muted">Enter the reference from your confirmation. This page shows the order status the store has on record. It does not show another customer’s delivery details.</p>
       <OrderTracker initialRef={ref?.slice(0, 40)} />
+      </div>
     </>
   );
 }

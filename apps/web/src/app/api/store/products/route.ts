@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { listProducts } from "@/lib/erp/catalogue";
+import { getProductBySlug, listProducts } from "@/lib/erp/catalogue";
 import { mapErpError } from "@/lib/erp/errors";
 import { errorResponse, guard, json } from "@/lib/security/api";
 
 export const dynamic = "force-dynamic";
 
 const querySchema = z.object({
+  slug: z.string().trim().min(1).max(200).optional(),
   q: z.string().trim().max(100).optional(),
   category: z.string().trim().max(100).optional(),
   brand: z.string().trim().max(80).optional(),
@@ -21,6 +22,11 @@ export async function GET(req: Request) {
   const parsed = querySchema.safeParse(Object.fromEntries(new URL(req.url).searchParams));
   if (!parsed.success) return errorResponse(400, "INVALID_QUERY", "Invalid query parameters.");
   try {
+    // Single-product lookup (used by quick view): same catalogue source as the product page, read-only.
+    if (parsed.data.slug) {
+      const product = await getProductBySlug(parsed.data.slug);
+      return product ? json({ product }) : errorResponse(404, "NOT_FOUND", "Product not found.");
+    }
     return json(await listProducts(parsed.data));
   } catch (e) {
     const m = mapErpError(e);

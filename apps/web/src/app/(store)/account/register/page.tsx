@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { UserPlus } from "lucide-react";
 import { AccountsUnavailableNotice, AuthCard } from "@/components/account/auth-card";
 import { AuthForm } from "@/components/account/auth-form";
 import { safeNext } from "@/lib/auth/safe-next";
@@ -14,6 +15,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   if (await getCurrentCustomer()) redirect(safeNext(next));
   return (
     <AuthCard
+      icon={UserPlus}
       title="Create your account"
       intro="Save your details for faster checkout and see all your orders in one place."
       footer={<>Already have an account? <Link href={`/account/login${next ? `?next=${encodeURIComponent(safeNext(next))}` : ""}`} className="font-semibold text-brand-600 hover:underline">Sign in</Link></>}

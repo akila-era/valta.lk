@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CatalogueView, type RawParams } from "@/components/products/catalogue-view";
+import { CategoryHeader } from "@/components/products/category-header";
 import { Breadcrumbs } from "@/components/ui/chrome";
 import { ErpUnavailable } from "@/components/ui/states";
 import { listProducts } from "@/lib/erp/catalogue";
@@ -44,8 +45,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           ...(sub ? [{ label: sub.name }] : []),
         ]}
       />
-      <h1 className="page-title">{category.name}</h1>
-      <p className="type-meta mb-6 mt-2">{category.count} {category.count === 1 ? "product" : "products"} in this category.</p>
+      <CategoryHeader slug={slug} name={category.name} count={category.count} image={category.image} subs={category.subs} activeSub={sub?.slug} />
       <CatalogueView basePath={`/categories/${slug}`} params={query} fixedCategory={slug} />
     </>
   );

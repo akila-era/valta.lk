@@ -1,94 +1,90 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgePercent, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { ProductCard } from "@/components/products/product-card";
-import { SectionHeader } from "@/components/ui/chrome";
 import { EmptyState } from "@/components/ui/states";
 import type { HomeData } from "@/lib/home-data";
-import { ProductCarousel } from "./product-carousel";
 import { categoryVisual } from "./category-art";
-import { categoryIcon } from "./sections";
+import { Reveal } from "./reveal";
 
-/** Compact round icon shortcuts shown above the hero (New arrivals, Deals when real, then real categories). */
-export function CategoryShortcuts({ categories, hasDeals }: { categories: HomeData["categories"]; hasDeals: boolean }) {
-  if (!categories.length) return null;
-  const circle =
-    "relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-border bg-surface transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-brand-500 sm:h-16 sm:w-16";
-  const label = "mt-2 block text-center text-xs font-semibold leading-tight sm:text-sm";
-  const item = "group flex w-[4.75rem] shrink-0 snap-start flex-col items-center sm:w-24";
+/** Large headline used by every homepage section: an optional small label, the title and an optional supporting line. */
+export function SectionIntro({ id, eyebrow, title, children, action }: { id: string; eyebrow?: string; title: string; children?: React.ReactNode; action?: { href: string; label: string } }) {
   return (
-    <nav aria-label="Category shortcuts" className="mb-6 sm:mb-8">
-      <ul className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:justify-center sm:gap-4 sm:px-0 [&::-webkit-scrollbar]:hidden">
-        <li className={item}>
-          <Link href="/#products" className="flex flex-col items-center">
-            <span className={`${circle} border-brand-500 bg-brand-500 text-ink`}><Sparkles className="h-6 w-6" aria-hidden /></span>
-            <span className={label}>New arrivals</span>
-          </Link>
-        </li>
-        {hasDeals && (
-          <li className={item}>
-            <Link href="/products?sale=1" className="flex flex-col items-center">
-              <span className={`${circle} bg-brand-50 text-brand-600`}><BadgePercent className="h-6 w-6" aria-hidden /></span>
-              <span className={label}>Deals</span>
-            </Link>
-          </li>
-        )}
-        {categories.slice(0, 8).map((c) => {
-          const Icon = categoryIcon(c.name);
-          return (
-            <li key={c.slug} className={item}>
-              <Link href={`/categories/${c.slug}`} className="flex flex-col items-center">
-                <span className={circle}>
-                  {c.image ? <Image src={c.image} alt="" fill sizes="64px" className="object-contain p-2" /> : <Icon className="h-6 w-6 text-muted group-hover:text-brand-600" aria-hidden />}
-                </span>
-                <span className={label}>{c.name}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <Reveal className="mb-6 flex flex-col gap-3 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
+        <h2 id={id} className="max-w-2xl text-3xl font-bold leading-[1.05] tracking-[-0.035em] text-ink sm:text-4xl lg:text-5xl">{title}</h2>
+        {children && <div className="mt-3 max-w-lg text-sm leading-6 text-muted sm:text-base">{children}</div>}
+      </div>
+      {action && (
+        <Link href={action.href} className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-ink underline-offset-4 hover:text-brand-600 hover:underline">
+          {action.label} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
+        </Link>
+      )}
+    </Reveal>
   );
 }
 
-/** Most categories shown before the rest are reached through "All products" or the category menu. */
-const MAX_CATEGORY_CARDS = 12;
+/** The five departments from the brief, in this order, but only those that exist in the live catalogue. */
+const WANTED = [/phone|mobile/i, /accessor/i, /audio/i, /tablet/i, /wear|watch/i];
+const MAX_TILES = 5;
 
-/**
- * "Shop by Category": a centred title and one icon link per real ERP category (name and link come from the catalogue).
- * A category's first real product photo is used when the ERP has one; otherwise a simple line icon for that kind of
- * category. No cards or counts on screen (the count stays in the accessible name).
- */
+function pickCategories(all: HomeData["categories"]) {
+  const out: HomeData["categories"] = [];
+  for (const re of WANTED) {
+    const c = all.find((x) => re.test(x.name) && !out.includes(x));
+    if (c) out.push(c);
+  }
+  // Catalogues that lack some of those departments are filled with their largest real categories instead.
+  for (const c of [...all].sort((a, b) => b.count - a.count)) {
+    if (out.length >= MAX_TILES) break;
+    if (!out.includes(c)) out.push(c);
+  }
+  return out.slice(0, MAX_TILES);
+}
+
+/** "Explore categories": one large photographic tile per real category (a bento on wide screens, a 2-column grid on phones). */
 export function CategoryTiles({ categories }: { categories: HomeData["categories"] }) {
-  if (!categories.length) return null;
-  const shown = categories.slice(0, MAX_CATEGORY_CARDS);
+  const shown = pickCategories(categories);
+  if (!shown.length) return null;
+  const bento = shown.length === 5;
   return (
-    <section aria-labelledby="cats" className="section-space">
-      <SectionHeader id="cats" title="Shop by Category" action={{ href: "/products", label: "View all categories" }} />
-      <ProductCarousel label="Shop by category" align="start" step="item" snap="proximity">
-        {shown.map((c) => {
-          const Icon = categoryIcon(c.name);
+    <section aria-labelledby="cats" className="mt-12 sm:mt-20">
+      <SectionIntro id="cats" eyebrow="Explore" title="Find your category" action={{ href: "/products", label: "All products" }} />
+      <ul className={`grid grid-cols-2 gap-3 sm:gap-4 ${bento ? "lg:grid-cols-4 lg:grid-rows-2" : "lg:grid-cols-3"}`}>
+        {shown.map((c, i) => {
           const art = categoryVisual(c.name) ?? c.image;
+          const feature = bento && i === 0;
           return (
-            <li key={c.slug} className="w-[78%] shrink-0 snap-start px-1.5 last:snap-end sm:w-[46%] sm:px-2 lg:w-[34%] xl:w-[28%]">
+            <Reveal as="li" key={c.slug} delay={i * 70} className={feature ? "col-span-2 lg:col-span-2 lg:row-span-2" : ""}>
               <Link
                 href={`/categories/${c.slug}`}
                 aria-label={`${c.name}, ${c.count} ${c.count === 1 ? "product" : "products"}`}
-                className="group flex flex-col gap-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                className={`group relative block overflow-hidden rounded-[1.75rem] bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${feature ? "aspect-[16/10] lg:aspect-auto lg:h-full lg:min-h-[28rem]" : "aspect-[4/5] sm:aspect-square lg:aspect-auto lg:h-full lg:min-h-[13.5rem]"}`}
               >
-                <span className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface">
-                  {art ? (
-                    <Image src={art} alt="" fill sizes="(min-width:1280px) 23vw, (min-width:1024px) 30vw, (min-width:640px) 46vw, 78vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.04] motion-reduce:transition-none" />
-                  ) : (
-                    <Icon className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 text-ink" strokeWidth={1.2} aria-hidden />
-                  )}
+                {art && (
+                  <Image
+                    src={art}
+                    alt=""
+                    fill
+                    sizes={feature ? "(min-width:1024px) 50vw, 100vw" : "(min-width:1024px) 25vw, 50vw"}
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06] motion-reduce:transition-none"
+                  />
+                )}
+                <span className="absolute inset-x-2.5 bottom-2.5 flex items-center justify-between gap-2 rounded-2xl bg-white/90 px-3 py-2.5 backdrop-blur-sm sm:inset-x-4 sm:bottom-4 sm:px-4 sm:py-3">
+                  <span className="min-w-0">
+                    <span className={`block break-words font-semibold leading-tight tracking-tight text-ink ${feature ? "text-lg sm:text-2xl" : "text-base"}`}>{c.name}</span>
+                    <span className="block text-xs text-muted">{c.count} {c.count === 1 ? "product" : "products"}</span>
+                  </span>
+                  <span className={`h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors group-hover:bg-brand-500 group-hover:text-on-brand ${feature ? "flex" : "hidden sm:flex"}`}>
+                    <ArrowUpRight className="h-4 w-4" aria-hidden />
+                  </span>
                 </span>
-                <span className="text-sm font-semibold tracking-tight text-ink">{c.name}</span>
               </Link>
-            </li>
+            </Reveal>
           );
         })}
-      </ProductCarousel>
+      </ul>
     </section>
   );
 }
@@ -101,8 +97,8 @@ const TAB_BLURB: Record<string, string> = {
 };
 
 /**
- * Featured Products: New Arrivals, Special Offers (only when real sale prices exist) and the biggest categories as tabs.
- * The ERP has no "featured" or "best seller" data, so none is claimed.
+ * Discovery tabs: New arrivals, Featured (marked by staff), Offers (only real sale prices) and the biggest categories.
+ * The ERP has no sales or trend data, so no "best seller" or "trending" claim is made.
  */
 export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
   const tabs = [
@@ -114,13 +110,13 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
   const active = tabs.find((t) => t.id === tab) ?? tabs[0];
   const blurb = TAB_BLURB[active.id] ?? `Available now in ${active.label}.`;
   return (
-    <section id="products" aria-labelledby="featured" className="section-space scroll-mt-40">
-      <SectionHeader id="featured" title="Featured Products" center>
+    <section id="products" aria-labelledby="featured" className="mt-16 scroll-mt-40 sm:mt-24">
+      <SectionIntro id="featured" eyebrow="Discover" title="Featured Products" action={{ href: active.all, label: "View all" }}>
         <p aria-live="polite">{blurb}</p>
-      </SectionHeader>
+      </SectionIntro>
       {tabs.length > 1 && (
-        <nav aria-label="Product collections" className="mb-6 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <ul className="mx-auto flex w-max gap-2">
+        <nav aria-label="Product collections" className="-mx-4 mb-6 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+          <ul className="flex w-max gap-2">
             {tabs.map((t) => {
               const on = t.id === active.id;
               return (
@@ -129,7 +125,7 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
                     href={t.href}
                     scroll={false}
                     aria-current={on ? "true" : undefined}
-                    className={on ? "btn-primary" : "btn-secondary"}
+                    className={`inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors motion-reduce:transition-none ${on ? "bg-ink text-white" : "bg-surface text-ink hover:bg-border"}`}
                   >
                     {t.label}
                   </Link>
@@ -140,14 +136,13 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
         </nav>
       )}
       {active.products.length ? (
-        // 2 columns on phones, 3 on tablets, 4 on laptops, 5 on wide screens. Extra items are hidden per breakpoint so
-        // the last row is never left short: 10 on phones/wide, 9 on tablets, 8 on laptops.
+        // Phones swipe sideways through the collection; larger screens show a balanced grid (8 on laptops, 10 on wide screens).
         <ul
           aria-label={`${active.label} products`}
-          className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:max-lg:[&>li:nth-child(n+10)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden"
+          className="-mx-4 flex scroll-px-4 snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-5 sm:max-lg:[&>li:nth-child(n+10)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden [&::-webkit-scrollbar]:hidden"
         >
           {active.products.slice(0, 10).map((p, i) => (
-            <li key={p.id}>
+            <li key={p.id} className="w-[46%] shrink-0 snap-start min-[430px]:w-[42%] sm:w-auto">
               <ProductCard product={p} priority={i < 4} />
             </li>
           ))}
@@ -157,59 +152,6 @@ export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
           Products will appear here as soon as they are available.
         </EmptyState>
       )}
-      <div className="mt-8 text-center">
-        <Link href={active.all} className="btn-outline">
-          View all <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-/**
- * "Explore More Products": a swipeable carousel of further products from the catalogue (those after the ones shown in
- * New Arrivals). The ERP has no sales data, so this makes no "popular" claim. Hidden when there are fewer than 3.
- */
-/** Real products from the accessories category. Device compatibility is not claimed here. */
-export function AccessoryShelf({ rail }: { rail?: HomeData["rails"][number] }) {
-  if (!rail) return null;
-  const items = rail.products.filter((p) => p.available).slice(0, 4);
-  if (!items.length) return null;
-  return (
-    <section aria-labelledby="accessory-shelf" className="mt-14 sm:mt-20">
-      <div className="mb-6 flex flex-col items-center gap-3 text-center">
-        <div>
-          <h2 id="accessory-shelf" className="section-title">Accessories in the catalogue</h2>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-muted">Products filed under {rail.name}. A product page shows an accessory only when it is linked to that device.</p>
-        </div>
-        <Link href={`/categories/${rail.slug}`} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-brand-600 hover:underline">
-          View {rail.name} <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
-      </div>
-      <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {items.map((p) => (
-          <li key={p.id}><ProductCard product={p} /></li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-export function MoreProducts({ products }: { products: HomeData["more"] }) {
-  if (products.length < 3) return null;
-  return (
-    <section aria-labelledby="more-products" className="mt-14 sm:mt-20">
-      <div className="mb-7 text-center sm:mb-9">
-        <h2 id="more-products" className="section-title">Explore More Products</h2>
-        <p className="mt-2 text-sm text-muted sm:text-base">More from our catalogue, available now.</p>
-      </div>
-      <ProductCarousel label="More products">
-        {products.map((p) => (
-          <li key={p.id} className="w-1/2 shrink-0 snap-start px-1.5 sm:px-2 md:w-1/3 lg:w-1/4 xl:w-1/5">
-            <ProductCard product={p} />
-          </li>
-        ))}
-      </ProductCarousel>
     </section>
   );
 }

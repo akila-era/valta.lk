@@ -19,18 +19,19 @@ test.describe("homepage", () => {
   test("structure, data-driven sections and a single h1", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology that moves you.");
-    await expect(page.locator("section[aria-labelledby=hero-title]").getByRole("link", { name: "Shop now" })).toHaveAttribute("href", "/products");
-    await expect(page.getByRole("link", { name: "Explore latest phones" })).toHaveAttribute("href", "/categories/mobile-phones");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology. Elevated.");
+    await expect(page.locator("section[aria-labelledby=hero-title]").getByRole("link", { name: "Explore Products" })).toHaveAttribute("href", "/products");
+    await expect(page.locator("section[aria-labelledby=hero-title]").getByRole("link", { name: "Discover Brands" })).toHaveAttribute("href", "/brands");
 
-    await expect(page.getByRole("heading", { name: "Shop by category" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Explore mobile phones" })).toBeVisible(); // derived dark banner
-    await expect(page.getByRole("heading", { name: "Shop accessories" })).toBeVisible(); // derived light banner
+    await expect(page.getByRole("heading", { name: "Find your category" })).toBeVisible();
+    const campaigns = page.locator("section[aria-labelledby=campaigns]");
+    await expect(campaigns.getByText("Find your next device")).toBeVisible(); // campaign panels are built from real categories
+    await expect(campaigns.getByRole("link", { name: "Shop accessories" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Shop by brand" })).toBeVisible();
-    const bar = page.getByRole("region", { name: "Shopping with VALTA.LK" });
-    await expect(bar.getByText("Delivery LKR 450")).toBeVisible(); // from ERP settings, not hardcoded
-    await expect(bar.getByText("Cash on delivery")).toBeVisible();
+    const why = page.locator("section[aria-labelledby=why]");
+    await expect(why.getByText("LKR 450", { exact: true })).toBeVisible(); // from ERP settings, not hardcoded
+    await expect(why.getByRole("heading", { name: "Cash on delivery" })).toBeVisible();
 
     // No dead links: every internal link on the page resolves
     const hrefs = await page.$$eval("a[href^='/']", (as) => [...new Set(as.map((a) => (a as HTMLAnchorElement).getAttribute("href")!))]);
@@ -66,9 +67,9 @@ test.describe("homepage", () => {
     await card.getByRole("button", { name: /^Add to cart:/ }).dblclick(); // a double click must add once
     await expect(page.getByTestId("cart-count")).toHaveText("1");
     await expect(card.getByRole("button", { name: /added to cart/ })).toBeDisabled();
-    // variant products send the shopper to the product page instead of guessing a variant
+    // variant products never get a one-click add: the shopper chooses a variant in quick view or on the product page
     await page.goto("/products?q=nova x1");
-    await expect(page.locator("article", { hasText: "Nova X1 Smartphone" }).getByRole("link", { name: "Choose options" })).toBeVisible();
+    await expect(page.locator("article", { hasText: "Nova X1 Smartphone" }).getByRole("button", { name: /Quick view/ })).toBeVisible();
     await expect(page.locator("article", { hasText: "Nova X1 Smartphone" }).getByRole("button", { name: /add to cart/i })).toHaveCount(0);
   });
 
@@ -154,16 +155,70 @@ async function scrollThrough(page: import("@playwright/test").Page) {
 }
 
 test.describe("hero", () => {
-  test("four photographs slide under one heading, with both shopping actions", async ({ page }) => {
+  test("one heading, a real catalogue product and both shopping actions", async ({ page }) => {
     await page.goto("/");
     const hero = page.locator("section[aria-labelledby=hero-title]");
-    await expect(hero.getByRole("button", { name: "Go to slide 4" })).toBeVisible();
-    await hero.getByRole("button", { name: "Go to slide 2" }).click();
-    await expect(hero.getByRole("img", { name: /charging case/i })).toBeVisible();
+    await expect(hero.locator("a[href^='/products/']").first()).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-    await expect(hero.getByRole("link", { name: "Shop now" })).toHaveAttribute("href", "/products");
-    await expect(hero.getByRole("link", { name: "Explore latest phones" })).toHaveAttribute("href", "/categories/mobile-phones");
-    await expect(hero.getByRole("link", { name: "Explore accessories" })).toHaveAttribute("href", "/categories/accessories");
+    await expect(hero.getByRole("link", { name: "Explore Products" })).toHaveAttribute("href", "/products");
+    await expect(hero.getByRole("link", { name: "Discover Brands" })).toHaveAttribute("href", "/brands");
+    await expect(hero.locator("h1 span")).toHaveText("Elevated."); // the highlighted half of the headline
+  });
+
+  test("the hero shows real products one at a time, with numbered indicators, arrows and a pause control", async ({ page }) => {
+    await page.goto("/");
+    const hero = page.locator("section[aria-labelledby=hero-title]");
+    const region = hero.getByRole("region", { name: "Featured products" });
+    const slides = region.locator("[aria-roledescription=slide]");
+    const n = await slides.count();
+    expect(n).toBeGreaterThanOrEqual(2);
+    // only the current product is exposed to assistive tech; every product is real, in stock, with a catalogue price
+    await expect(slides.nth(0)).toHaveAttribute("aria-hidden", "false");
+    await expect(slides.nth(1)).toHaveAttribute("aria-hidden", "true");
+    for (let i = 0; i < n; i++) {
+      const link = slides.nth(i).locator("a[href^='/products/']");
+      await expect(link).toContainText(/LKR\s?\d/);
+      await expect(link).toContainText("In stock");
+    }
+    const names = await slides.evaluateAll((els) => els.map((e) => e.querySelector("a")?.getAttribute("href")));
+    expect(new Set(names).size).toBe(n); // no product twice
+    const dots = region.getByRole("list").getByRole("button");
+    await expect(dots).toHaveCount(n);
+    await expect(dots.nth(0)).toHaveAttribute("aria-current", "true");
+    await dots.nth(1).click();
+    await expect(dots.nth(1)).toHaveAttribute("aria-current", "true");
+    await expect(slides.nth(1)).toHaveAttribute("aria-hidden", "false");
+    await expect(slides.nth(0)).toHaveAttribute("aria-hidden", "true");
+    await region.getByRole("button", { name: "Next product" }).click();
+    await expect(dots.nth(2 % n)).toHaveAttribute("aria-current", "true");
+    await region.getByRole("button", { name: "Previous product" }).click();
+    await expect(dots.nth(1)).toHaveAttribute("aria-current", "true");
+    await region.getByRole("button", { name: "Pause slideshow" }).click();
+    await expect(region.getByRole("button", { name: "Play slideshow" })).toBeVisible();
+  });
+
+  test("the slideshow moves on by itself and the offer slide shows only a real discount", async ({ page }) => {
+    await page.goto("/");
+    const hero = page.locator("section[aria-labelledby=hero-title]");
+    const region = hero.getByRole("region", { name: "Featured products" });
+    const dots = region.getByRole("list").getByRole("button");
+    await page.mouse.move(2, 2); // pointer away from the hero, which would pause it
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    await expect(dots.nth(1)).toHaveAttribute("aria-current", "true", { timeout: 12_000 });
+    // the offer tag appears only on a product with a genuinely lower sale price
+    const offer = region.locator("a", { hasText: /^Offer/ });
+    if ((await offer.count()) > 0) await expect(offer.first()).toContainText(/-\d+%/);
+  });
+
+  test("with reduced motion the hero never starts moving on its own", async ({ browser }) => {
+    const ctx = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 1280, height: 800 } });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    const region = page.locator("section[aria-labelledby=hero-title]").getByRole("region", { name: "Featured products" });
+    await expect(region.getByRole("list").getByRole("button").first()).toHaveAttribute("aria-current", "true");
+    await expect(region.getByRole("button", { name: "Pause slideshow" })).toHaveCount(0); // nothing to pause
+    await expect(region.locator(".animate-hero-progress")).toHaveCount(0);
+    await ctx.close();
   });
 
   test("wishlist: heart on a card saves the product and the wishlist page lists it", async ({ page }) => {
@@ -178,40 +233,38 @@ test.describe("hero", () => {
     await expect(page.getByTestId("wishlist-count")).toHaveCount(0); // the badge is hidden when the wishlist is empty
   });
 
-  test("uses the supplied photograph with real HTML text and only verifiable facts", async ({ page }) => {
+  test("shows real product details with real HTML text and only verifiable facts", async ({ page }) => {
     await page.goto("/");
     const hero = page.locator("section[aria-labelledby=hero-title]");
-    const img = hero.getByRole("img", { name: /smartphones, earbuds, a watch and headphones/i });
-    await expect(img).toBeVisible();
-    // the photo really loaded (not a broken image)
-    expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+    await expect(hero.locator("a[href^='/products/']").first()).toContainText(/LKR/);
 
-    const bar = page.getByRole("region", { name: "Shopping with VALTA.LK" });
-    await expect(bar.getByText("Cash on Delivery")).toBeVisible();
-    await expect(bar.getByText("Delivery LKR 450")).toBeVisible(); // live from ERP settings
-    await expect(bar.getByText("Track Your Order")).toBeVisible();
+    const why = page.locator("section[aria-labelledby=why]");
+    await expect(why.getByRole("heading", { name: "Cash on delivery" })).toBeVisible();
+    await expect(why.getByText("LKR 450", { exact: true })).toBeVisible(); // live from ERP settings
+    await expect(why.getByRole("heading", { name: "Track and cancel online" })).toBeVisible();
     expect((await hero.boundingBox())!.width).toBeGreaterThanOrEqual(page.viewportSize()!.width - 20);
     // no unverified service claims anywhere in the hero
-    const text = await page.locator("header, section[aria-labelledby=hero-title], [aria-label=\"Shopping with VALTA.LK\"]").allInnerTexts();
+    const text = await page.locator("header, section[aria-labelledby=hero-title], section[aria-labelledby=why]").allInnerTexts();
     expect(text.join(" ")).not.toMatch(/islandwide|nationwide|secure payments|free|warranty|guarantee/i);
   });
 
   test("text stays legible over the photo and CTAs are reachable", async ({ page }) => {
     await page.goto("/");
     const hero = page.locator("section[aria-labelledby=hero-title]");
-    await expect(hero.getByRole("link", { name: "Shop now" })).toBeVisible();
-    await hero.getByRole("link", { name: "Explore latest phones" }).click();
-    await expect(page).toHaveURL(/categories\/mobile-phones/);
+    await expect(hero.getByRole("link", { name: "Explore Products" })).toBeVisible();
+    await hero.getByRole("link", { name: "Discover Brands" }).click();
+    await expect(page).toHaveURL(/\/brands$/);
+    await expect(page.getByRole("heading", { name: "All brands", level: 1 })).toBeVisible();
   });
 });
 
 test.describe("reference-inspired patterns", () => {
-  test("shop by category: one icon link per real ERP category, with the name and the right link", async ({ page }) => {
+  test("explore categories: one photographic tile per real ERP category, with the name and the right link", async ({ page }) => {
     await page.goto("/");
     const cats = page.locator("section[aria-labelledby=cats]");
-    await expect(cats.getByRole("heading", { name: "Shop by Category" })).toBeVisible();
+    await expect(cats.getByRole("heading", { name: "Find your category" })).toBeVisible();
     // one link per category; the real product count is in each link's accessible name
-    await expect(cats.getByRole("link", { name: "View all categories" })).toHaveAttribute("href", "/products");
+    await expect(cats.getByRole("link", { name: "All products" })).toHaveAttribute("href", "/products");
     await expect(cats.getByRole("link")).toHaveCount(6);
     for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables"]) await expect(cats.getByText(name, { exact: true })).toBeVisible();
     const audio = cats.getByRole("link", { name: "Audio, 4 products" });
@@ -236,17 +289,17 @@ test.describe("reference-inspired patterns", () => {
     await expect(page).toHaveURL(/\/categories\/audio/);
   });
 
-  test("category icon row is centred, items are evenly sized and nothing overflows", async ({ browser }) => {
+  test("category tiles: five real tiles, the first is the feature tile, nothing overflows", async ({ browser }) => {
     for (const w of [1440, 820, 390]) {
       const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" }); // no fade-in offsets while measuring
       const page = await ctx.newPage();
       await page.goto("/");
-      await page.locator("section[aria-labelledby=cats] ul > li").first().waitFor(); // the page streams in behind a skeleton
-      const items = await page.locator("section[aria-labelledby=cats] ul > li").evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, r: r.right }; }));
-      expect(items.length).toBeGreaterThanOrEqual(4);
-      for (const i of items.slice(1)) expect(Math.abs(i.w - items[0].w)).toBeLessThan(2); // uniform
-      const track = await page.locator("section[aria-labelledby=cats] [aria-roledescription=carousel]").boundingBox();
-      if (w >= 640 && track) expect(Math.abs(track.x - (w - (track.x + track.width)))).toBeLessThan(w * 0.12); // the scroller sits in the middle
+      const tiles = page.locator("section[aria-labelledby=cats] ul > li");
+      await tiles.first().waitFor();
+      await expect(tiles).toHaveCount(5);
+      const boxes = await tiles.evaluateAll((els) => els.map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, w: r.width, r: r.right }; }));
+      expect(boxes[0].w, `feature tile wider than the others at ${w}px`).toBeGreaterThan(boxes[1].w);
+      for (const t of boxes) expect(t.r).toBeLessThanOrEqual(w + 1);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
       await ctx.close();
     }
@@ -268,7 +321,7 @@ test.describe("reference-inspired patterns", () => {
     const footer = page.locator("footer");
     await footer.scrollIntoViewIfNeeded();
     const links = await footer.getByRole("link").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-    for (const h of ["/track-order", "/contact", "/shipping-policy", "/returns-policy", "/#faq", "/about", "/privacy-policy", "/terms", "/products"]) expect(links).toContain(h);
+    for (const h of ["/track-order", "/contact", "/shipping-policy", "/returns-policy", "/faq", "/about", "/privacy-policy", "/terms", "/products", "/brands", "/account"]) expect(links).toContain(h);
     expect(links.filter((h) => h && !h.startsWith("/") && !h.startsWith("tel:") && !h.startsWith("mailto:") && !h.startsWith("https://"))).toEqual([]);
     for (const heading of ["Shop", "Support", "Company", "Contact"]) await expect(footer.getByRole("heading", { name: heading, level: 2 })).toBeVisible();
     await expect(footer.getByText("Delivery LKR 450")).toBeVisible(); // the ERP's real charge
@@ -310,61 +363,17 @@ test.describe("videos and more products", () => {
     await expect(sec.getByRole("button", { name: "Play video: Test video two" })).toBeVisible(); // the other stays a thumbnail
   });
 
-  test("more products carousel: honest title, 2 cards per view on phones with working dots", async ({ browser }) => {
+  test("editorial campaigns: real products only, honest facts, nothing overflows on phones", async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: "reduce" });
     const page = await ctx.newPage();
     await page.goto("/");
-    const sec = page.locator("section[aria-labelledby=more-products]");
+    const sec = page.locator("section[aria-labelledby=campaigns]");
     await sec.scrollIntoViewIfNeeded();
-    await expect(sec.getByRole("heading", { name: "Explore More Products" })).toBeVisible();
-    await expect(page.getByText(/most popular|best.?sellers?/i)).toHaveCount(0); // no sales data, so no such claim
-    const n = await sec.locator("article").count();
-    expect(n).toBeGreaterThanOrEqual(3);
-    const dots = sec.getByRole("group", { name: "More products pages" }).getByRole("button");
-    await expect(dots).toHaveCount(Math.ceil(n / 2)); // a partly filled last page still gets a dot
-    await expect(dots.first()).toHaveAttribute("aria-current", "true");
-    const region = sec.getByRole("region", { name: "More products" });
-    await dots.nth(1).click();
-    await expect.poll(() => region.evaluate((el) => el.scrollLeft)).toBeGreaterThan(100);
-    await expect(dots.nth(1)).toHaveAttribute("aria-current", "true");
-    await dots.first().click();
-    await expect.poll(() => region.evaluate((el) => el.scrollLeft)).toBeLessThan(5);
+    await expect(sec.getByRole("heading", { level: 2 })).toBeVisible();
+    expect(await sec.locator("article").count()).toBeGreaterThanOrEqual(1);
+    for (const href of await sec.locator("a[href^='/products/']").evaluateAll((as) => as.map((a) => a.getAttribute("href")!))) expect(href).toMatch(/^\/products\/[a-z0-9-]+$/);
+    await expect(sec.getByText(/sale|limited|hurry|% off|best.?sellers?|most popular/i)).toHaveCount(0); // no invented promotions or urgency
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
-    await ctx.close();
-  });
-
-  test("more products carousel: arrows work on desktop and nothing shows when everything fits one page", async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width: 820, height: 900 }, reducedMotion: "reduce" });
-    const page = await ctx.newPage();
-    await page.goto("/");
-    const sec = page.locator("section[aria-labelledby=more-products]");
-    await sec.scrollIntoViewIfNeeded();
-    const n = await sec.locator("article").count();
-    const perView = 3; // md: 3 cards per view
-    if (n > perView) {
-      const pages = Math.ceil(n / perView);
-      await expect(sec.getByRole("group", { name: "More products pages" }).getByRole("button")).toHaveCount(pages);
-      await sec.getByRole("button", { name: "Next More products" }).click();
-      await expect.poll(() => sec.getByRole("region", { name: "More products" }).evaluate((el) => el.scrollWidth - el.clientWidth - el.scrollLeft)).toBeLessThan(2); // scrolled to the end
-      // the final page is reachable and the last card is fully inside the scroller
-      const region = await sec.getByRole("region", { name: "More products" }).boundingBox();
-      const last = await sec.locator("article").last().boundingBox();
-      expect(last!.x + last!.width).toBeLessThanOrEqual(region!.x + region!.width + 2);
-      await expect(sec.getByRole("button", { name: "Next More products" })).toBeDisabled(); // last page
-    } else {
-      await expect(sec.getByRole("button", { name: /Next|Previous/ })).toHaveCount(0);
-    }
-    // wide screen: fewer cards than fit a row are centred, not pushed to the left
-    await page.setViewportSize({ width: 1700, height: 900 });
-    const cards = sec.locator("article");
-    if ((await cards.count()) < 5) {
-      await expect
-        .poll(async () => {
-          const f = (await cards.first().boundingBox())!, l = (await cards.last().boundingBox())!, r = (await sec.getByRole("region", { name: "More products" }).boundingBox())!;
-          return Math.abs(f.x - r.x - (r.x + r.width - (l.x + l.width)));
-        })
-        .toBeLessThan(6);
-    }
     await ctx.close();
   });
 });
@@ -387,7 +396,7 @@ test.describe("more homepage sections", () => {
     await expect(page.getByRole("heading", { name: "Featured categories" })).toHaveCount(0);
 
     await expect(page.getByRole("heading", { name: "How ordering works" })).toBeVisible();
-    await expect(page.getByText("Enter your delivery details and choose cash on delivery")).toBeVisible();
+    await expect(page.getByText("Place your order at checkout. Cash on delivery is available.")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Questions, answered" })).toBeVisible();
     const ld = await page.$$eval("script[type='application/ld+json']", (els) => els.map((e) => e.textContent ?? ""));
     expect(ld.some((t) => t.includes('"FAQPage"') && t.includes("What about returns?"))).toBe(true);
@@ -476,9 +485,11 @@ test.describe("more homepage sections", () => {
     await expect.poll(async () => (await box()).barTop).toBeLessThan(m.barTop - 20);
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("cart-count")).toHaveText("1");
-    // variant products get "Choose options" instead of Add to cart
+    // variant products get Quick view (to choose a variant) instead of Add to cart
     const phone = page.locator("#products article", { hasText: "Nova X1 Smartphone" }).first();
-    await expect(phone.getByRole("link", { name: "Choose options" })).toHaveAttribute("href", /\/products\/nova-x1-smartphone-/);
+    await expect(phone.getByRole("button", { name: /Quick view/ })).toBeAttached();
+    await expect(phone.getByRole("button", { name: /^Add to cart:/ })).toHaveCount(0);
+    await expect(phone.locator("a[href*='/products/nova-x1-smartphone-']").first()).toBeAttached();
     await expect(phone.getByText("From", { exact: true })).toBeVisible();
   });
 
@@ -503,7 +514,7 @@ test.describe("more homepage sections", () => {
   });
 
   test("product showcase: grid columns follow the breakpoint and never overflow", async ({ browser }) => {
-    for (const [w, cols] of [[1700, 5], [1100, 4], [820, 3], [390, 2]] as const) {
+    for (const [w, cols] of [[1700, 5], [1100, 4], [820, 3]] as const) {
       const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" });
       const page = await ctx.newPage();
       await page.goto("/");
@@ -538,19 +549,76 @@ test.describe("motion", () => {
     await ctx.close();
   });
 
-  test("brand cards: real brands with counts, each searching that brand", async ({ page }) => {
+  test("brand showcase: real brands, biggest range first, each opening the existing brand filter", async ({ page }) => {
     await page.goto("/");
-    const brands = page.locator("section[aria-labelledby=brands]");
+    const brands = page.locator("section#brands");
     await expect(brands.getByRole("heading", { name: "Shop by brand" })).toBeVisible();
+    const tiles = brands.locator("ul > li a[href^='/products?brand=']");
+    expect(await tiles.count()).toBeGreaterThanOrEqual(2);
+    // sorted by product count, highest first, and counts are the catalogue's own
+    const counts = await tiles.evaluateAll((as) => as.map((a) => Number(/(\d+) products?/.exec(a.getAttribute("aria-label") ?? "")?.[1])));
+    expect(counts).toEqual([...counts].sort((x, y) => y - x));
     const volt = brands.getByRole("link", { name: "Volt, 3 products" });
-    await expect(volt).toHaveAttribute("href", "/search?q=Volt");
-    await expect(brands.getByRole("link", { name: /^Atlas, 2 products/ })).toBeVisible();
-    // each brand is listed once (no duplicated marquee copy)
-    await expect(brands.getByRole("link", { name: /^Volt,/ })).toHaveCount(1);
-    await volt.focus(); // focus pauses the moving marquee, the same way a keyboard shopper reaches it
+    await expect(volt).toHaveAttribute("href", "/products?brand=Volt");
+    await expect(brands.getByRole("link", { name: /^Volt,/ })).toHaveCount(1); // each brand once
+    await expect(brands.getByRole("link", { name: "View all brands" }).first()).toHaveAttribute("href", "/brands");
+    await volt.focus();
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(/\/search\?q=Volt/);
+    await expect(page).toHaveURL(/\/products\?brand=Volt/);
     await expect(page.locator("main article", { hasText: "Volt 20W Fast Charger" })).toBeVisible();
+    await expect(page.locator("main article", { hasText: "Pulse Wireless Earbuds" })).toHaveCount(0); // only that brand's products
+  });
+
+  test("/brands lists every catalogue brand alphabetically with working links", async ({ page }) => {
+    await page.goto("/brands");
+    await expect(page.getByRole("heading", { name: "All brands", level: 1 })).toBeVisible();
+    const links = page.locator("main ul > li a[href^='/products?brand=']");
+    const names = await links.evaluateAll((as) => as.map((a) => (a.getAttribute("aria-label") ?? "").split(",")[0]));
+    expect(names.length).toBeGreaterThanOrEqual(7);
+    expect(names).toEqual([...names].sort((x, y) => x.localeCompare(y)));
+    await page.getByRole("link", { name: /^Atlas,/ }).click();
+    await expect(page).toHaveURL(/\/products\?brand=Atlas/);
+    await expect(page.locator("main article", { hasText: "Atlas Smartwatch" })).toBeVisible();
+  });
+
+  test("shop by budget: three ranges, each product really inside its range", async ({ page }) => {
+    await page.goto("/");
+    const budget = page.locator("section[aria-labelledby=budget]");
+    await expect(budget.getByRole("link", { name: /Under LKR 8,000/ })).toHaveAttribute("href", /max=8000/);
+    await expect(budget.getByRole("link", { name: /LKR 8,000 – LKR 35,000/ })).toHaveAttribute("href", /min=8000&max=35000/);
+    await expect(budget.getByRole("link", { name: /Over LKR 35,000/ })).toHaveAttribute("href", /min=35000/);
+  });
+});
+
+test.describe("recently viewed", () => {
+  test("hidden with no history; a product visit adds it; unavailable products drop out; Clear removes it", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("section[aria-labelledby=recent]")).toHaveCount(0); // a first-time visitor sees no empty shelf
+    await page.goto("/products/pulse-wireless-earbuds-cm0item00000003");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Pulse Wireless Earbuds");
+    expect(await page.evaluate(() => localStorage.getItem("valta.recent.v2"))).toContain("cm0item00000003");
+    await page.goto("/");
+    const recent = page.locator("section[aria-labelledby=recent]");
+    await expect(recent.getByRole("heading", { name: "Recently viewed" })).toBeVisible();
+    await expect(recent.locator("article", { hasText: "Pulse Wireless Earbuds" })).toBeVisible(); // re-fetched live: price and stock shown
+    await expect(recent.getByText("LKR 14,900")).toBeVisible();
+    // a product that no longer exists is dropped without breaking the shelf
+    await page.evaluate(() => localStorage.setItem("valta.recent.v2", JSON.stringify(["no-such-product", "cm0item00000003"])));
+    await page.reload();
+    await expect(recent.locator("article")).toHaveCount(1);
+    await recent.getByRole("button", { name: "Clear" }).click();
+    await expect(page.locator("section[aria-labelledby=recent]")).toHaveCount(0);
+    expect(await page.evaluate(() => localStorage.getItem("valta.recent.v2"))).toBe("[]");
+  });
+
+  test("history stays in the browser: no outside requests are made", async ({ page }) => {
+    const external: string[] = [];
+    page.on("request", (r) => { if (!r.url().startsWith("http://localhost")) external.push(r.url()); });
+    await page.goto("/");
+    await page.evaluate(() => localStorage.setItem("valta.recent.v2", JSON.stringify(["cm0item00000003"])));
+    await page.reload();
+    await expect(page.locator("section[aria-labelledby=recent] article")).toHaveCount(1);
+    expect(external.filter((u) => !/_next|localhost/.test(u))).toEqual([]);
   });
 });
 

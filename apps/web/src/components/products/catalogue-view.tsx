@@ -82,7 +82,7 @@ function ActiveFilters({ basePath, params, query, categories, filtered, fixedCat
     <ul className="mb-4 flex flex-wrap items-center gap-2" aria-label="Selected filters">
       {chips.map((chip) => (
         <li key={chip.label}>
-          <Link href={chip.href} className="group/chip inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border bg-surface pl-3 pr-2 text-sm font-medium text-ink transition-colors hover:border-ink">
+          <Link href={chip.href} className="group/chip inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface pl-3 pr-2 text-sm font-medium text-ink transition-colors hover:border-ink">
             {chip.label}
             <X className="h-3.5 w-3.5 text-muted group-hover/chip:text-ink" aria-hidden />
             <span className="sr-only">, remove filter</span>
@@ -144,7 +144,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
             <input type="checkbox" name="stock" value="1" defaultChecked={query.inStockOnly} className="check" />
             Available items only
           </label>
-          <button className="btn-primary w-full" type="submit">Apply filters</button>
+          <button className="btn-dark w-full" type="submit">Apply filters</button>
           {filtered && <Link href={fixedCategory ? basePath : "/products"} className="btn-secondary w-full">Clear all</Link>}
         </form>
 
@@ -157,7 +157,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
                   <Link
                     href={`/categories/${c.slug}`}
                     aria-current={fixedCategory === c.slug ? "page" : undefined}
-                    className={`flex justify-between rounded-lg px-3 py-2 hover:bg-surface ${fixedCategory === c.slug ? "bg-brand-50 font-semibold text-brand-700" : ""}`}
+                    className={`flex justify-between rounded-lg px-3 py-2 hover:bg-surface ${fixedCategory === c.slug ? "bg-surface font-semibold text-ink" : ""}`}
                   >
                     <span>{c.name}</span>
                     <span className="text-muted">{c.count}</span>
@@ -169,7 +169,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
                           <Link
                             href={`/categories/${c.slug}?sub=${sc.slug}`}
                             aria-current={query.sub === sc.slug ? "page" : undefined}
-                            className={`flex justify-between rounded-lg px-3 py-1.5 hover:bg-surface ${query.sub === sc.slug ? "font-semibold text-brand-700" : "text-ink/80"}`}
+                            className={`flex justify-between rounded-lg px-3 py-1.5 hover:bg-surface ${query.sub === sc.slug ? "font-semibold text-ink" : "text-ink/80"}`}
                           >
                             <span>{sc.name}</span>
                             <span className="text-muted">{sc.count}</span>
@@ -200,7 +200,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
                     <Link
                       href={href(basePath, params, { sort: s.value === "newest" ? "" : s.value, page: "" })}
                       aria-current={on ? "page" : undefined}
-                      className={`inline-flex min-h-9 items-center rounded-lg px-3 text-sm font-semibold transition-colors ${on ? "bg-bg text-ink shadow-card ring-1 ring-border" : "text-muted hover:text-ink"}`}
+                      className={`inline-flex min-h-10 items-center rounded-lg px-3.5 text-sm font-semibold transition-colors ${on ? "bg-bg text-ink shadow-card ring-1 ring-border" : "text-muted hover:text-ink"}`}
                     >
                       {s.label}
                     </Link>

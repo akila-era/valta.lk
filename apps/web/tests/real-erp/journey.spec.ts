@@ -20,7 +20,7 @@ test("catalogue, variants and sale price come from the real ERP", async ({ page,
   expect(s).toMatchObject({ enabled: true, currency: "LKR", paymentMethods: ["COD"] });
 
   await page.goto("/products?q=nova x1");
-  await page.locator("article", { hasText: "Nova X1" }).getByRole("link", { name: "Choose options" }).click();
+  await page.locator("article", { hasText: "Nova X1" }).locator("a[href^='/products/']").first().click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Nova X1");
   await expect(page.getByText("LKR 129,900")).toBeVisible();
   await page.getByText("256GB / Black").click();
@@ -35,7 +35,7 @@ test("catalogue, variants and sale price come from the real ERP", async ({ page,
 
 test("a variant COD order reaches the real ERP and can be tracked and cancelled", async ({ page, request }) => {
   await page.goto("/products?q=nova x1");
-  await page.locator("article", { hasText: "Nova X1" }).getByRole("link", { name: "Choose options" }).click();
+  await page.locator("article", { hasText: "Nova X1" }).locator("a[href^='/products/']").first().click();
   await page.getByText("256GB / Black").click();
   await page.getByRole("button", { name: "Add to cart", exact: true }).click();
   await expect(page.getByRole("link", { name: "View cart" })).toBeVisible();

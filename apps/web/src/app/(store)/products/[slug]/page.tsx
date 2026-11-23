@@ -21,6 +21,8 @@ import { offersForSources } from "@/lib/accessories/load";
 import { effectivePrice, productOffer } from "@/lib/erp/product-utils";
 import { quotePricedLines } from "@/lib/promotions/quote";
 import type { PricedLine } from "@/lib/promotions/evaluate";
+import { RecentlyViewed } from "@/components/home/recently-viewed";
+import { RecentTracker } from "@/components/products/recent-tracker";
 import { getSettings } from "@/lib/erp/settings";
 import type { ErpProduct } from "@/lib/erp/types";
 import { siteConfig } from "@/lib/site-config";
@@ -124,6 +126,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
   return (
     <>
+      {!previewing && <RecentTracker productId={product.id} />}
       {previewing && (
         <div className="mb-6">
           <Notice tone="warning" title="Preview of unpublished changes.">
@@ -146,8 +149,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
       <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
         <Gallery images={product.images} alt={title} alts={c?.gallery.length ? c.gallery.map((g) => g.alt) : undefined} captions={c?.gallery.length ? c.gallery.map((g) => g.caption) : undefined} />
         <div>
-          {product.brand && <p className="text-sm font-medium uppercase tracking-wide text-muted">{product.brand}</p>}
-          <h1 className="page-title mt-1">{title}</h1>
+          {product.brand && <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">{product.brand}</p>}
+          <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-[-0.03em] text-ink sm:text-4xl">{title}</h1>
           {showModel && <p className="mt-1 text-sm text-muted">Model {model}</p>}
           {c?.subtitle && <p className="mt-1 text-base text-muted">{c.subtitle}</p>}
           {badges.length > 0 && (
@@ -156,7 +159,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
             </ul>
           )}
           {c?.shortDescription && <p className="mt-4 max-w-prose text-sm leading-6 text-muted">{c.shortDescription}</p>}
-          <div className="mt-6 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+          <div className="mt-6 border-t border-border pt-6">
             <PurchasePanel
               offerNames={offerNames}
               deliveryCharge={settings?.deliveryCharge}
@@ -279,6 +282,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
           <ProductGrid products={related} />
         </section>
       )}
+
+      <RecentlyViewed exclude={product.id} />
     </>
   );
 }

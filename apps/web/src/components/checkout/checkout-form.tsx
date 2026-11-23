@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Loader2, Smartphone } from "lucide-react";
-import { useLiveCart } from "@/components/cart/cart-view";
+import { useLiveCart } from "@/components/cart/use-live-cart";
 import { EmptyState } from "@/components/ui/states";
 import { addMoney, formatLkr, fromCents, multiplyMoney, toCents } from "@/lib/utils/money";
 import { generateOrderRef } from "@/lib/utils/order-ref";
@@ -230,7 +230,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
               const canGo = s.n <= reached && s.n !== step && !submitting;
               const inner = (
                 <>
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-ink" : done ? "border-brand-600 bg-brand-50 text-brand-700" : "border-border text-muted"}`}>
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-on-brand" : done ? "border-brand-600 bg-brand-50 text-brand-700" : "border-border text-muted"}`}>
                     {done ? <Check className="h-4 w-4" aria-hidden /> : s.n}
                   </span>
                   <span className={`min-w-0 text-xs sm:text-sm ${current ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
@@ -257,7 +257,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         )}
 
         {/* All three steps stay in the page (inactive ones are hidden) so nothing the customer typed is ever lost. */}
-          <section {...hide(1)} className="card space-y-4 p-5 sm:p-6" aria-labelledby="step-1">
+          <section {...hide(1)} className="space-y-4 rounded-3xl bg-surface p-5 sm:p-7" aria-labelledby="step-1">
           <h2 id="step-1" ref={step === 1 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Your details</h2>
           <Field id="name" label="Full name" error={err("name")}>
             <input id="name" name="name" autoComplete="name" defaultValue={prefill?.name} className="input" {...aria("name")} maxLength={100} />
@@ -272,7 +272,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           </div>
         </section>
 
-          <section {...hide(2)} className="card space-y-4 p-5 sm:p-6" aria-labelledby="step-2">
+          <section {...hide(2)} className="space-y-4 rounded-3xl bg-surface p-5 sm:p-7" aria-labelledby="step-2">
           <h2 id="step-2" ref={step === 2 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Delivery address</h2>
           <Field id="address" label="Address" error={err("address")}>
             <input id="address" name="address" autoComplete="street-address" className="input" {...aria("address")} maxLength={250} />
@@ -299,7 +299,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
         <section {...hide(3)} className="space-y-6" aria-labelledby="step-3">
           <h2 id="step-3" ref={step === 3 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Review and place your order</h2>
 
-          <div className="card divide-y divide-border text-sm" data-testid="recap">
+          <div className="divide-y divide-border rounded-3xl bg-surface px-5 text-sm sm:px-7" data-testid="recap">
             <div className="flex items-start justify-between gap-4 p-4">
               <div>
                 <p className="font-semibold">Contact</p>
@@ -316,10 +316,10 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
             </div>
           </div>
 
-          <fieldset className="card p-5">
+          <fieldset className="rounded-3xl bg-surface p-5 sm:p-7">
             <legend className="px-1 text-base font-semibold">Payment method</legend>
-            <label className="flex items-start gap-3 text-sm">
-              <input type="radio" name="payment" value="COD" defaultChecked readOnly className="mt-1 h-4 w-4 accent-brand-600" />
+            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-ink bg-white p-4 text-sm">
+              <input type="radio" name="payment" value="COD" defaultChecked readOnly className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
               <span>
                 <span className="font-semibold">Cash on delivery</span>
                 <span className="block text-muted">Pay in cash when your order is delivered. Your order is not marked as paid until the cash is collected.</span>
@@ -329,30 +329,30 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
 
           <div>
             <label className="flex items-start gap-3 text-sm">
-              <input type="checkbox" name="acceptTerms" className="mt-1 h-4 w-4 accent-brand-600" aria-invalid={err("acceptTerms") ? true : undefined} aria-describedby={err("acceptTerms") ? "acceptTerms-err" : undefined} />
+              <input type="checkbox" name="acceptTerms" className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" aria-invalid={err("acceptTerms") ? true : undefined} aria-describedby={err("acceptTerms") ? "acceptTerms-err" : undefined} />
               <span>I agree to the <Link href="/terms" className="font-semibold text-brand-600 underline" target="_blank">terms and conditions</Link> and <Link href="/privacy-policy" className="font-semibold text-brand-600 underline" target="_blank">privacy policy</Link>.</span>
             </label>
             {err("acceptTerms") && <p id="acceptTerms-err" className="field-error" role="alert">{err("acceptTerms")}</p>}
           </div>
         </section>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="pb-safe flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           {step > 1 ? (
             <button type="button" className="btn-secondary" onClick={() => goTo((step - 1) as Step)} disabled={submitting}>Back</button>
           ) : (
-            <Link href="/cart" className="btn-secondary">Back to cart</Link>
+            <Link href="/cart" className="btn-secondary whitespace-nowrap">Back to cart</Link>
           )}
           {step < 3 ? (
-            <button type="submit" className="btn-primary min-w-40">Continue</button>
+            <button type="submit" className="btn-primary btn-lg w-full sm:w-auto sm:min-w-40">Continue</button>
           ) : (
-            <button type="submit" className="btn-primary min-w-40" disabled={submitting}>
+            <button type="submit" className="btn-primary btn-lg w-full sm:w-auto sm:min-w-40" disabled={submitting}>
               {submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : "Place order"}
             </button>
           )}
         </div>
       </div>
 
-      <aside className="card order-first h-fit p-5 lg:sticky lg:top-40 lg:order-none" aria-label="Order summary">
+      <aside className="order-first h-fit rounded-3xl bg-surface p-6 lg:sticky lg:top-40 lg:order-none" aria-label="Order summary">
         <h2 className="hidden text-lg font-semibold lg:block">Order summary</h2>
         {/* Phones: the summary sits above the form, so it starts collapsed to the total and opens on demand. */}
         <button
@@ -362,12 +362,12 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           aria-controls="checkout-summary-details"
           onClick={() => setSummaryOpen((o) => !o)}
         >
-          <span>
-            <span className="block text-lg font-semibold text-ink">Order summary</span>
+          <span className="min-w-0">
+            <span className="block whitespace-nowrap text-base font-semibold text-ink sm:text-lg">Order summary</span>
             <span className="block text-xs text-muted">{lines.length} {lines.length === 1 ? "item" : "items"} · {summaryOpen ? "Hide details" : "Show details"}</span>
           </span>
           <span className="flex items-center gap-2">
-            <span className="text-lg font-extrabold tabular-nums text-brand-600">{formatLkr(total)}</span>
+            <span className="whitespace-nowrap text-base font-extrabold tabular-nums text-ink sm:text-lg">{formatLkr(total)}</span>
             <ChevronDown className={`h-5 w-5 text-muted transition-transform ${summaryOpen ? "rotate-180" : ""}`} aria-hidden />
           </span>
         </button>
@@ -396,7 +396,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           {savings > 0 && <div className="flex justify-between text-success"><dt>Catalogue savings included</dt><dd>{formatLkr(fromCents(savings))}</dd></div>}
           {offers.map((name) => <div key={name} className="text-xs text-muted">{name}</div>)}
           <div className="flex justify-between"><dt>Delivery</dt><dd data-testid="delivery">{formatLkr(deliveryCharge)}</dd></div>
-          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">Pay on delivery</dt><dd className="text-xl font-extrabold tabular-nums text-brand-600" data-testid="total">{formatLkr(total)}</dd></div>
+          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">Pay on delivery</dt><dd className="text-xl font-extrabold tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd></div>
         </dl>
         <p className="mt-3 text-xs text-muted">The store has one delivery charge. No other delivery method is offered.</p>
         <p className="mt-4 text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>

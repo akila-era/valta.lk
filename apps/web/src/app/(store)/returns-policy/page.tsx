@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PolicyPage } from "@/components/layout/policy-page";
+import { ApprovalNotice, PolicyPage } from "@/components/layout/policy-page";
 
 export const metadata: Metadata = { title: "Returns policy", alternates: { canonical: "/returns-policy" } };
 
@@ -13,7 +13,12 @@ export default function ReturnsPage() {
       </section>
       <section>
         <h2>Return conditions</h2>
-        <p>Return eligibility periods and conditions are set by the business and must be added here before launch.</p>
+        <ApprovalNotice>
+          <p className="!text-warn">
+            The return period, which items are eligible, the condition they must be in and the refund process have not been approved for publication, so this page does not state any. Until the business publishes them,{" "}
+            <Link href="/contact">contact us</Link> before sending anything back.
+          </p>
+        </ApprovalNotice>
       </section>
     </PolicyPage>
   );

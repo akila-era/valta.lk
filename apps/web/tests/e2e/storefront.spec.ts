@@ -36,7 +36,7 @@ async function fillCheckout(page: Page) {
 test.describe("browse", () => {
   test("homepage, search, category and product pages", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology that moves you.");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology. Elevated.");
     await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Special offers" })).toBeVisible(); // Orbit Pro has a real sale price
 
@@ -174,20 +174,6 @@ test.describe("cart + checkout + tracking", () => {
     await expect(page.getByTestId("recap")).toContainText("Nimal Silva");
   });
 
-  test("price change is surfaced and no order is created", async ({ page }) => {
-    await addEarbuds(page);
-    await page.goto("/checkout");
-    await control({ setPrice: { id: id(3), price: 16000 } });
-    await fillCheckout(page);
-    await page.getByRole("button", { name: "Place order" }).click();
-    await expect(page.getByRole("alert").filter({ hasText: "prices changed" })).toBeVisible();
-    await expect(page.getByTestId("total")).toHaveText("LKR 16,450");
-    expect((await control({})).orders).toBe(0);
-    // accepting the new total succeeds
-    await page.getByRole("button", { name: "Place order" }).click();
-    await expect(page).toHaveURL(/order-confirmation/);
-  });
-
   test("stock running out is reported and no order is created", async ({ page }) => {
     await addEarbuds(page, 3);
     await page.goto("/checkout");
@@ -226,6 +212,22 @@ test.describe("cart + checkout + tracking", () => {
     await page.goto("/checkout");
     await expect(page.getByRole("heading", { name: "Checkout is unavailable" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Place order" })).toHaveCount(0);
+  });
+
+  // Keep this test LAST in the group. It changes an ERP price, and the app caches the catalogue for up to 60 seconds, so a
+  // test that starts right after it can see the stale changed price and get "prices changed" instead of the result it checks.
+  test("price change is surfaced and no order is created", async ({ page }) => {
+    await addEarbuds(page);
+    await page.goto("/checkout");
+    await control({ setPrice: { id: id(3), price: 16000 } });
+    await fillCheckout(page);
+    await page.getByRole("button", { name: "Place order" }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "prices changed" })).toBeVisible();
+    await expect(page.getByTestId("total")).toHaveText("LKR 16,450");
+    expect((await control({})).orders).toBe(0);
+    // accepting the new total succeeds
+    await page.getByRole("button", { name: "Place order" }).click();
+    await expect(page).toHaveURL(/order-confirmation/);
   });
 });
 

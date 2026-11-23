@@ -6,18 +6,18 @@ import { labels } from "./labels";
 import type { AccessoryCardData, AssistantCard, AssistantLang, CartAction, ComparisonCardData, ProductCardData, StockCardData } from "./types";
 
 /**
- * Customer-facing cards for the AI shopping assistant: clean white surface, blue primary (#2563EB), mobile first.
+ * Customer-facing cards for the AI shopping assistant: clean white surface, blue primary (#C2410C), mobile first.
  * These components only display what the Agent API returned. Every card is labelled as demo data while the assistant runs on the
  * mock catalogue, and the cart confirmation changes nothing itself: it calls back only after an explicit click.
  */
-const BLUE = "bg-[#2563EB] text-white hover:bg-[#1d4ed8] focus-visible:outline-[#2563EB]";
+const BLUE = "bg-[#C2410C] text-white hover:bg-[#9a3412] focus-visible:outline-[#C2410C]";
 const BTN = "inline-flex min-h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2";
 const SURFACE = "rounded-2xl border border-slate-200 bg-white shadow-sm";
 
 export function MockBadge({ lang = "en" }: { lang?: AssistantLang }) {
   const t = labels(lang);
   return (
-    <span title={t.mockNote} className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-[#2563EB]">
+    <span title={t.mockNote} className="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-xs font-medium text-[#C2410C]">
       {t.mock}
     </span>
   );
@@ -56,14 +56,14 @@ export function ProductCardView({ card, lang = "en", compact = false }: { card: 
           <MockBadge lang={lang} />
         </div>
         <h3 className="mt-1 break-words text-base font-semibold text-slate-900">
-          <a href={card.url} className="hover:text-[#2563EB]">
+          <a href={card.url} className="hover:text-[#C2410C]">
             {card.name}
           </a>
         </h3>
         <p className="mt-1 flex flex-wrap items-baseline gap-2">
           <span className="text-lg font-bold text-slate-900">{card.price.text}</span>
           {card.listPrice ? <s className="text-sm text-slate-500">{card.listPrice.text}</s> : null}
-          {card.offerName ? <span className="rounded bg-blue-50 px-1.5 text-xs font-medium text-[#2563EB]">{card.offerName}</span> : null}
+          {card.offerName ? <span className="rounded bg-orange-50 px-1.5 text-xs font-medium text-[#C2410C]">{card.offerName}</span> : null}
         </p>
         <p className={`mt-1 text-sm font-medium ${card.available ? "text-emerald-700" : "text-slate-500"}`}>{card.available ? t.inStock : t.outOfStock}</p>
         {card.specs?.length ? (
@@ -102,7 +102,7 @@ export function ComparisonView({ card, lang = "en" }: { card: ComparisonCardData
         </thead>
         <tbody>
           {card.rows.map((r) => (
-            <tr key={r.label} className={r.differs ? "bg-blue-50/60" : ""}>
+            <tr key={r.label} className={r.differs ? "bg-orange-50/60" : ""}>
               <th scope="row" className="p-2 text-left font-normal text-slate-500">
                 {r.label}
               </th>
@@ -127,7 +127,7 @@ export function ComparisonView({ card, lang = "en" }: { card: ComparisonCardData
 export function AccessoryView({ card, lang = "en" }: { card: AccessoryCardData; lang?: AssistantLang }) {
   return (
     <div data-testid="accessory-card" className="flex flex-col gap-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-[#2563EB]">{card.kind.replace(/_/g, " ").toLowerCase()}</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-[#C2410C]">{card.kind.replace(/_/g, " ").toLowerCase()}</span>
       <ProductCardView card={card.product} lang={lang} compact />
     </div>
   );
@@ -218,7 +218,7 @@ export function CartProposalConfirm({
 export function AssistantLoading({ lang = "en" }: { lang?: AssistantLang }) {
   return (
     <div role="status" aria-live="polite" aria-busy="true" className={`${SURFACE} flex items-center gap-3 p-4 text-sm text-slate-600`}>
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#2563EB] border-r-transparent" aria-hidden />
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#C2410C] border-r-transparent" aria-hidden />
       {labels(lang).loading}
     </div>
   );

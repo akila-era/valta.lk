@@ -1,3 +1,4 @@
+import { StoreOverlays } from "./store-overlays";
 import { ToastProvider } from "@/components/ui/toast";
 import { Footer } from "./footer";
 import { Header } from "./header";
@@ -14,6 +15,7 @@ export function StoreShell({ children, contained = true }: { children: React.Rea
         {children}
       </main>
       <Footer />
+      <StoreOverlays />
     </ToastProvider>
   );
 }

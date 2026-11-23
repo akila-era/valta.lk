@@ -3,20 +3,21 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* Neutrals: white, warm stone, charcoal */
+  /* VALTA palette: ink black, white, light grey surfaces, one signature orange accent. */
   --color-bg: #ffffff;
-  --color-surface: #f5f3f0;
-  --color-border: #e7e2dc;
-  --color-ink: #171717;
-  --color-muted: #5c574f;
-  --color-dark: #171717;
+  --color-surface: #f5f5f5;
+  --color-border: #e5e5e5;
+  --color-ink: #111111;
+  --color-muted: #6b6b6b; /* #737373 is only 4.4:1 on #F5F5F5; this is 4.9:1 on it and 5.3:1 on white */
+  --color-dark: #111111;
 
-  /* Brand: neon orange is for fills with dark text; brand-600/700 are the text-safe oranges on white (>= 4.5:1) */
-  --color-brand-50: #fff4ec;
-  --color-brand-100: #ffe2d0;
-  --color-brand-500: #ff5c00;
-  --color-brand-600: #c24100;
-  --color-brand-700: #9a3300;
+  /* Signature orange #F97316 is a FILL colour and always carries black text (6.7:1); white text on it is only 2.8:1. On black it is also a readable accent (6.7:1). Orange TEXT on white or light grey uses brand-600 #C2410C (5.2:1) or brand-700. */
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #c2410c;
+  --color-brand-700: #9a3412;
 
   /* Status colors stay clearly distinct from the brand orange */
   --color-danger: #b42318;
@@ -26,16 +27,16 @@
   --color-success-bg: #ecfdf3;
   --color-warn: #7a4a00;
   --color-warn-bg: #fff8e1;
-  --color-info: #1849a9;
-  --color-info-bg: #eff4ff;
+  --color-info: #374151;
+  --color-info-bg: #f3f4f6;
 
   /* Admin navigation uses the same charcoal, not a second brand colour */
-  --color-navy-950: #101010;
-  --color-navy-900: #171717;
+  --color-navy-950: #0b0b0b;
+  --color-navy-900: #111111;
   --color-navy-800: #242424;
   --color-navy-700: #333333;
 
-  --shadow-card: 0 1px 2px rgb(23 23 23 / 0.04), 0 8px 24px -12px rgb(23 23 23 / 0.16);
+  --shadow-card: 0 1px 2px rgb(17 17 17 / 0.04), 0 8px 24px -14px rgb(17 17 17 / 0.14);
   --shadow-raised: 0 8px 24px -16px rgb(23 23 23 / 0.35);
   --shadow-lift: 0 10px 26px -12px rgb(23 23 23 / 0.28);
   --shadow-overlay: 0 24px 48px -24px rgb(23 23 23 / 0.45);
@@ -52,6 +53,9 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+  /* Phones: no tap flash, no double-tap-zoom delay on controls, and no rubber-band scroll chaining out of overlays. */
+  html { -webkit-tap-highlight-color: transparent; text-size-adjust: 100%; }
+  a, button, summary, label, select, input, textarea { touch-action: manipulation; }
   :focus-visible {
     outline: 2px solid var(--color-brand-600);
     outline-offset: 2px;
@@ -69,7 +73,9 @@
   @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-colors
     disabled:cursor-not-allowed disabled:opacity-50;
 }
-@utility btn-primary { @apply btn bg-brand-500 text-ink hover:bg-brand-600 hover:text-white; }
+@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-brand-400; }
+/* Fixed black for text on the orange fill: it must not flip with the dark header scope below. */
+@utility text-on-brand { color: #111111; }
 @utility btn-secondary { @apply btn border border-border bg-bg text-ink hover:border-ink; }
 @utility btn-outline { @apply btn border border-border bg-bg text-ink hover:border-ink; }
 @utility btn-ghost { @apply btn text-ink hover:bg-surface; }
@@ -78,7 +84,7 @@
 @utility btn-danger { @apply btn bg-danger text-white hover:bg-danger-strong; }
 @utility btn-lg { @apply min-h-12 px-7 text-base; }
 @utility input {
-  @apply min-h-11 w-full rounded-lg border border-border bg-bg px-3 text-sm text-ink placeholder:text-muted
+  @apply min-h-11 w-full rounded-lg border border-border bg-bg px-3 text-base text-ink placeholder:text-muted sm:text-sm
     aria-[invalid=true]:border-danger disabled:cursor-not-allowed disabled:bg-surface disabled:opacity-70;
 }
 @utility select { @apply input; }
@@ -88,13 +94,17 @@
 @utility field-error { @apply mt-1.5 text-sm text-danger; }
 @utility eyebrow { @apply text-xs font-semibold uppercase tracking-[0.14em] text-brand-600; }
 @utility badge { @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold; }
-@utility section-title { @apply text-2xl font-bold tracking-tight text-ink sm:text-3xl; }
-@utility page-title { @apply text-2xl font-bold leading-tight tracking-tight text-ink sm:text-3xl; }
+@utility section-title { @apply text-2xl font-semibold tracking-[-0.03em] text-ink sm:text-3xl lg:text-[2.25rem] lg:leading-[1.1]; }
+@utility page-title { @apply text-3xl font-semibold leading-[1.1] tracking-[-0.03em] text-ink sm:text-4xl; }
 @utility type-product { @apply line-clamp-2 text-base font-bold leading-[1.35rem] text-ink; }
-@utility type-price { @apply whitespace-nowrap text-lg font-extrabold leading-6 tracking-tight text-brand-600 tabular-nums; }
+@utility type-price { @apply whitespace-nowrap text-lg font-extrabold leading-6 tracking-tight text-ink tabular-nums; }
 @utility type-body { @apply text-sm leading-6 text-ink; }
 @utility type-meta { @apply text-sm leading-5 text-muted; }
 @utility type-caption { @apply text-xs leading-4 text-muted; }
+/* Bottom padding that clears the iPhone home indicator / Android gesture bar. */
+@utility pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+@utility pb-safe-lg { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+@utility scrollbar-none { scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
 @utility section-space { @apply mt-10 sm:mt-14; }
 @utility media-square { @apply relative aspect-square overflow-hidden bg-surface; }
 
@@ -155,6 +165,11 @@
 @keyframes shimmer { to { background-position: -200% 0; } }
 
 @keyframes settle { from { transform: scale(1.08); } to { transform: scale(1); } }
+/* Slide-up WITHOUT a fade: content that starts at opacity 0 is not counted as painted, which delayed the largest paint (LCP) by about 0.8 s. */
+@keyframes lift { from { transform: translateY(14px); } to { transform: none; } }
+@utility animate-lift { animation: lift 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: var(--d, 0ms); }
+@keyframes hero-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@utility animate-hero-progress { animation: hero-progress 6500ms linear forwards; } /* keep in step with INTERVAL_MS in hero-slider.tsx */
 @utility animate-settle { animation: settle 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -175,17 +190,10 @@
   .rich blockquote { border-left: 3px solid var(--color-border); padding-left: 1rem; color: var(--color-muted); }
 }
 
-/* Admin console: clean white SaaS theme with brand blue #2563EB (decided by the owner). Scoped to .admin-theme so the
-   storefront keeps its own orange palette; admin components keep using brand-* tokens, which resolve to blue here. */
+/* Admin console: same palette as the storefront; only the surface tint and card shadow differ. */
 .admin-theme {
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #2563eb;
-  --color-brand-600: #1d4ed8;
-  --color-brand-700: #1e40af;
   --color-surface: #f6f8fb;
   --color-border: #e4e8ef;
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
 }
 .admin-theme .card { box-shadow: var(--shadow-card); }
-.admin-theme .btn-primary, .admin-theme .bg-brand-500 { color: #fff; }

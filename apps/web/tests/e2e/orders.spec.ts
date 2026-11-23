@@ -311,7 +311,8 @@ test.describe("admin orders", () => {
     await control({ rejectOrders: [] });
     await page.getByRole("button", { name: "Retry sync to ERP" }).click(); // stock is fine again
     await expect(page.getByText("In ERP").first()).toBeVisible();
-    expect((await control({})).orderRefs).toContain(ref);
+    // the retry reaches the ERP shortly after the page updates, so wait for it instead of checking at one instant
+    await expect.poll(async () => (await control({})).orderRefs, { timeout: 15_000 }).toContain(ref);
   });
 });
 

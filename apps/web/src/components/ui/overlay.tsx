@@ -53,14 +53,39 @@ export function Dialog({ open, title, onClose, children }: { open: boolean; titl
   );
 }
 
-export function Drawer({ open, label, onClose, children }: { open: boolean; label: string; onClose: () => void; children: ReactNode }) {
+export function Drawer({ open, label, onClose, children, side = "left", wide }: { open: boolean; label: string; onClose: () => void; children: ReactNode; side?: "left" | "right"; wide?: boolean }) {
+  const panel = useRef<HTMLDivElement>(null);
+  useDialogLifecycle(open, onClose, panel);
+  if (!open) return null;
+  const right = side === "right";
+  return (
+    <div className="fixed inset-0 z-[80]">
+      <button type="button" className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-ink/40" aria-label="Close" onClick={onClose} />
+      <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        className={`absolute inset-y-0 flex ${wide ? "w-[min(100%,26rem)]" : "w-[min(100%,20rem)]"} flex-col overflow-y-auto bg-bg shadow-overlay ${
+          right ? "right-0 animate-[slide-in-right_0.28s_cubic-bezier(0.2,0.7,0.2,1)]" : "left-0 animate-[slide-in_0.28s_cubic-bezier(0.2,0.7,0.2,1)] p-5"
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** Centred modal on desktop, bottom sheet on phones. Wider than Dialog, for rich content such as quick view. */
+export function Modal({ open, label, onClose, children }: { open: boolean; label: string; onClose: () => void; children: ReactNode }) {
   const panel = useRef<HTMLDivElement>(null);
   useDialogLifecycle(open, onClose, panel);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[80]">
-      <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Close menu" onClick={onClose} />
-      <div ref={panel} role="dialog" aria-modal="true" aria-label={label} className="absolute inset-y-0 left-0 flex w-[min(100%,20rem)] flex-col overflow-y-auto bg-bg p-5 shadow-overlay">
+    <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-6">
+      <button type="button" className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-ink/40" aria-label="Close" onClick={onClose} />
+      <div ref={panel} role="dialog" aria-modal="true" aria-label={label} className="pb-[env(safe-area-inset-bottom)] relative z-10 max-h-[92dvh] w-full max-w-4xl animate-[fade-up_0.3s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain rounded-t-3xl bg-bg shadow-overlay sm:rounded-2xl">
+        <span aria-hidden className="mx-auto mt-2.5 block h-1 w-10 rounded-full bg-border sm:hidden" />
         {children}
       </div>
     </div>

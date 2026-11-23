@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { BannerImage } from "./banner-image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -53,7 +53,7 @@ export function WideBannerSlider({ slides }: { slides: WideSlide[] }) {
     >
       {slides.map((s, i) => {
         const active = i === index;
-        const picture = <Image src={s.image} alt={s.alt} fill unoptimized sizes="(min-width:1536px) 1400px, 100vw" className="object-cover" loading={i === 0 ? "eager" : "lazy"} />;
+        const picture = <BannerImage src={s.image} alt={s.alt} unoptimized sizes="(min-width:1536px) 1400px, 100vw" tone="light" priority={i === 0} />;
         return (
           <div
             key={s.image}

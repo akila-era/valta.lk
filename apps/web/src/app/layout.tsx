@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   openGraph: { siteName: "VALTA.LK", type: "website", locale: "en_LK" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
+// viewportFit "cover" lets fixed bars use the safe-area insets (notch / home indicator) instead of being cut off by them.
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#ffffff" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

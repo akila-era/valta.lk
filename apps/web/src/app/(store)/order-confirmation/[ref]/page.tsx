@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Clock } from "lucide-react";
 import { CodNote, OrderSummary } from "@/components/orders/order-summary";
+import { OrderStatusBadge } from "@/components/orders/status-badge";
 import { ErpUnavailable } from "@/components/ui/states";
 import { isAdminEmail } from "@/lib/admin/auth";
 import { getCurrentCustomer } from "@/lib/auth/session";
@@ -15,15 +16,6 @@ import { isValidOrderRef } from "@/lib/utils/order-ref";
 
 export const metadata: Metadata = { title: "Your order", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
-
-const STATUS_LABEL: Record<string, string> = {
-  RECEIVED: "Received",
-  PLACED: "Placed",
-  CONFIRMED: "Confirmed",
-  DISPATCHED: "Dispatched",
-  DELIVERED: "Delivered",
-  CANCELLED: "Cancelled",
-};
 
 export default async function ConfirmationPage({ params }: { params: Promise<{ ref: string }> }) {
   const ref = (await params).ref.toUpperCase();
@@ -49,26 +41,28 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="rounded-2xl border border-border bg-surface px-6 py-8 text-center">
-        {pending ? <Clock className="mx-auto h-12 w-12 text-warn" aria-hidden /> : <CheckCircle2 className="mx-auto h-12 w-12 text-success" aria-hidden />}
-        <h1 className="page-title mt-4">{pending ? "Thank you, we have your order" : "Thank you, your order is placed"}</h1>
-        <p className="mt-2 text-sm text-muted">Your order reference</p>
-        <p className="mt-1 text-xl font-bold tracking-wider" data-testid="order-ref">{order.ref}</p>
+      <div className="rounded-3xl bg-surface px-6 py-10 text-center sm:px-10">
+        <span className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white ${pending ? "text-warn" : "text-success"}`}>
+          {pending ? <Clock className="h-7 w-7" aria-hidden /> : <CheckCircle2 className="h-7 w-7" aria-hidden />}
+        </span>
+        <h1 className="page-title mt-5">{pending ? "Thank you, we have your order" : "Thank you, your order is placed"}</h1>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted">Your order reference</p>
+        <p className="mt-1.5 break-all font-mono text-xl font-semibold tracking-wider sm:text-2xl" data-testid="order-ref">{order.ref}</p>
         <p className="mt-2 text-sm text-muted">Keep this reference to track your order.</p>
       </div>
 
       {pending && (
-        <p role="status" className="rounded-lg bg-warn-bg p-4 text-sm text-warn" data-testid="pending-note">
+        <p role="status" className="rounded-2xl bg-warn-bg p-4 text-sm leading-6 text-warn" data-testid="pending-note">
           Your order is saved and is being confirmed with our system. This can take a few minutes; there is no need to order again.
           You can follow its progress on the tracking page.
         </p>
       )}
 
-      <section className="card p-5" aria-label="Order status and payment">
-        <h2 className="text-lg font-semibold">Status and payment</h2>
+      <section className="rounded-3xl border border-border p-5 sm:p-7" aria-label="Order status and payment">
+        <h2 className="text-lg font-semibold tracking-tight">Status and payment</h2>
         <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2">
           <dt className="text-muted">Order status</dt>
-          <dd className="font-semibold" data-testid="order-status">{STATUS_LABEL[order.status] ?? order.status}</dd>
+          <dd><OrderStatusBadge status={order.status} testId="order-status" /></dd>
           <dt className="text-muted">Payment method</dt>
           <dd>{order.paymentMethod === "COD" ? "Cash on delivery" : order.paymentMethod}</dd>
           <dt className="text-muted">Payment status</dt>
@@ -78,19 +72,19 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
 
       <CodNote collected={order.codCollected} />
       {(order.trackingNumber || order.carrier) && (
-        <section className="card p-5" aria-label="Tracking">
-          <h2 className="text-lg font-semibold">Tracking</h2>
+        <section className="rounded-3xl border border-border p-5 sm:p-7" aria-label="Tracking">
+          <h2 className="text-lg font-semibold tracking-tight">Tracking</h2>
           <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2">
             {order.carrier && (<><dt className="text-muted">Carrier</dt><dd>{order.carrier}</dd></>)}
-            {order.trackingNumber && (<><dt className="text-muted">Tracking number</dt><dd className="font-semibold">{order.trackingNumber}</dd></>)}
+            {order.trackingNumber && (<><dt className="text-muted">Tracking number</dt><dd className="font-mono font-semibold">{order.trackingNumber}</dd></>)}
           </dl>
         </section>
       )}
       <OrderSummary order={order} />
 
       {payload && (
-        <section className="card p-5" aria-label="Delivery details">
-          <h2 className="text-lg font-semibold">Delivery details</h2>
+        <section className="rounded-3xl border border-border p-5 sm:p-7" aria-label="Delivery details">
+          <h2 className="text-lg font-semibold tracking-tight">Delivery details</h2>
           <dl className="mt-4 grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-x-4 sm:gap-y-2" data-testid="delivery-details">
             <dt className="text-muted">Name</dt><dd>{payload.customer.name}</dd>
             <dt className="text-muted">Phone</dt><dd>{payload.customer.phone}</dd>
@@ -101,7 +95,7 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
         </section>
       )}
 
-      <div className="flex flex-wrap justify-center gap-3">
+      <div className="flex flex-wrap justify-center gap-3 pb-4">
         <Link href={`/track-order?ref=${order.ref}`} className="btn-primary">Track your order</Link>
         <Link href="/products" className="btn-secondary">Continue shopping</Link>
       </div>

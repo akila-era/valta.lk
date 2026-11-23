@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { UserRound } from "lucide-react";
 import { AccountsUnavailableNotice, AuthCard } from "@/components/account/auth-card";
 import { AuthForm } from "@/components/account/auth-form";
 import { safeNext } from "@/lib/auth/safe-next";
@@ -14,6 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (await getCurrentCustomer()) redirect(safeNext(next));
   return (
     <AuthCard
+      icon={UserRound}
       title="Sign in"
       intro="Welcome back. Sign in to see your orders and check out faster."
       footer={<>New to VALTA.LK? <Link href={`/account/register${next ? `?next=${encodeURIComponent(safeNext(next))}` : ""}`} className="font-semibold text-brand-600 hover:underline">Create an account</Link></>}

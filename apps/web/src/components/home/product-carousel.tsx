@@ -36,13 +36,16 @@ export function ProductCarousel({
     const el = scroller.current;
     if (!el) return;
     const delta = distance() || el.clientWidth;
+    // Not laid out yet (zero width): dividing by it would give Infinity/NaN pages and crash the dots.
+    if (!(delta > 0) || !(el.clientWidth > 0)) return;
     const max = Math.max(0, el.scrollWidth - el.clientWidth);
     // Page mode rounds a partly filled last view up. Item mode stops on each card, and the final sliver is the last stop.
     const fullSteps = Math.floor(max / delta);
     const remainder = max - fullSteps * delta;
-    const pages = step === "item"
+    const rawPages = step === "item"
       ? (max <= 4 ? 1 : 1 + fullSteps + (remainder > 4 ? 1 : 0))
       : Math.max(1, Math.ceil((el.scrollWidth - 4) / el.clientWidth));
+    const pages = Number.isFinite(rawPages) ? Math.min(60, Math.max(1, rawPages)) : 1;
     const atEnd = step === "item" ? el.scrollLeft >= max - 4 : el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
     const page = atEnd ? pages - 1 : Math.min(pages - 1, Math.round(el.scrollLeft / delta));
     setState((s) => (s.pages === pages && s.page === page ? s : { pages, page }));
@@ -110,7 +113,7 @@ export function ProductCarousel({
                 onClick={() => goTo(i)}
                 aria-label={`Go to page ${i + 1} of ${state.pages}`}
                 aria-current={i === state.page}
-                className="flex h-6 w-6 items-center justify-center"
+                className="flex h-10 w-10 items-center justify-center"
               >
                 <span className={`block h-2.5 rounded-full transition-all ${i === state.page ? "w-6 bg-ink" : "w-2.5 bg-ink/25 hover:bg-ink/50"}`} />
               </button>

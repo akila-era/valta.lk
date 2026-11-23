@@ -4,13 +4,13 @@ import type { ReactNode } from "react";
 
 export function SectionHeader({ id, title, action, children, center = false }: { id?: string; title: string; action?: { href: string; label: string }; children?: ReactNode; center?: boolean }) {
   return (
-    <div className={`mb-5 flex flex-wrap items-end gap-4 ${center ? "justify-center text-center" : "justify-between"}`}>
+    <div className={`mb-6 flex flex-wrap items-end gap-4 sm:mb-8 ${center ? "justify-center text-center" : "justify-between"}`}>
       <div className="min-w-0">
         <h2 id={id} className="section-title">{title}</h2>
         {children ? <div className={`type-meta mt-2 max-w-2xl ${center ? "mx-auto" : ""}`}>{children}</div> : null}
       </div>
       {action ? (
-        <Link href={action.href} className="shrink-0 text-sm font-semibold text-brand-600 hover:underline">
+        <Link href={action.href} className="-my-2 inline-flex min-h-11 shrink-0 items-center text-sm font-semibold text-brand-600 underline-offset-4 hover:underline">
           {action.label}
         </Link>
       ) : null}
@@ -31,7 +31,7 @@ export function Breadcrumbs({ items }: { items: { href?: string; label: string }
           return (
             <li key={`${item.label}-${i}`} aria-current={last ? "page" : undefined} className={`flex items-center gap-1.5 ${last ? "min-w-0 max-w-full font-medium text-ink" : ""}`}>
               {i > 0 ? <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted/70" aria-hidden /> : null}
-              {item.href && !last ? <Link href={item.href} className="rounded-sm hover:text-ink hover:underline">{item.label}</Link> : <span className="truncate">{item.label}</span>}
+              {item.href && !last ? <Link href={item.href} className="-mx-2 -my-3 inline-block rounded-sm px-2 py-3 hover:text-ink hover:underline">{item.label}</Link> : <span className="truncate">{item.label}</span>}
             </li>
           );
         })}

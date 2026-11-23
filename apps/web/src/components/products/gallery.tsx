@@ -34,7 +34,7 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
   return (
     <div>
       <div
-        className="relative aspect-square touch-pan-y overflow-hidden rounded-2xl border border-border bg-surface shadow-card"
+        className="relative aspect-square touch-pan-y overflow-hidden rounded-3xl bg-surface"
         tabIndex={many ? 0 : undefined}
         role={many ? "group" : undefined}
         aria-label={many ? `${alt}. Image ${index + 1} of ${images.length}. Use the arrow keys to change image.` : undefined}

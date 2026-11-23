@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Mail } from "lucide-react";
 import { AccountsUnavailableNotice, AuthCard } from "@/components/account/auth-card";
 import { AuthForm } from "@/components/account/auth-form";
 import { accountsEnabled } from "@/lib/auth/session";
@@ -10,6 +11,7 @@ export default function ForgotPasswordPage() {
   if (!accountsEnabled()) return <AccountsUnavailableNotice />;
   return (
     <AuthCard
+      icon={Mail}
       title="Reset your password"
       intro="Enter the email you registered with and we will send you a link to set a new password."
       footer={<Link href="/account/login" className="font-semibold text-brand-600 hover:underline">Back to sign in</Link>}

@@ -2,9 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import Link from "next/link";
 import {
-  Banknote, Building2, ChevronRight, Clock, FileText, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck,
+  Banknote, Building2, Clock, FileText, HelpCircle, Mail, MapPin, MessageSquare, PackageSearch, Phone, RefreshCw, Share2, ShieldCheck, Truck, User,
   type LucideIcon,
 } from "lucide-react";
+import { accountsEnabled } from "@/lib/auth/session";
 import { listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
 import { socialLinks } from "@/lib/home-config";
@@ -17,7 +18,7 @@ const support: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/contact", label: "Contact us", icon: MessageSquare },
   { href: "/shipping-policy", label: "Shipping policy", icon: Truck },
   { href: "/returns-policy", label: "Returns policy", icon: RefreshCw },
-  { href: "/#faq", label: "Frequently asked questions", icon: HelpCircle },
+  { href: "/faq", label: "Frequently asked questions", icon: HelpCircle },
 ];
 const company: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/about", label: "About us", icon: Building2 },
@@ -55,22 +56,21 @@ function PaymentBadge({ id }: { id: string }) {
   );
 }
 
-const colHead = "text-base font-semibold text-white";
-const accentBar = "mt-3 block h-[3px] w-9 rounded-full bg-brand-500";
-const rowLink = "group flex items-center gap-3 rounded-lg py-2 pr-1 sm:gap-3.5 sm:py-2.5 sm:pr-2 text-[15px] text-white/80 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+const colHead = "text-xs font-semibold uppercase tracking-[0.16em] text-white/60";
+
+const rowLink = "group flex items-center gap-3 rounded-lg py-2 pr-1 sm:gap-3.5 sm:py-2.5 sm:pr-2 text-[15px] text-white/85 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 function LinkList({ items, label }: { items: typeof support; label: string }) {
+  // Icons are kept in the data for other uses; the footer itself stays typographic.
   return (
     <nav aria-label={label}>
       <h2 className={colHead}>{label}</h2>
-      <span className={accentBar} aria-hidden />
-      <ul className="mt-4">
-        {items.map(({ href, label: l, icon: Icon }) => (
+      <ul className="mt-3">
+        {items.map(({ href, label: l }) => (
           <li key={href}>
             <Link href={href} className={rowLink}>
-              <Icon className="h-5 w-5 shrink-0 text-white/60 transition-colors group-hover:text-brand-500" strokeWidth={1.5} aria-hidden />
               <span className="flex-1">{l}</span>
-              <ChevronRight className="hidden h-4 w-4 shrink-0 text-white/40 transition-transform group-hover:translate-x-0.5 group-hover:text-white/80 sm:block" aria-hidden />
+              
             </Link>
           </li>
         ))}
@@ -82,7 +82,7 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
 function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-4">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-500/15 text-brand-500"><Icon className="h-5 w-5" aria-hidden /></span>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white"><Icon className="h-5 w-5" aria-hidden /></span>
       <span className="min-w-0 text-[15px]">
         <span className="block text-xs text-white/60">{label}</span>
         <span className="block break-words font-semibold text-white">{children}</span>
@@ -107,10 +107,10 @@ export async function Footer() {
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark mt-20 border-t border-white/10 bg-dark text-white">
+    <footer className="on-dark mt-20 bg-dark text-white">
       <div className="container-page grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-14">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
-          <p className="text-3xl font-extrabold tracking-tight">VALTA<span className="text-brand-500">.LK</span></p>
+          <p className="text-3xl font-bold tracking-tight">VALTA<span className="text-white/60">.LK</span></p>
           <p className="mt-4 max-w-xs text-[15px] leading-7 text-white/75">{siteConfig.description}</p>
           {social.length > 0 && (
             <ul className="mt-6 flex flex-wrap gap-3" aria-label="Social media">
@@ -118,7 +118,7 @@ export async function Footer() {
                 const Icon = SOCIAL_ICON[s.label] ?? Share2;
                 return (
                   <li key={s.label}>
-                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-brand-500 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`${s.label} (opens in a new tab)`} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-brand-500 hover:text-on-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
                       <Icon className="h-[22px] w-[22px]" aria-hidden />
                     </a>
                   </li>
@@ -128,29 +128,28 @@ export async function Footer() {
           )}
           <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-3 border-t border-white/10 pt-5 sm:mt-7 sm:pt-6">
             {trust.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-2 text-sm text-white/80"><Icon className="h-5 w-5 shrink-0 text-brand-500" strokeWidth={1.5} aria-hidden />{text}</li>
+              <li key={text} className="flex items-center gap-2 text-sm text-white/80"><Icon className="h-5 w-5 shrink-0 text-white/70" strokeWidth={1.5} aria-hidden />{text}</li>
             ))}
           </ul>
         </div>
 
         <nav aria-label="Shop categories">
           <h2 className={colHead}>Shop</h2>
-          <span className={accentBar} aria-hidden />
-          <ul className="mt-4">
-            <li><Link className={rowLink} href="/products"><span className="flex-1">All products</span><ChevronRight className="hidden h-4 w-4 text-white/40 sm:block" aria-hidden /></Link></li>
+              <ul className="mt-3">
+            <li><Link className={rowLink} href="/products"><span className="flex-1">All products</span></Link></li>
+            <li><Link className={rowLink} href="/brands"><span className="flex-1">Brands</span></Link></li>
             {categories.slice(0, 7).map((c) => (
-              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><span className="flex-1">{c.name}</span><ChevronRight className="hidden h-4 w-4 text-white/40 sm:block" aria-hidden /></Link></li>
+              <li key={c.slug}><Link className={rowLink} href={`/categories/${c.slug}`}><span className="flex-1">{c.name}</span></Link></li>
             ))}
           </ul>
         </nav>
 
         <LinkList items={support} label="Support" />
-        <LinkList items={company} label="Company" />
+        <LinkList items={accountsEnabled() ? [...company, { href: "/account", label: "My account", icon: User }] : company} label="Company" />
 
         <div className={hasContact ? "col-span-2 md:col-span-3 lg:col-span-1" : "lg:col-span-1"}>
           <h2 className={colHead}>Contact</h2>
-          <span className={accentBar} aria-hidden />
-          <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             {siteConfig.phone && <ContactRow icon={Phone} label="Customer support"><a href={`tel:${siteConfig.phone.replace(/\s/g, "")}`} className="hover:underline">{siteConfig.phone}</a></ContactRow>}
             {siteConfig.email && <ContactRow icon={Mail} label="Email us"><a href={`mailto:${siteConfig.email}`} className="hover:underline">{siteConfig.email}</a></ContactRow>}
             {siteConfig.address && <ContactRow icon={MapPin} label="Visit our store">{siteConfig.address}</ContactRow>}
@@ -159,7 +158,7 @@ export async function Footer() {
                 {siteConfig.hours.map((h) => <span key={h} className="block text-sm font-normal text-white/85">{h}</span>)}
               </ContactRow>
             )}
-            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-5 w-5 text-white/60" strokeWidth={1.5} aria-hidden /><span className="flex-1">Contact details</span><ChevronRight className="hidden h-4 w-4 text-white/40 sm:block" aria-hidden /></Link></li>}
+            {!hasContact && <li><Link href="/contact" className={rowLink}><MessageSquare className="h-5 w-5 text-white/60" strokeWidth={1.5} aria-hidden /><span className="flex-1">Contact details</span></Link></li>}
           </ul>
         </div>
       </div>
@@ -181,8 +180,8 @@ export async function Footer() {
               <p className="mt-1 text-xs text-white/55">Prices and availability are subject to change without notice.</p>
             </div>
             <ul className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/75 md:ml-auto md:mr-2">
-              <li><Link href="/privacy-policy" className="hover:text-white hover:underline">Privacy policy</Link></li>
-              <li><Link href="/terms" className="hover:text-white hover:underline">Terms & conditions</Link></li>
+              <li><Link href="/privacy-policy" className="inline-block py-3 hover:text-white hover:underline">Privacy policy</Link></li>
+              <li><Link href="/terms" className="inline-block py-3 hover:text-white hover:underline">Terms & conditions</Link></li>
             </ul>
             <BackToTop />
           </div>

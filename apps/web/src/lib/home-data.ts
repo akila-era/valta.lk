@@ -68,6 +68,26 @@ export function resolveBanners(categories: Category[]): ResolvedBanner[] {
   return out;
 }
 
+export interface BudgetPick {
+  key: "under" | "mid" | "over";
+  label: string;
+  href: string;
+  count: number;
+  /** Available products that really fall in the band, photographed ones first. */
+  products: ErpProduct[];
+}
+
+export interface Spotlight {
+  role: "essentials" | "phones" | "setup";
+  slug: string;
+  name: string;
+  count: number;
+  products: ErpProduct[];
+}
+
+export const BUDGET_UNDER = 8000;
+export const BUDGET_OVER = 35000;
+
 export interface HomeData {
   catalogueOk: boolean;
   totalProducts: number;
@@ -77,6 +97,8 @@ export interface HomeData {
   featured: ErpProduct[];
   brands: { name: string; count: number; image?: string; logo?: string }[];
   banners: ResolvedBanner[];
+  /** True when the banners were created by staff in the admin (shown as written), false when derived from categories. */
+  bannersFromStaff: boolean;
   /** Full-width pictures staff placed between "Shop by budget" and "Why shop with VALTA.LK"; they rotate when there are several. */
   wideBanners: WideBanner[];
   /** Further products beyond the ones already shown in "New Arrivals": same catalogue, next in line. */
@@ -85,6 +107,10 @@ export interface HomeData {
   rails: { slug: string; name: string; count: number; products: ErpProduct[] }[];
   budget: { under: number; over: number } | null;
   phonesSlug?: string;
+  /** Fixed shopping bands from the brief; a band is omitted when the catalogue has nothing available in it. */
+  budgetPicks: BudgetPick[];
+  /** Real categories behind the editorial campaign panels. */
+  spotlights: Spotlight[];
   checkout: { cod: boolean; deliveryCharge: number | null };
 }
 
@@ -98,11 +124,39 @@ export async function getHomeData(): Promise<HomeData> {
     safe(() => getCheckoutAvailability()),
     safe(() => listPrices()),
   ]);
+  const bandDefs: { key: BudgetPick["key"]; label: string; href: string; q: { minPrice?: number; maxPrice?: number }; sort: "price-desc" | "price-asc" }[] = [
+    { key: "under", label: "Under LKR 8,000", href: `/products?max=${BUDGET_UNDER}&sort=price-desc`, q: { maxPrice: BUDGET_UNDER }, sort: "price-desc" },
+    { key: "mid", label: "LKR 8,000 – LKR 35,000", href: `/products?min=${BUDGET_UNDER}&max=${BUDGET_OVER}&sort=price-asc`, q: { minPrice: BUDGET_UNDER, maxPrice: BUDGET_OVER }, sort: "price-asc" },
+    { key: "over", label: "Over LKR 35,000", href: `/products?min=${BUDGET_OVER}&sort=price-asc`, q: { minPrice: BUDGET_OVER }, sort: "price-asc" },
+  ];
+  const bandResults = await Promise.all(bandDefs.map((d) => safe(() => listProducts({ ...d.q, sort: d.sort, inStockOnly: true, pageSize: 24 }))));
+  const budgetPicks: BudgetPick[] = bandDefs.flatMap((d, i) => {
+    const r = bandResults[i];
+    if (!r || !r.items.length) return [];
+    const items = r.items.filter((p) => p.available);
+    const ordered = [...items.filter((p) => p.images.length), ...items.filter((p) => !p.images.length)];
+    return items.length ? [{ key: d.key, label: d.label, href: d.href, count: r.total, products: ordered.slice(0, 3) }] : [];
+  });
   const [logos, staffBanners, wideBanners] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners()]);
 
   const all = newest?.items ?? [];
 
   const categories = newest?.categories ?? [];
+  const spotDefs: { role: Spotlight["role"]; test: RegExp }[] = [
+    { role: "essentials", test: /accessor/i },
+    { role: "phones", test: /phone|mobile/i },
+    { role: "setup", test: /computer|laptop|tablet/i },
+  ];
+  const spotlights = (
+    await Promise.all(
+      spotDefs.map(async (d) => {
+        const c = categories.find((x) => d.test.test(x.name));
+        if (!c) return null;
+        const r = await safe(() => listProducts({ category: c.slug, sort: "newest", inStockOnly: true, pageSize: 6 }));
+        return r && r.items.length >= 2 ? ({ role: d.role, slug: c.slug, name: c.name, count: c.count, products: r.items } as Spotlight) : null;
+      }),
+    )
+  ).filter((x): x is Spotlight => Boolean(x));
   // One rail per larger category, newest first
   const railCats = [...categories].filter((c) => c.count >= 3).sort((a, b) => b.count - a.count).slice(0, 3);
   const rails = (
@@ -129,9 +183,12 @@ export async function getHomeData(): Promise<HomeData> {
     brands: (brands ?? []).map((b) => ({ ...b, logo: logos.get(brandKey(b.name)) })),
     // Banners staff created in the admin win; with none active the category-derived / HOME_BANNERS ones remain.
     banners: staffBanners.length ? staffBanners : resolveBanners(categories),
+    bannersFromStaff: staffBanners.length > 0,
     wideBanners,
     rails,
     budget: prices ? budgetBands(prices) : null,
+    budgetPicks,
+    spotlights,
     phonesSlug: categories.find((c) => /phone|mobile/i.test(c.name))?.slug,
     checkout: {
       cod: Boolean(settings?.enabled && settings.settings?.paymentMethods.COD),

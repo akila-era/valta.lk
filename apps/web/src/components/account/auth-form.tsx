@@ -87,7 +87,7 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
     <button
       type="button"
       onClick={() => setShow((v) => !v)}
-      className="absolute right-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-muted hover:text-ink"
+      className="absolute right-0.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-md text-muted hover:text-ink"
       aria-label={show ? "Hide password" : "Show password"}
       aria-pressed={show}
     >
@@ -98,7 +98,7 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       {banner && (
-        <div role={banner.kind === "error" ? "alert" : "status"} className={`rounded-lg p-3 text-sm ${banner.kind === "error" ? "bg-danger-bg text-danger" : "bg-success-bg text-success"}`}>
+        <div role={banner.kind === "error" ? "alert" : "status"} className={`rounded-2xl p-4 text-sm leading-6 ${banner.kind === "error" ? "bg-danger-bg text-danger" : "bg-success-bg text-success"}`}>
           {banner.text}
         </div>
       )}

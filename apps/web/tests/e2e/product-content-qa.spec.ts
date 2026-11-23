@@ -46,6 +46,7 @@ async function resetContent(page: Page) {
 
 test.describe("editor: every tab, save and reload", () => {
   test("all eight tabs accept input, save as a draft, and every value is still there after a reload", async ({ page }) => {
+    test.setTimeout(90_000); // a ~200-line editor walkthrough: it needs about 34 s on this machine, so the default 30 s is too tight
     await signInAsAdmin(page);
     await resetContent(page);
     await page.goto(`/admin/products/${ID}`);

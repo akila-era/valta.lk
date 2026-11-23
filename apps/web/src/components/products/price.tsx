@@ -8,7 +8,7 @@ export function Price({ price, salePrice, large, offerName }: { price: number; s
   return (
     <div>
       <p className="flex flex-wrap items-baseline gap-x-2">
-        <span className={large ? "text-3xl font-extrabold tracking-tight text-brand-600 tabular-nums" : "type-price"}>{formatLkr(current)}</span>
+        <span className={large ? "text-3xl font-extrabold tracking-tight text-ink tabular-nums" : "type-price"}>{formatLkr(current)}</span>
         {onSale && (
           <>
             <span className="sr-only">Regular price</span>

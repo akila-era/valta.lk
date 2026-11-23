@@ -14,7 +14,7 @@ export function VideoShowcase({ title, videos }: { title: string; videos: VideoC
   const grid = videos.length === 1 ? "max-w-3xl" : videos.length === 2 ? "max-w-4xl sm:grid-cols-2" : "max-w-6xl sm:grid-cols-2 lg:grid-cols-3";
   return (
     <section aria-labelledby="videos" className="mt-14 sm:mt-20">
-      <h2 id="videos" className="section-title mb-7 text-center sm:mb-9">{title}</h2>
+      <h2 id="videos" className="section-title mb-6 sm:mb-8">{title}</h2>
       <ul className={`mx-auto grid gap-4 sm:gap-5 ${grid}`}>
         {videos.map((v) => {
           const on = playing === v.id;
@@ -40,7 +40,7 @@ export function VideoShowcase({ title, videos }: { title: string; videos: VideoC
                       className="h-full w-full object-cover transition-transform duration-500 motion-reduce:transition-none motion-reduce:group-hover:scale-100 group-hover:scale-[1.03]"
                     />
                     <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500 text-ink shadow-lg transition-transform motion-reduce:transition-none motion-reduce:group-hover:scale-100 group-hover:scale-110 group-focus-visible:scale-110">
+                    <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-500 text-on-brand shadow-lg transition-transform motion-reduce:transition-none motion-reduce:group-hover:scale-100 group-hover:scale-110 group-focus-visible:scale-110">
                       <Play className="ml-0.5 h-6 w-6 fill-current" aria-hidden />
                     </span>
                   </button>

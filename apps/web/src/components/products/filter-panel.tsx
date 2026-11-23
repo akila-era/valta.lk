@@ -64,7 +64,7 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
         aria-label="Filters"
         role={open ? "dialog" : undefined}
         aria-modal={open ? true : undefined}
-        className={`${open ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-bg p-5 shadow-overlay" : "hidden"} lg:static lg:animate-none lg:z-auto lg:block lg:w-auto lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-surface lg:p-5 lg:shadow-none`}
+        className={`${open ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-bg p-5 shadow-overlay" : "hidden"} lg:static lg:animate-none lg:z-auto lg:block lg:w-auto lg:overflow-visible lg:bg-transparent lg:p-0 lg:pr-4 lg:shadow-none`}
       >
         <div className="mb-4 flex items-center justify-between lg:hidden">
           <h2 className="text-lg font-bold text-ink">Filters</h2>
