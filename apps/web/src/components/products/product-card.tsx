@@ -25,7 +25,6 @@ export function ProductCard({ product, priority }: { product: ErpProduct; priori
       <Link
         href={`/products/${product.slug}`}
         className="flex flex-1 flex-col after:absolute after:inset-0 after:content-[''] [&:focus-visible]:outline-offset-2"
-        aria-label={`${title}, ${formatLkr(current)}`}
       >
         <div className="media-square rounded-2xl">
           <div className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.05] motion-reduce:transition-none">

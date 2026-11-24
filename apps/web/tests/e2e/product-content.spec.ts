@@ -16,6 +16,11 @@ test.beforeEach(async ({ context }) => {
   ip = (ip % 250) + 1;
   await context.setExtraHTTPHeaders({ "x-forwarded-for": `10.50.${Math.floor(Math.random() * 250)}.${ip}` });
   await control({ reset: true });
+  // The website re-reads the ERP catalogue about once a minute, so right after a reset it may still show the previous test's price.
+  // Wait until the product page shows the reset price again (instant when the cache is fresh, up to about a minute otherwise).
+  await expect
+    .poll(async () => (await (await context.request.get(`/products/${SLUG}`)).text()).includes("LKR 990"), { timeout: 90_000, intervals: [3_000] })
+    .toBe(true);
 });
 
 async function signInAsAdmin(page: Page) {

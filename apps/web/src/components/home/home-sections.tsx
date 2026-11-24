@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
-import { ProductCard } from "@/components/products/product-card";
-import { EmptyState } from "@/components/ui/states";
 import type { HomeData } from "@/lib/home-data";
 import { categoryVisual } from "./category-art";
 import { Reveal } from "./reveal";
@@ -59,7 +57,6 @@ export function CategoryTiles({ categories }: { categories: HomeData["categories
             <Reveal as="li" key={c.slug} delay={i * 70} className={feature ? "col-span-2 lg:col-span-2 lg:row-span-2" : ""}>
               <Link
                 href={`/categories/${c.slug}`}
-                aria-label={`${c.name}, ${c.count} ${c.count === 1 ? "product" : "products"}`}
                 className={`group relative block overflow-hidden rounded-[1.75rem] bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${feature ? "aspect-[16/10] lg:aspect-auto lg:h-full lg:min-h-[28rem]" : "aspect-[4/5] sm:aspect-square lg:aspect-auto lg:h-full lg:min-h-[13.5rem]"}`}
               >
                 {art && (
@@ -85,73 +82,6 @@ export function CategoryTiles({ categories }: { categories: HomeData["categories
           );
         })}
       </ul>
-    </section>
-  );
-}
-
-/** Supporting line for each tab; only states what the data supports. */
-const TAB_BLURB: Record<string, string> = {
-  new: "The latest products added to our catalogue.",
-  offers: "Products with a current price reduction.",
-  featured: "Products the shop has marked as featured.",
-};
-
-/**
- * Discovery tabs: New arrivals, Featured (marked by staff), Offers (only real sale prices) and the biggest categories.
- * The ERP has no sales or trend data, so no "best seller" or "trending" claim is made.
- */
-export function TabbedShowcase({ data, tab }: { data: HomeData; tab: string }) {
-  const tabs = [
-    { id: "new", label: "New Arrivals", href: "/#products", products: data.newArrivals, all: "/products" },
-    ...(data.featured.length ? [{ id: "featured", label: "Featured", href: "/?tab=featured#products", products: data.featured, all: "/products" }] : []),
-    ...(data.offers.length ? [{ id: "offers", label: "Special Offers", href: "/?tab=offers#products", products: data.offers, all: "/products?sale=1" }] : []),
-    ...data.rails.map((r) => ({ id: `c-${r.slug}`, label: r.name, href: `/?tab=c-${r.slug}#products`, products: r.products, all: `/categories/${r.slug}` })),
-  ];
-  const active = tabs.find((t) => t.id === tab) ?? tabs[0];
-  const blurb = TAB_BLURB[active.id] ?? `Available now in ${active.label}.`;
-  return (
-    <section id="products" aria-labelledby="featured" className="mt-16 scroll-mt-40 sm:mt-24">
-      <SectionIntro id="featured" eyebrow="Discover" title="Featured Products" action={{ href: active.all, label: "View all" }}>
-        <p aria-live="polite">{blurb}</p>
-      </SectionIntro>
-      {tabs.length > 1 && (
-        <nav aria-label="Product collections" className="-mx-4 mb-6 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-          <ul className="flex w-max gap-2">
-            {tabs.map((t) => {
-              const on = t.id === active.id;
-              return (
-                <li key={t.id}>
-                  <Link
-                    href={t.href}
-                    scroll={false}
-                    aria-current={on ? "true" : undefined}
-                    className={`inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition-colors motion-reduce:transition-none ${on ? "bg-ink text-white" : "bg-surface text-ink hover:bg-border"}`}
-                  >
-                    {t.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      )}
-      {active.products.length ? (
-        // Phones swipe sideways through the collection; larger screens show a balanced grid (8 on laptops, 10 on wide screens).
-        <ul
-          aria-label={`${active.label} products`}
-          className="-mx-4 flex scroll-px-4 snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4 xl:grid-cols-5 sm:max-lg:[&>li:nth-child(n+10)]:hidden lg:max-xl:[&>li:nth-child(n+9)]:hidden [&::-webkit-scrollbar]:hidden"
-        >
-          {active.products.slice(0, 10).map((p, i) => (
-            <li key={p.id} className="w-[46%] shrink-0 snap-start min-[430px]:w-[42%] sm:w-auto">
-              <ProductCard product={p} priority={i < 4} />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <EmptyState title="No products to show yet" action={{ href: "/products", label: "Browse all products" }}>
-          Products will appear here as soon as they are available.
-        </EmptyState>
-      )}
     </section>
   );
 }

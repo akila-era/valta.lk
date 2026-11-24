@@ -77,14 +77,6 @@ export interface BudgetPick {
   products: ErpProduct[];
 }
 
-export interface Spotlight {
-  role: "essentials" | "phones" | "setup";
-  slug: string;
-  name: string;
-  count: number;
-  products: ErpProduct[];
-}
-
 export const BUDGET_UNDER = 8000;
 export const BUDGET_OVER = 35000;
 
@@ -109,8 +101,6 @@ export interface HomeData {
   phonesSlug?: string;
   /** Fixed shopping bands from the brief; a band is omitted when the catalogue has nothing available in it. */
   budgetPicks: BudgetPick[];
-  /** Real categories behind the editorial campaign panels. */
-  spotlights: Spotlight[];
   checkout: { cod: boolean; deliveryCharge: number | null };
 }
 
@@ -142,21 +132,6 @@ export async function getHomeData(): Promise<HomeData> {
   const all = newest?.items ?? [];
 
   const categories = newest?.categories ?? [];
-  const spotDefs: { role: Spotlight["role"]; test: RegExp }[] = [
-    { role: "essentials", test: /accessor/i },
-    { role: "phones", test: /phone|mobile/i },
-    { role: "setup", test: /computer|laptop|tablet/i },
-  ];
-  const spotlights = (
-    await Promise.all(
-      spotDefs.map(async (d) => {
-        const c = categories.find((x) => d.test.test(x.name));
-        if (!c) return null;
-        const r = await safe(() => listProducts({ category: c.slug, sort: "newest", inStockOnly: true, pageSize: 6 }));
-        return r && r.items.length >= 2 ? ({ role: d.role, slug: c.slug, name: c.name, count: c.count, products: r.items } as Spotlight) : null;
-      }),
-    )
-  ).filter((x): x is Spotlight => Boolean(x));
   // One rail per larger category, newest first
   const railCats = [...categories].filter((c) => c.count >= 3).sort((a, b) => b.count - a.count).slice(0, 3);
   const rails = (
@@ -188,7 +163,6 @@ export async function getHomeData(): Promise<HomeData> {
     rails,
     budget: prices ? budgetBands(prices) : null,
     budgetPicks,
-    spotlights,
     phonesSlug: categories.find((c) => /phone|mobile/i.test(c.name))?.slug,
     checkout: {
       cod: Boolean(settings?.enabled && settings.settings?.paymentMethods.COD),

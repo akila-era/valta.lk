@@ -6,7 +6,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { accountsEnabled } from "@/lib/auth/session";
-import { listProducts } from "@/lib/erp/catalogue";
+import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
 import { socialLinks } from "@/lib/home-config";
 import { siteConfig } from "@/lib/site-config";
@@ -92,9 +92,10 @@ function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: 
 }
 
 export async function Footer() {
-  const [categories, settings] = await Promise.all([
+  const [categories, settings, brands] = await Promise.all([
     listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []),
     getSettings().catch(() => null),
+    listBrands().then((b) => b.slice(0, 8)).catch(() => []),
   ]);
   const social = socialLinks();
   const cod = Boolean(settings?.paymentMethods.COD);
@@ -162,6 +163,20 @@ export async function Footer() {
           </ul>
         </div>
       </div>
+
+      {brands.length > 1 && (
+        <div className="container-page relative pb-8">
+          <nav aria-label="Popular brands" className="border-t border-white/10 pt-6">
+            <h2 className={colHead}>Popular brands</h2>
+            <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1">
+              {brands.map((b) => (
+                <li key={b.name}><Link href={`/products?brand=${encodeURIComponent(b.name)}`} className="inline-block py-2 text-sm text-white/80 hover:text-white hover:underline">{b.name}</Link></li>
+              ))}
+              <li><Link href="/brands" className="inline-block py-2 text-sm font-semibold text-white hover:underline">All brands</Link></li>
+            </ul>
+          </nav>
+        </div>
+      )}
 
       <div className="relative border-t border-white/10">
         <div className="container-page flex flex-col gap-5 py-5">

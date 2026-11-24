@@ -36,7 +36,6 @@ function ProductStage({ slide, priority }: { slide: HeroSlide; priority: boolean
   return (
     <Link
       href={`/products/${p.slug}`}
-      aria-label={`${title}, ${formatLkr(effectivePrice(p))}`}
       className="group relative isolate flex h-full flex-col overflow-hidden rounded-[2rem] bg-[radial-gradient(ellipse_at_50%_38%,#ffffff_0%,#eceef3_68%,#dfe3ec_100%)] text-ink shadow-[0_0_90px_-14px_rgba(249,115,22,0.65)] ring-1 ring-white/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
     >
       <span className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-xs font-semibold ${kind === "offer" ? "bg-brand-500 text-on-brand" : "bg-ink text-white"}`}>{tag(slide)}</span>

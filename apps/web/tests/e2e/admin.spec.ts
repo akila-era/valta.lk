@@ -24,6 +24,7 @@ async function signInAsAdmin(page: Page) {
 
 test.describe("admin console", () => {
   test("every sidebar entry opens a working page inside the admin layout", async ({ page }) => {
+    test.setTimeout(120_000); // it opens 25+ admin pages one after another: about 19 s on a quiet machine but 45 s or more under heavy load, so the default 30 s is too tight
     await signInAsAdmin(page);
     const hrefs = NAV.flatMap((g) => g.items.map((i) => i.href));
     expect(hrefs.length).toBeGreaterThanOrEqual(25);

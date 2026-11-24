@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { Hero, type HeroSlide } from "@/components/home/hero";
-import { CategoryTiles, TabbedShowcase } from "@/components/home/home-sections";
+import { CategoryTiles } from "@/components/home/home-sections";
+import { Collections } from "@/components/home/collections";
+import { NewArrivals, SpecialOffers, StaffPicks } from "@/components/home/product-sections";
+import { Assurances, SupportSection } from "@/components/home/support-assurance";
+import { TrustStrip } from "@/components/home/trust-strip";
 import { BrandShowcase } from "@/components/home/brand-showcase";
 import { BudgetShortcuts, FinalCta, HowItWorks, WhyChoose } from "@/components/home/journey-sections";
 import { Faq } from "@/components/home/more-sections";
 import { RecentlyViewed } from "@/components/home/recently-viewed";
-import { EditorialCampaigns, WideBanner } from "@/components/home/sections";
+import { StaffBanners, WideBanner } from "@/components/home/sections";
 import { VideoShowcase } from "@/components/home/video-showcase";
 import { ErpUnavailable } from "@/components/ui/states";
 import type { ErpProduct } from "@/lib/erp/types";
@@ -23,8 +27,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const [{ tab }, data] = await Promise.all([searchParams, getHomeData()]);
+export default async function HomePage() {
+  const data = await getHomeData();
   const withImage = (list: ErpProduct[]) => list.find((p) => p.available && p.images.length > 0);
   // Up to three distinct, in-stock, photographed products for the hero: staff-featured, newest, and one with a real sale price.
   const used = new Set<string>();
@@ -52,18 +56,30 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         brandsHref={hasBrands ? "/brands" : undefined}
         slides={heroSlides}
       />
+      {data.catalogueOk && <TrustStrip checkout={data.checkout} />}
       {data.catalogueOk ? (
         <div className="container-page pb-10 sm:pb-16">
           <CategoryTiles categories={data.categories} />
           <BrandShowcase brands={data.brands} />
-          <TabbedShowcase data={data} tab={tab ?? "new"} />
+          <NewArrivals products={data.newArrivals} />
+          <SpecialOffers offers={data.offers.filter((p) => p.available)} />
+          <Collections data={data} from={0} to={1} />
+          <StaffPicks products={data.featured} />
+          <Collections data={data} from={1} to={2} />
           <BudgetShortcuts picks={data.budgetPicks} />
-          <RecentlyViewed />
+          <Collections data={data} from={2} to={3} />
           <WhyChoose checkout={data.checkout} photos={photographed.slice(3, 6)} />
-          <EditorialCampaigns data={data} />
+          <Assurances />
+          <RecentlyViewed />
+          {data.bannersFromStaff && (
+            <div className="mt-16 sm:mt-24">
+              <StaffBanners banners={data.banners} />
+            </div>
+          )}
           <WideBanner banners={data.wideBanners} />
           <HowItWorks checkout={data.checkout} photos={photographed.slice(6, 9).concat(photographed.slice(0, 3)).slice(0, 3)} />
           <VideoShowcase title={data.videos.title} videos={data.videos.items} />
+          <SupportSection />
           <Faq checkout={data.checkout} />
           <FinalCta total={data.totalProducts} />
         </div>

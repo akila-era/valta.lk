@@ -24,10 +24,10 @@ test.describe("homepage", () => {
     await expect(page.locator("section[aria-labelledby=hero-title]").getByRole("link", { name: "Discover Brands" })).toHaveAttribute("href", "/brands");
 
     await expect(page.getByRole("heading", { name: "Find your category" })).toBeVisible();
-    const campaigns = page.locator("section[aria-labelledby=campaigns]");
-    await expect(campaigns.getByText("Find your next device")).toBeVisible(); // campaign panels are built from real categories
-    await expect(campaigns.getByRole("link", { name: "Shop accessories" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
+    const collection = page.locator("section[aria-labelledby=collection-accessories]"); // collections are built from real categories
+    await expect(collection.getByRole("heading", { name: "Accessories", level: 2 })).toBeVisible();
+    await expect(collection.getByText("View collection").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "New arrivals" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Shop by brand" })).toBeVisible();
     const why = page.locator("section[aria-labelledby=why]");
     await expect(why.getByText("LKR 450", { exact: true })).toBeVisible(); // from ERP settings, not hardcoded
@@ -41,15 +41,18 @@ test.describe("homepage", () => {
     }
   });
 
-  test("verified discount badge appears only for real sale prices; tabs show only existing collections", async ({ page }) => {
+  test("special offers: only genuinely reduced products, with the real saving", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "Special offers" })).toBeVisible();
-    await page.getByRole("link", { name: "Special offers" }).click();
+    const offers = page.locator("section[aria-labelledby=offers]");
+    await expect(offers.getByRole("heading", { name: "Reduced prices", level: 2 })).toBeVisible();
+    await expect(offers.getByRole("link", { name: "Shop offers" })).toHaveAttribute("href", "/products?sale=1");
     // Orbit Pro: 219,900 -> 199,900 => 9% (floored); it is the only discounted product in the ERP data
-    const cards = page.locator("#products article");
+    const cards = offers.locator("article");
     await expect(cards).toHaveCount(1);
     await expect(cards.first().getByText("-9%")).toBeVisible();
     await expect(cards.first().getByText("LKR 199,900")).toBeVisible();
+    await expect(offers.getByText(/up to -9%/)).toBeVisible();
+    await expect(offers.getByText(/ends|countdown|hurry|limited time|weekly/i)).toHaveCount(0); // the ERP has no sale end date, so none is claimed
     await expect(page.locator("header").getByRole("link", { name: "Deals" })).toBeVisible();
 
     // products without a discount never show a badge
@@ -169,6 +172,7 @@ test.describe("hero", () => {
     await page.goto("/");
     const hero = page.locator("section[aria-labelledby=hero-title]");
     const region = hero.getByRole("region", { name: "Featured products" });
+    await expect(region).toBeVisible(); // the page streams in behind a skeleton, so wait for the slider before counting
     const slides = region.locator("[aria-roledescription=slide]");
     const n = await slides.count();
     expect(n).toBeGreaterThanOrEqual(2);
@@ -267,10 +271,10 @@ test.describe("reference-inspired patterns", () => {
     await expect(cats.getByRole("link", { name: "All products" })).toHaveAttribute("href", "/products");
     await expect(cats.getByRole("link")).toHaveCount(6);
     for (const name of ["Audio", "Tablets", "Accessories", "Mobile Phones", "Wearables"]) await expect(cats.getByText(name, { exact: true })).toBeVisible();
-    const audio = cats.getByRole("link", { name: "Audio, 4 products" });
+    const audio = cats.getByRole("link", { name: /^Audio\s+4 products$/ });
     await expect(audio).toHaveAttribute("href", "/categories/audio");
-    await expect(cats.getByRole("link", { name: "Tablets, 1 product" })).toHaveAttribute("href", "/categories/tablets");
-    await expect(cats.getByRole("link", { name: "Accessories, 5 products" })).toHaveAttribute("href", "/categories/accessories");
+    await expect(cats.getByRole("link", { name: /^Tablets\s+1 product$/ })).toHaveAttribute("href", "/categories/tablets");
+    await expect(cats.getByRole("link", { name: /^Accessories\s+5 products$/ })).toHaveAttribute("href", "/categories/accessories");
     await audio.click();
     await expect(page).toHaveURL(/\/categories\/audio$/);
     await expect(page.getByRole("heading", { name: "Audio", level: 1 })).toBeVisible();
@@ -278,13 +282,13 @@ test.describe("reference-inspired patterns", () => {
 
   test("category cards are keyboard operable with a visible focus ring, and never overflow", async ({ page }) => {
     await page.goto("/");
-    const first = page.locator("section[aria-labelledby=cats]").getByRole("link", { name: /^Accessories,/ });
+    const first = page.locator("section[aria-labelledby=cats]").getByRole("link", { name: /^Accessories\s/ });
     await first.focus();
     await expect(first).toBeFocused();
     const outline = await first.evaluate((el) => getComputedStyle(el).outlineStyle);
     expect(outline).not.toBe("none");
     await page.keyboard.press("Tab");
-    await expect(page.locator("section[aria-labelledby=cats]").getByRole("link", { name: /^Audio,/ })).toBeFocused();
+    await expect(page.locator("section[aria-labelledby=cats]").getByRole("link", { name: /^Audio\s/ })).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/categories\/audio/);
   });
@@ -363,35 +367,25 @@ test.describe("videos and more products", () => {
     await expect(sec.getByRole("button", { name: "Play video: Test video two" })).toBeVisible(); // the other stays a thumbnail
   });
 
-  test("editorial campaigns: real products only, honest facts, nothing overflows on phones", async ({ browser }) => {
+  test("collections: real products only, honest facts, nothing overflows on phones", async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: "reduce" });
     const page = await ctx.newPage();
     await page.goto("/");
-    const sec = page.locator("section[aria-labelledby=campaigns]");
+    const sec = page.locator("section[aria-labelledby=collection-accessories]");
     await sec.scrollIntoViewIfNeeded();
     await expect(sec.getByRole("heading", { level: 2 })).toBeVisible();
     expect(await sec.locator("article").count()).toBeGreaterThanOrEqual(1);
     for (const href of await sec.locator("a[href^='/products/']").evaluateAll((as) => as.map((a) => a.getAttribute("href")!))) expect(href).toMatch(/^\/products\/[a-z0-9-]+$/);
-    await expect(sec.getByText(/sale|limited|hurry|% off|best.?sellers?|most popular/i)).toHaveCount(0); // no invented promotions or urgency
+    await expect(sec.getByText(/limited|hurry|% off|best.?sellers?|most popular/i)).toHaveCount(0); // no invented promotions or urgency
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
     await ctx.close();
   });
 });
 
 test.describe("more homepage sections", () => {
-  test("product tabs, budget shortcuts, how-it-works and FAQ are present and data-driven", async ({ page }) => {
+  test("budget shortcuts, how-it-works and FAQ are present and data-driven", async ({ page }) => {
     await page.goto("/");
     await scrollThrough(page);
-    const tabs = page.getByRole("navigation", { name: "Product collections" });
-    for (const name of ["New arrivals", "Special offers", "Accessories", "Audio", "Mobile Phones"]) {
-      await expect(tabs.getByRole("link", { name })).toBeVisible();
-    }
-    await tabs.getByRole("link", { name: "Audio" }).click();
-    await expect(page).toHaveURL(/tab=c-audio/);
-    await expect(page.getByRole("list", { name: "Audio products" })).toBeVisible();
-    await expect(page.getByText("Available now in Audio.")).toBeVisible();
-    await expect(page.locator("#products article")).toHaveCount(4);
-
     // the duplicate "Featured categories" block was removed: categories appear once, in "Shop by category"
     await expect(page.getByRole("heading", { name: "Featured categories" })).toHaveCount(0);
 
@@ -422,18 +416,18 @@ test.describe("more homepage sections", () => {
     await expect(page.getByText("refunds are not automatic")).toBeVisible();
   });
 
-  test("product showcase: real data, balanced grid, correct links and a labelled Add to cart", async ({ page }) => {
+  test("new arrivals: real data, equal cards, correct links and a labelled Add to cart", async ({ page }) => {
     await page.goto("/");
     const section = page.locator("#products");
-    await expect(section.getByRole("heading", { name: "Featured Products" })).toBeVisible();
+    await expect(section.getByRole("heading", { name: "New arrivals", level: 2 })).toBeVisible();
     await expect(section.getByText("The latest products added to our catalogue.")).toBeVisible();
-    await expect(section.getByRole("link", { name: "View all" })).toHaveAttribute("href", "/products");
+    await expect(section.getByRole("link", { name: "View all" })).toHaveAttribute("href", "/products?sort=newest");
     // no unsupported claims about curation, ratings or sales
     await expect(page.getByText(/handpicked|best.?sellers?|top rated|customer reviews/i)).toHaveCount(0);
 
     const cards = section.locator("article");
     expect(await cards.count()).toBeGreaterThanOrEqual(8);
-    // every card has the same width: a regular grid, not a ragged strip
+    // every card has the same width: a regular carousel, not a ragged strip
     const widths = await cards.evaluateAll((els) => els.filter((e) => (e as HTMLElement).offsetParent).map((e) => Math.round(e.getBoundingClientRect().width)));
     expect(new Set(widths).size).toBe(1);
 
@@ -442,7 +436,7 @@ test.describe("more homepage sections", () => {
     await expect(card.getByText("LKR 14,900")).toBeVisible();
     await expect(card.getByRole("button", { name: "Add to cart: Pulse Wireless Earbuds" })).toBeVisible();
     // the card title links to the real product page
-    await expect(card.getByRole("link", { name: /Pulse Wireless Earbuds, LKR 14,900/ })).toHaveAttribute("href", /\/products\/pulse-wireless-earbuds-/);
+    await expect(card.getByRole("link", { name: /Pulse Wireless Earbuds/ })).toHaveAttribute("href", /\/products\/pulse-wireless-earbuds-/);
     // sale price only where the ERP has one
     const sale = cards.filter({ hasText: "Orbit Pro Smartphone" });
     if (await sale.count()) {
@@ -513,15 +507,16 @@ test.describe("more homepage sections", () => {
     }
   });
 
-  test("product showcase: grid columns follow the breakpoint and never overflow", async ({ browser }) => {
-    for (const [w, cols] of [[1700, 5], [1100, 4], [820, 3]] as const) {
+  test("new arrivals carousel: swipes on phones, shows arrows on desktop and never overflows", async ({ browser }) => {
+    for (const w of [1440, 820, 390]) {
       const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" });
       const page = await ctx.newPage();
       await page.goto("/");
-      await page.locator("#products ul[aria-label$=products] > li").first().waitFor();
-      const rows = await page.locator("#products ul[aria-label$=products] > li").evaluateAll((els) => els.filter((e) => (e as HTMLElement).offsetParent).map((e) => Math.round(e.getBoundingClientRect().y)));
-      const firstRow = rows.filter((y) => Math.abs(y - rows[0]) < 3).length;
-      expect(firstRow, `columns at ${w}px`).toBe(cols);
+      const region = page.locator("#products").getByRole("region", { name: "New arrivals" });
+      await region.scrollIntoViewIfNeeded();
+      const canScroll = await region.evaluate((el) => el.scrollWidth > el.clientWidth + 4);
+      expect(canScroll, `ten cards cannot all fit at ${w}px, so the row scrolls sideways`).toBe(true);
+      if (w >= 768) await expect(page.locator("#products").getByRole("button", { name: /^Next New arrivals/ })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
       await ctx.close();
     }
@@ -544,7 +539,7 @@ test.describe("motion", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
     expect(await page.locator("[data-reveal]").count()).toBe(0);
-    await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "New arrivals" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await ctx.close();
   });
@@ -556,11 +551,11 @@ test.describe("motion", () => {
     const tiles = brands.locator("ul > li a[href^='/products?brand=']");
     expect(await tiles.count()).toBeGreaterThanOrEqual(2);
     // sorted by product count, highest first, and counts are the catalogue's own
-    const counts = await tiles.evaluateAll((as) => as.map((a) => Number(/(\d+) products?/.exec(a.getAttribute("aria-label") ?? "")?.[1])));
+    const counts = await tiles.evaluateAll((as) => as.map((a) => Number(/(\d+) products?/.exec(a.textContent ?? "")?.[1])));
     expect(counts).toEqual([...counts].sort((x, y) => y - x));
-    const volt = brands.getByRole("link", { name: "Volt, 3 products" });
+    const volt = brands.getByRole("link", { name: /^Volt\s+3 products$/ });
     await expect(volt).toHaveAttribute("href", "/products?brand=Volt");
-    await expect(brands.getByRole("link", { name: /^Volt,/ })).toHaveCount(1); // each brand once
+    await expect(brands.getByRole("link", { name: /^Volt\s/ })).toHaveCount(1); // each brand once
     await expect(brands.getByRole("link", { name: "View all brands" }).first()).toHaveAttribute("href", "/brands");
     await volt.focus();
     await page.keyboard.press("Enter");
@@ -573,10 +568,10 @@ test.describe("motion", () => {
     await page.goto("/brands");
     await expect(page.getByRole("heading", { name: "All brands", level: 1 })).toBeVisible();
     const links = page.locator("main ul > li a[href^='/products?brand=']");
-    const names = await links.evaluateAll((as) => as.map((a) => (a.getAttribute("aria-label") ?? "").split(",")[0]));
+    const names = await links.evaluateAll((as) => as.map((a) => a.querySelector(".truncate")?.textContent ?? ""));
     expect(names.length).toBeGreaterThanOrEqual(7);
     expect(names).toEqual([...names].sort((x, y) => x.localeCompare(y)));
-    await page.getByRole("link", { name: /^Atlas,/ }).click();
+    await page.getByRole("link", { name: /^Atlas\s/ }).click();
     await expect(page).toHaveURL(/\/products\?brand=Atlas/);
     await expect(page.locator("main article", { hasText: "Atlas Smartwatch" })).toBeVisible();
   });

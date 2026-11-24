@@ -20,7 +20,6 @@ export function BrandTile({ brand }: { brand: BrandTileData }) {
   return (
     <Link
       href={brandHref(brand.name)}
-      aria-label={`${brand.name}, ${label}`}
       className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] bg-surface p-2 transition-colors duration-300 hover:bg-[#ececec] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 motion-reduce:transition-none"
     >
       <span className="relative block aspect-[5/4] overflow-hidden rounded-[1.25rem] bg-white">

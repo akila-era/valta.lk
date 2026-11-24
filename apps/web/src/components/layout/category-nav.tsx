@@ -56,6 +56,9 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
             );
           })}
         </ul>
+        <Link href="/products" className="inline-flex min-h-11 shrink-0 items-center px-1 text-sm font-semibold text-ink hover:text-brand-600">
+          Shop
+        </Link>
         {showDeals && (
           <Link
             href="/products?sale=1"

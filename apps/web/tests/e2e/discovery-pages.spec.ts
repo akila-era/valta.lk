@@ -41,7 +41,7 @@ test.describe("brand pages", () => {
     await expect(page.getByRole("navigation", { name: "Breadcrumb" }).getByRole("link", { name: "Brands" })).toHaveAttribute("href", "/brands");
     await expect(page.locator("main article", { hasText: "Volt 20W Fast Charger" })).toBeVisible();
     await expect(page.locator("main article", { hasText: "Pulse Wireless Earbuds" })).toHaveCount(0);
-    await page.getByRole("link", { name: "All brands" }).click();
+    await page.locator("#main").getByRole("link", { name: "All brands" }).click(); // the footer has an "All brands" link too
     await expect(page).toHaveURL(/\/brands$/);
   });
 
@@ -159,5 +159,74 @@ test.describe("navigation and information pages", () => {
     const support = await p2.locator("header").getByRole("link", { name: "Support" }).boundingBox();
     expect(support!.height).toBeGreaterThanOrEqual(40);
     await wide.close();
+  });
+});
+
+test.describe("complete homepage: sections and honesty", () => {
+  test("trust strip, categories, brands, new arrivals, offers and collections appear in a sensible order with real data", async ({ page }) => {
+    await page.goto("/");
+    const strip = page.getByRole("region", { name: "Shopping with VALTA.LK" });
+    await expect(strip.getByText("Delivery LKR 450")).toBeVisible();
+    await expect(strip.getByText("Cash on delivery")).toBeVisible();
+    await expect(strip.getByRole("link", { name: /Track your order/ })).toHaveAttribute("href", "/track-order");
+    await expect(strip.getByRole("link", { name: /Customer support/ })).toHaveAttribute("href", "/contact");
+    await expect(strip.getByText(/warranty|genuine|islandwide/i)).toHaveCount(0); // no claim the business has not entered in its settings
+
+    const ids = ["hero-title", "cats", "brands-title", "new-arrivals", "offers", "collection-accessories", "collection-audio", "budget", "why", "how", "support", "faq", "final-cta"];
+    const tops = await page.evaluate((list) => list.map((id) => { const el = document.getElementById(id); return el ? el.getBoundingClientRect().top + window.scrollY : -1; }), ids);
+    expect(tops.every((y) => y >= 0), `missing section: ${ids.filter((_, i) => tops[i] < 0).join(", ")}`).toBe(true);
+    expect(tops).toEqual([...tops].sort((a, b) => a - b));
+  });
+
+  test("collections use real categories and different compositions", async ({ page }) => {
+    await page.goto("/");
+    const a = page.locator("section[aria-labelledby=collection-accessories]");
+    const b = page.locator("section[aria-labelledby=collection-audio]");
+    await expect(a.getByRole("link", { name: /View collection/ }).first()).toHaveAttribute("href", "/categories/accessories");
+    await expect(b.getByRole("link", { name: /View collection/ })).toHaveAttribute("href", "/categories/audio");
+    expect(await b.locator("div.bg-ink").count()).toBeGreaterThan(0); // the second one is a black band
+    expect(await a.locator("div.bg-ink").count()).toBe(0); // the first one is a photographic banner
+    await expect(b.locator("article", { hasText: "Pulse Wireless Earbuds" })).toBeVisible();
+    await expect(b.locator("article", { hasText: "Volt 20W Fast Charger" })).toHaveCount(0); // only products of that category
+    await expect(a.locator("article", { hasText: "Volt 20W Fast Charger" })).toBeVisible();
+  });
+
+  test("sections without genuine data are hidden: staff picks, assurances, reviews, best sellers, newsletter", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("section[aria-labelledby=picks]")).toHaveCount(0); // no product is marked Featured in the ERP data
+    await expect(page.locator("section[aria-labelledby=assurances]")).toHaveCount(0); // the business has entered no highlights
+    await expect(page.getByText(/customer reviews|what people say|testimonial|best.?sellers?|most popular|top rated/i)).toHaveCount(0);
+    await expect(page.locator("input[type=email]")).toHaveCount(0);
+  });
+
+  test("support section, information bar, Shop link and footer popular brands", async ({ page }) => {
+    await page.goto("/");
+    const support = page.locator("section[aria-labelledby=support]");
+    await expect(support.getByRole("heading", { name: "Need help choosing?", level: 2 })).toBeVisible();
+    await expect(support.getByRole("link", { name: /Quick answers/ })).toHaveAttribute("href", "/faq");
+    await expect(support.getByRole("link", { name: /\+94 70 000 0000/ })).toHaveAttribute("href", "tel:+94700000000");
+    const bar = page.getByRole("navigation", { name: "Help", exact: true });
+    await expect(bar.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+    await expect(bar.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "/contact");
+    await expect(page.getByRole("navigation", { name: "Categories", exact: true }).getByRole("link", { name: "Shop", exact: true })).toHaveAttribute("href", "/products");
+    const popular = page.locator("footer").getByRole("navigation", { name: "Popular brands" });
+    await expect(popular.getByRole("link", { name: "Volt" })).toHaveAttribute("href", "/products?brand=Volt");
+    await expect(popular.getByRole("link", { name: "All brands" })).toHaveAttribute("href", "/brands");
+  });
+
+  test("the whole homepage never scrolls sideways at any width and shows no console errors", async ({ browser }) => {
+    test.setTimeout(180_000); // ten widths, each scrolled from top to bottom
+    for (const w of [320, 360, 375, 390, 430, 768, 820, 1024, 1280, 1440]) {
+      const ctx = await browser.newContext({ viewport: { width: w, height: 900 }, reducedMotion: "reduce" });
+      const page = await ctx.newPage();
+      const errors: string[] = [];
+      page.on("pageerror", (e) => errors.push(e.message));
+      page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+      await page.goto("/");
+      await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 700) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 40)); } });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), `overflow at ${w}px`).toBeLessThanOrEqual(0);
+      expect(errors, `console errors at ${w}px`).toEqual([]);
+      await ctx.close();
+    }
   });
 });

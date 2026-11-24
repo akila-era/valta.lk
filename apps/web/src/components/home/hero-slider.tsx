@@ -99,7 +99,7 @@ export function HeroSlider({ intro, slides, labels }: HeroSliderProps) {
                 <button
                   type="button"
                   onClick={() => go(i)}
-                  aria-label={`Show product ${i + 1} of ${count}: ${label}`}
+                  aria-label={`${String(i + 1).padStart(2, "0")}, ${label}, product ${i + 1} of ${count}`}
                   aria-current={i === index ? "true" : undefined}
                   className="flex min-h-11 flex-col justify-center gap-1.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >

@@ -37,8 +37,8 @@ test.describe("browse", () => {
   test("homepage, search, category and product pages", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology. Elevated.");
-    await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Special offers" })).toBeVisible(); // Orbit Pro has a real sale price
+    await expect(page.getByRole("heading", { name: "New arrivals" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Shop offers" })).toBeVisible(); // Orbit Pro has a real sale price
 
     await page.getByRole("combobox", { name: "Search products" }).fill("earbuds");
     await page.keyboard.press("Enter");

@@ -81,6 +81,8 @@ export async function Header() {
           <nav aria-label="Help" className="flex shrink-0 items-center gap-4">
             {siteConfig.phone ? <a href={`tel:${siteConfig.phone}`} className="rounded-sm hover:underline">{siteConfig.phone}</a> : null}
             <Link href="/track-order" className="inline-flex h-10 items-center rounded-sm hover:underline">Track Order</Link>
+            <Link href="/about" className="inline-flex h-10 items-center rounded-sm hover:underline">About</Link>
+            <Link href="/contact" className="inline-flex h-10 items-center rounded-sm hover:underline">Contact</Link>
             {siteConfig.address ? <Link href="/contact" className="rounded-sm hover:underline">Visit</Link> : null}
           </nav>
         </div>

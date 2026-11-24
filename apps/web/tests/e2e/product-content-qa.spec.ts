@@ -20,6 +20,11 @@ test.beforeEach(async ({ context }) => {
   ip = (ip % 250) + 1;
   await context.setExtraHTTPHeaders({ "x-forwarded-for": `10.60.${Math.floor(Math.random() * 250)}.${ip}` });
   await control({ reset: true });
+  // The website re-reads the ERP catalogue about once a minute, so right after a reset it may still show the previous test's price.
+  // Wait until the product page shows the reset price again (instant when the cache is fresh, up to about a minute otherwise).
+  await expect
+    .poll(async () => (await (await context.request.get(`/products/${SLUG}`)).text()).includes("LKR 990"), { timeout: 90_000, intervals: [3_000] })
+    .toBe(true);
 });
 
 async function signInAsAdmin(page: Page) {
@@ -46,7 +51,7 @@ async function resetContent(page: Page) {
 
 test.describe("editor: every tab, save and reload", () => {
   test("all eight tabs accept input, save as a draft, and every value is still there after a reload", async ({ page }) => {
-    test.setTimeout(90_000); // a ~200-line editor walkthrough: it needs about 34 s on this machine, so the default 30 s is too tight
+    test.setTimeout(90_000); // a ~200-line editor walkthrough: about 34 s when this machine is busy, so the default 30 s is too tight
     await signInAsAdmin(page);
     await resetContent(page);
     await page.goto(`/admin/products/${ID}`);
