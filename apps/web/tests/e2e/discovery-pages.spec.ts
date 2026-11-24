@@ -199,7 +199,7 @@ test.describe("complete homepage: sections and honesty", () => {
     await expect(page.locator("input[type=email]")).toHaveCount(0);
   });
 
-  test("support section, information bar, Shop link and footer popular brands", async ({ page }) => {
+  test("support section, information bar and Shop link", async ({ page }) => {
     await page.goto("/");
     const support = page.locator("section[aria-labelledby=support]");
     await expect(support.getByRole("heading", { name: "Need help choosing?", level: 2 })).toBeVisible();
@@ -209,9 +209,8 @@ test.describe("complete homepage: sections and honesty", () => {
     await expect(bar.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
     await expect(bar.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "/contact");
     await expect(page.getByRole("navigation", { name: "Categories", exact: true }).getByRole("link", { name: "Shop", exact: true })).toHaveAttribute("href", "/products");
-    const popular = page.locator("footer").getByRole("navigation", { name: "Popular brands" });
-    await expect(popular.getByRole("link", { name: "Volt" })).toHaveAttribute("href", "/products?brand=Volt");
-    await expect(popular.getByRole("link", { name: "All brands" })).toHaveAttribute("href", "/brands");
+    await expect(page.locator("footer").getByRole("navigation", { name: "Popular brands" })).toHaveCount(0); // the footer lists no brand chips
+    await expect(page.locator("footer").getByRole("link", { name: "Brands", exact: true })).toHaveAttribute("href", "/brands"); // it still links to the brand directory
   });
 
   test("the whole homepage never scrolls sideways at any width and shows no console errors", async ({ browser }) => {
