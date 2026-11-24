@@ -30,7 +30,7 @@ export async function verifyPassword(password: string, stored: string): Promise<
 /** Same-cost dummy check so unknown emails take as long as wrong passwords (no account enumeration by timing). */
 let dummy: string | undefined;
 export async function burnPasswordCheck(password: string): Promise<void> {
-  dummy ??= await hashPassword("valta-dummy-password");
+  dummy ??= await hashPassword("volta-dummy-password");
   await verifyPassword(password, dummy);
 }
 

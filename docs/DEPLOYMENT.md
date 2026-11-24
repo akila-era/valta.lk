@@ -33,11 +33,12 @@ Then: `npm ci && npm run build && npm run start`, and run the smoke journey belo
 
 ## Rollback
 
-Redeploy the previous build artifact and restore the previous environment values. The website database only holds accounts; migrations are additive. Roll back the app first; only roll back the schema with an approved plan. Test orders live in the staging ERP and are cancelled there.
+Redeploy the previous build artifact and restore the previous environment values. The website database holds accounts, website order records, product content, marketing content and settings (see ARCHITECTURE.md). Most migrations only add tables, columns or indexes, but not all: `20261022090000_product_content_v2` drops two `ProductContent` columns after copying their data, and `20261022153000_accessory_variant_key` replaces a unique index. Back up the database before `prisma migrate deploy`. Roll back the app first; only roll back the schema with an approved plan. Test orders live in the staging ERP and are cancelled there.
 
 ## Known limitations and blockers
 
-- **Never run against a live ERP.** The contract is implemented from the ERP docs but only tested against a mock. See [ERP_INTEGRATION.md](ERP_INTEGRATION.md).
+- **Never run against a staging or production ERP.** The contract is implemented from the ERP docs, tested automatically against a mock and by hand against the real ERP code on a local disposable database. See [ERP_INTEGRATION.md](ERP_INTEGRATION.md).
+- Cached ERP order statuses on `WebOrder` refresh only when an order is viewed, so admin reports (especially "COD collected") can lag behind the ERP. See ARCHITECTURE.md.
 - Rate limiting is per-instance memory; use a shared store for multiple instances.
 - Catalogue snapshot is held in process memory (refreshed every 60 s); with many instances each keeps its own copy.
 - Order tracking polls every 30 s only while the tab is visible and stops at `DELIVERED`/`CANCELLED`.
@@ -57,3 +58,63 @@ Redeploy the previous build artifact and restore the previous environment values
 ## Product content migration
 
 `prisma migrate deploy` also applies `20261021090000_product_content` and `20261022090000_product_content_v2` (product content documents and uploaded images). Existing rows from the first version become live content automatically. Back up the website database first.
+
+## Demo deployment (fake catalogue)
+
+A temporary demo that runs the mock ERP (`apps/web/tests/mock-erp`, 15 fake products) next to the site. Test orders
+work but live only in the mock's memory: they disappear whenever the `mock-erp` container restarts. Not for real customers.
+
+On the server, in the repository folder:
+
+```bash
+git fetch origin && git checkout phase2/home-cards && git pull
+```
+
+Create `.env` next to `docker-compose.yml` (never commit it):
+
+```bash
+POSTGRES_PASSWORD=<a long random password>
+HX_API_BASE=http://mock-erp:4010/api/v1/store-api
+HX_STORE_CREDENTIAL=hxs_test.testsecret
+SITE_URL=https://<demo host>            # or http://<server ip>:8090
+MOCK_PUBLIC_ORIGIN=https://<demo host>/demo-erp   # where browsers load the fake products' images from (see "Product images" below)
+ERP_IMAGE_HOSTS=<demo host>             # the image host above, so next/image accepts it
+COOKIE_SECURE=false                     # only while the demo is served over plain http; remove once HTTPS is in front
+ADMIN_EMAILS=<your email>               # optional: register this account on the site to open /admin
+WEB_PORT=8090
+```
+
+Build, create the database tables, start:
+
+```bash
+docker compose build web
+docker compose up -d db
+docker compose run --rm web npx prisma migrate deploy   # website tables only (includes StorefrontEvent)
+docker compose --profile demo up -d
+```
+
+Product images: the fake ERP lives on the Docker network, which browsers cannot reach, so its image URLs must be public.
+`MOCK_PUBLIC_ORIGIN` makes it return `<origin>/uploads/<id>.svg`, and the host's nginx forwards only that path to the
+container (published on **127.0.0.1:4010 only**, never to the internet). In the demo host's `server { ... }` block (inside the
+HTTPS one), add:
+
+```nginx
+  # Demo only: product images of the fake ERP. Nothing else of the mock (its API, /__control) is exposed.
+  location ~ ^/demo-erp/uploads/[A-Za-z0-9]+\.svg$ {
+    rewrite ^/demo-erp(/uploads/.*)$ $1 break;
+    proxy_pass http://127.0.0.1:4010;
+    proxy_set_header Host $host;
+  }
+```
+
+then `nginx -t && systemctl reload nginx`.
+
+Check: `http://<server>:8090/` shows the fake products; `/products/<any>` → add to cart → checkout places a test order.
+
+Updating the demo later: `git pull && docker compose build web && docker compose run --rm web npx prisma migrate deploy && docker compose --profile demo up -d`.
+
+### Ending the demo
+
+1. In `.env`, set the real `HX_API_BASE` / `HX_STORE_CREDENTIAL` (staging first) and remove `COOKIE_SECURE=false` once HTTPS is in place.
+2. `docker compose --profile demo down` to remove the containers, then `docker compose build web && docker compose up -d` (without `--profile demo`, the mock ERP no longer runs; the image must be rebuilt because `HX_API_BASE` is read at build time for image hosts).
+3. Test accounts and test orders remain in the website database (`WebOrder`, `Customer`). Clear them with an approved plan, or start from a fresh database volume (`docker compose down -v` deletes **all** website data).

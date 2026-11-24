@@ -48,12 +48,12 @@ const product = (over: Partial<ErpProduct> = {}): ErpProduct => ({
 
 describe("rich-text sanitiser", () => {
   it("keeps headings, paragraphs, emphasis, lists and safe links", () => {
-    const html = "<h2>Why buy</h2><p>Fast <strong>charging</strong> and <em>safe</em>.</p><ul><li>25W</li><li>45W</li></ul><ol><li>one</li></ol><a href=\"https://valta.lk/x\">link</a>";
+    const html = "<h2>Why buy</h2><p>Fast <strong>charging</strong> and <em>safe</em>.</p><ul><li>25W</li><li>45W</li></ul><ol><li>one</li></ol><a href=\"https://volta.lk/x\">link</a>";
     const out = sanitizeHtml(html);
     expect(out).toContain("<h2>Why buy</h2>");
     expect(out).toContain("<strong>charging</strong>");
     expect(out).toContain("<ul><li>25W</li><li>45W</li></ul>");
-    expect(out).toContain('<a href="https://valta.lk/x" target="_blank" rel="noopener noreferrer nofollow">link</a>');
+    expect(out).toContain('<a href="https://volta.lk/x" target="_blank" rel="noopener noreferrer nofollow">link</a>');
   });
 
   it("removes scripts, event handlers, iframes, styles and javascript: links", () => {

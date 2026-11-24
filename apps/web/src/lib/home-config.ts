@@ -71,3 +71,33 @@ export const configuredVideos = () => ({
   title: process.env.HOME_VIDEOS_TITLE?.trim().slice(0, 80) || "Watch and learn",
   videos: parseVideos(process.env.HOME_VIDEOS),
 });
+
+/**
+ * Optional customer reviews for the homepage, configured with HOME_REVIEWS (JSON array, max 6) and HOME_REVIEWS_TITLE.
+ * Only real reviews the owner can stand behind belong here (for example copied from the store's Google reviews, with
+ * the source named). Nothing is shown until reviews are configured. Example:
+ *   [{"name":"Kasun P.","text":"Fast delivery and genuine product.","rating":5,"source":"Google"}]
+ */
+export const reviewSchema = z.object({
+  name: z.string().trim().min(2).max(40),
+  text: z.string().trim().min(10).max(400),
+  rating: z.number().int().min(1).max(5),
+  source: z.string().trim().max(30).optional(),
+  date: z.string().trim().max(30).optional(),
+});
+export type ReviewConfig = z.infer<typeof reviewSchema>;
+
+export function parseReviews(raw: string | undefined): ReviewConfig[] {
+  if (!raw?.trim()) return [];
+  try {
+    const parsed = z.array(reviewSchema).max(6).safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : [];
+  } catch {
+    return [];
+  }
+}
+
+export const configuredReviews = () => ({
+  title: process.env.HOME_REVIEWS_TITLE?.trim().slice(0, 80) || "What the Pros Are Saying",
+  reviews: parseReviews(process.env.HOME_REVIEWS),
+});

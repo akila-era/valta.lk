@@ -7,11 +7,9 @@ const erpBase = () => process.env.HX_API_BASE ?? "http://127.0.0.1:3101/api/v1/s
 async function fillCheckout(page: Page) {
   await page.getByLabel("Full name").fill("Real ERP Tester");
   await page.getByLabel("Phone number").fill("0771234567");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
   await page.getByLabel("City", { exact: true }).fill("Colombo");
   await page.getByLabel("District").selectOption("Colombo");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("checkbox").check();
 }
 
@@ -20,7 +18,7 @@ test("catalogue, variants and sale price come from the real ERP", async ({ page,
   expect(s).toMatchObject({ enabled: true, currency: "LKR", paymentMethods: ["COD"] });
 
   await page.goto("/products?q=nova x1");
-  await page.locator("article", { hasText: "Nova X1" }).getByRole("link", { name: "Choose options" }).click();
+  await page.locator("article", { hasText: "Nova X1" }).locator("a[href^='/products/']").first().click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Nova X1");
   await expect(page.getByText("LKR 129,900")).toBeVisible();
   await page.getByText("256GB / Black").click();
@@ -35,7 +33,7 @@ test("catalogue, variants and sale price come from the real ERP", async ({ page,
 
 test("a variant COD order reaches the real ERP and can be tracked and cancelled", async ({ page, request }) => {
   await page.goto("/products?q=nova x1");
-  await page.locator("article", { hasText: "Nova X1" }).getByRole("link", { name: "Choose options" }).click();
+  await page.locator("article", { hasText: "Nova X1" }).locator("a[href^='/products/']").first().click();
   await page.getByText("256GB / Black").click();
   await page.getByRole("button", { name: "Add to cart", exact: true }).click();
   await expect(page.getByRole("link", { name: "View cart" })).toBeVisible();
@@ -76,7 +74,7 @@ test("re-submitting the same order reference creates no second ERP order", async
   const item = products.items[0];
   const total = item.price + 450;
   const payload = { ...body("VLK-261020-ABCDEFGHJK"), lines: [{ productId: item.id, variantKey: "", quantity: 1 }], expectedTotal: total };
-  const origin = { headers: { Origin: new URL(process.env.VALTA_URL ?? "http://localhost:3000").origin } };
+  const origin = { headers: { Origin: new URL(process.env.VOLTA_URL ?? "http://localhost:3000").origin } };
   const a = await request.post("/api/store/orders", { data: payload, ...origin });
   const b = await request.post("/api/store/orders", { data: payload, ...origin });
   expect([a.status(), b.status()]).toEqual([201, 201]);

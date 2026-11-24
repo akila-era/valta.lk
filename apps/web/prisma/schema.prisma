@@ -250,7 +250,7 @@ model BrandLogo {
 /// While at least one banner is active these replace the banners derived from categories or HOME_BANNERS.
 model Banner {
   id        String   @id @default(cuid())
-  /// CARDS = picture-and-button cards; WIDE = one full-width picture between "Shop by budget" and "Why shop with VALTA.LK".
+  /// CARDS = picture-and-button offer tiles; WIDE = one full-width picture in the homepage banner slider.
   placement String   @default("CARDS")
   eyebrow   String?
   headline  String
@@ -266,4 +266,201 @@ model Banner {
   updatedAt DateTime @updatedAt
 
   @@index([active, sortOrder])
+}
+
+/// A product hand-picked by staff for the homepage Hot Deals panel. Only the selection, order and schedule live here:
+/// price, sale price, stock and availability always come from the ERP snapshot when the homepage is built.
+model HotDeal {
+  id        String    @id @default(cuid())
+  /// ERP product id. One entry per product.
+  erpItemId String    @unique
+  sortOrder Int       @default(0)
+  startsAt  DateTime  @default(now())
+  endsAt    DateTime?
+  active    Boolean   @default(true)
+  updatedBy String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+/// What a storefront funnel event records. ORDER_PLACED is only a marker that links a visit to a WebOrder reference.
+enum StorefrontEventType {
+  PRODUCT_VIEW
+  PRODUCT_CLICK
+  ADD_TO_CART
+  CHECKOUT_START
+  ORDER_PLACED
+}
+
+/// Anonymous storefront funnel event: product views, product clicks, adds to cart, checkout starts and order-placed
+/// markers. Behaviour signals only, never a sale: order counts and money always come from WebOrder (and the ERP status
+/// cached there). No customer id, IP address, contact or payment details are stored; `visitId` is a random id the
+/// browser keeps for one tab (sessionStorage). Product ids are ERP ids; nothing about the product itself is copied.
+/// Kept for 13 months.
+model StorefrontEvent {
+  id          String              @id @default(cuid())
+  type        StorefrontEventType
+  visitId     String              @db.VarChar(64)
+  erpItemId   String?             @db.VarChar(64)
+  variantKey  String?             @db.VarChar(128)
+  /// Where a product click happened, e.g. "home-arrivals", "listing", "search", "related".
+  placement   String?             @db.VarChar(32)
+  quantity    Int?
+  /// ORDER_PLACED only (enforced by a CHECK constraint). Unique, so an order is recorded at most once however often
+  /// the browser reports it.
+  externalRef String?             @unique @db.VarChar(32)
+  createdAt   DateTime            @default(now())
+
+  @@index([type, createdAt])
+  @@index([erpItemId, type, createdAt])
+  @@index([visitId])
+  @@index([createdAt])
+}
+
+/// Storefront settings staff change in the admin (one JSON value per key, validated by the code that reads it), e.g.
+/// "instalments": the "or 3 × LKR … with KOKO" line on product cards. Never prices, stock or anything the ERP owns.
+model StoreSetting {
+  key       String   @id
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}
+
+/// Shoppers who asked for VOLTA.LK news (new arrivals, price drops) from the footer sign-up. Email is stored
+/// lower-case; one row per address. Staff see and export the list in the admin (Promotions, Newsletter Subscribers).
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  /// Where the sign-up came from, e.g. "footer".
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+/// A business asking to buy wholesale ("Apply Wholesale" in the header, /wholesale). Staff see the list in the admin
+/// (Customers, Wholesale Applications) and mark each one as contacted. Nothing is sent to the ERP.
+model WholesaleApplication {
+  id        String   @id @default(cuid())
+  business  String
+  name      String
+  phone     String
+  email     String?
+  city      String?
+  /// What they want to buy and roughly how much.
+  message   String?
+  /// NEW until staff contact them, then CONTACTED.
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// A shopper's review of one ERP product. Shown on the storefront only once staff approve it (Admin, Catalog, Product
+/// Reviews). `verified` is set when the reviewer was signed in and has a website order containing the product.
+model ProductReview {
+  id          String       @id @default(cuid())
+  erpItemId   String
+  rating      Int
+  title       String?
+  body        String
+  name        String
+  customerId  String?
+  verified    Boolean      @default(false)
+  status      ReviewStatus @default(PENDING)
+  moderatedBy String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([erpItemId, status, createdAt])
+  @@index([status, createdAt])
+}
+
+/// A pre-order request for a product that is out of stock. It is NOT an ERP order and nothing is paid online: staff
+/// contact the customer (WhatsApp or phone) to confirm payment and the order, then place the real order. Status:
+/// NEW until staff contact the customer, CONTACTED after that, CLOSED when it became an order or was dropped.
+model PreOrderRequest {
+  id          String   @id @default(cuid())
+  /// "PRE-XXXXXX": the reference shown to the customer and used in WhatsApp messages.
+  ref         String   @unique
+  erpItemId   String
+  productName String
+  productSlug String
+  sku         String?
+  quantity    Int      @default(1)
+  name        String
+  phone       String
+  email       String?
+  city        String?
+  note        String?
+  status      String   @default("NEW")
+  /// The WhatsApp confirmation to the customer: SENT, FAILED, or null when none was sent (switched off).
+  waStatus    String?
+  waError     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+/// A website support chat with one visitor (the floating WhatsApp Support widget). The visitor is recognised by a
+/// random token kept in an httpOnly cookie; only its SHA-256 hash is stored, so one visitor can never read another's chat.
+model ChatConversation {
+  id            String        @id @default(cuid())
+  /// Short code staff see in WhatsApp ("#K7P2Q") so a reply can be matched to the chat.
+  code          String        @unique
+  tokenHash     String        @unique
+  /// The shop account that wrote, when the visitor was signed in: the chat follows the account (any device), and is
+  /// never shown to someone else using the same browser.
+  customerId    String?
+  name          String?
+  phone         String?
+  status        String        @default("OPEN")
+  /// Messages from the visitor that staff have not opened in the admin inbox yet.
+  unread        Int           @default(0)
+  lastMessageAt DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  messages      ChatMessage[]
+
+  @@index([lastMessageAt])
+  @@index([customerId])
+}
+
+/// One chat message. IN = from the visitor, OUT = a staff reply (from WhatsApp or the admin inbox).
+/// status: PENDING (being sent to WhatsApp), SENT, DELIVERED, READ, FAILED (IN messages), or RECEIVED (OUT messages).
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction      String
+  body           String
+  status         String           @default("PENDING")
+  /// "web" (typed on the site / admin inbox) or "whatsapp" (a reply sent from WhatsApp).
+  source         String           @default("web")
+  /// The WhatsApp message id of the copy sent to staff (IN) or of the staff reply (OUT); used to match replies and
+  /// to drop a WhatsApp message that arrives twice.
+  waMessageId    String?          @unique
+  /// A random id from the visitor's browser, so a message sent twice (double tap, retry) is stored once.
+  clientId       String?
+  error          String?
+  createdAt      DateTime         @default(now())
+
+  @@unique([conversationId, clientId])
+  @@index([conversationId, createdAt])
+}
+
+/// The linked WhatsApp device's session (QR linking mode), encrypted with SETTINGS_ENCRYPTION_KEY. Kept in the
+/// database so the server reconnects after a restart without a new QR scan. Never sent to any browser.
+model WhatsAppAuth {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

@@ -7,7 +7,7 @@ import { Bell, ChevronDown, ChevronRight, ExternalLink, Menu, PanelLeftClose, Pa
 import { SignOutButton } from "@/components/account/sign-out-button";
 import { iconFor, isActive, NAV, type AdminBadges, type NavGroup } from "@/lib/admin/nav";
 
-const STORAGE = "valta-admin-sidebar";
+const STORAGE = "volta-admin-sidebar";
 const listeners = new Set<() => void>();
 const readCollapsed = () => {
   try {
@@ -21,10 +21,10 @@ const subscribe = (cb: () => void) => {
   return () => void listeners.delete(cb);
 };
 
-function Badge({ n, tone }: { n: number; tone: "new" | "pending" | "failed" }) {
+function Badge({ n, tone, onActive = false }: { n: number; tone: "new" | "pending" | "failed"; onActive?: boolean }) {
   if (!n) return null;
   return (
-    <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${tone === "failed" ? "bg-danger text-white" : "bg-brand-500 text-white"}`} aria-label={`${n} ${tone}`}>
+    <span className={`ml-auto min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs font-bold ${onActive ? "bg-white text-brand-600" : tone === "failed" ? "bg-danger text-on-brand" : "bg-brand-500 text-on-brand"}`} aria-label={`${n} ${tone}`}>
       {n}
     </span>
   );
@@ -40,7 +40,7 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
   const isOpen = (g: NavGroup) => open[g.id] ?? g.id === activeGroup;
 
   return (
-    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-6">
+    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-6 pt-2 [scrollbar-width:thin]">
       {NAV.map((g) => {
         const Icon = g.icon;
         const single = g.items.length === 1;
@@ -55,31 +55,31 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               title={g.label}
               aria-label={collapsed ? g.label : undefined}
               aria-current={groupActive && single ? "page" : undefined}
-              className={`mt-1 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors ${
-                groupActive ? "bg-brand-50 font-semibold text-brand-700" : "text-ink/80 hover:bg-surface hover:text-ink"
+              className={`mt-1 flex min-h-12 items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors ${
+                groupActive ? "bg-brand-500 font-semibold text-on-brand" : "text-ink/75 hover:bg-surface hover:text-ink"
               } ${collapsed ? "justify-center px-0" : ""}`}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              <Icon className="h-5 w-5 shrink-0" aria-hidden />
               {!collapsed && g.label}
             </Link>
           );
         }
         const expanded = isOpen(g);
         return (
-          <div key={g.id} className="mt-3">
+          <div key={g.id} className="mt-4">
             <button
               type="button"
               aria-expanded={expanded}
               aria-controls={`nav-${g.id}`}
               onClick={() => setOpen((o) => ({ ...o, [g.id]: !expanded }))}
-              className="flex min-h-9 w-full items-center gap-2 rounded-lg px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted hover:text-ink"
+              className={`flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-[12.5px] font-bold uppercase tracking-[0.1em] transition-colors hover:text-ink ${groupActive ? "text-brand-600" : "text-muted"}`}
             >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden />
-              <span>{g.label}</span>
+              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              <span className="text-left leading-tight">{g.label}</span>
               <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${expanded ? "" : "-rotate-90"}`} aria-hidden />
             </button>
             {expanded && (
-              <ul id={`nav-${g.id}`} className="mt-0.5 space-y-0.5">
+              <ul id={`nav-${g.id}`} className="ml-[1.45rem] mt-1 space-y-0.5 border-l border-border pl-2.5">
                 {g.items.map((i) => {
                   const active = isActive(i, pathname, status, filter);
                   return (
@@ -88,13 +88,13 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
                         href={i.href}
                         onClick={onNavigate}
                         aria-current={active ? "page" : undefined}
-                        className={`flex min-h-11 items-center gap-3 rounded-lg py-1.5 pl-3 pr-3 text-sm font-medium transition-colors ${
-                          active ? "bg-brand-50 font-semibold text-brand-700" : "text-ink/75 hover:bg-surface hover:text-ink"
+                        className={`flex min-h-11 items-center gap-3 rounded-xl py-1.5 pl-3 pr-2.5 text-[15px] font-medium transition-colors ${
+                          active ? "bg-brand-500 font-semibold text-on-brand" : "text-ink/70 hover:bg-surface hover:text-ink"
                         }`}
                       >
                         {(() => { const ItemIcon = iconFor(i.label); return <ItemIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />; })()}
                         {i.label}
-                        {i.badge && <Badge n={badges[i.badge]} tone={i.badge} />}
+                        {i.badge && <Badge n={badges[i.badge]} tone={i.badge} onActive={active} />}
                       </Link>
                     </li>
                   );
@@ -160,7 +160,7 @@ function Notifications({ badges }: { badges: AdminBadges }) {
         <Bell className="h-5 w-5" aria-hidden />
         {total > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{total > 99 ? "99+" : total}</span>}
       </summary>
-      <div className="card absolute right-0 mt-2 w-80 max-w-[85vw] p-2 shadow-card">
+      <div className="card absolute right-0 mt-2 w-80 max-w-[85vw] p-2 shadow-card max-sm:fixed max-sm:inset-x-3 max-sm:top-[4.25rem] max-sm:mt-0 max-sm:w-auto max-sm:max-w-none">
         {items.length === 0 ? (
           <p className="p-3 text-sm text-muted">Nothing needs attention right now.</p>
         ) : (
@@ -177,16 +177,44 @@ function Notifications({ badges }: { badges: AdminBadges }) {
 
 function Brand({ collapsed }: { collapsed: boolean }) {
   return (
-    <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2 px-5 text-ink" aria-label="VALTA.LK admin home">
+    <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2.5 px-5 text-ink" aria-label="VOLTA.LK admin home">
       {collapsed ? (
-        <span className="mx-auto text-lg font-extrabold text-brand-500">V</span>
+        <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 font-display text-lg font-extrabold text-on-brand">V</span>
       ) : (
-        <span className="leading-tight">
-          <span className="block text-lg font-extrabold tracking-tight">VALTA<span className="text-brand-500">.LK</span></span>
-          <span className="block text-[11px] text-muted">E-commerce Admin</span>
-        </span>
+        <>
+          <span className="font-display text-[1.45rem] font-extrabold leading-none tracking-[-0.02em]">
+            V<span className="text-brand-500">O</span>LTA<span className="text-[0.82em]">.LK</span>
+          </span>
+          <span className="rounded-md bg-brand-500 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-on-brand">Admin</span>
+        </>
       )}
     </Link>
+  );
+}
+
+/** Bottom of the sidebar: who is signed in, and the way to the shop. */
+function SidebarUser({ user, collapsed }: { user: { name: string; email: string }; collapsed: boolean }) {
+  const initial = user.name.trim().charAt(0).toUpperCase();
+  if (collapsed) {
+    return (
+      <div className="flex shrink-0 justify-center border-t border-border py-3">
+        <span title={`${user.name} (${user.email})`} className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-on-brand">{initial}</span>
+      </div>
+    );
+  }
+  return (
+    <div className="shrink-0 border-t border-border p-3">
+      <div className="flex items-center gap-3 rounded-xl bg-surface p-2.5">
+        <span aria-hidden className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-on-brand">{initial}</span>
+        <span className="min-w-0 flex-1 leading-tight">
+          <span className="block truncate text-[15px] font-semibold text-ink">{user.name}</span>
+          <span className="block truncate text-xs text-muted">{user.email}</span>
+        </span>
+        <Link href="/" target="_blank" rel="noopener" title="View store (opens in a new tab)" aria-label="View store (opens in a new tab)" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-bg hover:text-ink">
+          <ExternalLink className="h-4 w-4" aria-hidden />
+        </Link>
+      </div>
+    </div>
   );
 }
 
@@ -247,23 +275,25 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
       <a href="#admin-main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[80] focus:rounded focus:bg-bg focus:px-3 focus:py-2">Skip to content</a>
 
       {/* Desktop sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border bg-bg transition-[width] duration-200 motion-reduce:transition-none lg:flex ${collapsed ? "w-[4.5rem]" : "w-64"}`}>
-        <Brand collapsed={collapsed} />
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border bg-bg text-ink transition-[width] duration-200 motion-reduce:transition-none lg:flex ${collapsed ? "w-[4.5rem]" : "w-64"}`}>
+        <div className="border-b border-border"><Brand collapsed={collapsed} /></div>
         <Suspense fallback={<div className="flex-1" />}><Nav collapsed={collapsed} badges={badges} /></Suspense>
+        <SidebarUser user={user} collapsed={collapsed} />
       </aside>
 
       {/* Mobile drawer */}
       {drawer && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Admin menu">
           <button type="button" aria-label="Close menu" className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} tabIndex={-1} />
-          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-bg shadow-xl">
-            <div className="flex items-center justify-between pr-3">
+          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-bg text-ink shadow-xl">
+            <div className="flex items-center justify-between border-b border-border pr-3">
               <Brand collapsed={false} />
               <button ref={closeRef} type="button" className="flex h-10 w-10 items-center justify-center rounded-lg text-ink hover:bg-surface" aria-label="Close menu" onClick={() => setDrawer(false)}>
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
             <Suspense fallback={<div className="flex-1" />}><Nav collapsed={false} badges={badges} onNavigate={() => setDrawer(false)} /></Suspense>
+            <SidebarUser user={user} collapsed={false} />
           </aside>
         </div>
       )}
@@ -283,17 +313,17 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
           <Notifications badges={badges} />
           <details ref={account} className="relative">
             <summary className="flex h-10 cursor-pointer list-none items-center gap-2 rounded-lg px-1 hover:bg-surface" aria-label={`Account menu for ${user.name}`}>
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white" aria-hidden>{user.name.charAt(0).toUpperCase()}</span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-on-brand" aria-hidden>{user.name.charAt(0).toUpperCase()}</span>
               <span className="hidden text-left leading-tight sm:block">
                 <span className="block text-sm font-semibold">{user.name}</span>
                 <span className="block text-xs text-muted">Administrator</span>
               </span>
               <ChevronDown className="hidden h-4 w-4 text-muted sm:block" aria-hidden />
             </summary>
-            <div className="card absolute right-0 mt-2 w-64 p-4 shadow-card">
+            <div className="card absolute right-0 mt-2 w-64 p-4 shadow-card max-sm:fixed max-sm:inset-x-3 max-sm:top-[4.25rem] max-sm:mt-0 max-sm:w-auto">
               <p className="truncate text-sm font-semibold">{user.name}</p>
               <p className="truncate text-xs text-muted">{user.email}</p>
-              <div className="mt-4"><SignOutButton /></div>
+              <div className="mt-4"><SignOutButton admin /></div>
             </div>
           </details>
           </div>

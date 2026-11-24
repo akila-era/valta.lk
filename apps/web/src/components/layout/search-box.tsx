@@ -24,7 +24,8 @@ interface Suggestion {
  * Search combobox. Works without JavaScript (plain GET form to /search); with JavaScript it suggests real
  * products from the catalogue API as the shopper types.
  */
-export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoFocus?: boolean; size?: "md" | "lg"; initialQuery?: string }) {
+/** `label` names the search landmark; pages with a second search box pass their own so the two can be told apart. */
+export function SearchBox({ autoFocus, size = "md", initialQuery = "", label = "Site search", popular = [] }: { autoFocus?: boolean; size?: "md" | "lg"; initialQuery?: string; label?: string; /** Quick links shown on focus before typing: the catalogue's biggest brands and categories. */ popular?: { label: string; href: string }[] }) {
   const router = useRouter();
   const listId = useId();
   const [q, setQ] = useState(initialQuery);
@@ -33,6 +34,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
   const [loading, setLoading] = useState(false);
   const [active, setActive] = useState(-1);
   const [armed, setArmed] = useState(false);
+  const [hint, setHint] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,7 +76,10 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
-      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
+      if (wrap.current && !wrap.current.contains(e.target as Node)) {
+        setOpen(false);
+        setHint(false);
+      }
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -85,7 +90,10 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
   const total = items.length + 1; // the final option is "see all results"
 
   function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") return setOpen(false);
+    if (e.key === "Escape") {
+      setHint(false);
+      return setOpen(false);
+    }
     if (!visible) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -102,7 +110,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
 
   return (
     <div ref={wrap} className="relative">
-      <form action="/search" role="search" onSubmit={() => setOpen(false)}>
+      <form action="/search" role="search" aria-label={label} onSubmit={() => setOpen(false)}>
         <label htmlFor={`${listId}-input`} className="sr-only">
           Search products
         </label>
@@ -120,11 +128,13 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
             }
           }}
           onFocus={() => {
-            if (q.trim().length >= 2) setArmed(true);
+            setHint(true);
+            // The search page autofocuses with the query already shown; open suggestions only once the shopper edits it.
+            if (q.trim().length >= 2 && q !== initialQuery) setArmed(true);
             if (items.length) setOpen(true);
           }}
           onKeyDown={onKeyDown}
-          placeholder={size === "lg" ? "Search for mobile phones, accessories, electronics..." : "Search name, brand or model"}
+          placeholder={size === "lg" ? "Search for products" : "Search name, brand or model"}
           maxLength={100}
           autoFocus={autoFocus}
           autoComplete="off"
@@ -133,12 +143,11 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={visible && active >= 0 ? `${listId}-opt-${active}` : undefined}
-          className={`input [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "min-h-12 rounded-full border-transparent bg-surface pl-12 pr-28 text-[15px]" : "pl-11 pr-16"}`}
+          className={`input outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none ${size === "lg" ? "h-[46px] min-h-0 rounded-[5px] border border-black/10 bg-white py-2 pl-[15px] pr-24 text-sm placeholder:text-[#767676] focus:border-brand-500" : "pl-11 pr-16"}`}
         />
-        {size === "lg" && <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" strokeWidth={1.75} aria-hidden />}
         {size === "lg" ? (
-          <button type="submit" className="absolute bottom-1 right-1 top-1 flex w-14 items-center justify-center rounded-full bg-brand-500 text-ink transition-colors hover:bg-brand-600 hover:text-white" aria-label="Search">
-            <Search className="h-5 w-5" strokeWidth={2.5} aria-hidden />
+          <button type="submit" className="absolute right-1 top-1 flex h-[38px] w-[38px] items-center justify-center rounded-[5px] bg-[#fe752d] text-on-brand transition-colors hover:bg-[#e86c2e]" aria-label="Search">
+            <Search className="h-[18px] w-[18px]" strokeWidth={2.25} aria-hidden />
           </button>
         ) : (
           <button type="submit" className="absolute left-1.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink" aria-label="Search">
@@ -150,16 +159,30 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
             type="button"
             onClick={clear}
             aria-label="Clear search"
-            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-16" : "right-1"}`}
+            className={`absolute top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:text-ink ${size === "lg" ? "right-[2.75rem]" : "right-1"}`}
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
         )}
-        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[4.5rem]" : "right-10"}`} aria-hidden />}
+        {loading && <Loader2 className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted ${size === "lg" ? "right-[3.25rem]" : "right-10"}`} aria-hidden />}
       </form>
 
+      {hint && term.length === 0 && popular.length > 0 && (
+        <div className="absolute inset-x-0 top-full z-50 mt-1 rounded-card border border-border bg-bg p-3 text-ink shadow-overlay">
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Top brands &amp; categories</p>
+          <ul className="flex flex-wrap gap-2">
+            {popular.map((p) => (
+              <li key={p.href}>
+                <Link href={p.href} onClick={() => setHint(false)} className="inline-flex min-h-8 items-center rounded-full border border-border px-3 text-xs font-semibold text-ink transition-colors hover:border-brand-500 hover:bg-brand-500 hover:text-on-brand">
+                  {p.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {visible && (
-        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-bg py-1 shadow-overlay">
+        <ul id={listId} role="listbox" aria-label="Search suggestions" className="absolute inset-x-0 top-full z-50 mt-1 overflow-hidden rounded-card border border-border bg-bg py-1 text-ink shadow-overlay">
           {items.length === 0 && !loading && <li role="presentation" className="px-4 py-3 text-sm text-muted">No matching products</li>}
           {items.map((s, i) => (
             <li key={s.id} role="option" id={`${listId}-opt-${i}`} aria-selected={active === i}>
@@ -178,7 +201,7 @@ export function SearchBox({ autoFocus, size = "md", initialQuery = "" }: { autoF
                   )}
                 </span>
                 <span className="shrink-0 text-right">
-                  <span className="block font-semibold tabular-nums text-brand-600">{formatLkr(effectivePrice(s))}</span>
+                  <span className="block font-display font-semibold tabular-nums text-ink">{formatLkr(effectivePrice(s))}</span>
                   {effectivePrice(s) < s.price && (
                     <span className="block text-xs text-muted">
                       <span className="sr-only">Regular price</span>

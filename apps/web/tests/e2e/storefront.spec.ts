@@ -21,24 +21,22 @@ async function addEarbuds(page: Page, qty = 1) {
   await expect(page.getByRole("link", { name: "View cart" })).toBeVisible();
 }
 
-/** Walks the 3-step checkout up to the review step (the Place order button is then ready). */
+/** Fills the one-page checkout (the Place order button is then ready). */
 async function fillCheckout(page: Page) {
   await page.getByLabel("Full name").fill("Kasun Perera");
   await page.getByLabel("Phone number").fill("0771234567");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
   await page.getByLabel("City", { exact: true }).fill("Colombo");
   await page.getByLabel("District").selectOption("Colombo");
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("checkbox").check();
+  await page.getByRole("checkbox", { name: /I agree/ }).check();
 }
 
 test.describe("browse", () => {
   test("homepage, search, category and product pages", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Technology that moves you.");
-    await expect(page.getByRole("heading", { name: "Featured products" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Special offers" })).toBeVisible(); // Orbit Pro has a real sale price
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("VOLTA.LK");
+    await expect(page.getByRole("tab", { name: "New Arrivals" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Hot Deals" })).toBeVisible(); // Orbit Pro has a real sale price
 
     await page.getByRole("combobox", { name: "Search products" }).fill("earbuds");
     await page.keyboard.press("Enter");
@@ -59,9 +57,32 @@ test.describe("browse", () => {
   test("catalogue sorting and pagination", async ({ page }) => {
     await page.goto("/products?sort=price-asc");
     await expect(page.locator("article").first()).toContainText("Glide Tempered Glass");
-    await page.getByRole("link", { name: "Next" }).click();
-    await expect(page).toHaveURL(/page=2/);
-    await expect(page.getByText("Page 2 of 2")).toBeVisible();
+    // 20 products, page size 12: the first page is full and has a pager, the second holds the other eight
+    await expect(page.locator("main article")).toHaveCount(12);
+    await expect(page.getByRole("navigation", { name: "Pagination" })).toHaveCount(1);
+    await page.goto("/products?sort=price-asc&page=2");
+    await expect(page.locator("main article")).toHaveCount(8);
+  });
+
+  test("product page: previous / next product in the category (A to Z), and the category between them", async ({ page }) => {
+    await page.goto(`/products/pulse-over-ear-headphones-${id(4)}`);
+    const nav = page.getByRole("navigation", { name: "More in this category" });
+    await expect(nav.getByRole("link", { name: "Previous product: Echo Mini Speaker" })).toHaveAttribute("href", `/products/echo-mini-speaker-${id(15)}`);
+    await expect(nav.getByRole("link", { name: "All Audio" })).toHaveAttribute("href", "/categories/audio");
+    await nav.getByRole("link", { name: "Next product: Pulse Wireless Earbuds" }).click();
+    await expect(page).toHaveURL(new RegExp(`/products/pulse-wireless-earbuds-${id(3)}$`));
+    // the last product in the category has no next link
+    await expect(page.getByRole("navigation", { name: "More in this category" }).getByRole("link", { name: /^Next product/ })).toHaveCount(0);
+  });
+
+  test("header keeps its category row while scrolling", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/products");
+    const header = page.locator("header");
+    for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 300);
+    await expect(header.getByRole("navigation", { name: "Categories" })).toBeVisible();
+    await page.mouse.wheel(0, -200);
+    await expect(header.getByRole("navigation", { name: "Categories" })).toBeVisible();
   });
 
   test("variants and unavailable products", async ({ page }) => {
@@ -73,7 +94,9 @@ test.describe("browse", () => {
 
     await page.goto(`/products/limited-case-sold-out-${id(13)}`);
     await expect(page.getByTestId("availability")).toHaveText("Out of stock");
-    await expect(page.getByRole("button", { name: "Add to cart", exact: true })).toBeDisabled();
+    // Out of stock: no buy buttons; a pre-order request is offered instead.
+    await expect(page.getByRole("button", { name: "Add to cart", exact: true })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Pre-order" })).toBeVisible();
   });
 });
 
@@ -93,7 +116,7 @@ test.describe("cart + checkout + tracking", () => {
 
     await expect(page).toHaveURL(/order-confirmation\/VLK-/);
     const ref = (await page.getByTestId("order-ref").textContent())!;
-    await expect(page.getByText(/payment is pending/)).toBeVisible();
+    await expect(page.getByTestId("payment-status")).toHaveText("Cash on delivery");
     await expect(page.getByTestId("cart-count")).toHaveCount(0);
     expect((await control({})).orders).toBe(1);
 
@@ -134,44 +157,27 @@ test.describe("cart + checkout + tracking", () => {
     await expect(page.locator("#ref-err")).toContainText("could not find");
   });
 
-  test("checkout validation shows helpful messages step by step and sends nothing", async ({ page }) => {
+  test("checkout validation shows helpful messages on one page and sends nothing", async ({ page }) => {
     await addEarbuds(page);
     await page.goto("/checkout");
-    // step 1: details
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Place order" }).click();
     await expect(page.getByText("Please enter your full name")).toBeVisible();
     await expect(page.getByText("Enter a valid Sri Lankan phone number")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Your details" })).toBeVisible(); // did not advance
-    await page.getByLabel("Full name").fill("Kasun Perera");
-    await page.getByLabel("Phone number").fill("12345");
-    await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page.getByText("Enter a valid Sri Lankan phone number")).toBeVisible();
-    await page.getByLabel("Phone number").fill("0771234567");
-    await page.getByRole("button", { name: "Continue" }).click();
-    // step 2: delivery
-    await expect(page.getByRole("heading", { name: "Delivery address" })).toBeVisible();
-    await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByText("Please select a district")).toBeVisible();
     await expect(page.getByText("Please enter your delivery address")).toBeVisible();
+    await expect(page.getByText("Please accept the terms to continue")).toBeVisible();
+    await expect(page.getByLabel("Full name")).toBeFocused(); // the first problem gets focus
+    await page.getByLabel("Full name").fill("Kasun Perera");
+    await page.getByLabel("Phone number").fill("12345");
     await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
     await page.getByLabel("City", { exact: true }).fill("Colombo");
     await page.getByLabel("District").selectOption("Colombo");
-    await page.getByRole("button", { name: "Continue" }).click();
-    // step 3: review, terms are required
-    await expect(page.getByRole("heading", { name: "Review and place your order" })).toBeVisible();
-    await expect(page.getByTestId("recap")).toContainText("Kasun Perera");
-    await expect(page.getByTestId("recap")).toContainText("12 Galle Road, Colombo, Colombo");
+    await page.getByRole("checkbox", { name: /I agree/ }).check();
     await page.getByRole("button", { name: "Place order" }).click();
-    await expect(page.getByText("Please accept the terms to continue")).toBeVisible();
+    await expect(page.getByText("Enter a valid Sri Lankan phone number")).toBeVisible();
+    await expect(page.getByLabel("Phone number")).toBeFocused();
+    await expect(page.getByLabel("Full name")).toHaveValue("Kasun Perera"); // nothing typed is lost
     expect((await control({})).orderPosts).toBe(0);
-
-    // going back keeps what was typed, and the review shows the change
-    await page.getByRole("button", { name: /Change contact details/ }).click();
-    await expect(page.getByLabel("Full name")).toHaveValue("Kasun Perera");
-    await page.getByLabel("Full name").fill("Nimal Silva");
-    await page.getByRole("button", { name: "Continue" }).click();
-    await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page.getByTestId("recap")).toContainText("Nimal Silva");
   });
 
   test("price change is surfaced and no order is created", async ({ page }) => {
@@ -233,11 +239,11 @@ test.describe("responsive @mobile", () => {
   test("mobile menu opens, navigates and closes", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Open menu" }).click();
-    const menu = page.getByRole("dialog", { name: "Browse VALTA.LK" });
+    const menu = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
     await expect(menu).toBeVisible();
-    await menu.getByRole("link", { name: "Audio" }).click();
+    await menu.getByRole("tabpanel", { name: "All categories" }).getByRole("link", { name: "Audio" }).click();
     await expect(page).toHaveURL(/categories\/audio/);
-    await expect(page.getByRole("dialog", { name: "Browse VALTA.LK" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Browse VOLTA.LK" })).toHaveCount(0);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);
   });

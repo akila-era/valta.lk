@@ -1,14 +1,21 @@
 import type { Metadata } from "next";
 import { WishlistView } from "@/components/products/wishlist-view";
+import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
 
 export const metadata: Metadata = { title: "Wishlist", robots: { index: false } };
 
 export default function WishlistPage() {
   return (
     <>
-      <h1 className="page-title mb-2">Wishlist</h1>
-      <p className="mb-6 text-sm text-muted">Saved on this device only. Prices and availability are confirmed on the product page.</p>
-      <WishlistView />
+      <StoreHeroBanner
+        breadcrumbs={[{ href: "/", label: "Home" }, { label: "Wishlist" }]}
+        title="Your Wishlist"
+        intro="Items saved on this device. Prices and availability are confirmed live on the product page."
+      />
+      {/* Filled in the browser (saved on this device): reserve the space so the footer does not jump down. */}
+      <div className="min-h-[55svh]">
+        <WishlistView />
+      </div>
     </>
   );
 }

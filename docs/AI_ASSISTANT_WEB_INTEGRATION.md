@@ -1,0 +1,104 @@
+# AI shopping assistant: website integration (local build, not deployed)
+
+Branch `feature/ai-widget`, based on the live branch `phase2/home-cards`. Nothing here is deployed, and the assistant is **off by default**: with no settings, the site behaves exactly as before (no button, the route answers 404).
+
+## What it is
+
+A separate floating "Shopping assistant" button and panel (bottom left; the store's WhatsApp chat stays bottom right and is untouched). Shoppers type a question; the website server forwards it, signed, to the private Agent API and shows the answer as text plus cards (products, comparison, stock, accessories, cart). Cart changes the assistant proposes are applied to the browser cart only after the shopper presses **Confirm**, once each.
+
+```
+Browser  ->  POST /api/assistant/chat  (this site, same-origin)  ->  signed request  ->  Agent API (private)
+```
+
+The browser never talks to the Agent. The Agent is not exposed by this change.
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `src/app/api/assistant/chat/route.ts` | The only new endpoint. Off (404) unless configured; same-origin; rate limited; strict validation; signs and forwards; validates the answer |
+| `src/lib/assistant/config.ts` | Reads and validates the settings; any problem turns the assistant off |
+| `src/lib/assistant/sign.ts` | HMAC signing, identical to `apps/agent/src/auth/hmac.ts` (a test checks a vector produced by that code) |
+| `src/lib/assistant/session-id.ts` | Derives the conversation id on the server |
+| `src/lib/assistant/schema.ts` | Strict schemas for what the browser sends and what the Agent may answer (contract 1.1) |
+| `src/components/assistant/assistant-panel.tsx` | The launcher and panel |
+| `src/components/assistant/{cards.tsx,labels.ts,types.ts}` | Presentational cards (blue `#2563EB`, mobile first, Sinhala labels provisional) |
+| `src/components/layout/store-shell.tsx` | Mounts the panel only when configured |
+| `tests/stubs/fake-agent.ts`, `playwright.config.ts` | A fake Agent for browser tests |
+| `.env.example` | The new settings, all off |
+
+## Settings (server side only)
+
+```
+AI_ASSISTANT_ENABLED=true            # exactly "true", otherwise off
+AI_AGENT_URL=http://127.0.0.1:18787  # loopback http (an SSH tunnel's local port) or https; other plain http is refused
+AI_AGENT_HMAC_KEY_ID=web1
+AI_AGENT_HMAC_SECRET=<32+ random characters, same as the Agent's AGENT_HMAC_KEYS>
+AI_AGENT_TIMEOUT_MS=50000            # optional, 1000 to 120000
+AI_ASSISTANT_DEMO_DATA=true          # cards say "Demo data" while the Agent serves MOCK data; false only for real data
+```
+
+Pages are rendered per request, so the settings are read at runtime (checked in the build output: no page is prerendered).
+
+## Security decisions
+
+- **Identity only from the session.** The signed-in customer comes from the existing `volta_session` cookie; the browser cannot send an identity, a customer id or a session id (the request schema is strict and rejects them). A guest is signed as `anon`. The Agent trusts identity and client IP only because they are signed.
+- **Conversation id derived on the server.** The browser holds a random httpOnly `volta_ai` cookie (one day); the id sent to the Agent is an HMAC of that cookie and the identity. Signing in or out therefore gives a new conversation automatically (the Agent refuses to share an id between identities), which removes session fixation and resolves decision D1 of the M1-D report. Nothing is stored on the server.
+- **No personal data to the Agent.** Only the message, a cart snapshot (product id, option, quantity), the page type and the language go; never a name, phone, email or address (a test checks this).
+- **Answers are validated** against a strict schema before the browser sees them: unknown fields, off-site links, actions that do not ask for confirmation, a Sinhala answer without the native-review flag, or another contract version are all refused (the shopper sees a generic message). Agent error text is never forwarded; only fixed wording and a Retry-After.
+- **Agent metadata is not forwarded** (model name, queue time, request ids).
+- **No message text is logged or stored by this code** (a test checks the console stays silent, including for a message that holds a password).
+- **Same-origin and rate limited** with the site's existing `guard` (20 messages a minute per client).
+- **Cart.** The Agent only proposes. The browser cart changes only after Confirm, and each proposal is applied at most once. Checkout, payment and orders are not reachable from the assistant.
+
+## Before this can go live (not done, needs your approval)
+
+1. **The Agent must be reachable from the website server.** The Agent runs on the AI server; the website is on another host. That needs the tunnel (blocker B3): an SSH tunnel user or WireGuard, an `AllowUsers` change, and the shared secret stored in both environments. Until then leave `AI_ASSISTANT_ENABLED` unset.
+2. **The Agent still serves mock data.** Its tools read an in-memory mock catalogue (products such as "Nova X1" that do not exist in the store). Real shoppers would be shown demo products. Before enabling it for customers, the tool backends must read the real catalogue (the M2 work: internal routes reusing `lib/erp`, staging ERP first, blocker B2). Keep `AI_ASSISTANT_DEMO_DATA=true` until then.
+3. **Client IP.** The route uses the site's existing `clientIp()` (first `X-Forwarded-For` entry). The reverse proxy must overwrite that header with the real client address, otherwise a visitor can choose the IP the Agent rate limits on. Please confirm the nginx setting.
+4. **Sinhala** is provisional and flagged for native review (B5); not claimed production-ready.
+5. **Deployment.** The server's disk is 91% full and it hosts other projects; a rebuild needs space and a backup first. The Agent itself is not part of this web image.
+
+## How to try it locally
+
+1. Start the mock Agent from the `feature/ai-agent-m1` branch: `AGENT_DEV_SECRET=<32+ chars> npx tsx tests/real/dev-mock-agent.ts` in `apps/agent` (mock data, loopback only).
+2. Start the site with the settings above, using the same secret.
+3. Open the site, press the blue button at the bottom left.
+
+## Tests
+
+- `tests/unit/assistant-lib.test.ts` (14): signing vector, configuration rules, session id derivation, request and response schemas.
+- `tests/integration/assistant-route.test.ts` (29): against a fake Agent that verifies the signature: off, origin, validation, rate limit, identity and session handling, response filtering, error mapping, redirects, timeouts, no logging.
+- `tests/unit/assistant-cards.test.ts`, `assistant-confirm-interaction.test.ts`: cards and Confirm/Cancel.
+- `tests/e2e/assistant-widget.spec.ts` (8, real Chromium, desktop and mobile): launcher and dialog, cards and demo label, comparison, confirm-gated cart (the real `volta.cart.v1` changes only after Confirm), signed request and derived session, error state, Sinhala notice, order hand-off, phone layout.
+
+## Private preview on the live site (demo data)
+
+To try the assistant on the live site without showing it to shoppers:
+
+1. Build the Agent bundle (mock data) from the `feature/ai-agent-m1` branch: `npx esbuild apps/agent/tests/real/dev-mock-agent.ts --bundle --platform=node --format=esm --target=node24 --outfile=agent.mjs`, and copy it to `/opt/valta/ai-agent/agent.mjs` on the server.
+2. In `.env` set `AI_ASSISTANT_ENABLED=true`, `AI_AGENT_URL=http://127.0.0.1:18787`, `AI_AGENT_HMAC_KEY_ID=web1`, `AI_AGENT_HMAC_SECRET=<48 random chars>`, `AI_ASSISTANT_DEMO_DATA=true` and `AI_ASSISTANT_PREVIEW_KEY=<24+ random chars>`.
+3. `docker compose up -d web` and `docker compose --profile ai-preview up -d ai-agent`. The Agent container shares the web container's network namespace, so it listens only on 127.0.0.1 inside it; no port is published.
+4. Open `https://<site>/api/assistant/preview?key=<AI_ASSISTANT_PREVIEW_KEY>` once in the browser that should see it. Other visitors see nothing (the chat route answers 404). Remove the preview key to open the assistant to everyone.
+
+This preview has **no model** (English messages the router does not know get a clarification) and **mock products** that are not in the site's catalogue, so adding them to the cart will not work at checkout. To turn it off: unset `AI_ASSISTANT_ENABLED` and stop the `ai-agent` service.
+
+## Connected to the AI server (tunnel, preview on demo data)
+
+The website's Agent address `http://127.0.0.1:18787` (inside the web container) is forwarded over SSH to the Agent on the AI server:
+
+```
+web container 127.0.0.1:18787 --ssh -L--> AI server voltatunnel@2.29.97.114 --> 127.0.0.1:8787 (volta-agent.service) --> Ollama 127.0.0.1:11434
+```
+
+What exists (set up 2026-11-13, approved plan):
+
+| Where | What |
+|---|---|
+| AI server | `volta-agent.service` (user `voltaagent`, no shell; `/opt/volta-agent/agent.mjs`; secret in `/etc/volta-agent/agent.env`, mode 640; listens on 127.0.0.1:8787 only; Qwen tool planner over the MOCK catalogue; SinhalaLLM polishing off; no memory limit set) |
+| AI server | user `voltatunnel` (nologin; key-only; sshd `Match User voltatunnel`: `AllowTcpForwarding local`, `PermitOpen 127.0.0.1:8787`, `PermitTTY no`, `ForceCommand /bin/false`); `AllowUsers volta voltatunnel`; backup `/etc/ssh/sshd_config.d/10-volta-hardening.conf.bak-20261113`. UFW and public ports unchanged (SSH 22 as before) |
+| Website server | `ai-tunnel` compose service (profile `ai-tunnel`, shares the web container's network); key and pinned host key in `/opt/valta/ai-tunnel/` (not committed). The mock `ai-agent` service must be stopped while the tunnel runs (same port) |
+
+Verified: the shell is refused, the allowed port answers, another port (Ollama) through the tunnel is refused, the live chat reaches Qwen (a message the router cannot place took 34.9 s cold, because the model had been unloaded; later calls are far shorter while it stays loaded for 5 minutes).
+
+**Roll back / turn off:** on the website server `docker compose --profile ai-tunnel stop ai-tunnel` (and unset `AI_ASSISTANT_ENABLED` in `.env`, `docker compose up -d --no-deps web`); on the AI server `sudo systemctl disable --now volta-agent`, `sudo userdel voltatunnel`, restore the sshd drop-in from the `.bak-20261113` file, `sudo sshd -t && sudo systemctl reload ssh`.

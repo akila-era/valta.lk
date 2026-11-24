@@ -3,10 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { Award, Package, Search, Tag, Trophy } from "lucide-react";
 import { Empty, ErrorNote, PageHeader, Pager, Stat, Table } from "@/components/admin/ui";
+import { BrandColorControl } from "@/components/admin/brand-color-control";
 import { BrandLogoControl } from "@/components/admin/brand-logo-control";
 import { adminGate } from "@/lib/admin/gate";
 import { parseSize } from "@/lib/admin/paging";
 import { catalogue, isLow, isOut } from "@/lib/admin/stats";
+import { defaultBrandColor, savedBrandColors } from "@/lib/brand-colors";
 import { brandKey, brandLogoMap } from "@/lib/brand-logos";
 import { effectivePrice } from "@/lib/erp/product-utils";
 import { formatLkr } from "@/lib/utils/money";
@@ -25,7 +27,7 @@ export default async function BrandsPage({ searchParams }: { searchParams: Promi
   const cat = await catalogue();
   if (!cat) return (<><PageHeader title="Brands" /><ErrorNote>The catalogue could not be loaded from the ERP.</ErrorNote></>);
 
-  const logos = await brandLogoMap();
+  const [logos, colors] = await Promise.all([brandLogoMap(), savedBrandColors()]);
   const map = new Map<string, Row>();
   for (const p of cat.products) {
     const name = p.brand?.trim();
@@ -86,7 +88,7 @@ export default async function BrandsPage({ searchParams }: { searchParams: Promi
       {rows.length === 0 ? (
         <Empty>{q ? "No brands match this search." : "No brands are set on products in the ERP."}</Empty>
       ) : (
-        <Table dense label="Brands" min="64rem" head={["Brand", "Logo (storefront)", "Categories", { label: "Products", right: true }, "Price range", "Stock", { label: "Actions", right: true }]}>
+        <Table dense label="Brands" min="76rem" head={["Brand", "Logo (storefront)", "Colour (brand page)", "Categories", { label: "Products", right: true }, "Price range", "Stock", { label: "Actions", right: true }]}>
           {rows.slice((page - 1) * size, page * size).map((b) => (
             <tr key={b.name}>
               <td className="px-3 py-3">
@@ -98,6 +100,7 @@ export default async function BrandsPage({ searchParams }: { searchParams: Promi
                 </div>
               </td>
               <td className="px-3 py-3"><BrandLogoControl brand={b.name} logo={logos.get(brandKey(b.name))} /></td>
+              <td className="px-3 py-3"><BrandColorControl brand={b.name} color={colors[brandKey(b.name)] ?? defaultBrandColor(b.name)} custom={Boolean(colors[brandKey(b.name)])} /></td>
               <td className="px-3 py-3">
                 <span className="flex flex-wrap gap-1">{[...b.categories].sort().map((c) => <span key={c} className="badge bg-surface text-ink">{c}</span>)}</span>
               </td>

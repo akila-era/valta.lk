@@ -1,7 +1,5 @@
 import {
-  Award, Banknote, BarChart3, Boxes, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon,
-  Inbox, KeyRound, LayoutDashboard, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw,
-  RotateCcw, Scale, ScrollText, Settings, Settings2, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
+  Briefcase, CalendarClock, MessageCircle, CircleHelp, FileText, Search, Award, Banknote, BarChart3, Ghost, Boxes, Funnel, CheckCircle2, CircleAlert, ClipboardList, Clock, CreditCard, FolderTree, Gauge, Handshake, History, House, Image as ImageIcon, Inbox, KeyRound, LayoutDashboard, Mail, MapPin, Package, PackageCheck, PackagePlus, PackageSearch, PackageX, Percent, Plug, Receipt, RefreshCw, RotateCcw, Scale, ScrollText, Settings, Settings2, Store, ShieldCheck, ShoppingBag, Star, TrendingUp, TriangleAlert, Truck, Undo2, UserCog, Users, Wallet, XCircle, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -28,6 +26,7 @@ export const NAV: NavGroup[] = [
       { label: "Products", href: "/admin/products", deep: true },
       { label: "Categories", href: "/admin/categories" },
       { label: "Brands", href: "/admin/brands" },
+      { label: "Product Reviews", href: "/admin/reviews" },
     ],
   },
   {
@@ -48,6 +47,7 @@ export const NAV: NavGroup[] = [
       { label: "Dispatched", href: "/admin/orders?status=DISPATCHED" },
       { label: "Completed", href: "/admin/orders?status=DELIVERED" },
       { label: "Cancelled", href: "/admin/orders?status=CANCELLED" },
+      { label: "Pre-orders", href: "/admin/orders/preorders" },
     ],
   },
   {
@@ -55,6 +55,8 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "All Customers", href: "/admin/customers", deep: true },
       { label: "Customer Order History", href: "/admin/customers/history" },
+      { label: "Wholesale Applications", href: "/admin/customers/wholesale" },
+      { label: "WhatsApp Chat", href: "/admin/whatsapp" },
     ],
   },
   {
@@ -81,16 +83,29 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    id: "content", label: "Content", icon: FileText,
+    items: [
+      { label: "Pages", href: "/admin/content/pages" },
+      { label: "FAQs", href: "/admin/content/faqs" },
+      { label: "Homepage Content", href: "/admin/content/homepage" },
+      { label: "Search", href: "/admin/content/search" },
+    ],
+  },
+  {
     id: "marketing", label: "Promotions", icon: Percent,
     items: [
       { label: "Promotions & Discounts", href: "/admin/marketing/promotions" },
       { label: "Promotional Banners", href: "/admin/marketing/banners" },
+      { label: "Hot Deals", href: "/admin/marketing/hot-deals" },
+      { label: "Seasonal Theme", href: "/admin/marketing/theme" },
+      { label: "Newsletter Subscribers", href: "/admin/marketing/subscribers" },
     ],
   },
   {
     id: "reports", label: "Reports & Analytics", icon: BarChart3,
     items: [
       { label: "Sales Reports", href: "/admin/reports" },
+      { label: "Conversion Analytics", href: "/admin/reports/conversion" },
       { label: "Order Reports", href: "/admin/reports/orders" },
       { label: "Product Reports", href: "/admin/reports/products" },
       { label: "Payment Reports", href: "/admin/reports/payments" },
@@ -102,6 +117,7 @@ export const NAV: NavGroup[] = [
     items: [
       { label: "Admin Users", href: "/admin/users" },
       { label: "General Settings", href: "/admin/settings" },
+      { label: "Store Details", href: "/admin/settings/store" },
       { label: "Payment Settings", href: "/admin/settings/payment" },
       { label: "Shipping Settings", href: "/admin/settings/shipping" },
       { label: "ERP Settings", href: "/admin/settings/erp" },
@@ -115,14 +131,16 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
   Products: Package, "Add Product": PackagePlus, Categories: FolderTree, Brands: Award, "Featured Products": Star,
   "Stock Overview": Boxes, "Low Stock": TriangleAlert, "Out of Stock": PackageX, "ERP Stock Sync": RefreshCw, "Stock Sync Errors": CircleAlert,
   "All Orders": ClipboardList, "New Orders": Inbox, "Pending Orders": Clock, Processing: Settings2, "Ready for Dispatch": PackageCheck,
-  Dispatched: Truck, Completed: CheckCircle2, Cancelled: XCircle, "Returns & Refunds": Undo2,
-  "All Customers": Users, "Customer Order History": History,
+  Dispatched: Truck, Completed: CheckCircle2, Cancelled: XCircle, "Pre-orders": CalendarClock, "Returns & Refunds": Undo2,
+  "All Customers": Users, "Customer Order History": History, "Wholesale Applications": Briefcase, "WhatsApp Chat": MessageCircle, Pages: FileText, FAQs: CircleHelp, Search: Search,
   Transactions: Receipt, "Pending Payments": Clock, "Failed Payments": CircleAlert, Refunds: RotateCcw, "Cash on Delivery": Banknote, "Payment Reconciliation": Scale,
   Shipments: Truck, "Delivery Tracking": MapPin, "Delivery Partners": Handshake,
   "ERP Overview": Gauge, "Product Sync": Package, "Inventory Sync": Boxes, "Order Sync": ShoppingBag, "Failed Sync Jobs": TriangleAlert, "Integration Logs": ScrollText, "Connection Settings": Plug,
-  "Homepage Content": House, "Promotional Banners": ImageIcon, "Promotions & Discounts": Percent,
-  "Sales Reports": TrendingUp, "Order Reports": ClipboardList, "Product Reports": PackageSearch, "Payment Reports": Wallet, "ERP Sync Reports": RefreshCw,
-  "Admin Users": UserCog, "Roles & Permissions": KeyRound, "Audit Logs": ScrollText, "General Settings": Settings, "Payment Settings": CreditCard, "Shipping Settings": Truck, "ERP Settings": Plug,
+  "Newsletter Subscribers": Mail,
+  "Product Reviews": Star,
+  "Homepage Content": House, "Promotional Banners": ImageIcon, "Seasonal Theme": Ghost, "Promotions & Discounts": Percent,
+  "Sales Reports": TrendingUp, "Conversion Analytics": Funnel,"Order Reports": ClipboardList, "Product Reports": PackageSearch, "Payment Reports": Wallet, "ERP Sync Reports": RefreshCw,
+  "Admin Users": UserCog, "Roles & Permissions": KeyRound, "Audit Logs": ScrollText, "General Settings": Settings, "Store Details": Store, "Payment Settings": CreditCard, "Shipping Settings": Truck, "ERP Settings": Plug,
 };
 export const iconFor = (label: string): LucideIcon => ITEM_ICONS[label] ?? Package;
 

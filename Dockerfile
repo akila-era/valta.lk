@@ -1,4 +1,4 @@
-# VALTA.LK storefront (Next.js). Build context: repo root.
+# VOLTA.LK storefront (Next.js). Build context: repo root.
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*

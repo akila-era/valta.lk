@@ -1,10 +1,5 @@
-import { ProductGridSkeleton, Skeleton } from "@/components/ui/states";
+import { PageLoader } from "@/components/ui/dot-spinner";
 
 export default function Loading() {
-  return (
-    <div className="py-2">
-      <Skeleton className="mb-6 h-8 w-56" />
-      <ProductGridSkeleton />
-    </div>
-  );
+  return <PageLoader label="Searching" />;
 }

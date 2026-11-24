@@ -61,9 +61,12 @@ export const placeOrderSchema = z.object({
   /** Total the customer saw. Used only to detect price changes; never used to price the order. */
   expectedTotal: z.number().nonnegative(),
   acceptTerms: z.literal(true, { error: "Please accept the terms to continue" }),
+  /** Cash on delivery, or a direct bank transfer to the store's account (both reach the ERP as COD; see place-order). */
+  paymentMethod: z.enum(["COD", "BANK_TRANSFER"]).default("COD"),
 });
 
-export type PlaceOrderInput = z.infer<typeof placeOrderSchema>;
+/** The checked order; the payment method is optional for callers and means cash on delivery when left out. */
+export type PlaceOrderInput = Omit<z.infer<typeof placeOrderSchema>, "paymentMethod"> & { paymentMethod?: "COD" | "BANK_TRANSFER" };
 
 export const availabilityRequestSchema = z.object({
   lines: z.array(lineInputSchema).min(1).max(20),

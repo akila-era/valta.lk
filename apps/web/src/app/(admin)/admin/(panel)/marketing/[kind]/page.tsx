@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BannerManager, type BannerRow } from "@/components/admin/banner-manager";
+import { HotDealManager } from "@/components/admin/hot-deal-manager";
 import { PromotionManager } from "@/components/admin/promotion-manager";
 import { ErrorNote, NotAvailable, PageHeader } from "@/components/admin/ui";
 import { adminGate } from "@/lib/admin/gate";
@@ -32,6 +33,14 @@ export default async function Page({ params }: Props) {
       </>
     );
   }
+  if (kind === "hot-deals") {
+    return (
+      <>
+        <PageHeader title="Hot Deals" subtitle="Choose the products in the homepage Hot Deals panel. Prices and stock always come from the ERP." />
+        {getDb() ? <HotDealManager /> : <ErrorNote>The website database is not available, so Hot Deals cannot be managed right now.</ErrorNote>}
+      </>
+    );
+  }
   if (kind === "banners") {
     const db = getDb();
     const found = db
@@ -43,7 +52,7 @@ export default async function Page({ params }: Props) {
           .catch(() => null)
       : null;
     const rows: BannerRow[] = (found ?? []).map((b) => ({
-      id: b.id, placement: b.placement === "WIDE" ? "WIDE" : "CARDS", eyebrow: b.eyebrow ?? "", headline: b.headline, text: b.text ?? "", ctaLabel: b.ctaLabel, href: b.href, active: b.active, sortOrder: b.sortOrder,
+      id: b.id, placement: b.placement === "WIDE" || b.placement === "STRIP" ? b.placement : "CARDS", eyebrow: b.eyebrow ?? "", headline: b.headline, text: b.text ?? "", ctaLabel: b.ctaLabel, href: b.href, active: b.active, sortOrder: b.sortOrder,
       imageUrl: b.imageType ? bannerImageUrl(b.id, b.updatedAt) : null,
     }));
     return (

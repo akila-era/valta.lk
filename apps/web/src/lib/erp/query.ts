@@ -1,5 +1,5 @@
 import type { ErpProduct } from "./types";
-import { effectivePrice, isOnSale, matchesBrand, matchesSearch } from "./product-utils";
+import { effectivePrice, isNewArrival, isOnSale, matchesBrand, matchesSearch } from "./product-utils";
 
 export type SortKey = "newest" | "price-asc" | "price-desc" | "name";
 
@@ -10,6 +10,8 @@ export interface ProductQuery {
   sub?: string;
   /** Exact brand name from the catalogue. Matching is case-insensitive. */
   brand?: string;
+  /** The Brand filter: any of these brands (case-insensitive). Used together with `brand` only on its own pages. */
+  brands?: string[];
   sort?: SortKey;
   page?: number;
   pageSize?: number;
@@ -17,6 +19,8 @@ export interface ProductQuery {
   maxPrice?: number;
   inStockOnly?: boolean;
   onSale?: boolean;
+  /** Only products published recently (the New badge window): the New Arrivals page. */
+  fresh?: boolean;
   /** Published website content marked Featured. Absent content never matches. */
   featured?: boolean;
 }
@@ -86,8 +90,10 @@ export function queryProducts(all: ErpProduct[], query: ProductQuery = {}): Prod
 
   let list = scoped.filter((p) => {
     if (!matchesBrand(p.brand, query.brand)) return false;
+    if (query.brands?.length && !query.brands.some((b) => matchesBrand(p.brand, b))) return false;
     if (query.inStockOnly && !p.available) return false;
     if (query.onSale && !isOnSale(p)) return false;
+    if (query.fresh && !isNewArrival(p.publishedAt)) return false;
     if (query.featured && !p.content?.badges.includes("featured")) return false;
     const price = effectivePrice(p);
     if (query.minPrice != null && price < query.minPrice) return false;

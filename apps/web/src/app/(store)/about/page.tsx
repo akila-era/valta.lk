@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { EditablePage } from "@/components/layout/editable-page";
 import { PolicyPage } from "@/components/layout/policy-page";
 
 export const metadata: Metadata = { title: "About us", alternates: { canonical: "/about" } };
 
 export default function AboutPage() {
   return (
-    <PolicyPage title="About VALTA.LK" intro="VALTA.LK is a Sri Lankan online store for mobile phones, electronics and accessories.">
+    <EditablePage slug="about">
+    <PolicyPage title="About VOLTA.LK" intro="VOLTA.LK is a Sri Lankan online store for mobile phones, electronics and accessories.">
       <section>
         <h2>How ordering works</h2>
         <p>Choose your products, enter your delivery details and place your order. Payment is by cash on delivery. Prices and stock availability come directly from our inventory system and are confirmed again when you place your order.</p>
@@ -15,5 +17,6 @@ export default function AboutPage() {
         <p>Use the reference shown after you order to follow your order on the Track order page.</p>
       </section>
     </PolicyPage>
+    </EditablePage>
   );
 }

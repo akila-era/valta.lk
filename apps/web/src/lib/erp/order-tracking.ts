@@ -5,15 +5,16 @@ import { erpRequest } from "./client";
 import { endpoints } from "./endpoints";
 import { erpOrderSchema, TERMINAL_STATUSES, type ErpOrder, type ErpProduct, type OrderStatus } from "./types";
 
-export async function getOrder(ref: string): Promise<ErpOrder> {
-  return erpRequest(endpoints.order(ref), erpOrderSchema, { maxAttempts: 2 });
+/** `opts` lets background jobs use a shorter timeout and a single attempt; pages keep the defaults. */
+export async function getOrder(ref: string, opts: { timeoutMs?: number; maxAttempts?: number } = {}): Promise<ErpOrder> {
+  return erpRequest(endpoints.order(ref), erpOrderSchema, { maxAttempts: opts.maxAttempts ?? 2, ...(opts.timeoutMs ? { timeoutMs: opts.timeoutMs } : {}) });
 }
 
 export async function cancelOrder(ref: string): Promise<void> {
   await erpRequest(endpoints.cancelOrder(ref), z.unknown(), {
     method: "POST",
     idempotencyKey: `cancel-${ref}`,
-    body: { reason: "Cancelled by customer on VALTA.LK" },
+    body: { reason: "Cancelled by customer on VOLTA.LK" },
   });
 }
 
@@ -31,7 +32,8 @@ export interface PublicOrder {
   currency: string;
   paymentMethod: string;
   codCollected: boolean;
-  lines: { name: string; variantLabel?: string; quantity: number; unitPrice: number }[];
+  /** `image` and `slug` come from the cached catalogue (absent when the product is no longer listed). */
+  lines: { name: string; variantLabel?: string; quantity: number; unitPrice: number; image?: string; slug?: string }[];
   deliveryCharge: number;
   total: number;
   createdAt?: string;
@@ -63,6 +65,8 @@ export function toPublicOrder(o: ErpOrder, products: Map<string, ErpProduct> = n
         variantLabel: l.variantKey ? (p?.variants.find((v) => v.key === l.variantKey)?.label ?? undefined) : undefined,
         quantity: l.quantity,
         unitPrice: l.unitPrice,
+        image: p?.images[0],
+        slug: p?.slug,
       };
     }),
     deliveryCharge: o.deliveryCharge,

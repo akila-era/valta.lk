@@ -1,17 +1,17 @@
-name: valta
+name: volta
 
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: valta_web
-      POSTGRES_USER: valta
+      POSTGRES_DB: volta_web
+      POSTGRES_USER: volta
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U valta -d valta_web"]
+      test: ["CMD-SHELL", "pg_isready -U volta -d volta_web"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -22,11 +22,11 @@ services:
       args:
         ERP_IMAGE_HOSTS: ${ERP_IMAGE_HOSTS:-}
         HX_API_BASE: ${HX_API_BASE:-}
-    image: valta/web:latest
+    image: volta/web:latest
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://valta:${POSTGRES_PASSWORD}@db:5432/valta_web
+      DATABASE_URL: postgresql://volta:${POSTGRES_PASSWORD}@db:5432/volta_web
     depends_on:
       db:
         condition: service_healthy
@@ -51,6 +51,93 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     command:
       - 'while true; do sleep 60; curl -fsS -o /dev/null -X POST -H "Authorization: Bearer $$ORDER_SYNC_SECRET" http://web:3000/api/internal/sync-orders || echo "order sync failed"; done'
+
+  # DEMO ONLY: the mock HEXALYTE ERP from apps/web/tests (a demo catalogue, orders kept in memory and lost on restart).
+  # Start it with `docker compose --profile demo up -d`, then in the admin (ERP Settings) save the address mock-erp:4010
+  # with the credential hxs_test.testsecret; "Remove saved connection" goes back to the real ERP. Or point .env at it:
+  #   HX_API_BASE=http://mock-erp:4010/api/v1/store-api   HX_STORE_CREDENTIAL=hxs_test.testsecret
+  # It has no published port: its /__control test endpoint must never be reachable from the internet.
+  # Remove the profile and set the real ERP values to end the demo (see docs/DEPLOYMENT.md).
+  mock-erp:
+    profiles: ["demo"]
+    image: volta/web:latest
+    restart: unless-stopped
+    working_dir: /app/apps/web
+    environment:
+      MOCK_ERP_PORT: "4010"
+      # The 60-product demo catalogue (apps/web/tests/mock-erp/demo-catalogue.ts); set MOCK_ERP_DEMO=0 for the small test one.
+      MOCK_ERP_DEMO: ${MOCK_ERP_DEMO:-1}
+      # Public address that serves this ERP's /uploads (product images), e.g. https://<demo host>/demo-erp. Browsers
+      # cannot reach the Docker-internal name, so without it product photos are broken (see docs/DEPLOYMENT.md).
+      MOCK_PUBLIC_ORIGIN: ${MOCK_PUBLIC_ORIGIN:-}
+    command: ["npx", "tsx", "tests/mock-erp/server.ts"]
+    expose:
+      - "4010"
+    # Loopback only (never 0.0.0.0): the host's nginx forwards just /demo-erp/uploads/ to it.
+    ports:
+      - "127.0.0.1:4010:4010"
+
+  # PREVIEW of the AI shopping assistant: the Agent API on MOCK data (invented products, no model, no ERP), for trying the
+  # assistant on this site before the real Agent is connected (docs/AI_ASSISTANT_WEB_INTEGRATION.md). Start it with
+  # `docker compose --profile ai-preview up -d`. It shares the web container's network namespace and listens on 127.0.0.1:18787
+  # INSIDE it: no published port, nothing else can reach it. The bundle is built from the Agent repo branch and copied to
+  # ./ai-agent/agent.mjs (not committed). Needs AI_AGENT_HMAC_SECRET in .env (the same value the site signs with).
+  ai-agent:
+    profiles: ["ai-preview"]
+    image: volta/web:latest
+    restart: unless-stopped
+    network_mode: "service:web"
+    depends_on:
+      - web
+    user: node
+    working_dir: /agent
+    environment:
+      # Empty when the preview is not set up; the Agent then refuses to start (it needs 32+ characters).
+      AGENT_DEV_SECRET: ${AI_AGENT_HMAC_SECRET:-}
+      AGENT_DEV_KEY_ID: ${AI_AGENT_HMAC_KEY_ID:-web1}
+      AGENT_DEV_PORT: "18787"
+    volumes:
+      - ./ai-agent/agent.mjs:/agent/agent.mjs:ro
+    command: ["node", "/agent/agent.mjs"]
+
+  # TUNNEL from this site to the AI Agent on the AI server (docs/AI_ASSISTANT_WEB_INTEGRATION.md). Start it with
+  # `docker compose --profile ai-tunnel up -d --build ai-tunnel` (and stop the ai-preview mock Agent first: both use port 18787).
+  # It shares the web container's network namespace and forwards 127.0.0.1:18787 (inside it) to the Agent's 127.0.0.1:8787 on the
+  # AI server over SSH, with a key that can do nothing else (the AI server's sshd allows that user to forward to that one port only).
+  # ./ai-tunnel/ holds id_ed25519 (mode 600) and known_hosts (the AI server's pinned host key); neither is committed.
+  ai-tunnel:
+    profiles: ["ai-tunnel"]
+    build:
+      context: ./ai-tunnel-image
+    image: volta/ai-tunnel:latest
+    restart: unless-stopped
+    network_mode: "service:web"
+    depends_on:
+      - web
+    volumes:
+      - ./ai-tunnel:/tunnel:ro
+    command:
+      - ssh
+      - -N
+      - -i
+      - /tunnel/id_ed25519
+      - -o
+      - UserKnownHostsFile=/tunnel/known_hosts
+      - -o
+      - StrictHostKeyChecking=yes
+      - -o
+      - BatchMode=yes
+      - -o
+      - IdentitiesOnly=yes
+      - -o
+      - ExitOnForwardFailure=yes
+      - -o
+      - ServerAliveInterval=15
+      - -o
+      - ServerAliveCountMax=3
+      - -L
+      - 127.0.0.1:18787:127.0.0.1:8787
+      - voltatunnel@2.29.97.114
 
 volumes:
   db-data:

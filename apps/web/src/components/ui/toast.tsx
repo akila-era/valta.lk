@@ -18,7 +18,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed bottom-4 right-4 z-[70] flex w-[min(100%-2rem,22rem)] flex-col gap-2" aria-live="polite">
+      <div className="pointer-events-none fixed bottom-20 right-4 z-[70] md:bottom-4 flex w-[min(100%-2rem,22rem)] flex-col gap-2" aria-live="polite">
         {items.map((item) => (
           <div key={item.id} className="pointer-events-auto">
             <Notice tone={item.tone}>{item.text}</Notice>

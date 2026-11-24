@@ -102,7 +102,7 @@ describe("error mapping", () => {
 });
 
 import { parseDecimal, toDecimalString } from "@/lib/utils/money";
-import { mapProduct, productSlug, slugify } from "@/lib/erp/product-mapper";
+import { conditionLabel, mapProduct, productSlug, slugify } from "@/lib/erp/product-mapper";
 import { rawProductSchema, erpOrderSchema, erpSettingsSchema } from "@/lib/erp/types";
 
 describe("ERP decimal strings", () => {
@@ -147,14 +147,21 @@ describe("catalogue mapping", () => {
     expect(productSlug("Nova X1", "CM0Item1")).toBe("nova-x1-cm0item1");
     expect(mapProduct(raw(), null).category).toEqual({ slug: "mobile-phones", name: "Mobile Phones" });
   });
+  it("shows the ERP condition code as plain words", () => {
+    expect(conditionLabel("BRAND_NEW")).toBe("Brand new");
+    expect(conditionLabel("REFURBISHED")).toBe("Refurbished");
+    expect(mapProduct(raw({ condition: "USED" }), null).specs.Condition).toBe("Used");
+  });
   it("applies the sale price only while the discount is active", () => {
     expect(mapProduct(raw(), null).salePrice).toBe(900);
     expect(mapProduct(raw({ discountActive: false }), null).salePrice).toBeNull();
     expect(mapProduct(raw({ salePrice: "1200.00" }), null).salePrice).toBeNull();
   });
-  it("resolves relative images against the ERP origin and drops unsafe schemes", () => {
-    expect(mapProduct(raw(), "https://erp.example").images).toEqual(["https://erp.example/uploads/a.jpg"]);
-    expect(mapProduct(raw({ images: [{ url: "/uploads/b.jpg" }] }), "https://erp.example").images).toEqual(["https://erp.example/uploads/b.jpg"]);
+  it("serves ERP-hosted images through /api/erp-image, keeps other hosts, drops unsafe schemes", () => {
+    expect(mapProduct(raw(), "https://erp.example").images).toEqual(["/api/erp-image/uploads/a.jpg"]);
+    expect(mapProduct(raw({ images: [{ url: "/uploads/b.jpg" }] }), "https://erp.example").images).toEqual(["/api/erp-image/uploads/b.jpg"]);
+    expect(mapProduct(raw({ images: [{ url: "https://erp.example/uploads/c.jpg" }] }), "https://erp.example").images).toEqual(["/api/erp-image/uploads/c.jpg"]);
+    expect(mapProduct(raw({ images: [{ url: "https://cdn.example/p/d.jpg" }] }), "https://erp.example").images).toEqual(["https://cdn.example/p/d.jpg"]);
     expect(mapProduct(raw(), null).images).toEqual([]);
     expect(mapProduct(raw({ images: [{ url: "javascript:alert(1)" }] }), null).images).toEqual([]);
   });

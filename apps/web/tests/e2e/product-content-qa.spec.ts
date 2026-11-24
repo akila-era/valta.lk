@@ -46,6 +46,7 @@ async function resetContent(page: Page) {
 
 test.describe("editor: every tab, save and reload", () => {
   test("all eight tabs accept input, save as a draft, and every value is still there after a reload", async ({ page }) => {
+    test.setTimeout(90_000); // a ~200-line editor walkthrough: it needs about 34 s on this machine, so the default 30 s is too tight
     await signInAsAdmin(page);
     await resetContent(page);
     await page.goto(`/admin/products/${ID}`);
@@ -421,7 +422,7 @@ test.describe("rich text and optional content", () => {
     await signInAsAdmin(page);
     await resetContent(page);
     const html =
-      '<h2>Title</h2><p>Visit <a href="https://valta.lk/help" onclick="x()">help</a> or <a href="javascript:alert(1)">bad</a>. <b>Bold</b> <i>it</i></p><ol><li>One</li><li>Two</li></ol><img src=x onerror="window.__x=1"><iframe src="https://evil.test"></iframe><script>window.__y=1</script>';
+      '<h2>Title</h2><p>Visit <a href="https://volta.lk/help" onclick="x()">help</a> or <a href="javascript:alert(1)">bad</a>. <b>Bold</b> <i>it</i></p><ol><li>One</li><li>Two</li></ol><img src=x onerror="window.__x=1"><iframe src="https://evil.test"></iframe><script>window.__y=1</script>';
     expect((await save(page, await version(page), { descriptionHtml: html })).status()).toBe(200);
     await publishAction(page, "publish");
     const anon = await visitor(browser);
@@ -433,7 +434,7 @@ test.describe("rich text and optional content", () => {
     await expect(rich.locator("em")).toHaveText("it");
     await expect(rich.locator("ol li")).toHaveText(["One", "Two"]);
     const link = rich.getByRole("link", { name: "help" });
-    await expect(link).toHaveAttribute("href", "https://valta.lk/help");
+    await expect(link).toHaveAttribute("href", "https://volta.lk/help");
     await expect(link).toHaveAttribute("rel", /noopener/);
     await expect(rich.getByRole("link", { name: "bad" })).toHaveCount(0);
     await expect(rich.locator("img, iframe, script, [onclick], [onerror]")).toHaveCount(0);
@@ -511,12 +512,10 @@ test.describe("ERP ownership", () => {
     await p.goto("/checkout");
     await p.getByLabel("Full name").fill("Kasun Perera");
     await p.getByLabel("Phone number").fill("0771234567");
-    await p.getByRole("button", { name: "Continue" }).click();
     await p.getByLabel("Address", { exact: true }).fill("12 Galle Road");
     await p.getByLabel("City", { exact: true }).fill("Colombo");
     await p.getByLabel("District").selectOption("Colombo");
-    await p.getByRole("button", { name: "Continue" }).click();
-    await p.getByRole("checkbox").check();
+    await p.getByRole("checkbox", { name: /I agree/ }).check();
     await p.getByRole("button", { name: /place order/i }).click();
     await expect(p).toHaveURL(/order-confirmation/);
     await expect(p.getByText("Glide Tempered Glass").first()).toBeVisible();
@@ -539,7 +538,9 @@ test.describe("ERP ownership", () => {
 
     await control({ setPrice: { id: ID, price: 1500 }, setStock: { id: ID, stock: 0 } }); // a real change in the ERP
     // the storefront re-reads the ERP catalogue about once a minute
-    await expect.poll(async () => { await p.goto(`/products/${SLUG}`); return p.getByText("LKR 1,500").count(); }, { timeout: 120_000, intervals: [5_000] }).toBeGreaterThan(0);
+    // wait for the stock change (unique to this product's panel); "LKR 1,500" alone also matches a related product card
+    await expect.poll(async () => { await p.goto(`/products/${SLUG}`); return p.getByText("Out of stock", { exact: true }).count(); }, { timeout: 120_000, intervals: [5_000] }).toBeGreaterThan(0);
+    await expect(p.getByRole("heading", { level: 1 }).locator("xpath=ancestor::*[.//*[contains(text(),'LKR 1,500')]][1]")).toHaveCount(1);
     await expect(p.getByRole("heading", { level: 1 })).toHaveText("Survives Sync");
     await expect(p.getByText("Still here")).toBeVisible();
     await expect(p.getByText("Kept feature")).toBeVisible();

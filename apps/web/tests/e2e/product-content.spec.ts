@@ -125,7 +125,7 @@ test.describe("product content management", () => {
     await expect(after.getByText("9H hardness")).toBeVisible();
     await expect(after.getByText("Thickness")).toBeVisible();
     await expect(after.getByText("0.33 mm")).toBeVisible();
-    await expect(after.getByText("6 months")).toBeVisible();
+    await expect(after.getByText("6 months").first()).toBeVisible();
     await expect(after.getByText("2-4 working days")).toBeVisible();
     await expect(after.getByText("LKR 990").first()).toBeVisible();
     await expect(after.locator('img[alt="Glass protector on a phone"]').first()).toBeVisible();

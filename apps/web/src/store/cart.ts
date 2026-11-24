@@ -7,7 +7,7 @@ import { addLine, itemCount, removeLine, setQuantity, subtotal, type CartLine } 
  * Browser cart. Stores only product references and last-seen display prices.
  * It never holds customer details or any ERP credential.
  */
-const KEY = "valta.cart.v1";
+const KEY = "volta.cart.v1";
 const EMPTY: CartLine[] = [];
 
 let lines: CartLine[] = EMPTY;

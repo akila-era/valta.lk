@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ElementType, type ReactNode } from "react";
 
 /**
- * Fades and lifts its children in when they scroll into view. Content is visible on the server and before
+ * Fades its children in (no movement) when they scroll into view. Content is visible on the server and before
  * hydration; only blocks that start below the fold are hidden (then revealed), so nothing is ever lost without JS.
  */
 export function Reveal({ children, delay = 0, as: Tag = "div", className }: { children: ReactNode; delay?: number; as?: ElementType; className?: string }) {

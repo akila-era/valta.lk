@@ -1,8 +1,8 @@
-// Creates the isolated ERP database for VALTA integration testing. Never touches the ERP's own "hexalyte" database.
+// Creates the isolated ERP database for VOLTA integration testing. Never touches the ERP's own "hexalyte" database.
 const fs = require("fs");
 const { Client } = require("../../node_modules/pg");
 const ERP = process.env.ERP_DIR ?? "C:/Users/Akila/CascadeProjects/windsurf-project/apps/backend";
-const NAME = "hexalyte_valta_test";
+const NAME = "hexalyte_volta_test";
 const url = new URL((fs.readFileSync(`${ERP}/.env`, "utf8").match(/^DATABASE_URL=(.*)$/m) || [])[1].replace(/^"|"$/g, ""));
 url.pathname = "/postgres";
 (async () => {

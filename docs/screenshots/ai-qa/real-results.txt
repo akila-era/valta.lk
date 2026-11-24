@@ -1,0 +1,27 @@
+PASS    en-phones     
+PASS    en-budget     
+PASS    en-compare    
+PASS    en-accessories 
+PASS    en-stock      
+PASS    en-cart       
+PASS    en-variant    
+PASS    en-parcel     
+PASS    sg-phone      
+PASS    sg-budget     
+PASS    sg-storage    
+PASS    sg-order      
+PASS    si-budget     
+PASS    si-order      
+PASS    mx-budget     
+PASS    mx-cart       
+PASS    gen-ram       
+PASS    gen-email     
+PASS    gen-code      
+PASS    gen-weather   
+PASS    gen-sinhala   
+PASS    sf-google     
+PASS    sf-inject     
+PASS    sf-price      
+PASS    sf-pay        
+FAIL    cx-first      expected a cart.add proposal, got none
+PASS    cx-compare    

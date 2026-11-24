@@ -7,3 +7,10 @@
 **/test-results
 **/playwright-report
 .git
+# Agent tooling and local config never belong in the image
+.claude
+.agents
+.codex
+skills-lock.json
+**/*.exe
+**/__pycache__

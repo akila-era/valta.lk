@@ -1,6 +1,6 @@
 import "server-only";
 import type { PrismaClient } from "@/generated/prisma/client";
-import { bannerFormSchema, isPlacement, wideBannerFormSchema, type Placement } from "../banners";
+import { bannerFormSchema, isPicture, isPlacement, wideBannerFormSchema, type Placement } from "../banners";
 import { getDb } from "../db";
 import { MAX_IMAGE_BYTES, sniffImage, type ImageType } from "../media/sniff";
 import { errorResponse, guard } from "../security/api";
@@ -40,7 +40,7 @@ export async function parseBannerForm(req: Request): Promise<{ ok: true; form: B
   };
   const placement: Placement = isPlacement(str("placement")) ? (str("placement") as Placement) : "CARDS";
   const parsed =
-    placement === "WIDE"
+    isPicture(placement)
       ? wideBannerFormSchema.safeParse({ headline: str("headline"), href: str("href") })
       : bannerFormSchema.safeParse({ eyebrow: str("eyebrow") || undefined, headline: str("headline"), text: str("text") || undefined, ctaLabel: str("ctaLabel"), href: str("href") });
   if (!parsed.success) {

@@ -3,9 +3,15 @@
 ## Decisions
 
 - **Single Next.js app** (`apps/web`). Route handlers under `/api/store/*` are enough; no separate backend, admin app or shared package was created.
-- **Small website database for customer accounts only** (PostgreSQL + Prisma, `apps/web/prisma`). Tables: `Customer`, `Session`, `PasswordResetToken`, `CustomerOrder`. `CustomerOrder` only links a website order reference to a customer, because the ERP has no "orders by customer" endpoint; order contents and status are always read from the ERP. No products, stock, prices or payments are stored. Without `DATABASE_URL` the site runs guest-only.
+- **Small website-only database** (PostgreSQL + Prisma, `apps/web/prisma`). It never holds the source of truth for products, stock, prices, order status or payments. Without `DATABASE_URL` the site runs guest-only: no accounts, no admin, and checkout sends orders straight to the ERP. Tables:
+  - Accounts: `Customer`, `Session`, `PasswordResetToken`, and `CustomerOrder`, which only links an order reference to a customer because the ERP has no "orders by customer" endpoint.
+  - Orders: `WebOrder`, the website's record of each order (the exact ERP request, display lines, totals as charged, sync state, and a cached copy of the ERP status and COD payment status). See "Orders: persist first, then ERP".
+  - Product presentation: `ProductContent` and `MediaAsset` (keyed by ERP product id), `AccessoryLink` (staff-made compatibility links) and `RecommendationEvent` (anonymous accessory impression/click/add counts).
+  - Marketing: `Promotion` and `PromotionRedemption` (advertised offers that must equal the ERP sale price), `Banner`, `HotDeal` (selection and order only; prices and stock come from the ERP), `BrandLogo`.
+  - Settings: `ErpConnectionConfig` (ERP base URL and encrypted store credential saved from the admin).
 - **Auth:** email + password (scrypt), opaque session token in an httpOnly SameSite=Lax cookie (only its SHA-256 hash is stored), 30-day sessions, lockout after 5 failed logins for 15 minutes, single-use 30-minute reset tokens that also sign out all sessions, same-origin + rate limits on every account route, generic errors that never reveal whether an email is registered.
-- **ERP is authoritative** for products, prices, stock, delivery charge, COD eligibility, orders and statuses. The site never stores stock or payment records.
+- **Admin console** (`/admin`): signed-in customer accounts whose email is listed in `ADMIN_EMAILS`. Every admin page calls `adminGate` and every admin API route calls `requireAdmin` (directly or through `lib/admin/*-api.ts`); `/api/admin/login` is the only unauthenticated admin route.
+- **ERP is authoritative** for products, prices, stock, delivery charge, COD eligibility, orders and statuses. The site never stores stock, and its only payment information is the cached COD status copied from the ERP.
 
 ## Request flow (checkout)
 
@@ -30,6 +36,12 @@ Catalogue: in-memory snapshot refreshed at most every 60 s using the ERP's incre
 ## Orders: persist first, then ERP
 
 Checkout saves the order in the website database (`WebOrder`: exact ERP payload, display lines, sync status) before calling the ERP, so an ERP outage never loses an order. The ERP call uses `Idempotency-Key` = the order reference and resends the identical payload, so retries cannot duplicate. Retries come from: the inline attempt at checkout, `POST /api/internal/sync-orders` (scheduler), viewing a pending order, and the admin "Retry sync" button. Definitive ERP rejections at checkout discard the local row and show the reason; later rejections become FAILED ("Needs attention") for staff. The ERP stays authoritative for status, payment status and tracking; the website only caches them. Delivery details are shown only to the placing browser (hashed access-token cookie), the owning account, or admin. The ERP exposes no separate order id (our reference is the identity), no order list and no webhooks, so status is polled on view.
+
+The cached `erpStatus` / `erpPaymentStatus` on a `WebOrder` is refreshed only when that order is viewed: through `loadOrderView` (`lib/orders/public.ts`) on the order confirmation page, the tracking API (`GET /api/store/orders/{ref}`), the customer's account page and the admin order page, or through `refreshFromErp` (`lib/admin/orders.ts`) for listed rows older than 60 s on the admin orders list. The scheduler call (`POST /api/internal/sync-orders`) only sends orders that have not reached the ERP yet; it does not refresh statuses. An order nobody has opened recently can therefore show an old status in admin reports.
+
+## Reports (admin)
+
+`/admin/reports` and `/admin/reports/{orders,products,payments,erp}` are computed from `WebOrder` rows (`lib/admin/stats.ts`), never from the ERP directly and never from browser events. Cancelled orders are excluded from value figures. "Order value" is the total of orders placed, not cash received; "collected" counts only orders whose cached ERP payment status is `COD_COLLECTED`, so it is as fresh as the cached status above. Best sellers use the display lines saved with each order. There is no visitor or funnel tracking; the only browser events stored are the anonymous accessory recommendation counts.
 
 ## Product content (website-owned)
 

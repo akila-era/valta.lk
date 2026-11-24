@@ -18,8 +18,11 @@ export const wideBannerFormSchema = z.object({
   href: z.union([z.literal(""), bannerSchema.shape.href]).optional(),
 });
 
-export type Placement = "CARDS" | "WIDE";
-export const isPlacement = (v: unknown): v is Placement => v === "CARDS" || v === "WIDE";
+/** CARDS = offer tiles; WIDE = pictures in the banner slider; STRIP = one full-width picture under "Shop by Category". */
+export type Placement = "CARDS" | "WIDE" | "STRIP";
+export const isPlacement = (v: unknown): v is Placement => v === "CARDS" || v === "WIDE" || v === "STRIP";
+/** Wide and strip banners are a picture with an optional link (no text or button). */
+export const isPicture = (p: Placement) => p === "WIDE" || p === "STRIP";
 
 export const bannerImageUrl = (id: string, updatedAt: Date) => `/api/banner-image/${id}?v=${updatedAt.getTime()}`;
 
@@ -72,4 +75,18 @@ export async function activeWideBanners(): Promise<WideBanner[]> {
     })
     .catch(() => []);
   return rows.map((r) => ({ image: bannerImageUrl(r.id, r.updatedAt), alt: r.headline, href: r.href || undefined }));
+}
+
+/** The strip banner (as on ugreen.lk, a full-width picture under "Shop by Category"): the first active one, or null. */
+export async function activeStripBanner(): Promise<WideBanner | null> {
+  const db = getDb();
+  if (!db) return null;
+  const r = await db.banner
+    .findFirst({
+      where: { active: true, placement: "STRIP", imageType: { not: null } },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      select: { id: true, headline: true, href: true, updatedAt: true },
+    })
+    .catch(() => null);
+  return r ? { image: bannerImageUrl(r.id, r.updatedAt), alt: r.headline, href: r.href || undefined } : null;
 }

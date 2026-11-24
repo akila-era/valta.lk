@@ -30,8 +30,8 @@ beforeEach(async () => {
   process.env.HX_API_BASE = `http://localhost:${PORT}/api/v1/store-api`;
   process.env.HX_STORE_CREDENTIAL = CRED;
   await control({ reset: true });
-  const g = globalThis as unknown as { __valtaRate?: Map<string, unknown> };
-  g.__valtaRate?.clear();
+  const g = globalThis as unknown as { __voltaRate?: Map<string, unknown> };
+  g.__voltaRate?.clear();
   (await import("@/lib/erp/catalogue")).resetCatalogueCache();
 });
 

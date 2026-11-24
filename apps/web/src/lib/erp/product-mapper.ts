@@ -16,11 +16,24 @@ export const productSlug = (name: string, id: string) => `${slugify(name) || "pr
 
 const isInStock = (availability: string) => availability === "IN_STOCK";
 
+/** The ERP sends the condition as a code (BRAND_NEW, USED, REFURBISHED); shoppers see "Brand new", "Used", "Refurbished". */
+export function conditionLabel(code: string): string {
+  const words = code.trim().toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : code;
+}
+
+/**
+ * Where the storefront loads a product photo from. Photos stored on the connected ERP itself go through this site's
+ * /api/erp-image route (it works for an ERP connected later in the admin, and for an http:// ERP on this https site);
+ * photos on other hosts (a CDN) are used as they are and must be listed in ERP_IMAGE_HOSTS.
+ */
 function imageUrl(img: { url: string; relative?: boolean }, erpOrigin: string | null): string | null {
   try {
     const pathOnly = !/^https?:\/\//i.test(img.url);
-    const abs = img.relative || pathOnly ? (erpOrigin ? new URL(img.url, erpOrigin).toString() : null) : new URL(img.url).toString();
-    return abs && /^https?:\/\//i.test(abs) ? abs : null;
+    const abs = img.relative || pathOnly ? (erpOrigin ? new URL(img.url, erpOrigin) : null) : new URL(img.url);
+    if (!abs || !/^https?:$/.test(abs.protocol)) return null;
+    if (erpOrigin && abs.origin === erpOrigin && abs.pathname.length > 1) return `/api/erp-image${abs.pathname}`;
+    return abs.toString();
   } catch {
     return null;
   }
@@ -41,7 +54,7 @@ export function mapProduct(raw: RawProduct, erpOrigin: string | null): ErpProduc
   const specs: Record<string, string> = {};
   if (raw.brand) specs.Brand = raw.brand;
   if (raw.model) specs.Model = raw.model;
-  if (raw.condition) specs.Condition = raw.condition;
+  if (raw.condition) specs.Condition = conditionLabel(raw.condition);
   if (raw.warrantyMonths) specs.Warranty = `${raw.warrantyMonths} months${raw.warrantyNote ? ` (${raw.warrantyNote})` : ""}`;
   const barcode = raw.barcode?.trim();
   if (barcode) specs.Barcode = barcode;

@@ -1,0 +1,205 @@
+import Link from "next/link";
+import { discountPercent, effectivePrice, isNewArrival } from "@/lib/erp/product-utils";
+import type { ErpProduct } from "@/lib/erp/types";
+import type { InstalmentLine } from "@/lib/instalments";
+import type { CardRating } from "@/lib/reviews";
+import { formatLkr, fromCents, toCents } from "@/lib/utils/money";
+import { AddToCartButton } from "./add-to-cart-button";
+import { ProductImage } from "./product-card";
+import { QuickView } from "./quick-view";
+import { Stars } from "./stars";
+import { WishlistButton } from "./wishlist-button";
+
+interface CompactProductCardProps {
+  product: ErpProduct;
+  priority?: boolean;
+  /** List layout: photo on the left, details and actions on the right. */
+  row?: boolean;
+  /** The "or 3 × … with KOKO" line as set in the admin (Payments), passed by server parents; null or absent = no line. */
+  instalments?: InstalmentLine;
+  /** Approved customer reviews (average and count), passed by server parents; absent = no stars line. */
+  rating?: CardRating;
+}
+
+/**
+ * The storefront product card: a white tile with the photo, brand, title, stock, price (with the regular price struck
+ * through only when the ERP has a real reduction) and an always-visible Add to cart. Variant products link to the
+ * product page instead of guessing a variant. Only facts from the ERP are shown: no invented feature badges.
+ */
+/**
+ * Up to three key details for the card (shown in one line under the title): the first
+ * specifications staff entered for the product (Admin, product content, Specifications), otherwise the ERP's own
+ * specifications. Brand and model are left out: the card already names the product.
+ */
+export function cardHighlights(product: ErpProduct): { value: string; name: string }[] {
+  const fromContent = (product.content?.specs ?? []).map((s) => ({ value: `${s.value}${s.unit ? ` ${s.unit}` : ""}`, name: s.name }));
+  const fromErp = Object.entries(product.specs ?? {}).map(([name, value]) => ({ value: String(value), name }));
+  return (fromContent.length ? fromContent : fromErp)
+    .filter((h) => h.value.trim() && !/^(brand|model|sku)$/i.test(h.name.trim()) && h.value.length <= 14)
+    .slice(0, 3);
+}
+
+/**
+ * The storefront product card, laid out like a large brand store's: a stock pill and badges over the photo, up to three
+ * the photo across the full width, the centred title with key details under it, and the price (the regular price struck through only for a real ERP
+ * reduction). On mouse devices "Add to cart" is a bar over the bottom of the photo that appears on hover or keyboard
+ * focus; on touch screens (and in the list layout) it is a button under the price. Variant products link to the
+ * product page instead.
+ */
+/** Display names of the instalment providers (the same as INSTALMENT_PROVIDERS in lib/instalments, which is server-only). */
+const INSTALMENT_NAMES: Record<string, string> = { koko: "KOKO", mintpay: "Mintpay" };
+
+export function CompactProductCard({ product, priority, row = false, instalments = null, rating }: CompactProductCardProps) {
+  const title = product.content?.displayTitle || product.name;
+  const current = effectivePrice(product);
+  const pct = discountPercent(product);
+  const href = `/products/${product.slug}`;
+  const fresh = product.available && isNewArrival(product.publishedAt);
+  const label = product.brand || product.category?.name;
+  const details = row ? [] : cardHighlights(product);
+  const canAdd = product.available && !product.hasVariants;
+  const line = { productId: product.id, variantKey: "", slug: product.slug, name: product.name, sku: product.sku, image: product.images[0], unitPrice: current };
+  const otherLabel = product.available ? "Choose options" : "Pre-order";
+  const save = current < product.price ? fromCents(toCents(product.price) - toCents(current)) : 0;
+  // A second photo, shown on hover (mouse devices), so shoppers see another side without opening the product.
+  const second = product.images[1];
+
+  return (
+    <article className={`group/card relative flex h-full overflow-hidden rounded-card ${row ? "flex-row" : "flex-col"} border border-border bg-bg p-2.5 text-ink transition-[border-color,box-shadow] duration-200 hover:border-brand-500 hover:shadow-neon-lift sm:p-3`}>
+      {/* As on ugreen.lk: "New" above the stock pill at the top left; the stock pill in the brand colour. */}
+      <div className="pointer-events-none absolute left-3.5 top-3.5 z-10 flex flex-col items-start gap-1 sm:left-4 sm:top-4">
+        {fresh ? <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">New</span> : null}
+        {/* Stock status: in stock green, out of stock red (no low-stock label). */}
+        {product.available ? (
+          <span className="rounded-full border border-stock-in/40 bg-white px-2.5 py-0.5 text-[11px] font-bold text-stock-in">In stock</span>
+        ) : (
+          <span className="rounded-full bg-stock-out px-2.5 py-0.5 text-[11px] font-bold text-white">Out of stock</span>
+        )}
+      </div>
+      <div className="absolute right-3.5 top-3.5 z-10 flex flex-col gap-1.5 sm:right-4 sm:top-4">
+        <WishlistButton className="h-8 w-8 bg-bg" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.images[0], price: current }} />
+        {/* Quick view (mouse devices, on hover or keyboard focus): a look at the product without leaving the list. */}
+        {!row ? (
+          <span className="opacity-0 transition-opacity duration-200 group-hover/card:opacity-100 group-focus-within/card:opacity-100 [@media(hover:none)]:hidden">
+            <QuickView
+              product={{
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                title,
+                sku: product.sku,
+                label,
+                images: product.images.slice(0, 5),
+                price: product.price,
+                current,
+                save,
+                available: product.available,
+                hasVariants: product.hasVariants,
+                low: 0,
+                summary: product.content?.shortDescription || undefined,
+                details: cardHighlights(product),
+              }}
+            />
+          </span>
+        ) : null}
+      </div>
+
+      <div className={`relative aspect-square shrink-0 overflow-hidden rounded-control bg-bg ${row ? "w-32 sm:w-44" : "w-full"}`}>
+        <Link href={href} tabIndex={-1} aria-hidden className="absolute inset-0 block">
+          <span className="absolute inset-0 transition-transform duration-500 ease-out group-hover/card:scale-[1.04] motion-reduce:transition-none">
+            <span className={`absolute inset-0 ${second ? "transition-opacity duration-300 group-hover/card:opacity-0 [@media(hover:none)]:group-hover/card:opacity-100" : ""}`}>
+              <ProductImage src={product.images[0]} alt={title} sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" priority={priority} contain padding="p-2.5 pt-9 sm:p-3 sm:pt-10" />
+            </span>
+            {second ? (
+              <span className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover/card:opacity-100 [@media(hover:none)]:hidden">
+                <ProductImage src={second} alt="" sizes="(min-width: 1280px) 260px, (min-width: 768px) 33vw, 50vw" contain padding="p-2.5 pt-9 sm:p-3 sm:pt-10" />
+              </span>
+            ) : null}
+          </span>
+        </Link>
+        {pct ? (
+          // The discount at the bottom-left of the photo, so badges never pile up over the picture.
+          <div className="pointer-events-none absolute bottom-1.5 left-1.5 z-10 flex flex-wrap items-end gap-1 transition-opacity duration-200 group-hover/card:opacity-0 [@media(hover:none)]:group-hover/card:opacity-100">
+            <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-on-brand">-{pct}%</span>
+          </div>
+        ) : null}
+        {!row ? (
+          // Mouse devices: the action is a bar over the bottom of the photo, shown on hover or keyboard focus.
+          <div className="absolute inset-x-2 bottom-2 z-10 translate-y-2 opacity-0 transition-[opacity,translate] duration-250 ease-out group-hover/card:translate-y-0 group-hover/card:opacity-100 group-focus-within/card:translate-y-0 group-focus-within/card:opacity-100 motion-reduce:translate-y-0 [@media(hover:none)]:hidden">
+            {canAdd ? (
+              <AddToCartButton bar line={line} />
+            ) : (
+              <Link href={product.available ? href : `${href}#preorder`} className="flex min-h-11 w-full items-center justify-center rounded-control bg-ink px-3 text-xs font-bold uppercase tracking-[0.08em] text-white hover:bg-brand-500 hover:text-on-brand">
+                {otherLabel}
+              </Link>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      <div className={`flex min-w-0 flex-1 flex-col ${row ? "items-start pl-3 text-left sm:pl-4" : "items-center pt-3 text-center"}`}>
+        {label ? <p className="mb-1 max-w-full truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{label}</p> : null}
+        <h3 className="line-clamp-3 min-h-10 text-[13.5px] font-bold leading-5 text-ink sm:text-[15px]">
+          <Link href={href} className="py-1 hover:underline">
+            {title}
+          </Link>
+        </h3>
+        {/* Key details under the title: just the two main values ("20,000 mAh · 65 W"), always shown in full, never cut off. */}
+        {details.length ? (
+          <p className={`mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] font-semibold text-ink/75 sm:text-xs ${row ? "" : "justify-center"}`}>
+            {details.slice(0, 2).map((d, i) => (
+              <span key={d.name} className="inline-flex items-center gap-1.5 whitespace-nowrap" title={d.name}>
+                {i > 0 ? <span aria-hidden className="text-brand-500">·</span> : null}
+                {/* A bare number ("5.3") is unclear alone, so it keeps its name in front ("Bluetooth 5.3"). */}
+                {/[a-z]/i.test(d.value) ? null : <span>{d.name}</span>}
+                {d.value}
+                {/* "12 months" alone would be unclear, so the warranty keeps its word; other names are for screen readers. */}
+                {/^warranty$/i.test(d.name) ? <span> warranty</span> : /[a-z]/i.test(d.value) ? <span className="sr-only"> {d.name}</span> : null}
+              </span>
+            ))}
+          </p>
+        ) : null}
+        {rating && rating.count > 0 ? (
+          <p className="mt-1 inline-flex items-center gap-1.5 text-xs">
+            <Stars rating={rating.average} size="h-3.5 w-3.5" label={`Rated ${rating.average} out of 5 from ${rating.count} ${rating.count === 1 ? "review" : "reviews"}`} />
+            <span aria-hidden className="text-muted">({rating.count})</span>
+          </p>
+        ) : null}
+        <p className={`mt-auto flex flex-wrap items-baseline gap-x-1.5 pt-2 ${row ? "" : "justify-center"}`}>
+          {product.hasVariants && <span className="text-xs font-semibold text-muted">From:</span>}
+          <span className="whitespace-nowrap font-display text-[17px] font-extrabold tabular-nums text-brand-500 min-[340px]:text-[19px]">{formatLkr(current)}</span>
+          {current < product.price && (
+            <span className="whitespace-nowrap text-xs text-muted">
+              <span className="sr-only">Regular price</span>
+              <s>{formatLkr(product.price)}</s>
+            </span>
+          )}
+        </p>
+        {/* The saving as an amount: on a costly item "Save LKR 20,000" reads bigger than a percentage. */}
+        {save > 0 ? <p className={`mt-0.5 text-xs font-bold text-success ${row ? "" : "text-center"}`}>Save {formatLkr(save)}</p> : null}
+        {/* The price in equal parts with the store's instalment providers (only when the owner has set any). */}
+        {instalments && product.available ? (
+          <p className={`mt-1 text-[11px] leading-4 text-muted sm:text-xs ${row ? "" : "text-center"}`}>
+            or {instalments.parts} × <span className="font-semibold tabular-nums text-ink">{formatLkr(Math.ceil(current / instalments.parts))}</span> with{" "}
+            {instalments.providers.map((k, i) => (
+              <span key={k}>
+                {i > 0 ? <span aria-hidden className="mx-1 text-border-strong">|</span> : null}
+                <span className="font-extrabold tracking-wide text-ink">{INSTALMENT_NAMES[k]}</span>
+              </span>
+            ))}
+          </p>
+        ) : null}
+        {/* Touch screens (and the list layout): the action is a button under the price. */}
+        <div className={`mt-2.5 w-full ${row ? "sm:max-w-56" : "[@media(hover:hover)]:hidden"}`}>
+          {canAdd ? (
+            <AddToCartButton outline line={line} />
+          ) : (
+            <Link href={product.available ? href : `${href}#preorder`} className="btn min-h-10 w-full border border-ink/20 px-3 text-[13px] text-ink hover:border-ink hover:bg-ink hover:text-white">
+              {otherLabel}
+            </Link>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}

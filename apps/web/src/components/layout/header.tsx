@@ -1,17 +1,22 @@
 import Link from "next/link";
-import { Headset, MapPin, PackageSearch, Truck, Wallet } from "lucide-react";
+import { Briefcase, MapPin, Phone, PhoneCall } from "lucide-react";
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
+import { activeSeason } from "@/lib/season";
+import { Pumpkin } from "./halloween";
 import { siteConfig } from "@/lib/site-config";
-import { formatLkr } from "@/lib/utils/money";
+import { getContent } from "@/lib/site-content";
+import { getStoreInfo, telHref } from "@/lib/store-info";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
 import { AccountMenu } from "./account-menu";
+import { CartDrawer } from "@/components/cart/cart-drawer";
 import { CartLink } from "./cart-link";
 import { WishlistLink } from "./wishlist-link";
-import { CategoryNav } from "./category-nav";
+import { CategoryNav, CompactCategoryLinks } from "./category-nav";
 import { HeaderShell } from "./header-shell";
 import { MobileMenu } from "./mobile-menu";
+import { MobileSearch } from "./mobile-search";
 import { SearchBox } from "./search-box";
 
 async function loadNavData() {
@@ -19,7 +24,7 @@ async function loadNavData() {
     const [cats, deals, brands] = await Promise.all([listProducts({ pageSize: 1 }), listProducts({ pageSize: 1, onSale: true }), listBrands()]);
     // "Popular" = the biggest brands and categories in the catalogue (we have no search-history data)
     const quick = [
-      ...brands.slice(0, 4).map((b) => ({ label: b.name, href: `/search?q=${encodeURIComponent(b.name)}` })),
+      ...brands.slice(0, 4).map((b) => ({ label: b.name, href: `/products?brand=${encodeURIComponent(b.name)}` })),
       ...[...cats.categories].sort((a, b) => b.count - a.count).slice(0, 3).map((c) => ({ label: c.name, href: `/categories/${c.slug}` })),
     ];
     return { categories: cats.categories.map((c) => ({ slug: c.slug, name: c.name, subs: c.subs.map((x) => ({ slug: x.slug, name: x.name })) })), hasDeals: deals.total > 0, hasBrands: brands.length > 0, quick };
@@ -28,87 +33,100 @@ async function loadNavData() {
   }
 }
 
-export function Wordmark({ className = "" }: { className?: string }) {
-  return (
-    <Link href="/" className={`inline-flex items-baseline font-black tracking-tight text-ink ${className}`} aria-label="VALTA.LK home">
-      <span aria-hidden>V</span>
-      <span aria-hidden className="text-brand-500">Λ</span>
-      <span aria-hidden>LTA</span>
-      <span aria-hidden className="text-[0.82em] font-extrabold">.LK</span>
-    </Link>
-  );
-}
+import { AnnouncementLine } from "./announcement-line";
+import { Wordmark } from "./wordmark";
+
+export { Wordmark };
 
 export async function Header() {
   const accounts = accountsEnabled();
-  const [{ categories, hasDeals, hasBrands }, customer, settings] = await Promise.all([
+  const [{ categories, hasDeals, quick: autoQuick }, customer, settings, season, info, searches] = await Promise.all([
     loadNavData(),
     accounts ? getCurrentCustomer() : null,
     getSettings().catch(() => null),
+    activeSeason(),
+    getStoreInfo(),
+    getContent("popular-searches"),
   ]);
-  const note = siteConfig.announcement || siteConfig.highlights[0] || "Prices and availability are checked again at checkout.";
+  // Popular searches set by staff (Admin, Content, Search); otherwise the biggest brands and categories.
+  const quick = searches?.items.length ? searches.items.map((x) => ({ label: x.label, href: `/search?q=${encodeURIComponent(x.label)}` })) : autoQuick;
   const cod = settings?.paymentMethods.COD === true;
+  // As on ugreen.lk: the store's line on the left (a seasonal theme brings its own), and the phone numbers and Store
+  // Locator on the right. All of it is set in the admin (Settings, Store details).
+  const halloween = season?.season === "halloween";
+  const announcement = season?.message || info.topLine || `${siteConfig.name} Sri Lanka Official Store`;
+  const phones = [info.phone, info.phone2].filter(Boolean);
   return (
     <>
-      {/* The service bar scrolls away with the page; only the logo, search and category rows stay pinned. */}
-      <div className="hidden border-b border-white/10 bg-ink text-white md:block">
-        <div className="container-wide flex h-10 items-center justify-between gap-6 text-xs">
-          <ul className="flex min-w-0 items-center gap-4">
-            <li className="flex min-w-0 items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-500" aria-hidden />
-              <span className="truncate">{note}</span>
-            </li>
-            {settings ? (
-              <li className="flex shrink-0 items-center gap-1.5">
-                <Truck className="h-3.5 w-3.5 text-brand-500" aria-hidden />
-                Delivery {formatLkr(settings.deliveryCharge)}
-              </li>
-            ) : null}
-            {cod ? (
-              <li className="flex shrink-0 items-center gap-1.5">
-                <Wallet className="h-3.5 w-3.5 text-brand-500" aria-hidden />
-                Cash on delivery
-              </li>
-            ) : null}
-            <li>
-              <Link href="/contact" className="flex items-center gap-1.5 rounded-sm hover:text-brand-500">
-                <Headset className="h-3.5 w-3.5 text-brand-500" aria-hidden /> Customer Support
-              </Link>
-            </li>
-          </ul>
-          <nav aria-label="Help" className="flex shrink-0 items-center gap-4">
-            {siteConfig.phone ? <a href={`tel:${siteConfig.phone}`} className="rounded-sm hover:text-brand-500">{siteConfig.phone}</a> : null}
-            <Link href="/track-order" className="rounded-sm hover:text-brand-500">Track Order</Link>
-            {siteConfig.address ? <Link href="/contact" className="rounded-sm hover:text-brand-500">Visit</Link> : null}
-          </nav>
+      <div role="region" aria-label="Store information" className={`on-dark text-white ${halloween ? "bg-[#1d0f29]" : "bg-ink"}`}>
+        <div className="container-wide flex h-9 items-center justify-between gap-6 text-xs">
+          <div className="marquee flex min-w-0 flex-1 items-center gap-2 font-bold uppercase tracking-[0.04em]">
+            {halloween ? <Pumpkin className="h-4 w-4 shrink-0" /> : null}
+            <AnnouncementLine text={announcement} />
+          </div>
+          {phones.length || info.mapUrl ? (
+            <ul aria-label="Contact" className="hidden shrink-0 items-center gap-3 divide-x divide-white/40 font-bold md:flex [&>li+li]:pl-3">
+              {phones.map((n, k) => (
+                <li key={n}>
+                  <a href={telHref(n)} className="inline-flex h-7 items-center gap-1.5 hover:text-brand-500">
+                    {k === 0 ? <Phone className="h-3.5 w-3.5" aria-hidden /> : <PhoneCall className="h-3.5 w-3.5" aria-hidden />} {n}
+                  </a>
+                </li>
+              ))}
+              {info.mapUrl ? (
+                <li>
+                  <a href={info.mapUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-7 items-center gap-1.5 hover:text-brand-500">
+                    <MapPin className="h-3.5 w-3.5" aria-hidden /> Store Locator<span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
         </div>
       </div>
       <HeaderShell>
-        <div className="container-wide flex flex-wrap items-center gap-x-3 gap-y-2.5 py-3 md:grid md:h-20 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-10 md:py-0">
-          <MobileMenu categories={categories} hasDeals={hasDeals} />
-          <Wordmark className="text-[1.6rem] md:text-[2.1rem]" />
-          <div className="order-last w-full md:order-none">
-            <SearchBox size="lg" />
+        <div className="container-wide flex items-center gap-x-1.5 py-2.5 xs:gap-x-3 md:grid md:h-16 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-6 md:py-0">
+          <MobileMenu categories={categories} hasDeals={hasDeals} popular={quick} />
+          <Wordmark shine pumpkin={halloween} className="shrink-0 text-[1.65rem] leading-none text-ink xs:text-[1.9rem] sm:text-[2.2rem] lg:text-[2.4rem]" />
+          {/* On phones search is the icon in this row: it opens the menu drawer with the search box (as on ugreen.lk). */}
+          {/* Desktop: the search bar; once the page has scrolled, the top categories take its place (slim header). */}
+          <div className="hidden min-w-0 md:block">
+            <div className="md:mx-auto md:w-full md:max-w-[47.5rem] lg:group-data-[compact=true]/hdr:hidden">
+              <SearchBox size="lg" popular={quick} />
+            </div>
+            <div className="hidden lg:group-data-[compact=true]/hdr:block">
+              <CompactCategoryLinks categories={categories} />
+            </div>
           </div>
-          <div className="ml-auto flex items-center md:ml-0 md:divide-x md:divide-border">
-            <Link href="/contact" className="hidden items-center gap-2 px-3 text-sm font-medium hover:text-brand-600 lg:inline-flex">
-              <Headset className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Support
+          <div className="ml-auto flex items-center gap-0.5 xs:gap-1 md:ml-0 lg:gap-2">
+            {/* As on ugreen.lk: businesses can apply to buy wholesale. */}
+            <Link href="/wholesale" className="hidden min-h-8 items-center rounded-full bg-ink px-3.5 text-[11px] font-bold uppercase tracking-[0.06em] text-white hover:bg-ink/85 xl:inline-flex xl:group-data-[compact=true]/hdr:hidden">
+              Apply wholesale
+            </Link>
+            {/* Track order lives in the top bar, so the main row only adds the account menu when accounts exist. */}
+            <MobileSearch />
+            {/* Phones: My account is already in the bottom tab bar, so this spot links to Apply wholesale instead. */}
+            <Link href="/wholesale" aria-label="Apply wholesale" title="Apply wholesale" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control text-ink transition-colors hover:text-brand-600 md:hidden">
+              <Briefcase className="h-6 w-6" strokeWidth={1.75} aria-hidden />
             </Link>
             {accounts ? (
-              <AccountMenu customer={customer ? { name: customer.name } : null} enabled />
-            ) : (
-              <Link href="/track-order" className="hidden items-center gap-2 pr-5 text-sm font-medium hover:text-brand-600 lg:inline-flex">
-                <PackageSearch className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Track Order
-              </Link>
-            )}
+              <div className="hidden md:block">
+                <AccountMenu customer={customer ? { name: customer.name } : null} enabled />
+              </div>
+            ) : null}
             <WishlistLink />
-            <div className="md:pl-5"><CartLink /></div>
+            <CartLink />
           </div>
         </div>
-        <Suspense fallback={null}>
-          <CategoryNav categories={categories} showDeals={hasDeals} showBrands={hasBrands} />
-        </Suspense>
+        {/* The category row folds away on desktop once the page has scrolled (its links move into the row above). */}
+        <div className="lg:group-data-[compact=true]/hdr:hidden">
+          <Suspense fallback={null}>
+            <CategoryNav categories={categories} showDeals={hasDeals} />
+          </Suspense>
+        </div>
       </HeaderShell>
+      {/* One cart drawer for the page, opened by the header cart and the phone tab bar. */}
+      <CartDrawer deliveryCharge={settings ? settings.deliveryCharge : null} cod={cod} />
     </>
   );
 }

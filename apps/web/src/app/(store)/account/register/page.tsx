@@ -14,9 +14,9 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   if (await getCurrentCustomer()) redirect(safeNext(next));
   return (
     <AuthCard
+      tabs={{ active: "register", next: next ? safeNext(next) : undefined }}
       title="Create your account"
       intro="Save your details for faster checkout and see all your orders in one place."
-      footer={<>Already have an account? <Link href={`/account/login${next ? `?next=${encodeURIComponent(safeNext(next))}` : ""}`} className="font-semibold text-brand-600 hover:underline">Sign in</Link></>}
     >
       <AuthForm mode="register" next={next} />
       <p className="mt-4 text-xs leading-5 text-muted">

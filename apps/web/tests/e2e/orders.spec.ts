@@ -39,12 +39,10 @@ async function placeOrder(page: Page, name = "Kasun Perera") {
   await page.goto("/checkout");
   await page.getByLabel("Full name").fill(name);
   await page.getByLabel("Phone number").fill("0771234567");
-  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Address", { exact: true }).fill("12 Galle Road");
   await page.getByLabel("City", { exact: true }).fill("Colombo");
   await page.getByLabel("District").selectOption("Colombo");
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("checkbox").check();
+  await page.getByRole("checkbox", { name: /I agree/ }).check();
   await page.getByRole("button", { name: "Place order" }).click();
   await expect(page).toHaveURL(/order-confirmation\/VLK-/);
   return page.url().split("/").pop()!;
@@ -137,10 +135,10 @@ test.describe("order resilience: ERP outage", () => {
     const ref = await placeOrder(page);
 
     // the customer sees a calm, accurate confirmation (not an error)
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("we have your order");
+    await expect(page.getByText("Order received")).toBeVisible();
     await expect(page.getByTestId("pending-note")).toContainText("being confirmed");
     await expect(page.getByTestId("order-status")).toHaveText("Received");
-    await expect(page.getByTestId("payment-status")).toContainText("Pending");
+    await expect(page.getByTestId("payment-status")).toHaveText("Cash on delivery");
     await expect(page.getByRole("main")).toContainText("Cash on delivery");
     await expect(page.getByText("LKR 15,350").first()).toBeVisible(); // 14,900 + 450
     await expect(page.getByTestId("delivery-details")).toContainText("12 Galle Road, Colombo, Colombo"); // the placing browser may see it
@@ -226,7 +224,7 @@ test.describe("admin orders", () => {
     const bad = await page.request.post("/api/admin/login", { data: { email: other, password: "secret123" }, headers: { Origin: SITE } });
     expect(bad.status()).toBe(401);
     await page.goto("/admin/login");
-    await page.getByLabel("Email").fill("admin@example.test");
+    await page.getByLabel("Email", { exact: true }).fill("admin@example.test");
     await page.getByLabel("Password", { exact: true }).fill("secret123");
     await page.getByRole("button", { name: "Sign in to admin" }).click();
     await expect(page).toHaveURL(/\/admin\/orders/);
@@ -283,7 +281,7 @@ test.describe("admin orders", () => {
     // ERP recovers: retry sends it exactly once, repeated retries are harmless
     await control({ orderOutage: false });
     await page.getByRole("button", { name: "Retry sync to ERP" }).click();
-    await expect(page.getByText("In ERP").first()).toBeVisible();
+    await expect(page.getByText("In ERP", { exact: true }).first()).toBeVisible(); // the sync badge, not the "In ERP since" row
     await expect(page.getByRole("button", { name: "Retry sync to ERP" })).toHaveCount(0);
     const state = await control({});
     expect(state.orders).toBe(1);
@@ -310,7 +308,7 @@ test.describe("admin orders", () => {
     await expect(page.getByTestId("last-error")).toContainText("Not enough stock when the order reached the ERP.");
     await control({ rejectOrders: [] });
     await page.getByRole("button", { name: "Retry sync to ERP" }).click(); // stock is fine again
-    await expect(page.getByText("In ERP").first()).toBeVisible();
+    await expect(page.getByText("In ERP", { exact: true }).first()).toBeVisible(); // the sync badge, not the "In ERP since" row
     expect((await control({})).orderRefs).toContain(ref);
   });
 });

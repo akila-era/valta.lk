@@ -15,7 +15,7 @@ const ERP: Record<string, string> = { PLACED: "Placed", CONFIRMED: "Confirmed", 
 
 export function ErpBadge({ status }: { status: string | null }) {
   if (!status) return <span className="text-muted">-</span>;
-  return <span className={`badge ${status === "CANCELLED" ? "bg-surface text-muted" : status === "DELIVERED" ? "bg-success-bg text-success" : "bg-brand-50 text-brand-700"}`}>{ERP[status] ?? status}</span>;
+  return <span className={`badge ${status === "CANCELLED" ? "bg-surface text-muted" : status === "DELIVERED" ? "bg-success-bg text-success" : "bg-info-bg text-info"}`}>{ERP[status] ?? status}</span>;
 }
 
 /** Payment state of an order. COD cash only counts as collected when the ERP says so. */

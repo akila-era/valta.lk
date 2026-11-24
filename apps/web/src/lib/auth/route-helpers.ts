@@ -3,7 +3,7 @@ import type { NextResponse } from "next/server";
 import type { z } from "zod";
 import { errorResponse, guard, readJson } from "../security/api";
 import { getDb } from "../db";
-import { SESSION_COOKIE, sessionCookieOptions } from "./session";
+import { ADMIN_SESSION_COOKIE, SESSION_COOKIE, sessionCookieOptions } from "./session";
 import type { PrismaClient } from "@/generated/prisma/client";
 
 type Parsed<S extends z.ZodType> = { ok: true; data: z.infer<S>; db: PrismaClient } | { ok: false; response: NextResponse };
@@ -44,3 +44,13 @@ export function clearSessionCookie(res: NextResponse) {
 }
 
 export const serverError = () => errorResponse(500, "INTERNAL", "Something went wrong. Please try again.");
+
+export function setAdminSessionCookie(res: NextResponse, token: string, expires: Date) {
+  res.cookies.set(ADMIN_SESSION_COOKIE, token, sessionCookieOptions(expires));
+  return res;
+}
+
+export function clearAdminSessionCookie(res: NextResponse) {
+  res.cookies.set(ADMIN_SESSION_COOKIE, "", { ...sessionCookieOptions(new Date(0)), maxAge: 0 });
+  return res;
+}

@@ -2,18 +2,26 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
-export function SectionHeader({ id, title, action, children, center = false }: { id?: string; title: string; action?: { href: string; label: string }; children?: ReactNode; center?: boolean }) {
+/** "View all" style link: ink text with an arrow that slides on hover. */
+export function ArrowLink({ href, children, className = "" }: { href: string; children: ReactNode; className?: string }) {
   return (
-    <div className={`mb-5 flex flex-wrap items-end gap-4 ${center ? "justify-center text-center" : "justify-between"}`}>
+    <Link href={href} className={`group/al inline-flex min-h-6 shrink-0 items-center gap-1 text-sm font-semibold text-brand-600 ${className}`}>
+      <span className="underline decoration-transparent underline-offset-4 transition-colors group-hover/al:decoration-current">{children}</span>
+      <ChevronRight aria-hidden className="h-4 w-4 transition-transform group-hover/al:translate-x-0.5" />
+    </Link>
+  );
+}
+
+export function SectionHeader({ id, title, eyebrow, action, children, center = false }: { id?: string; title: string; eyebrow?: string; action?: { href: string; label: string }; children?: ReactNode; center?: boolean }) {
+  return (
+    <div className={`mb-4 flex flex-wrap items-end gap-x-6 gap-y-3 sm:mb-6 ${center ? "justify-center text-center" : "justify-between"}`}>
+      {/* The small label (with its neon signal dot) sits above the title; a short description may follow. */}
       <div className="min-w-0">
+        {eyebrow ? <p className="eyebrow mb-1.5">{eyebrow}</p> : null}
         <h2 id={id} className="section-title">{title}</h2>
-        {children ? <div className={`type-meta mt-2 max-w-2xl ${center ? "mx-auto" : ""}`}>{children}</div> : null}
+        {children ? <div className={`mt-1 max-w-2xl text-sm text-muted ${center ? "mx-auto" : ""}`}>{children}</div> : null}
       </div>
-      {action ? (
-        <Link href={action.href} className="shrink-0 text-sm font-semibold text-brand-600 hover:underline">
-          {action.label}
-        </Link>
-      ) : null}
+      {action ? <ArrowLink href={action.href}>{action.label}</ArrowLink> : null}
     </div>
   );
 }
@@ -24,14 +32,14 @@ export function Divider() {
 
 export function Breadcrumbs({ items }: { items: { href?: string; label: string }[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted">
+    <nav aria-label="Breadcrumb" className="mb-6 w-fit max-w-full text-[13px] text-muted">
       <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
         {items.map((item, i) => {
           const last = i === items.length - 1;
           return (
-            <li key={`${item.label}-${i}`} aria-current={last ? "page" : undefined} className={`flex items-center gap-1.5 ${last ? "min-w-0 max-w-full font-medium text-ink" : ""}`}>
+            <li key={`${item.label}-${i}`} aria-current={last ? "page" : undefined} className={`flex items-center gap-1.5 ${last ? "min-w-0 max-w-full font-semibold text-brand-600" : ""}`}>
               {i > 0 ? <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted/70" aria-hidden /> : null}
-              {item.href && !last ? <Link href={item.href} className="rounded-sm hover:text-ink hover:underline">{item.label}</Link> : <span className="truncate">{item.label}</span>}
+              {item.href && !last ? <Link href={item.href} className="inline-flex min-h-6 items-center rounded-sm hover:text-ink hover:underline">{item.label}</Link> : <span className="truncate">{item.label}</span>}
             </li>
           );
         })}
@@ -58,7 +66,7 @@ export function Pagination({ page, pageCount, prevHref, nextHref, pageHref }: { 
     <nav aria-label="Pagination" className="mt-10 flex flex-col items-center gap-3 text-sm">
       <div className="flex flex-wrap items-center justify-center gap-1.5">
         {prevHref ? (
-          <Link className={`${step} border-border bg-bg text-ink hover:border-ink`} rel="prev" href={prevHref}>
+          <Link className={`${step} border-border bg-bg text-ink hover:border-brand-500 hover:text-brand-600`} rel="prev" href={prevHref}>
             <ChevronLeft className="h-4 w-4" aria-hidden /> <span className="sr-only sm:not-sr-only">Previous</span>
           </Link>
         ) : null}
@@ -73,7 +81,7 @@ export function Pagination({ page, pageCount, prevHref, nextHref, pageHref }: { 
                     href={pageHref(p)}
                     aria-label={`Page ${p}`}
                     aria-current={p === page ? "page" : undefined}
-                    className={`${step} tabular-nums ${p === page ? "border-ink bg-ink text-white" : "border-border bg-bg text-ink hover:border-ink"}`}
+                    className={`${step} tabular-nums ${p === page ? "border-brand-500 bg-brand-500 text-on-brand shadow-neon" : "border-border bg-bg text-ink hover:border-brand-500 hover:text-brand-600"}`}
                   >
                     {p}
                   </Link>
@@ -83,7 +91,7 @@ export function Pagination({ page, pageCount, prevHref, nextHref, pageHref }: { 
           </ul>
         ) : null}
         {nextHref ? (
-          <Link className={`${step} border-border bg-bg text-ink hover:border-ink`} rel="next" href={nextHref}>
+          <Link className={`${step} border-border bg-bg text-ink hover:border-brand-500 hover:text-brand-600`} rel="next" href={nextHref}>
             <span className="sr-only sm:not-sr-only">Next</span> <ChevronRight className="h-4 w-4" aria-hidden />
           </Link>
         ) : null}

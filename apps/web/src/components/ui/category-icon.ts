@@ -6,7 +6,7 @@ export type IconComponent = ComponentType<{ className?: string; strokeWidth?: nu
 /** Picks a lucide icon from a category name (keyword match); falls back to a generic package icon. */
 export function categoryIcon(name: string): IconComponent {
   const n = name.toLowerCase();
-  if (/phone|mobile/.test(n)) return Smartphone;
+  if (/(?<!head|ear)phone|mobile/.test(n)) return Smartphone;
   if (/watch|wear/.test(n)) return Watch; // before the audio test: "wearables" contains "ear"
   if (/audio|head|ear|sound/.test(n)) return Headphones;
   if (/speaker/.test(n)) return Speaker;

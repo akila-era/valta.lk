@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { BadgePercent, ChevronRight, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flame, LayoutGrid, Search, X } from "lucide-react";
 import { categoryIcon } from "@/components/ui/category-icon";
 
 export interface DrawerCategory {
@@ -19,41 +19,64 @@ interface Props {
   categories: DrawerCategory[];
   hasDeals: boolean;
   initialTab?: "categories" | "menu";
+  /** Opened from the phone search icon: the search box gets the focus instead of Close. */
+  focusSearch?: boolean;
+  /** "Popular requests" chips under the search box (staff popular searches, else the biggest brands and categories). */
+  popular?: { label: string; href: string }[];
 }
 
 const MENU_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/products", label: "All products" },
-  { href: "/#products", label: "New arrivals" },
-  { href: "/track-order", label: "Track order" },
+  { href: "/products", label: "All Products" },
+  { href: "/brands", label: "Shop by Brand" },
+  { href: "/new-arrivals", label: "New Arrivals" },
+  { href: "/track-order", label: "Track Order" },
   { href: "/wishlist", label: "Wishlist" },
   { href: "/cart", label: "Cart" },
-  { href: "/about", label: "About us" },
-  { href: "/contact", label: "Contact us" },
-  { href: "/shipping-policy", label: "Shipping policy" },
-  { href: "/returns-policy", label: "Returns policy" },
+  { href: "/compare", label: "Compare" },
+  { href: "/wholesale", label: "Apply for Wholesale" },
+  { href: "/about", label: "About Us" },
+  { href: "/faqs", label: "FAQs" },
+  { href: "/contact", label: "Contact Us" },
+  { href: "/shipping-policy", label: "Shipping Policy" },
+  { href: "/returns-policy", label: "Returns Policy" },
+  { href: "/warranty-policy", label: "Warranty & Refund Policy" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms & Conditions" },
 ];
 
+/** One flat drawer row: full width, 50px tall, divider underneath. */
+const ROW = "flex min-h-[50px] flex-1 items-center gap-3 px-5 text-sm font-medium text-ink transition-colors hover:bg-surface hover:text-brand-600";
+
 /**
- * Off-canvas navigation drawer (left side): search, an "All categories" tab with expandable sub-categories,
- * and a "Menu" tab with site pages. Used by the desktop "All Categories" button and the mobile menu button.
+ * "All Categories" drawer, used on every screen size (layout modelled on ugreen.lk): a white full-height panel from the
+ * left with Close, a product search, "All categories" / "Menu" tabs, and flat category rows. A category with
+ * sub-categories has its own › button that slides in a second level with a Back row. Escape, the overlay or choosing a
+ * link closes it; focus is trapped while open and returns to the opener afterwards.
  */
-export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories" }: Props) {
+export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories", focusSearch = false, popular = [] }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<"categories" | "menu">(initialTab);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [level, setLevel] = useState<string | null>(null); // slug of the category whose sub-categories are shown
   const [term, setTerm] = useState("");
+  const [returning, setReturning] = useState(false); // the top level is showing again after Back: it slides in from the left
   const panel = useRef<HTMLDivElement>(null);
   const restoreFocus = useRef<HTMLElement | null>(null);
+  const returnTo = useRef<string | null>(null); // the › button to refocus after Back
   const id = useId();
 
   // Focus management, Escape to close, scroll lock and a simple focus trap while open.
   useEffect(() => {
     if (!open) return;
     restoreFocus.current = document.activeElement as HTMLElement | null;
-    panel.current?.querySelector<HTMLElement>("[data-autofocus]")?.focus();
+    panel.current?.querySelector<HTMLElement>(focusSearch ? "input[type=search]" : "[data-autofocus]")?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") return onClose();
+      if (e.key === "Escape") {
+        setLevel(null);
+        setReturning(false);
+        returnTo.current = null;
+        return onClose();
+      }
       if (e.key !== "Tab" || !panel.current) return;
       const f = panel.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])');
       if (!f.length) return;
@@ -74,11 +97,26 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
       document.body.style.overflow = prevOverflow;
       restoreFocus.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, focusSearch]);
+
+  // Moving between levels keeps keyboard focus in a sensible place: Back on the way in, the › button on the way out.
+  useEffect(() => {
+    if (!open) return;
+    if (level) panel.current?.querySelector<HTMLElement>("[data-back]")?.focus();
+    else if (returnTo.current) panel.current?.querySelector<HTMLElement>(`[data-sub-toggle="${returnTo.current}"]`)?.focus();
+  }, [level, open]);
 
   if (!open || typeof document === "undefined") return null;
 
-  const row = "flex min-h-[3.25rem] flex-1 items-center gap-3.5 px-5 text-[15px] font-medium text-ink hover:bg-surface hover:text-brand-600";
+  // Every way of closing starts the next opening fresh: top level, focus on Close.
+  const close = () => {
+    setLevel(null);
+    setReturning(false);
+    returnTo.current = null;
+    onClose();
+  };
+  const current = level ? categories.find((c) => c.slug === level) : null;
+
   const tabBtn = (t: "categories" | "menu", label: string) => (
     <button
       type="button"
@@ -87,123 +125,176 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
       aria-selected={tab === t}
       aria-controls={`${id}-${t}`}
       onClick={() => setTab(t)}
-      className={`flex-1 border-b-2 py-4 text-[13px] font-bold uppercase tracking-wide transition-colors ${
-        tab === t ? "border-brand-500 bg-surface text-ink" : "border-transparent bg-bg text-muted hover:text-ink"
+      className={`relative flex-1 py-4 text-[13px] font-semibold uppercase tracking-wide transition-colors ${
+        tab === t ? "bg-bg text-ink after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-brand-500" : "bg-surface text-muted hover:text-ink"
       }`}
     >
       {label}
     </button>
   );
 
-  // Portal to <body>: the sticky header uses backdrop-filter, which would otherwise clip a fixed-position drawer.
   return createPortal(
     <div className="fixed inset-0 z-[60]" role="presentation">
-      <button type="button" aria-label="Close menu overlay" tabIndex={-1} onClick={onClose} className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-ink/50" />
+      <button
+        type="button"
+        aria-label="Close menu overlay"
+        tabIndex={-1}
+        onClick={close}
+        className="absolute inset-0 animate-[fade-in_0.2s_ease-out] bg-black/60"
+      />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label="Browse VALTA.LK"
-        className="absolute inset-y-0 left-0 flex w-[88%] max-w-[22rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg shadow-2xl"
+        aria-label="Browse VOLTA.LK"
+        className="absolute inset-y-0 left-0 flex w-[86%] max-w-[340px] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg text-ink shadow-[8px_0_40px_-12px_rgb(0_0_0/0.35)]"
       >
-        <div className="flex items-center justify-end border-b border-border px-5 py-4">
-          <button type="button" onClick={onClose} className="inline-flex min-h-10 items-center gap-2 text-[15px] font-medium hover:text-brand-600" data-autofocus>
+        {/* Close */}
+        <div className="flex h-16 shrink-0 items-center justify-end border-b border-border px-4">
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close menu"
+            data-autofocus
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-control px-2 text-[15px] font-medium text-ink transition-colors hover:text-brand-600"
+          >
             <X className="h-5 w-5" aria-hidden /> Close
           </button>
         </div>
 
+        {/* Search */}
         <form
           role="search"
-          className="relative border-b border-border"
+          aria-label="Search from the menu"
+          className="shrink-0 border-b border-border"
           onSubmit={(e) => {
             e.preventDefault();
             const q = term.trim();
             if (!q) return;
-            onClose();
+            close();
             router.push(`/search?q=${encodeURIComponent(q)}`);
           }}
         >
           <label htmlFor={`${id}-q`} className="sr-only">Search for products</label>
-          <input
-            id={`${id}-q`}
-            type="search"
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            placeholder="Search for products"
-            maxLength={100}
-            className="h-16 w-full bg-bg pl-5 pr-14 text-[15px] outline-none placeholder:text-muted focus-visible:bg-surface"
-          />
-          <button type="submit" aria-label="Search" className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-muted hover:text-ink">
-            <Search className="h-5 w-5" aria-hidden />
-          </button>
+          <div className="relative flex items-center">
+            <input
+              id={`${id}-q`}
+              type="search"
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              placeholder="Search for products"
+              maxLength={100}
+              className="h-[70px] w-full bg-bg pl-5 pr-14 text-base text-ink sm:text-sm outline-none placeholder:font-medium placeholder:text-ink/60 focus-visible:bg-surface"
+            />
+            <button type="submit" aria-label="Search" className="absolute right-2 flex h-11 w-11 items-center justify-center text-ink transition-colors hover:text-brand-600">
+              <Search className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
         </form>
 
-        <div role="tablist" aria-label="Navigation" className="flex">
+        {/* Popular requests: one tap to a search, as on ugreen.lk. */}
+        {popular.length > 0 ? (
+          <div className="shrink-0 border-b border-border px-3 pb-3 pt-2.5">
+            <p className="mb-2 px-0.5 text-xs font-bold uppercase tracking-wide text-ink">Popular requests</p>
+            <ul aria-label="Popular requests" className="flex flex-wrap gap-1.5">
+              {popular.slice(0, 8).map((q) => (
+                <li key={q.href}>
+                  <Link href={q.href} onClick={close} className="inline-flex min-h-8 items-center rounded-full bg-surface px-3 text-[11px] font-semibold uppercase tracking-wide text-ink/80 transition-colors hover:bg-brand-500 hover:text-on-brand">
+                    {q.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {/* Tabs */}
+        <div role="tablist" aria-label="Navigation" className="flex shrink-0 border-b border-border">
           {tabBtn("categories", "All categories")}
           {tabBtn("menu", "Menu")}
         </div>
 
+        {/* Content */}
         <div className="flex-1 overflow-y-auto overscroll-contain">
           {tab === "categories" ? (
-            <ul id={`${id}-categories`} role="tabpanel" aria-labelledby={`${id}-categories-tab`}>
-              {hasDeals && (
-                <li className="flex border-b border-border">
-                  <Link href="/products?sale=1" onClick={onClose} className={`${row} font-semibold text-brand-600`}>
-                    <BadgePercent className="h-5 w-5 shrink-0" aria-hidden />
-                    Deals
-                  </Link>
-                </li>
-              )}
-              {categories.map((c) => {
-                const Icon = categoryIcon(c.name);
-                const isOpen = expanded === c.slug;
-                const subId = `${id}-sub-${c.slug}`;
-                return (
-                  <li key={c.slug} className="border-b border-border">
-                    <div className="flex">
-                      <Link href={`/categories/${c.slug}`} onClick={onClose} className={row}>
-                        <Icon className="h-5 w-5 shrink-0 text-muted" aria-hidden />
-                        {c.name}
-                      </Link>
-                      {c.subs.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setExpanded(isOpen ? null : c.slug)}
-                          aria-expanded={isOpen}
-                          aria-controls={subId}
-                          aria-label={`${isOpen ? "Hide" : "Show"} ${c.name} sub-categories`}
-                          className="flex w-14 shrink-0 items-center justify-center border-l border-border text-muted hover:bg-surface hover:text-ink"
-                        >
-                          <ChevronRight className={`h-5 w-5 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`} aria-hidden />
-                        </button>
-                      )}
-                    </div>
-                    {isOpen && (
-                      <ul id={subId} className="bg-surface pb-2">
-                        <li>
-                          <Link href={`/categories/${c.slug}`} onClick={onClose} className="block px-5 py-2.5 pl-[3.6rem] text-sm font-semibold hover:text-brand-600">
-                            All {c.name}
-                          </Link>
-                        </li>
-                        {c.subs.map((s) => (
-                          <li key={s.slug}>
-                            <Link href={`/categories/${c.slug}?sub=${s.slug}`} onClick={onClose} className="block px-5 py-2.5 pl-[3.6rem] text-sm hover:text-brand-600">
-                              {s.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+            <div id={`${id}-categories`} role="tabpanel" aria-labelledby={`${id}-categories-tab`}>
+              {current ? (
+                // Second level: Back, the whole category, then its sub-categories. Slides in from the right.
+                <ul key={current.slug} aria-label={`${current.name} sub-categories`} className="animate-[slide-in-right_0.22s_cubic-bezier(0.2,0.7,0.2,1)]">
+                  <li className="flex animate-row-in border-b border-border" style={{ "--i": 0 } as React.CSSProperties}>
+                    <button type="button" data-back onClick={() => { setReturning(true); setLevel(null); }} className={`${ROW} font-semibold`}>
+                      <ChevronLeft className="h-4 w-4 text-muted" aria-hidden /> Back
+                    </button>
                   </li>
-                );
-              })}
-              {categories.length === 0 && <li className="px-5 py-6 text-sm text-muted">Categories are unavailable right now.</li>}
-            </ul>
+                  <li className="flex animate-row-in border-b border-border" style={{ "--i": 1 } as React.CSSProperties}>
+                    <Link href={`/categories/${current.slug}`} onClick={close} className={`${ROW} font-semibold`}>
+                      <LayoutGrid className="h-[18px] w-[18px] text-brand-500" strokeWidth={1.75} aria-hidden /> All {current.name}
+                    </Link>
+                  </li>
+                  {current.subs.map((s, si) => {
+                    const SubIcon = categoryIcon(s.name);
+                    return (
+                      <li key={s.slug} className="flex animate-row-in border-b border-border" style={{ "--i": si + 2 } as React.CSSProperties}>
+                        <Link href={`/categories/${current.slug}?sub=${s.slug}`} onClick={close} className={ROW}>
+                          <SubIcon className="h-[18px] w-[18px] text-muted" strokeWidth={1.75} aria-hidden /> {s.name}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <ul aria-label="Categories" className={returning ? "animate-slide-back" : undefined}>
+                  {hasDeals && (
+                    <li className="flex animate-row-in border-b border-border" style={{ "--i": 0 } as React.CSSProperties}>
+                      <Link href="/products?sale=1" onClick={close} className={`${ROW} font-semibold text-brand-600`}>
+                        <Flame className="h-[18px] w-[18px] fill-brand-500 text-brand-500" strokeWidth={1.75} aria-hidden /> Hot Deals
+                      </Link>
+                    </li>
+                  )}
+                  {categories.map((c, ci) => {
+                    const Icon = categoryIcon(c.name);
+                    const at = ci + (hasDeals ? 1 : 0);
+                    return (
+                      <li key={c.slug} className="flex animate-row-in border-b border-border" style={{ "--i": at } as React.CSSProperties}>
+                        <Link href={`/categories/${c.slug}`} onClick={close} className={ROW}>
+                          <Icon className="h-[18px] w-[18px] text-muted" strokeWidth={1.75} aria-hidden /> {c.name}
+                        </Link>
+                        {c.subs.length > 0 && (
+                          <button
+                            type="button"
+                            data-sub-toggle={c.slug}
+                            onClick={() => {
+                              returnTo.current = c.slug;
+                              setReturning(false);
+                              setLevel(c.slug);
+                            }}
+                            aria-expanded={false}
+                            aria-label={`Show ${c.name} sub-categories`}
+                            className="group/sub flex w-[50px] shrink-0 items-center justify-center border-l border-border text-ink transition-[background-color,color,transform] duration-150 hover:bg-brand-50 hover:text-brand-600 active:scale-90 motion-reduce:active:scale-100"
+                          >
+                            <ChevronRight className="h-4 w-4 animate-nudge transition-transform group-hover/sub:animate-none group-hover/sub:translate-x-1 group-focus-visible/sub:animate-none" style={{ "--i": ci } as React.CSSProperties} aria-hidden />
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                  {categories.length === 0 && <li className="px-5 py-6 text-sm text-muted">Categories are unavailable right now.</li>}
+                  <li className="flex animate-row-in border-b border-border" style={{ "--i": categories.length + (hasDeals ? 1 : 0) } as React.CSSProperties}>
+                    <Link href="/products" onClick={close} className={`${ROW} font-semibold`}>
+                      <LayoutGrid className="h-[18px] w-[18px] text-brand-500" strokeWidth={1.75} aria-hidden /> All Products
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </div>
           ) : (
             <ul id={`${id}-menu`} role="tabpanel" aria-labelledby={`${id}-menu-tab`}>
-              {MENU_LINKS.map((l) => (
-                <li key={l.href} className="flex border-b border-border">
-                  <Link href={l.href} onClick={onClose} className={row}>{l.label}</Link>
+              {MENU_LINKS.map((l, mi) => (
+                <li key={l.href} className="flex animate-row-in border-b border-border" style={{ "--i": mi } as React.CSSProperties}>
+                  <Link href={l.href} onClick={close} className={`${ROW} justify-between`}>
+                    {l.label}
+                    <ChevronRight className="h-4 w-4 text-muted/60" aria-hidden />
+                  </Link>
                 </li>
               ))}
             </ul>

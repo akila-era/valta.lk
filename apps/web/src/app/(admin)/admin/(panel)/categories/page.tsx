@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { AlertTriangle, FolderTree, Layers, Package, Search, Shapes, Tag } from "lucide-react";
+import { CategoryTaglineControl } from "@/components/admin/category-tagline-control";
 import { Empty, ErrorNote, PageHeader, Pager, Stat, Table } from "@/components/admin/ui";
+import { categoryTaglines } from "@/lib/category-taglines";
 import { adminGate } from "@/lib/admin/gate";
 import { parseSize } from "@/lib/admin/paging";
 import { catalogue, isLow, isOut } from "@/lib/admin/stats";
@@ -18,7 +20,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
   if (denied) return denied;
   const sp = await searchParams;
   const q = sp.q?.trim().slice(0, 60) || undefined;
-  const cat = await catalogue();
+  const [cat, taglines] = await Promise.all([catalogue(), categoryTaglines()]);
   if (!cat) return (<><PageHeader title="Categories" /><ErrorNote>The catalogue could not be loaded from the ERP.</ErrorNote></>);
 
   const map = new Map<string, Row>();
@@ -77,7 +79,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
       {rows.length === 0 ? (
         <Empty>{q ? "No categories match this search." : "No categories yet. Products in the ERP have no category."}</Empty>
       ) : (
-        <Table dense label="Categories" min="56rem" head={["Category", "Slug", "Sub-categories", { label: "Products", right: true }, "Stock", { label: "Actions", right: true }]}>
+        <Table dense label="Categories" min="70rem" head={["Category", "Slug", "Short line (homepage tile)", "Sub-categories", { label: "Products", right: true }, "Stock", { label: "Actions", right: true }]}>
           {rows.slice((page - 1) * size, page * size).map((c) => (
             <tr key={c.slug}>
               <td className="px-3 py-3">
@@ -89,6 +91,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
                 </div>
               </td>
               <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-muted">{c.slug}</td>
+              <td className="px-3 py-3"><CategoryTaglineControl slug={c.slug} name={c.name} tagline={taglines[c.slug] ?? ""} /></td>
               <td className="px-3 py-3 text-muted">
                 {c.subs.size ? (
                   <span className="flex flex-wrap gap-1">

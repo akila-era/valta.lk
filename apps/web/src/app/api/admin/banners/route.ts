@@ -1,5 +1,5 @@
 import { bannerFront, parseBannerForm } from "@/lib/admin/banner-api";
-import { MAX_BANNERS } from "@/lib/banners";
+import { MAX_BANNERS, isPicture } from "@/lib/banners";
 import { errorResponse, json } from "@/lib/security/api";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (!parsed.ok) return parsed.response;
   if ((await ctx.db.banner.count().catch(() => MAX_BANNERS)) >= MAX_BANNERS) return errorResponse(422, "TOO_MANY", `You can keep at most ${MAX_BANNERS} banners. Delete one first.`);
   const { data, image, placement } = parsed.form;
-  if (placement === "WIDE" && !image) return errorResponse(422, "NO_FILE", "A wide banner needs a picture.");
+  if (isPicture(placement) && !image) return errorResponse(422, "NO_FILE", "A wide or strip banner needs a picture.");
   const row = await ctx.db.banner
     .create({ data: { ...data, placement, imageType: image?.type ?? null, imageData: image ? Buffer.from(image.bytes) : null, updatedBy: ctx.email }, select: { id: true } })
     .catch(() => null);

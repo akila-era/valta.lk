@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
+import { getStoreInfo } from "@/lib/store-info";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
 import { getCheckoutAvailability } from "@/lib/erp/settings";
+import { StoreHeroBanner } from "@/components/ui/store-hero-banner";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -20,26 +22,34 @@ export default async function CheckoutPage() {
   const [a, customer] = await Promise.all([getCheckoutAvailability({ fresh: true }), getCurrentCustomer()]);
   return (
     <>
-      <h1 className="page-title mb-6">Checkout</h1>
+      <StoreHeroBanner
+        breadcrumbs={[
+          { href: "/", label: "Home" },
+          { href: "/cart", label: "Cart" },
+          { label: "Checkout" },
+        ]}
+        title="Secure Checkout"
+        intro="Enter your delivery details and place your order with Cash on Delivery."
+      />
       {a.enabled && a.settings ? (
         <>
           {!customer && accountsEnabled() && (
-            <p className="mb-5 text-sm text-muted">
-              Have an account? <Link href="/account/login?next=/checkout" className="font-semibold text-brand-600 hover:underline">Sign in</Link> to fill in your details and see this order in your account. Guest checkout works too.
+            <p className="mb-5 text-[15px] font-medium text-ink">
+              Returning customer? <Link href="/account/login?next=/checkout" className="font-semibold text-brand-600 underline underline-offset-2">Click here to login</Link>
             </p>
           )}
-          <CheckoutForm deliveryCharge={a.settings.deliveryCharge} prefill={customer ?? undefined} />
+          <CheckoutForm deliveryCharge={a.settings.deliveryCharge} prefill={customer ?? undefined} bank={Boolean((await getStoreInfo()).bankAccountNumber)} />
         </>
       ) : (
-        <div role="alert" className="card border-warn/30 bg-warn-bg p-8 text-center">
+        <div role="alert" className="rounded-3xl border border-warn/30 bg-warn-bg p-8 text-center shadow-soft">
           <h2 className="text-lg font-semibold text-warn">Checkout is unavailable</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-warn">{MESSAGES[a.reason ?? "unreachable"]}</p>
           {a.reason === "cod_disabled" && a.settings?.paymentMethods.ONLINE && (
             <p className="mx-auto mt-2 max-w-md text-sm text-warn">Online payment is switched on in the ERP, but this website has no payment gateway connected, so card payment cannot be taken.</p>
           )}
           <div className="mt-6 flex justify-center gap-3">
-            <Link href="/checkout" className="btn-secondary">Try again</Link>
-            <Link href="/cart" className="btn-secondary">Back to cart</Link>
+            <Link href="/checkout" className="btn-secondary rounded-full px-5">Try again</Link>
+            <Link href="/cart" className="btn-secondary rounded-full px-5">Back to cart</Link>
           </div>
         </div>
       )}

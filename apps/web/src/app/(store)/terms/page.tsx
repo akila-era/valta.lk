@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { EditablePage } from "@/components/layout/editable-page";
 import { PolicyPage } from "@/components/layout/policy-page";
 
 export const metadata: Metadata = { title: "Terms & conditions", alternates: { canonical: "/terms" } };
 
 export default function TermsPage() {
   return (
+    <EditablePage slug="terms">
     <PolicyPage title="Terms & conditions" intro="By placing an order you agree to the following.">
       <section>
         <h2>Orders and prices</h2>
@@ -23,5 +25,6 @@ export default function TermsPage() {
         <p>This text is a starting point and should be reviewed by the business owner and legal adviser before launch.</p>
       </section>
     </PolicyPage>
+    </EditablePage>
   );
 }

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 
-export function SignOutButton({ className = "btn-secondary w-full", onDone }: { className?: string; onDone?: () => void }) {
+export function SignOutButton({ className = "btn-secondary w-full", onDone, admin = false }: { className?: string; onDone?: () => void; /** Sign out of the admin only (the shop sign-in stays). */ admin?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   return (
@@ -14,9 +14,9 @@ export function SignOutButton({ className = "btn-secondary w-full", onDone }: { 
       className={className}
       onClick={async () => {
         setBusy(true);
-        await fetch("/api/account/logout", { method: "POST" }).catch(() => undefined);
+        await fetch(admin ? "/api/admin/logout" : "/api/account/logout", { method: "POST" }).catch(() => undefined);
         onDone?.();
-        router.replace("/");
+        router.replace(admin ? "/admin/login" : "/");
         router.refresh();
       }}
     >

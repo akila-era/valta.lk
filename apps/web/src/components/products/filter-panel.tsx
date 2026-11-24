@@ -4,7 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { useDialogLifecycle } from "@/components/ui/overlay";
 
-/** Filters stay in the sidebar on large screens and open as a drawer on a phone. */
+/**
+ * Filter panel: standardized compact sidebar, sticky on desktop (stays visible under header as products scroll),
+ * accessible modal drawer on mobile with slide-in animation.
+ * Target desktop width: ~230-240px with 14-16px internal padding.
+ */
 export function FilterPanel({ children, active }: { children: React.ReactNode; active: boolean }) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
@@ -42,34 +46,58 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
   }, [open]);
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} className="lg:sticky lg:top-[calc(var(--hdr-sticky,7rem)+1rem)] lg:self-start lg:w-full">
+      {/* Mobile filter trigger button */}
       <button
         type="button"
-        className="btn-secondary mb-4 w-full lg:hidden"
+        className="mb-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-control border border-border bg-bg px-4 text-sm font-semibold text-ink transition-colors hover:border-ink lg:hidden"
         aria-expanded={open}
         aria-controls="catalogue-filters"
         onClick={() => setOpen(true)}
       >
-        <SlidersHorizontal className="h-4 w-4" aria-hidden />
+        <SlidersHorizontal className="h-3.5 w-3.5 text-brand-600" aria-hidden />
         Filters
-        {active ? <span className="h-2 w-2 rounded-full bg-brand-500" aria-hidden /> : null}
-        {active ? <span className="sr-only">(active)</span> : null}
+        {active ? (
+          <span className="flex h-2 w-2 rounded-full bg-brand-500" aria-hidden />
+        ) : null}
       </button>
+
+      {/* Mobile backdrop */}
       {open ? (
-        <button type="button" tabIndex={-1} className="fixed inset-0 z-[70] animate-[fade-in_0.2s_ease-out] bg-ink/40 lg:hidden" aria-label="Close filters" onClick={close} />
+        <button
+          type="button"
+          tabIndex={-1}
+          className="fixed inset-0 z-[70] animate-[fade-in_0.2s_ease-out] bg-black/50 backdrop-blur-xs lg:hidden"
+          aria-label="Close filters"
+          onClick={close}
+        />
       ) : null}
+
+      {/* Filter Sidebar container */}
       <aside
         ref={panelRef}
         id="catalogue-filters"
         aria-label="Filters"
         role={open ? "dialog" : undefined}
         aria-modal={open ? true : undefined}
-        className={`${open ? "fixed inset-y-0 right-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-right_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-bg p-5 shadow-overlay" : "hidden"} lg:static lg:animate-none lg:z-auto lg:block lg:w-auto lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-surface lg:p-5 lg:shadow-none`}
+        className={`${
+          open
+            ? "fixed inset-y-0 left-0 z-[80] block w-[min(100%,20rem)] animate-[slide-in-left_0.25s_cubic-bezier(0.2,0.7,0.2,1)] overflow-y-auto overscroll-contain bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl [scrollbar-width:thin]"
+            : "hidden"
+        } lg:static lg:z-auto lg:block lg:max-h-[calc(100vh-var(--hdr-sticky,7rem)-2rem)] lg:w-full lg:overflow-y-auto lg:overscroll-contain lg:pr-2 [scrollbar-width:thin]`}
       >
-        <div className="mb-4 flex items-center justify-between lg:hidden">
-          <h2 className="text-lg font-bold text-ink">Filters</h2>
-          <button type="button" className="btn-text px-3" onClick={close}>
-            <X className="h-4 w-4" aria-hidden /> Close
+        <div className="mb-4 flex items-center justify-between border-b border-border/70 pb-3 lg:hidden">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-brand-600" />
+            <h2 className="text-sm font-bold text-ink">Filters</h2>
+          </div>
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700 hover:bg-brand-500 hover:text-on-brand"
+            onClick={close}
+            aria-label="Close filters"
+          >
+            <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
         {children}

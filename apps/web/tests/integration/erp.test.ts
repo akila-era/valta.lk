@@ -99,14 +99,14 @@ describe("catalogue", () => {
   it("loads all pages (pagination) and filters/sorts/searches", async () => {
     const { listProducts } = await import("@/lib/erp/catalogue");
     const all = await listProducts({ pageSize: 48 });
-    expect(all.total).toBe(15);
+    expect(all.total).toBe(20);
     expect(all.categories.map((c) => c.slug)).toContain("mobile-phones");
     expect((await listProducts({ category: "audio" })).total).toBe(4);
     expect((await listProducts({ q: "nova" })).total).toBe(2);
     const asc = await listProducts({ sort: "price-asc", pageSize: 3 });
     expect(asc.items[0].name).toBe("Glide Tempered Glass");
-    expect(asc.pageCount).toBe(5);
-    expect((await listProducts({ inStockOnly: true, pageSize: 48 })).total).toBe(14);
+    expect(asc.pageCount).toBe(7);
+    expect((await listProducts({ inStockOnly: true, pageSize: 48 })).total).toBe(19);
   });
   it("applies incremental updates and removals", async () => {
     const { listProducts, getProductBySlug, resetCatalogueCache, getSnapshot } = await import("@/lib/erp/catalogue");
@@ -114,12 +114,22 @@ describe("catalogue", () => {
     await control({ removeItem: id(7) });
     await control({ setPrice: { id: id(6), price: 1700 } });
     // force a refresh while keeping the watermark
-    (globalThis as unknown as { __valtaCatalogue: { syncedAt: number } }).__valtaCatalogue.syncedAt = 0;
+    (globalThis as unknown as { __voltaCatalogue: { syncedAt: number } }).__voltaCatalogue.syncedAt = 0;
     const res = await listProducts({ pageSize: 48 });
-    expect(res.total).toBe(14);
+    expect(res.total).toBe(19);
     expect(await getProductBySlug(`glide-tempered-glass-${id(7)}`)).toBeNull();
     expect((await getProductBySlug(`volt-usb-c-cable-1m-${id(6)}`))?.price).toBe(1700); // incremental update applied
     resetCatalogueCache();
+  });
+  it("keeps products without ERP images empty (SKU-6, SKU-7) and resolves relative images against the ERP origin", async () => {
+    const { getSnapshot } = await import("@/lib/erp/catalogue");
+    const { products } = await getSnapshot();
+    expect(products.get(id(6))?.sku).toBe("SKU-6");
+    expect(products.get(id(6))?.images).toEqual([]);
+    expect(products.get(id(7))?.sku).toBe("SKU-7");
+    expect(products.get(id(7))?.images).toEqual([]);
+    expect(products.get(id(1))?.sku).toBe("SKU-1");
+    expect(products.get(id(1))?.images).toEqual([`/api/erp-image/uploads/${id(1)}.svg`]);
   });
 });
 
