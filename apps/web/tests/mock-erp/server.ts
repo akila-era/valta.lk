@@ -1,3 +1,5 @@
+import { DEMO_CATALOGUE } from "./demo-catalogue";
+import { renderProductSvg } from "./product-art";
 /**
  * Mock HEXALYTE store-api for local development and automated tests ONLY.
  * Behaviour follows docs/API_INTEGRATION_GUIDE.md, docs/openapi.yaml, docs/STORE_ORDER_API.md and
@@ -7,6 +9,11 @@
 import http from "node:http";
 
 const PORT = Number(process.env.MOCK_ERP_PORT ?? 4010);
+// Demo deployments: browsers cannot reach the Docker-internal address, so product image URLs can be made absolute on a
+// public address that serves /uploads (see docs/DEPLOYMENT.md, "Demo deployment"). Unset: relative paths, as the tests expect.
+const PUBLIC_ORIGIN = (process.env.MOCK_PUBLIC_ORIGIN ?? "").replace(/\/+$/, "");
+/** MOCK_ERP_DEMO=1: serve the larger demo catalogue (local demos only; the tests use the small one). */
+const DEMO = process.env.MOCK_ERP_DEMO === "1";
 const BASE = "/api/v1/store-api";
 const CREDENTIAL = "hxs_test.testsecret";
 const itemId = (n: number) => `cm0item${String(n).padStart(8, "0")}`;
@@ -15,7 +22,9 @@ interface Variant { key: string; storage: string; color: string; sku: string; pr
 interface Item {
   subCategory?: string;
   id: string; sku: string; name: string; brand: string; category: string; price: string; salePrice: string | null;
-  discountActive: boolean; stock: number; updatedAt: string; variants: Variant[]; model?: string; warrantyMonths?: number; warrantyNote?: string;
+  discountActive: boolean; stock: number; updatedAt: string; variants: Variant[]; model?: string;
+  /** Demo catalogue only: published in the last few days (shows the New badge), and the warranty in months. */
+  fresh?: boolean; warrantyMonths?: number;
 }
 
 const mk = (n: number, name: string, category: string, brand: string, price: number, extra: Partial<Item> = {}): Item => ({
@@ -23,7 +32,15 @@ const mk = (n: number, name: string, category: string, brand: string, price: num
   stock: 20, updatedAt: `2026-10-${String(10 + (n % 9)).padStart(2, "0")}T08:00:00.000Z`, variants: [], ...extra,
 });
 
-const baseItems = (): Item[] => [
+const demoItems = (): Item[] =>
+  DEMO_CATALOGUE.map((d, i) =>
+    mk(i + 1, d.name, d.category, d.brand, d.price, {
+      subCategory: d.subCategory, model: d.model, stock: d.stock ?? 25, fresh: d.fresh, warrantyMonths: d.warrantyMonths,
+      ...(d.sale ? { salePrice: d.sale.toFixed(2), discountActive: true } : {}),
+    }),
+  );
+
+const initialItems = (): Item[] => DEMO ? demoItems() : [
   mk(1, "Nova X1 Smartphone", "Mobile Phones", "Nova", 129900, {
     model: "X1",
     variants: [
@@ -46,28 +63,13 @@ const baseItems = (): Item[] => [
   mk(13, "Limited Case (sold out)", "Accessories", "Glide", 2500, { stock: 0 }),
   mk(14, "Volt Power Bank 10000", "Accessories", "Volt", 7900, { subCategory: "Power Banks" }),
   mk(15, "Echo Mini Speaker", "Audio", "Echo", 5900, { subCategory: "Speakers" }),
+  // Smart Home: a sixth category and five more brands (the homepage shows up to 12). Dated early so "new arrivals" stay as they were.
+  mk(16, "Zenith Smart Bulb", "Smart Home", "Zenith", 2900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(17, "Lumen Smart Plug", "Smart Home", "Lumen", 3400, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(18, "Kora Security Camera", "Smart Home", "Kora", 12900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(19, "Aero Air Purifier", "Smart Home", "Aero", 27900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
+  mk(20, "Strata Door Sensor", "Smart Home", "Strata", 3900, { updatedAt: "2026-10-01T08:00:00.000Z" }),
 ];
-
-/**
- * Products 16 to 25 (laptops, a second tablet, ANC earbuds, case, screen protector, laptop charger, computer accessories) for the AI
- * assistant's tests. They are OFF by default so the storefront's own tests and e2e specs keep seeing the original 15 products;
- * start the server with MOCK_ERP_CATALOGUE=extended to serve all 25. Keep identical to apps/agent/src/mock/erp-fixture.ts
- * (the agent's contract test compares the two item by item).
- */
-const extendedItems = (): Item[] => [
-  mk(16, "Zen Book 14 Laptop", "Laptops", "Zen", 289900, { warrantyMonths: 24, warrantyNote: "Mock warranty record" }),
-  mk(17, "Zen Book 16 Pro Laptop", "Laptops", "Zen", 459900, { warrantyMonths: 24, stock: 3 }),
-  mk(18, "Orbit Tablet 11 Plus", "Tablets", "Orbit", 129900, { warrantyMonths: 12 }),
-  mk(19, "Pulse ANC Earbuds", "Audio", "Pulse", 22900, { subCategory: "Earbuds", warrantyMonths: 12 }),
-  mk(20, "Glide Clear Case for Nova X1", "Accessories", "Glide", 1900, { subCategory: "Cases" }),
-  mk(21, "Glide Screen Protector Tablet 11", "Accessories", "Glide", 1400, { subCategory: "Screen Protectors" }),
-  mk(22, "Volt 65W Laptop Charger", "Accessories", "Volt", 8900, { subCategory: "Chargers", warrantyMonths: 6 }),
-  mk(23, "Keyra Wireless Mouse", "Computer Accessories", "Keyra", 3200, { subCategory: "Mice", warrantyMonths: 12 }),
-  mk(24, "Keyra Mechanical Keyboard", "Computer Accessories", "Keyra", 9800, { subCategory: "Keyboards", warrantyMonths: 12 }),
-  mk(25, "Keyra USB-C Hub 7-in-1", "Computer Accessories", "Keyra", 6900, { subCategory: "Hubs" }),
-];
-
-const initialItems = (): Item[] => (process.env.MOCK_ERP_CATALOGUE === "extended" ? [...baseItems(), ...extendedItems()] : baseItems());
 
 const defaultSettings = () => ({
   currency: "LKR", reservationsEnabled: true, ordersEnabled: true, paymentMethods: { COD: true, ONLINE: false },
@@ -88,6 +90,8 @@ const state = {
   failNextOrder: null as null | "500" | "timeout-after-create" | "in-progress",
   /** While true, every order POST answers 503 (an ERP outage). */
   orderOutage: false,
+  /** Answer the next N `GET /orders/{ref}` requests with 429, as the ERP does when the website exceeds its rate limit. */
+  throttleOrderReads: 0,
   /** Queue of definitive rejections, consumed one per order POST. */
   rejectOrders: [] as { status: number; code: string }[],
   orderPosts: 0,
@@ -108,13 +112,13 @@ const qty = (stock: number) => Math.min(stock, 20);
 
 const wireItem = (i: Item) => ({
   id: i.id, externalId: null, sku: i.sku, name: i.name, description: `${i.name} by ${i.brand}.`, brand: i.brand,
-  category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: i.warrantyMonths ?? null, warrantyNote: i.warrantyNote ?? null,
-  images: i.sku === "SKU-6" || i.sku === "SKU-7" ? [] : [{ url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
+  category: i.category, subCategory: i.subCategory ?? null, model: i.model ?? null, condition: null, warrantyMonths: i.warrantyMonths ?? null, warrantyNote: null,
+  images: !DEMO && (i.sku === "SKU-6" || i.sku === "SKU-7") ? [] : [PUBLIC_ORIGIN ? { url: `${PUBLIC_ORIGIN}/uploads/${i.id}.svg` } : { url: `/uploads/${i.id}.svg`, relative: true }], currency: "LKR", price: i.variants.length ? i.variants.map((v) => Number(v.price)).sort((a, b) => a - b)[0].toFixed(2) : i.price,
   salePrice: i.salePrice, discountActive: i.discountActive, discountEndsAt: null, hasVariants: i.variants.length > 0,
   variants: i.variants.map((v) => ({ key: v.key, sku: v.sku, storage: v.storage, color: v.color, colorHex: null, price: v.price, salePrice: null, discountActive: false, availability: avail(v.stock), purchasableQuantity: qty(v.stock) })),
   availability: i.variants.length ? avail(i.variants.reduce((a, v) => a + v.stock, 0)) : avail(i.stock),
   purchasableQuantity: i.variants.length ? qty(i.variants.reduce((a, v) => a + v.stock, 0)) : qty(i.stock),
-  publishedAt: i.sku === "SKU-3" || i.sku === "SKU-8" ? new Date(Date.now() - 3 * 86400_000).toISOString() : new Date(Date.now() - (60 + Number(i.id.slice(-8))) * 86400_000).toISOString(), updatedAt: i.updatedAt,
+  publishedAt: (DEMO ? i.fresh : i.sku === "SKU-3" || i.sku === "SKU-8") ? new Date(Date.now() - 3 * 86400_000).toISOString() : new Date(Date.now() - (60 + Number(i.id.slice(-8))) * 86400_000).toISOString(), updatedAt: i.updatedAt,
 });
 
 const unitPriceOf = (it: Item, variantKey?: string | null) => {
@@ -152,7 +156,7 @@ const server = http.createServer(async (req, res) => {
       // A reset is a change in the ERP too: bump timestamps so the website's incremental catalogue sync picks it up.
       state.items = initialItems().map((i) => ({ ...i, updatedAt: new Date().toISOString() })); state.removed = []; state.orders.clear(); state.reservations.clear();
       state.failNextOrder = null; state.orderOutage = false; state.rejectOrders = []; state.orderPosts = 0; state.ordersWithoutIdempotencyKey = 0; state.requests = [];
-      state.delayMs = 0; state.storeActive = true; state.settings = defaultSettings();
+      state.delayMs = 0; state.storeActive = true; state.settings = defaultSettings(); state.throttleOrderReads = 0;
     }
     if (body.settings) Object.assign(state.settings, body.settings);
     if (body.storeActive !== undefined) state.storeActive = body.storeActive;
@@ -163,6 +167,7 @@ const server = http.createServer(async (req, res) => {
     if (body.failNextOrder !== undefined) state.failNextOrder = body.failNextOrder;
     if (body.orderOutage !== undefined) state.orderOutage = body.orderOutage;
     if (body.rejectOrders !== undefined) state.rejectOrders = body.rejectOrders;
+    if (body.throttleOrderReads !== undefined) state.throttleOrderReads = body.throttleOrderReads;
     if (body.setOrderStatus) {
       const o = state.orders.get(body.setOrderStatus.ref);
       if (o) {
@@ -177,16 +182,9 @@ const server = http.createServer(async (req, res) => {
   const img = url.pathname.match(/^\/uploads\/([A-Za-z0-9]+)\.svg$/);
   if (img) {
     const it = state.items.find((i) => i.id === img[1]);
-    const c = it?.category ?? "";
-    const shape = /phone|tablet/i.test(c)
-      ? `<rect x="130" y="40" width="140" height="320" rx="26" fill="#101820"/><rect x="138" y="52" width="124" height="296" rx="20" fill="#1d2a38"/><circle cx="200" cy="200" r="38" fill="#ff5c00"/>`
-      : /audio/i.test(c)
-        ? `<rect x="90" y="190" width="220" height="130" rx="46" fill="#e6e8ec"/><ellipse cx="150" cy="130" rx="26" ry="42" fill="#101820"/><ellipse cx="250" cy="130" rx="26" ry="42" fill="#101820"/>`
-        : /wear/i.test(c)
-          ? `<rect x="165" y="30" width="70" height="90" rx="14" fill="#475467"/><rect x="165" y="280" width="70" height="90" rx="14" fill="#475467"/><rect x="120" y="110" width="160" height="180" rx="40" fill="#101820"/><circle cx="200" cy="200" r="36" fill="none" stroke="#ff5c00" stroke-width="10"/>`
-          : `<rect x="110" y="120" width="180" height="160" rx="24" fill="#344054"/><rect x="170" y="150" width="60" height="30" rx="8" fill="#ff5c00"/>`;
+    const svg = renderProductSvg(it);
     res.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=60" });
-    return res.end(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">${shape}</svg>`);
+    return res.end(svg);
   }
 
   if (!url.pathname.startsWith(BASE)) return err(res, 404, "NOT_FOUND");
@@ -195,7 +193,7 @@ const server = http.createServer(async (req, res) => {
   if (state.delayMs) await new Promise((r) => setTimeout(r, state.delayMs));
   if (!state.storeActive || req.headers.authorization !== `Bearer ${CREDENTIAL}`) return err(res, 401, "INVALID_CREDENTIALS");
 
-  if (req.method === "GET" && path === "/ping") return ok(res, { connection: { id: "c1", displayName: "VALTA.LK", status: "ACTIVE" }, serverTime: new Date().toISOString() });
+  if (req.method === "GET" && path === "/ping") return ok(res, { connection: { id: "c1", displayName: "VOLTA.LK", status: "ACTIVE" }, serverTime: new Date().toISOString() });
   if (req.method === "GET" && path === "/settings") return ok(res, { ...state.settings, generatedAt: new Date().toISOString() });
 
   if (req.method === "GET" && path === "/catalogue/products") {
@@ -306,6 +304,10 @@ const server = http.createServer(async (req, res) => {
   const om = path.match(/^\/orders\/([^/]+)(\/cancel)?$/);
   if (om) {
     const o = state.orders.get(decodeURIComponent(om[1]));
+    if (req.method === "GET" && !om[2] && state.throttleOrderReads > 0) {
+      state.throttleOrderReads--;
+      return send(res, 429, { success: false, message: "RATE_LIMITED", code: "RATE_LIMITED" }, { "Retry-After": "30" });
+    }
     if (!o) return err(res, 404, "NOT_FOUND");
     if (req.method === "GET" && !om[2]) return ok(res, wireOrder(o));
     if (req.method === "POST" && om[2]) {
