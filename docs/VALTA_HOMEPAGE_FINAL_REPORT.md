@@ -25,7 +25,7 @@ Hero slider, Shop by Category (12 tiles), New Arrivals carousel, customer review
 | 11 | Collection 2 | Black band with the products in white tiles | second real category |
 | 12 | Shop by budget | Three ranges (under 8,000; 8,000 to 35,000; over 35,000), swipeable on phones | real prices |
 | 13 | Collection 3 | Text column beside a swipeable carousel (appears when a third category has four in-stock products) | third real category |
-| 14 | Why shop with VALTA | Editorial rows: cash on delivery, delivery charge, live prices and stock, track and cancel online | ERP settings |
+| 14 | Why shop with VALTA | Black panel with four columns and large orange figures: cash on delivery, delivery charge, live prices and stock, track and cancel online | ERP settings |
 | 15 | Good to know | Only the lines the business entered in `SITE_HIGHLIGHTS`; **hidden when none** | business-entered |
 | 16 | Recently viewed | Browser-local history, live prices and stock, Clear button; **hidden without history** | shopper's own history |
 | 17 | Staff banners and wide banner | Campaign banners created in the admin, shown as written | admin |
@@ -34,7 +34,7 @@ Hero slider, Shop by Category (12 tiles), New Arrivals carousel, customer review
 | 20 | Need help choosing? | Replaces a reviews block: Quick answers, Track your order, and the published contact details | site settings |
 | 21 | FAQ | Answers from ERP settings | ERP settings |
 | 22 | Final call to action | "Find your next favourite." | ERP |
-| 23 | Footer | Shop categories, **Popular brands**, support, company, contact, order tracking, FAQ, shipping, returns, privacy, terms, verified social links, accepted payments | ERP, site settings |
+| 23 | Footer | Shop categories (with a Brands link), support, company, contact, order tracking, FAQ, shipping, returns, privacy, terms, verified social links, accepted payments | ERP, site settings |
 
 Quick View, wishlist, add to cart, search suggestions, brand discovery, category discovery and the category drawer are the existing working features and were reused, not rewritten.
 
@@ -63,7 +63,7 @@ Quick View, wishlist, add to cart, search suggestions, brand discovery, category
 
 **New:** `src/components/home/trust-strip.tsx`, `product-sections.tsx` (new arrivals, special offers, staff picks), `collections.tsx`, `support-assurance.tsx`.
 
-**Edited:** `src/app/(home)/page.tsx` (new section order, no tabs), `src/components/home/home-sections.tsx` (old tabbed showcase removed), `src/components/home/sections.tsx` (old campaign panels removed), `src/lib/home-data.ts` (unused campaign data removed), `src/components/layout/header.tsx` (About and Contact), `category-nav.tsx` (Shop), `footer.tsx` (Popular brands), `src/components/products/product-card.tsx`, `src/components/brands/brand-tile.tsx`, `src/components/home/hero.tsx` and `hero-slider.tsx` (accessible names).
+**Edited:** `src/app/(home)/page.tsx` (new section order, no tabs), `src/components/home/home-sections.tsx` (old tabbed showcase removed), `src/components/home/sections.tsx` (old campaign panels removed), `src/lib/home-data.ts` (unused campaign data removed), `src/components/layout/header.tsx` (About and Contact), `category-nav.tsx` (Shop), `footer.tsx` (Brands link and orange accents), `src/components/products/product-card.tsx`, `src/components/brands/brand-tile.tsx`, `src/components/home/hero.tsx` and `hero-slider.tsx` (accessible names).
 
 **Tests:** `tests/e2e/homepage.spec.ts`, `discovery-pages.spec.ts`, `storefront.spec.ts`, `admin.spec.ts`, `product-content-qa.spec.ts`, `product-content.spec.ts`.
 

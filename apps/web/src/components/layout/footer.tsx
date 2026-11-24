@@ -6,7 +6,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { accountsEnabled } from "@/lib/auth/session";
-import { listBrands, listProducts } from "@/lib/erp/catalogue";
+import { listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
 import { socialLinks } from "@/lib/home-config";
 import { siteConfig } from "@/lib/site-config";
@@ -56,9 +56,9 @@ function PaymentBadge({ id }: { id: string }) {
   );
 }
 
-const colHead = "text-xs font-semibold uppercase tracking-[0.16em] text-white/60";
+const colHead = "flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/70 before:h-0.5 before:w-4 before:rounded-full before:bg-brand-500 before:content-['']";
 
-const rowLink = "group flex items-center gap-3 rounded-lg py-2 pr-1 sm:gap-3.5 sm:py-2.5 sm:pr-2 text-[15px] text-white/85 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
+const rowLink = "group flex items-center gap-3 rounded-lg py-2 pr-1 sm:gap-3.5 sm:py-2.5 sm:pr-2 text-[15px] text-white/85 transition-colors hover:text-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
 
 function LinkList({ items, label }: { items: typeof support; label: string }) {
   // Icons are kept in the data for other uses; the footer itself stays typographic.
@@ -82,7 +82,7 @@ function LinkList({ items, label }: { items: typeof support; label: string }) {
 function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-4">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white"><Icon className="h-5 w-5" aria-hidden /></span>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-brand-500"><Icon className="h-5 w-5" aria-hidden /></span>
       <span className="min-w-0 text-[15px]">
         <span className="block text-xs text-white/60">{label}</span>
         <span className="block break-words font-semibold text-white">{children}</span>
@@ -92,10 +92,9 @@ function ContactRow({ icon: Icon, label, children }: { icon: LucideIcon; label: 
 }
 
 export async function Footer() {
-  const [categories, settings, brands] = await Promise.all([
+  const [categories, settings] = await Promise.all([
     listProducts({ pageSize: 1 }).then((r) => r.categories).catch(() => []),
     getSettings().catch(() => null),
-    listBrands().then((b) => b.slice(0, 8)).catch(() => []),
   ]);
   const social = socialLinks();
   const cod = Boolean(settings?.paymentMethods.COD);
@@ -108,10 +107,10 @@ export async function Footer() {
   const hasContact = siteConfig.phone || siteConfig.email || siteConfig.address || siteConfig.hours.length > 0;
 
   return (
-    <footer className="on-dark mt-20 bg-dark text-white">
-      <div className="container-page grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-14">
+    <footer className="on-dark mt-20 border-t-4 border-brand-500 bg-dark text-white">
+      <div className="container-page grid grid-cols-2 gap-x-6 gap-y-10 py-12 sm:gap-x-8 md:grid-cols-3 lg:grid-cols-[1.15fr_0.9fr_1.15fr_1fr_1.5fr] lg:gap-y-0 lg:py-16">
         <div className="col-span-2 md:col-span-3 lg:col-span-1">
-          <p className="text-3xl font-bold tracking-tight">VALTA<span className="text-white/60">.LK</span></p>
+          <p className="text-3xl font-black tracking-tight">VALTA<span className="text-brand-500">.LK</span></p>
           <p className="mt-4 max-w-xs text-[15px] leading-7 text-white/75">{siteConfig.description}</p>
           {social.length > 0 && (
             <ul className="mt-6 flex flex-wrap gap-3" aria-label="Social media">
@@ -129,7 +128,7 @@ export async function Footer() {
           )}
           <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-3 border-t border-white/10 pt-5 sm:mt-7 sm:pt-6">
             {trust.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-2 text-sm text-white/80"><Icon className="h-5 w-5 shrink-0 text-white/70" strokeWidth={1.5} aria-hidden />{text}</li>
+              <li key={text} className="flex items-center gap-2 text-sm text-white/80"><Icon className="h-5 w-5 shrink-0 text-brand-500" strokeWidth={1.5} aria-hidden />{text}</li>
             ))}
           </ul>
         </div>
@@ -163,20 +162,6 @@ export async function Footer() {
           </ul>
         </div>
       </div>
-
-      {brands.length > 1 && (
-        <div className="container-page relative pb-8">
-          <nav aria-label="Popular brands" className="border-t border-white/10 pt-6">
-            <h2 className={colHead}>Popular brands</h2>
-            <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1">
-              {brands.map((b) => (
-                <li key={b.name}><Link href={`/products?brand=${encodeURIComponent(b.name)}`} className="inline-block py-2 text-sm text-white/80 hover:text-white hover:underline">{b.name}</Link></li>
-              ))}
-              <li><Link href="/brands" className="inline-block py-2 text-sm font-semibold text-white hover:underline">All brands</Link></li>
-            </ul>
-          </nav>
-        </div>
-      )}
 
       <div className="relative border-t border-white/10">
         <div className="container-page flex flex-col gap-5 py-5">

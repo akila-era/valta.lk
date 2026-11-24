@@ -68,7 +68,7 @@ export default async function HomePage() {
           <Collections data={data} from={1} to={2} />
           <BudgetShortcuts picks={data.budgetPicks} />
           <Collections data={data} from={2} to={3} />
-          <WhyChoose checkout={data.checkout} photos={photographed.slice(3, 6)} />
+          <WhyChoose checkout={data.checkout} />
           <Assurances />
           <RecentlyViewed />
           {data.bannersFromStaff && (

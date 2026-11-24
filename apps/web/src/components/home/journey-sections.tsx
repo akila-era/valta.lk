@@ -67,37 +67,33 @@ export function BudgetShortcuts({ picks }: { picks: HomeData["budgetPicks"] }) {
  * The VALTA experience: only things the store really does (checkout rules come from the live ERP settings).
  * No warranty, authorised-dealer, payment-provider or speed promises, because none are verified.
  */
-export function WhyChoose({ checkout, photos }: { checkout: HomeData["checkout"]; photos: ErpProduct[] }) {
+export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
   const rows = [
     ...(checkout.cod ? [{ fig: "COD", title: "Cash on delivery", text: "Pay with cash when your order arrives. No card is needed to order." }] : []),
     ...(checkout.deliveryCharge != null ? [{ fig: formatLkr(checkout.deliveryCharge), title: "Clear delivery charge", text: `A flat delivery charge of ${formatLkr(checkout.deliveryCharge)} is shown before you place your order.` }] : []),
     { fig: "Live", title: "Live prices and stock", text: "Prices and availability come from our live catalogue and are checked again when you place your order." },
     { fig: "Online", title: "Track and cancel online", text: "Follow your order with its reference number, and cancel it online before it is dispatched." },
   ];
-  const [a, b, c] = photos;
   return (
     <section aria-labelledby="why" className="mt-16 sm:mt-24">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-16">
-        <Reveal className="lg:sticky lg:top-40 lg:self-start">
-          <p className="eyebrow mb-2">The VALTA experience</p>
-          <h2 id="why" className="text-3xl font-bold leading-[1.05] tracking-[-0.035em] sm:text-4xl lg:text-5xl">Why shop with VALTA.LK</h2>
-          <p className="mt-3 max-w-md text-sm leading-6 text-muted sm:text-base">Simple, transparent shopping from the first search to the doorstep.</p>
-          {a && (
-            <div className="relative mt-8 hidden h-72 lg:block" aria-hidden>
-              <span className="absolute left-0 top-0 h-60 w-52 overflow-hidden rounded-[1.5rem] bg-surface"><ProductImage src={a.images[0]} alt="" sizes="220px" padding="p-5" /></span>
-              {b && <span className="absolute left-36 top-14 h-60 w-52 overflow-hidden rounded-[1.5rem] bg-surface ring-8 ring-white"><ProductImage src={b.images[0]} alt="" sizes="220px" padding="p-5" /></span>}
-              {c && <span className="absolute left-72 top-28 h-44 w-40 overflow-hidden rounded-[1.5rem] bg-surface ring-8 ring-white"><ProductImage src={c.images[0]} alt="" sizes="160px" padding="p-4" /></span>}
-            </div>
-          )}
-        </Reveal>
-        <ul className="border-t border-ink">
+      <div className="overflow-hidden rounded-[2rem] bg-ink text-white">
+        <div className="grid gap-5 p-6 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-end lg:gap-16 lg:p-14">
+          <Reveal>
+            <p className="eyebrow !text-brand-500">The VALTA experience</p>
+            <h2 id="why" className="mt-3 text-3xl font-bold leading-[1.05] tracking-[-0.035em] sm:text-4xl lg:text-5xl">Why shop with VALTA.LK</h2>
+          </Reveal>
+          <Reveal delay={80}>
+            <p className="max-w-md text-sm leading-6 text-white/75 sm:text-base lg:justify-self-end">Simple, transparent shopping from the first search to the doorstep.</p>
+          </Reveal>
+        </div>
+        <ul className="grid gap-px border-t border-white/15 bg-white/15 sm:grid-cols-2 lg:grid-cols-4">
           {rows.map((r, i) => (
-            <Reveal as="li" key={r.title} delay={i * 70} className="grid grid-cols-[1fr_auto] items-start gap-x-6 gap-y-2 border-b border-border py-6 sm:py-8">
+            <Reveal as="li" key={r.title} delay={i * 70} className="flex flex-col gap-8 bg-ink p-6 sm:gap-12 sm:p-8">
+              <span aria-hidden className="text-4xl font-bold leading-none tracking-[-0.04em] text-brand-500 sm:text-5xl">{r.fig}</span>
               <div>
-                <h3 className="text-xl font-semibold tracking-tight sm:text-2xl">{r.title}</h3>
-                <p className="mt-2 max-w-md text-sm leading-6 text-muted sm:text-base">{r.text}</p>
+                <h3 className="text-lg font-semibold tracking-tight sm:text-xl">{r.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/70">{r.text}</p>
               </div>
-              <span aria-hidden className="text-right text-2xl font-bold tracking-[-0.03em] text-brand-600 sm:text-4xl">{r.fig}</span>
             </Reveal>
           ))}
         </ul>
