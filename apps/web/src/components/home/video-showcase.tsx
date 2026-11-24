@@ -14,7 +14,7 @@ export function VideoShowcase({ title, videos }: { title: string; videos: VideoC
   const grid = videos.length === 1 ? "max-w-3xl" : videos.length === 2 ? "max-w-4xl sm:grid-cols-2" : "max-w-6xl sm:grid-cols-2 lg:grid-cols-3";
   return (
     <section aria-labelledby="videos" className="mt-14 sm:mt-20">
-      <h2 id="videos" className="section-title mb-7 text-center sm:mb-9">{title}</h2>
+      <h2 id="videos" className="section-title mb-6 sm:mb-8">{title}</h2>
       <ul className={`mx-auto grid gap-4 sm:gap-5 ${grid}`}>
         {videos.map((v) => {
           const on = playing === v.id;

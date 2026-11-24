@@ -15,7 +15,8 @@ export const metadata: Metadata = {
   openGraph: { siteName: "VOLTA.LK", type: "website", locale: "en_LK" },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#ffffff" };
+// viewportFit "cover" lets fixed bars use the safe-area insets (notch / home indicator) instead of being cut off by them.
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#ffffff" };
 
 /**
  * Some antivirus browser extensions (Bitdefender) stamp a bis_skin_checked="1" attribute on every <div> before React
