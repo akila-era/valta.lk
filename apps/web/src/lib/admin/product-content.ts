@@ -2,6 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { contentDocSchema, normalizeDoc, type ContentDoc } from "../content/schema";
+import { descriptionMediaIds } from "../content/sanitize";
 import { deleteObject, putObject, storageConfigured } from "../media/storage";
 import { MAX_IMAGE_BYTES, MAX_IMAGES_PER_PRODUCT, sniffImage } from "../media/sniff";
 
@@ -134,6 +135,7 @@ export async function cleanupAssets(db: PrismaClient, erpItemId: string) {
     const doc = normalizeDoc(d);
     doc.gallery.forEach((g) => used.add(g.id));
     if (doc.seo.ogImageId) used.add(doc.seo.ogImageId);
+    descriptionMediaIds(doc.descriptionHtml).forEach((id) => used.add(id));
   }
   const where = { erpItemId, id: { notIn: [...used] }, createdAt: { lt: new Date(Date.now() - ORPHAN_GRACE_MS) } };
   const stale = await db.mediaAsset.findMany({ where, select: { id: true, storageKey: true } });

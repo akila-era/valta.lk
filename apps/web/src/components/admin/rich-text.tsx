@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bold, Heading2, Heading3, Italic, Link2, List, ListOrdered, Pilcrow, RemoveFormatting } from "lucide-react";
+import { Bold, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Loader2, Pilcrow, RemoveFormatting } from "lucide-react";
 
 const TOOLS = [
   { icon: Heading2, label: "Heading", cmd: "formatBlock", arg: "h2" },
@@ -18,10 +18,12 @@ const TOOLS = [
  * Pasting always inserts plain text (no stray styles from Word/web pages). The server sanitises the HTML again on save
  * and on render, so this component is a convenience, not a security boundary.
  */
-export function RichText({ value, onChange, label }: { value: string; onChange: (html: string) => void; label: string }) {
+export function RichText({ value, onChange, label, onUploadImage }: { value: string; onChange: (html: string) => void; label: string; /** Uploads one picture and returns its address; when given, the toolbar gets an "Add image" button. */ onUploadImage?: (file: File) => Promise<string | null> }) {
   const ref = useRef<HTMLDivElement>(null);
   const saved = useRef<Range | null>(null);
   const [link, setLink] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (ref.current && ref.current.innerHTML !== value) ref.current.innerHTML = value;
@@ -49,6 +51,22 @@ export function RichText({ value, onChange, label }: { value: string; onChange: 
     }
   };
 
+  async function addImages(files: FileList | null) {
+    if (!files?.length || !onUploadImage) return;
+    setBusy(true);
+    for (const file of Array.from(files)) {
+      const url = await onUploadImage(file);
+      if (!url) continue;
+      restore();
+      const alt = file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 100).replace(/"/g, "");
+      document.execCommand("insertHTML", false, `<p><img src="${url}" alt="${alt}"></p>`);
+      emit();
+      remember();
+    }
+    setBusy(false);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   const btn = "inline-flex h-9 w-9 items-center justify-center rounded-md text-ink hover:bg-surface";
   return (
     <div className="rounded-lg border border-border bg-bg focus-within:border-ink">
@@ -61,6 +79,14 @@ export function RichText({ value, onChange, label }: { value: string; onChange: 
         <button type="button" className={btn} aria-label="Add link" title="Add link" onMouseDown={(e) => e.preventDefault()} onClick={() => { remember(); setLink("https://"); }}>
           <Link2 className="h-4 w-4" aria-hidden />
         </button>
+        {onUploadImage && (
+          <>
+            <button type="button" className={btn} aria-label="Add image" title="Add image" disabled={busy} onMouseDown={(e) => e.preventDefault()} onClick={() => { remember(); fileRef.current?.click(); }}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ImagePlus className="h-4 w-4" aria-hidden />}
+            </button>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => void addImages(e.target.files)} />
+          </>
+        )}
         <button type="button" className={btn} aria-label="Remove formatting" title="Remove formatting" onMouseDown={(e) => e.preventDefault()} onClick={() => { run("removeFormat"); run("formatBlock", "p"); }}>
           <RemoveFormatting className="h-4 w-4" aria-hidden />
         </button>

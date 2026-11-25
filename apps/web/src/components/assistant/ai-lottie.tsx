@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 /**
@@ -9,7 +9,7 @@ import { Sparkles } from "lucide-react";
  */
 export function AiLottie({ className = "" }: { className?: string }) {
   const box = useRef<HTMLSpanElement>(null);
-  const fallback = useRef<HTMLSpanElement>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let anim: { destroy(): void } | undefined;
@@ -18,10 +18,14 @@ export function AiLottie({ className = "" }: { className?: string }) {
     void import("lottie-web/build/player/lottie_light").then(({ default: lottie }) => {
       if (cancelled || !box.current) return;
       const a = lottie.loadAnimation({ container: box.current, renderer: "svg", loop: true, autoplay: !still, path: "/ai/ai-chatbot.json" });
-      a.addEventListener("DOMLoaded", () => {
-        if (fallback.current) fallback.current.style.display = "none";
+      // The sparkle is only a placeholder: it is removed as soon as the robot has drawn, and never stays beside it.
+      const done = () => {
+        setReady(true);
         if (still) a.goToAndStop(0, true);
-      });
+      };
+      a.addEventListener("DOMLoaded", done);
+      a.addEventListener("data_ready", () => setReady(true));
+      if (box.current.querySelector("svg")) setReady(true);
       anim = a;
     });
     return () => {
@@ -32,9 +36,11 @@ export function AiLottie({ className = "" }: { className?: string }) {
 
   return (
     <span className={`relative inline-flex items-center justify-center ${className}`} aria-hidden>
-      <span ref={fallback} className="absolute inset-0 flex items-center justify-center text-brand-600">
-        <Sparkles className="h-1/2 w-1/2" strokeWidth={1.75} />
-      </span>
+      {!ready && (
+        <span className="absolute inset-0 flex items-center justify-center text-brand-600">
+          <Sparkles className="h-1/2 w-1/2" strokeWidth={1.75} />
+        </span>
+      )}
       <span ref={box} className="block h-full w-full" />
     </span>
   );

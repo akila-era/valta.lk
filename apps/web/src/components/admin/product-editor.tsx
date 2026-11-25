@@ -360,8 +360,26 @@ export function ProductEditor(p: Props) {
 
         {tab === "description" && (
           <div>
-            <p className="mb-3 text-sm text-muted">Shown under the product on the store. Use headings, short paragraphs and lists. Pasted text is inserted as plain text; unsafe HTML is always removed.</p>
-            <RichText label="Product description" value={doc.descriptionHtml} onChange={(html) => set("descriptionHtml", html)} />
+            <p className="mb-3 text-sm text-muted">Shown under the product on the store. Use headings, short paragraphs and lists, and the picture button to add images between paragraphs (JPEG, PNG or WebP, up to 2 MB each). Pasted text is inserted as plain text; unsafe HTML is always removed.</p>
+            <RichText
+              label="Product description"
+              value={doc.descriptionHtml}
+              onChange={(html) => set("descriptionHtml", html)}
+              onUploadImage={async (file) => {
+                if (file.size > MAX_BYTES) { setMsg({ ok: false, text: `${file.name} is larger than 2 MB.` }); return null; }
+                const fd = new FormData();
+                fd.append("file", file);
+                try {
+                  const res = await fetch(`/api/admin/products/${p.productId}/images`, { method: "POST", body: fd });
+                  const data = await res.json().catch(() => ({}));
+                  if (!res.ok) { setMsg({ ok: false, text: data.error?.message ?? `Could not upload ${file.name}.` }); return null; }
+                  return data.url as string;
+                } catch {
+                  setMsg({ ok: false, text: "Could not reach the server. Check your connection and try again." });
+                  return null;
+                }
+              }}
+            />
             <p className="mt-2 text-xs text-muted">Empty = the description from the ERP is shown instead.</p>
           </div>
         )}
