@@ -106,6 +106,13 @@ model WebOrder {
   carrierName      String?
   /// Audit of catalogue savings and which admin promotions matched them. Never a second charge amount.
   priceBreakdown   Json?
+  /// True while the customer has not yet paid online (Koko). The ERP sync skips these rows until payment is confirmed.
+  awaitingPayment  Boolean    @default(false)
+  /// Website-side online payment state: null for COD, otherwise PENDING | PAID.
+  paymentStatus    String?
+  paidAt           DateTime?
+  kokoPayments     KokoPayment[]
+  payzyPayments    PayzyPayment[]
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
@@ -266,4 +273,104 @@ model Banner {
   updatedAt DateTime @updatedAt
 
   @@index([active, sortOrder])
+}
+
+/// Email addresses people typed into the storefront newsletter box. Nothing else is stored; the address is lower-cased.
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+enum KokoPaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELED
+}
+
+/// One Koko payment attempt. Every attempt has its own unique `kokoOrderId` (Koko rejects reuse). Only Koko's signed
+/// webhook (or a signed orderView answer) may move an attempt to SUCCESS.
+model KokoPayment {
+  id          String            @id @default(cuid())
+  kokoOrderId String            @unique
+  orderRef    String
+  order       WebOrder          @relation(fields: [orderRef], references: [externalRef], onDelete: Cascade)
+  attemptNo   Int
+  amount      Decimal           @db.Decimal(12, 2)
+  currency    String
+  status      KokoPaymentStatus @default(PENDING)
+  trnId       String?
+  rawCallback Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([orderRef, attemptNo])
+  @@index([status, createdAt])
+}
+
+/// Koko credentials saved from the admin panel. Secrets are AES-256-GCM encrypted (SETTINGS_ENCRYPTION_KEY); the public key is not secret.
+/// Wins over the KOKO_* environment variables. `enabled` only controls whether checkout OFFERS Koko; callbacks for payments already started keep working.
+model KokoConnectionConfig {
+  id             String   @id @default("default")
+  enabled        Boolean  @default(false)
+  baseUrl        String
+  merchantId     String
+  apiKeyEnc      String
+  apiKeyHint     String
+  pluginName     String
+  pluginVersion  String
+  privateKeyEnc  String
+  publicKey      String
+  appUrl         String
+  updatedBy      String?
+  updatedAt      DateTime @updatedAt
+}
+
+enum PayzyPaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+/// One Payzy payment attempt. `payzyOrderId` is what Payzy echoes back as x_order_id and is unique per attempt.
+/// `requestFields` is the exact JSON sent to Payzy: the return redirect only carries x_order_id, response_code and
+/// signature, so the stored fields are what the response signature is verified against.
+model PayzyPayment {
+  id            String             @id @default(cuid())
+  payzyOrderId  String             @unique
+  orderRef      String
+  order         WebOrder           @relation(fields: [orderRef], references: [externalRef], onDelete: Cascade)
+  attemptNo     Int
+  amount        Decimal            @db.Decimal(12, 2)
+  currency      String
+  status        PayzyPaymentStatus @default(PENDING)
+  requestFields Json
+  redirectUrl   String?
+  responseCode  String?
+  failureReason String?
+  rawReturn     Json?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([orderRef, attemptNo])
+  @@index([status, createdAt])
+}
+
+/// Payzy credentials saved from the admin panel. The secret key is AES-256-GCM encrypted (SETTINGS_ENCRYPTION_KEY), which
+/// also avoids the "$" expansion problem of .env files. Wins over the PAYZY_* environment variables. `enabled` only controls
+/// whether checkout OFFERS Payzy; returns for payments already started keep being verified.
+model PayzyConnectionConfig {
+  id                   String   @id @default("default")
+  enabled              Boolean  @default(false)
+  baseUrl              String
+  shopId               String
+  secretKeyEnc         String
+  secretKeyHint        String
+  testMode             String
+  appUrl               String
+  legacyVersionSigning Boolean  @default(false)
+  updatedBy            String?
+  updatedAt            DateTime @updatedAt
 }

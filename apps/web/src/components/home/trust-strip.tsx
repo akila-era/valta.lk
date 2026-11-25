@@ -26,22 +26,24 @@ export function TrustStrip({ checkout }: { checkout: HomeData["checkout"] }) {
   ].filter((i): i is Item => Boolean(i)).slice(0, 5);
 
   return (
-    <section aria-label="Shopping with VALTA.LK" className="border-b border-border bg-bg">
-      <ul className="container-page grid grid-cols-2 gap-x-4 gap-y-1 py-3 sm:grid-cols-4 lg:flex lg:justify-between lg:gap-x-8 lg:py-0">
+    <section aria-label="Shopping with VOLTA.LK" className="container-page mt-8 sm:mt-10">
+      <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {items.map(({ icon: Icon, title, text, href }) => {
           const body = (
             <>
-              <Icon className="h-5 w-5 shrink-0 text-brand-600" strokeWidth={1.75} aria-hidden />
+              <span className="flex h-9 w-9 shrink-0 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-500 group-hover:text-on-brand">
+                <Icon className="h-4 w-4 sm:h-5 sm:w-5" strokeWidth={1.75} aria-hidden />
+              </span>
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-ink">{title}</span>
-                {text && <span className="block truncate text-xs text-muted">{text}</span>}
+                <span className="block text-[13px] font-semibold leading-tight text-ink sm:truncate sm:text-[15px]">{title}</span>
+                {text && <span className="hidden truncate text-[13px] text-muted sm:block">{text}</span>}
               </span>
             </>
           );
-          const cls = "flex min-h-14 items-center gap-3 py-2 lg:min-h-16";
+          const cls = "group flex h-full items-center gap-2.5 rounded-2xl border border-border bg-white p-3 sm:gap-3.5 sm:p-4 transition-colors";
           return (
             <li key={title} className="min-w-0">
-              {href ? <Link href={href} className={`${cls} hover:text-brand-600`}>{body}</Link> : <div className={cls}>{body}</div>}
+              {href ? <Link href={href} className={`${cls} hover:border-ink`}>{body}</Link> : <div className={cls}>{body}</div>}
             </li>
           );
         })}

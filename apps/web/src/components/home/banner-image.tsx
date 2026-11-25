@@ -5,7 +5,7 @@ import { useState } from "react";
 
 /**
  * Picture for a promotional banner. If the file is missing or fails to load, the banner keeps its shape and shows the
- * VALTA mark as a quiet watermark, so a broken upload never leaves a hole or a broken-image icon. Nothing is invented.
+ * VOLTA mark as a quiet watermark, so a broken upload never leaves a hole or a broken-image icon. Nothing is invented.
  */
 export function BannerImage({ src, alt = "", sizes, unoptimized, priority, className = "object-cover", tone = "dark" }: { src: string; alt?: string; sizes: string; unoptimized?: boolean; priority?: boolean; className?: string; tone?: "dark" | "light" }) {
   const [failed, setFailed] = useState(false);

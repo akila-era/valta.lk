@@ -155,7 +155,7 @@ export interface CreateOrderRequest {
   externalRef: string;
   reservationRef?: string;
   currency: string;
-  paymentMethod: "COD";
+  paymentMethod: "COD" | "ONLINE";
   lines: { itemId: string; variantKey: string; quantity: number; unitPrice: number }[];
   deliveryCharge: number;
   total: number;

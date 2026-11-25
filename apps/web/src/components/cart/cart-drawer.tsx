@@ -90,7 +90,7 @@ function CartDrawerBody() {
                         </p>
                       )}
                       <div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-                        <div className="flex items-center rounded-lg border border-border" role="group" aria-label={`Quantity for ${l.name}`}>
+                        <div className="flex items-center rounded-2xl border border-border" role="group" aria-label={`Quantity for ${l.name}`}>
                           <button type="button" className="flex h-11 w-10 items-center justify-center rounded-l-lg hover:bg-surface disabled:opacity-40" aria-label={`Decrease quantity of ${l.name}`} disabled={l.quantity <= 1} onClick={() => cartActions.setQuantity(key, l.quantity - 1)}>
                             <Minus className="h-3.5 w-3.5" aria-hidden />
                           </button>

@@ -6,16 +6,16 @@ import { categoryVisual } from "./category-art";
 import { Reveal } from "./reveal";
 
 /** Large headline used by every homepage section: an optional small label, the title and an optional supporting line. */
-export function SectionIntro({ id, eyebrow, title, children, action }: { id: string; eyebrow?: string; title: string; children?: React.ReactNode; action?: { href: string; label: string } }) {
+export function SectionIntro({ id, title, children, action }: { id: string; eyebrow?: string; title: string; children?: React.ReactNode; action?: { href: string; label: string } }) {
   return (
-    <Reveal className="mb-6 flex flex-col gap-3 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
-        <h2 id={id} className="max-w-2xl text-3xl font-bold leading-[1.05] tracking-[-0.035em] text-ink sm:text-4xl lg:text-5xl">{title}</h2>
-        {children && <div className="mt-3 max-w-lg text-sm leading-6 text-muted sm:text-base">{children}</div>}
+    <Reveal className="mb-5 flex items-end justify-between gap-4 sm:mb-7">
+      <div className="min-w-0">
+        <span className="mb-2 block h-1 w-10 rounded-full bg-brand-500" aria-hidden />
+        <h2 id={id} className="text-2xl font-semibold leading-tight tracking-tight text-ink sm:text-[1.75rem]">{title}</h2>
+        {children && <div className="mt-1 max-w-lg text-[13px] leading-5 text-muted sm:text-[15px]">{children}</div>}
       </div>
       {action && (
-        <Link href={action.href} className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-ink underline-offset-4 hover:text-brand-600 hover:underline">
+        <Link href={action.href} className="group inline-flex min-h-10 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-border px-4 text-sm font-semibold text-ink transition-colors hover:border-ink hover:bg-ink hover:text-white">
           {action.label} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
         </Link>
       )}
@@ -47,7 +47,7 @@ export function CategoryTiles({ categories }: { categories: HomeData["categories
   if (!shown.length) return null;
   const bento = shown.length === 5;
   return (
-    <section aria-labelledby="cats" className="mt-12 sm:mt-20">
+    <section aria-labelledby="cats" className="mt-10 sm:mt-14">
       <SectionIntro id="cats" eyebrow="Explore" title="Find your category" action={{ href: "/products", label: "All products" }} />
       <ul className={`grid grid-cols-2 gap-3 sm:gap-4 ${bento ? "lg:grid-cols-4 lg:grid-rows-2" : "lg:grid-cols-3"}`}>
         {shown.map((c, i) => {

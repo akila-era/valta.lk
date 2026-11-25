@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Minus, Plus, RefreshCw, ShieldCheck, Truck, Wallet, type LucideIcon } from "lucide-react";
+import { Check, MessageCircle, Minus, Plus, RefreshCw, ShieldCheck, Truck, Wallet, type LucideIcon } from "lucide-react";
 import { effectivePrice, quantityCap, variantChoiceRequired } from "@/lib/erp/product-utils";
 import { cartActions } from "@/store/cart";
 import { MAX_LINE_QTY } from "@/lib/utils/cart-math";
 import { formatLkr } from "@/lib/utils/money";
+import { KokoInstalment } from "./koko-instalment";
 import { Price } from "./price";
 import { useVariantChoice } from "./variant-choice";
 import { WishlistButton } from "./wishlist-button";
@@ -34,13 +35,13 @@ function Assurance({ icon: Icon, title, children }: { icon: LucideIcon; title: s
       </span>
       <span className="min-w-0">
         <span className="block font-semibold leading-5 text-ink">{title}</span>
-        <span className="block text-xs leading-5 text-muted">{children}</span>
+        <span className="block text-[13px] leading-5 text-muted">{children}</span>
       </span>
     </li>
   );
 }
 
-export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, compact = false, onAdded }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; compact?: boolean; onAdded?: () => void }) {
+export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = false, compact = false, onAdded, deliveryTime, warranty, whatsapp, installments = 0 }: { product: PanelProduct; offerNames?: Record<string, string>; deliveryCharge?: number; cod?: boolean; compact?: boolean; onAdded?: () => void; deliveryTime?: string; warranty?: string; whatsapp?: string; installments?: number }) {
   const router = useRouter();
   const mustChoose = variantChoiceRequired(product.variants.length);
   const only = product.variants.length === 1 ? product.variants[0].key : "";
@@ -80,7 +81,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
     const main = document.body;
     if (!main) return;
     const narrow = window.matchMedia("(max-width: 1023px)").matches;
-    main.style.paddingBottom = showBar && narrow ? "calc(5.75rem + env(safe-area-inset-bottom))" : "";
+    main.style.paddingBottom = showBar ? (narrow ? "calc(5.75rem + env(safe-area-inset-bottom))" : "5rem") : "";
     return () => {
       main.style.paddingBottom = "";
     };
@@ -123,16 +124,17 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
         <Price price={price} salePrice={salePrice} large offerName={offerNames[variantKey] ?? offerNames[""]} />
         <WishlistButton className="shrink-0" item={{ productId: product.id, slug: product.slug, name: product.name, image: product.image, price: unit }} />
       </div>
+      {purchasable && <KokoInstalment price={unit} parts={installments} className="-mt-3 text-[13px] text-muted" />}
 
       {product.variants.length > 0 && (
         <fieldset ref={optionsRef} className="scroll-mt-28">
-          <legend className="label">Options</legend>
+          <legend className="label">Options{variant ? <span className="font-normal text-muted">: {variant.label}</span> : null}</legend>
           <div className="flex flex-wrap gap-2">
             {product.variants.map((v) => (
               <label
                 key={v.key}
-                className={`flex min-h-11 cursor-pointer items-center rounded-lg border px-4 text-sm font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand-600 ${
-                  v.key === variantKey ? "border-brand-600 bg-brand-50 font-semibold text-brand-700" : "border-border bg-bg"
+                className={`flex min-h-10 cursor-pointer items-center rounded-full border px-4 text-sm font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-brand-600 ${
+                  v.key === variantKey ? "border-brand-500 bg-brand-50 font-semibold text-ink" : "border-border bg-bg hover:border-ink"
                 } ${v.available ? "" : "cursor-not-allowed opacity-50"}`}
               >
                 <input type="radio" name="variant" value={v.key} checked={v.key === variantKey} disabled={!v.available} onChange={() => choose(v.key)} className="sr-only" />
@@ -157,7 +159,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
       </div>
 
       <div ref={actionsRef} className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="flex w-fit items-center rounded-lg border border-border bg-bg" role="group" aria-label="Quantity">
+        <div className="flex h-12 w-fit items-center rounded-md border border-border bg-bg" role="group" aria-label="Quantity">
           <button type="button" className="btn-ghost px-3" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty((q) => Math.max(1, q - 1))}>
             <Minus className="h-4 w-4" aria-hidden />
           </button>
@@ -167,12 +169,12 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>
         </div>
         <div className="flex flex-1 gap-3">
-          <button type="button" className="btn-primary min-w-0 flex-1 whitespace-nowrap " disabled={!purchasable || added} onClick={add}>
+          <button type="button" className="btn-primary btn-lg min-w-0 flex-1 whitespace-nowrap" disabled={!purchasable || added} onClick={add}>
             {added ? <><Check className="h-4 w-4" aria-hidden /> Added to cart</> : "Add to cart"}
           </button>
           {!compact && <button
             type="button"
-            className="btn-dark min-w-0 flex-1 whitespace-nowrap"
+            className="btn-dark btn-lg min-w-0 flex-1 whitespace-nowrap"
             disabled={!purchasable || added}
             onClick={() => {
               if (add()) router.push("/checkout");
@@ -182,22 +184,30 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           </button>}
         </div>
       </div>
-      {!compact && <ul className="grid divide-y divide-border border-y border-border text-sm sm:grid-cols-2 sm:divide-y-0 sm:[&>li:nth-child(n+3)]:border-t sm:[&>li:nth-child(n+3)]:border-border" aria-label="Delivery and payment">
-        {deliveryCharge != null ? (
-          <Assurance icon={Truck} title={`Delivery ${formatLkr(deliveryCharge)}`}>
-            <Link href="/shipping-policy" className="underline underline-offset-2 hover:text-ink">Shipping policy</Link>
-          </Assurance>
-        ) : null}
-        {cod ? <Assurance icon={Wallet} title="Cash on delivery">Pay when your order arrives</Assurance> : null}
+      {!compact && whatsapp ? (
+        <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hi, I'd like to ask about ${product.name}`)}`} target="_blank" rel="noopener noreferrer" className="btn btn-secondary w-full">
+          <MessageCircle className="h-4 w-4 text-success" aria-hidden /> Ask about this product on WhatsApp
+        </a>
+      ) : null}
+      {!compact && <ul className="grid divide-y divide-border rounded-2xl border border-border px-3 text-sm sm:grid-cols-2 sm:divide-y-0 sm:[&>li:nth-child(n+3)]:border-t sm:[&>li:nth-child(n+3)]:border-border" aria-label="Delivery and payment">
+        {cod ? <Assurance icon={Wallet} title="Cash on delivery available">Pay when your order arrives</Assurance> : null}
+        <Assurance icon={Truck} title={`Delivery ${deliveryTime ?? ""}`.trim()}>
+          {deliveryCharge != null ? `${formatLkr(deliveryCharge)} · ` : ""}<Link href="/shipping-policy" className="underline underline-offset-2 hover:text-ink">Shipping policy</Link>
+        </Assurance>
+        <Assurance icon={ShieldCheck} title="Warranty">{warranty || "Warranty support available"}</Assurance>
         <Assurance icon={RefreshCw} title="Returns">
           <Link href="/returns-policy" className="underline underline-offset-2 hover:text-ink">Returns policy</Link>
         </Assurance>
-        <Assurance icon={ShieldCheck} title="Stock confirmed">Checked again when you order</Assurance>
       </ul>}
       {showBar && !compact ? (
-        <div className="pb-safe fixed inset-x-0 bottom-0 z-40 !m-0 border-t border-border bg-bg/95 px-3 pt-3 shadow-overlay backdrop-blur lg:hidden">
-          <div className="mx-auto flex max-w-lg items-center gap-2">
-            <p className="min-w-0 flex-1 truncate text-base font-extrabold tabular-nums text-ink">{formatLkr(unit)}</p>
+        <div className="pb-safe fixed inset-x-0 bottom-0 z-40 !m-0 border-t border-border bg-bg/95 px-3 pt-3 shadow-overlay backdrop-blur">
+          <div className="mx-auto flex max-w-lg items-center gap-2 lg:max-w-[100rem] lg:gap-4 lg:px-7">
+            {product.image && (
+              // eslint-disable-next-line @next/next/no-img-element -- small picture for the sticky bar
+              <img src={product.image} alt="" width={44} height={44} className="hidden h-11 w-11 shrink-0 rounded-md border border-border bg-white object-contain lg:block" />
+            )}
+            <p className="hidden min-w-0 flex-1 truncate text-sm font-semibold text-ink lg:block">{product.name}</p>
+            <p className="min-w-0 flex-1 truncate text-base font-semibold tabular-nums text-ink lg:flex-none">{formatLkr(unit)}</p>
             {mustChoose && !variant ? (
               // A variant product cannot be added until an option is chosen: take the shopper to the options instead of a dead button.
               <button type="button" className="btn-dark shrink-0 px-5" onClick={() => optionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}>

@@ -4,7 +4,7 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
   { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
 ];
 
@@ -34,8 +34,16 @@ const nextConfig: NextConfig = {
   // E2E builds use their own folder so they never clobber a running dev server's .next
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: "/shipping", destination: "/shipping-policy", permanent: true },
+      { source: "/returns", destination: "/returns-policy", permanent: true },
+    ];
+  },
   // The dev-only "N" badge sat on top of the service bar; build errors still show in the overlay.
   devIndicators: false,
+  // Dev only: lets the live-reload connection work when the site is opened as 127.0.0.1 or from another device on the network.
+  allowedDevOrigins: ["127.0.0.1", "localhost", "*.local", "192.168.*.*", "10.*.*.*"],
   images: {
     // Product images are served from hosts listed in ERP_IMAGE_HOSTS (comma separated).
     remotePatterns: imageHosts(),

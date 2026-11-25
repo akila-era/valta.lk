@@ -150,7 +150,7 @@ test.describe("navigation and information pages", () => {
     const small = await browser.newContext({ viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true });
     const p1 = await small.newPage();
     await p1.goto("/");
-    const logo = await p1.getByRole("link", { name: "VALTA.LK home" }).first().boundingBox();
+    const logo = await p1.getByRole("link", { name: "VOLTA.LK home" }).first().boundingBox();
     expect(logo!.height).toBeGreaterThanOrEqual(40);
     await small.close();
     const wide = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -165,7 +165,7 @@ test.describe("navigation and information pages", () => {
 test.describe("complete homepage: sections and honesty", () => {
   test("trust strip, categories, brands, new arrivals, offers and collections appear in a sensible order with real data", async ({ page }) => {
     await page.goto("/");
-    const strip = page.getByRole("region", { name: "Shopping with VALTA.LK" });
+    const strip = page.getByRole("region", { name: "Shopping with VOLTA.LK" });
     await expect(strip.getByText("Delivery LKR 450")).toBeVisible();
     await expect(strip.getByText("Cash on delivery")).toBeVisible();
     await expect(strip.getByRole("link", { name: /Track your order/ })).toHaveAttribute("href", "/track-order");

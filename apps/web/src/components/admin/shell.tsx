@@ -177,12 +177,12 @@ function Notifications({ badges }: { badges: AdminBadges }) {
 
 function Brand({ collapsed }: { collapsed: boolean }) {
   return (
-    <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2 px-5 text-ink" aria-label="VALTA.LK admin home">
+    <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2 px-5 text-ink" aria-label="VOLTA.LK admin home">
       {collapsed ? (
         <span className="mx-auto text-lg font-extrabold text-brand-500">V</span>
       ) : (
         <span className="leading-tight">
-          <span className="block text-lg font-extrabold tracking-tight">VALTA<span className="text-brand-500">.LK</span></span>
+          <span className="block text-lg font-extrabold tracking-tight">VOLTA<span className="text-brand-500">.LK</span></span>
           <span className="block text-[11px] text-muted">E-commerce Admin</span>
         </span>
       )}

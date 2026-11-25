@@ -11,7 +11,7 @@ import { SearchBox } from "./search-box";
  * Phone search: a header icon that opens a full-screen sheet with the real search box (live product suggestions)
  * and shortcuts built from the catalogue's own brands and categories. Desktop keeps its inline search bar.
  */
-export function MobileSearch({ quick = [] }: { quick?: { label: string; href: string }[] }) {
+export function MobileSearch({ quick = [], bar = false }: { quick?: { label: string; href: string }[]; bar?: boolean }) {
   const [open, setOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -23,9 +23,16 @@ export function MobileSearch({ quick = [] }: { quick?: { label: string; href: st
   useDialogLifecycle(open, close, panel);
   return (
     <div className="md:hidden">
-      <button ref={trigger} type="button" className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-surface" aria-label="Search products" aria-haspopup="dialog" onClick={() => setOpen(true)}>
-        <Search className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-      </button>
+      {bar ? (
+        <button ref={trigger} type="button" className="flex h-11 w-full items-center gap-2.5 rounded-full bg-surface px-4 text-left text-[15px] text-muted transition-colors active:bg-border" aria-label="Search products" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+          <Search className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} aria-hidden />
+          <span className="truncate">Search phones, accessories…</span>
+        </button>
+      ) : (
+        <button ref={trigger} type="button" className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-surface" aria-label="Search products" aria-haspopup="dialog" onClick={() => setOpen(true)}>
+          <Search className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        </button>
+      )}
       {open && createPortal(
         <div ref={panel} role="dialog" aria-modal="true" aria-label="Search" className="fixed inset-0 z-[80] flex animate-[fade-in_0.15s_ease-out] flex-col bg-bg pt-[env(safe-area-inset-top)]">
           <div className="flex items-start gap-2 border-b border-border px-4 py-3">

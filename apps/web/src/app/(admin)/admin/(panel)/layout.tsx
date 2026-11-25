@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin/auth";
 import type { AdminBadges } from "@/lib/admin/nav";
 import { getDb } from "@/lib/db";
 
-export const metadata: Metadata = { title: { default: "Admin", template: "%s | VALTA.LK Admin" }, robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: { default: "Admin", template: "%s | VOLTA.LK Admin" }, robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 async function badges(): Promise<AdminBadges> {

@@ -2,16 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { ImageOff } from "lucide-react";
+import { Zap } from "lucide-react";
 
 function EmptyPhoto({ alt }: { alt: string }) {
-  const label = alt ? `${alt} (no image available)` : "No image available";
   return (
-    <div className="@container flex h-full w-full flex-col items-center justify-center gap-2 bg-surface text-muted" role="img" aria-label={label}>
-      <span className="flex items-center justify-center rounded-full @[8rem]:h-14 @[8rem]:w-14 @[8rem]:bg-white" aria-hidden>
-        <ImageOff className="h-5 w-5 @[8rem]:h-6 @[8rem]:w-6" strokeWidth={1.5} />
-      </span>
-      <span className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] @[8rem]:block" aria-hidden>No photo</span>
+    <div className="flex h-full w-full items-center justify-center bg-surface" role="img" aria-label={alt ? `${alt} (no image available)` : "No image available"}>
+      <Zap className="h-1/4 w-1/4 min-h-6 min-w-6 fill-current text-neutral-300" strokeWidth={1} aria-hidden />
     </div>
   );
 }

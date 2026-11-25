@@ -138,7 +138,7 @@ export function AccessoryRail({ productIds, initial, selections, intro = "Only a
       </div>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {visible.map((item) => (
-          <li key={`${item.sourceItemId}-${item.sourceVariantKey}-${item.productId}`} className="flex gap-3 rounded-lg border border-border bg-bg p-3">
+          <li key={`${item.sourceItemId}-${item.sourceVariantKey}-${item.productId}`} className="flex gap-3 rounded-2xl border border-border bg-bg p-3">
             <Link
               href={`/products/${item.slug}`}
               className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-surface"

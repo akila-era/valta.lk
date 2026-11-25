@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const c = await findCategory(slug);
     if (!c) return { title: "Category not found", robots: { index: false } };
-    return { title: c.name, description: `Shop ${c.name} at VALTA.LK.`, alternates: { canonical: `/categories/${slug}` } };
+    return { title: c.name, description: `Shop ${c.name} at VOLTA.LK.`, alternates: { canonical: `/categories/${slug}` } };
   } catch {
     return { title: "Category" };
   }

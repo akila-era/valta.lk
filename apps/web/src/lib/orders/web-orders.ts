@@ -118,6 +118,8 @@ export interface PersistInput {
   customerId?: string | null;
   accessToken: string;
   priceBreakdown?: Prisma.InputJsonValue;
+  /** Online payment (Koko or Payzy): the order is held back from the ERP until the payment is confirmed. */
+  onlinePayment?: "KOKO" | "PAYZY";
 }
 
 /**
@@ -139,7 +141,8 @@ export async function persistOrder(db: PrismaClient, input: PersistInput) {
       data: {
         externalRef: r.externalRef,
         customerId: input.customerId ?? null,
-        paymentMethod: r.paymentMethod,
+        paymentMethod: input.onlinePayment ?? r.paymentMethod,
+        ...(input.onlinePayment ? { awaitingPayment: true, paymentStatus: "PENDING" } : {}),
         currency: r.currency,
         subtotal: input.subtotal.toFixed(2),
         deliveryCharge: r.deliveryCharge.toFixed(2),
@@ -185,6 +188,7 @@ export async function syncOrder(db: PrismaClient, externalRef: string, opts: { f
     where: {
       externalRef,
       syncStatus: "PENDING",
+      awaitingPayment: false, // an unpaid online order is never sent to the ERP
       ...(opts.force ? {} : { nextAttemptAt: { lte: now } }),
       OR: [{ lockedUntil: null }, { lockedUntil: { lt: now } }],
     },
@@ -240,7 +244,7 @@ export async function syncOrder(db: PrismaClient, externalRef: string, opts: { f
 export async function syncDueOrders(db: PrismaClient, limit = 25): Promise<{ due: number; synced: number; pending: number; failed: number; busy: number }> {
   const now = new Date();
   const due = await db.webOrder.findMany({
-    where: { syncStatus: "PENDING", nextAttemptAt: { lte: now }, OR: [{ lockedUntil: null }, { lockedUntil: { lt: now } }] },
+    where: { syncStatus: "PENDING", awaitingPayment: false, nextAttemptAt: { lte: now }, OR: [{ lockedUntil: null }, { lockedUntil: { lt: now } }] },
     orderBy: { nextAttemptAt: "asc" },
     take: limit,
     select: { externalRef: true },
@@ -259,7 +263,7 @@ export async function syncDueOrders(db: PrismaClient, limit = 25): Promise<{ due
 /** Admin action: put a FAILED (or stuck PENDING) order back in the queue and try right away. */
 export async function retryOrderNow(db: PrismaClient, externalRef: string): Promise<SyncOutcome> {
   const reset = await db.webOrder.updateMany({
-    where: { externalRef, syncStatus: { in: ["FAILED", "PENDING"] } },
+    where: { externalRef, awaitingPayment: false, syncStatus: { in: ["FAILED", "PENDING"] } },
     data: { syncStatus: "PENDING", nextAttemptAt: new Date(), lockedUntil: null, lastError: null, lastErrorCode: null },
   });
   if (reset.count === 0) {

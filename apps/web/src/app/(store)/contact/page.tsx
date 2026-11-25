@@ -14,8 +14,8 @@ export default function ContactPage() {
     siteConfig.hours.length > 0 && { icon: Clock, label: "Business hours", value: siteConfig.hours.join(" · ") },
   ].filter(Boolean) as { icon: typeof Phone; label: string; value: string; href?: string }[];
   return (
-    <PolicyPage title="Contact us" intro="Questions about an order or a product? Get in touch." rail={false}>
-      <section className="!border-t-0 !pt-0">
+    <PolicyPage title="Contact us" intro="Questions about an order or a product? Get in touch." layout="stack" cta={false}>
+      <section>
         <h2>Our details</h2>
         {cards.length > 0 ? (
           <ul className="grid gap-3 !list-none !pl-0 sm:grid-cols-2">

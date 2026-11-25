@@ -15,7 +15,7 @@ export function BudgetShortcuts({ picks }: { picks: HomeData["budgetPicks"] }) {
   if (!picks.length) return null;
   const hints: Record<string, string> = { under: "Everyday essentials", mid: "Mid-range picks", over: "Premium devices" };
   return (
-    <section aria-labelledby="budget" className="mt-16 sm:mt-24">
+    <section aria-labelledby="budget" className="mt-10 sm:mt-14">
       <SectionIntro id="budget" eyebrow="Shop by budget" title="Start with what you want to spend.">
         Pick a price range and see what is available now.
       </SectionIntro>
@@ -64,7 +64,7 @@ export function BudgetShortcuts({ picks }: { picks: HomeData["budgetPicks"] }) {
 }
 
 /**
- * The VALTA experience: only things the store really does (checkout rules come from the live ERP settings).
+ * The VOLTA experience: only things the store really does (checkout rules come from the live ERP settings).
  * No warranty, authorised-dealer, payment-provider or speed promises, because none are verified.
  */
 export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
@@ -75,12 +75,12 @@ export function WhyChoose({ checkout }: { checkout: HomeData["checkout"] }) {
     { fig: "Online", title: "Track and cancel online", text: "Follow your order with its reference number, and cancel it online before it is dispatched." },
   ];
   return (
-    <section aria-labelledby="why" className="mt-16 sm:mt-24">
+    <section aria-labelledby="why" className="mt-10 sm:mt-14">
       <div className="overflow-hidden rounded-[2rem] bg-ink text-white">
         <div className="grid gap-5 p-6 sm:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:items-end lg:gap-16 lg:p-14">
           <Reveal>
-            <p className="eyebrow !text-brand-500">The VALTA experience</p>
-            <h2 id="why" className="mt-3 text-3xl font-bold leading-[1.05] tracking-[-0.035em] sm:text-4xl lg:text-5xl">Why shop with VALTA.LK</h2>
+            <p className="eyebrow !text-brand-500">The VOLTA experience</p>
+            <h2 id="why" className="mt-3 text-3xl font-bold leading-[1.05] tracking-[-0.035em] sm:text-4xl lg:text-5xl">Why shop with VOLTA.LK</h2>
           </Reveal>
           <Reveal delay={80}>
             <p className="max-w-md text-sm leading-6 text-white/75 sm:text-base lg:justify-self-end">Simple, transparent shopping from the first search to the doorstep.</p>
@@ -110,7 +110,7 @@ export function HowItWorks({ checkout, photos }: { checkout: HomeData["checkout"
     { name: "Receive", text: "Track your delivery online." },
   ];
   return (
-    <section aria-labelledby="how" className="mt-16 sm:mt-24">
+    <section aria-labelledby="how" className="mt-10 sm:mt-14">
       <SectionIntro id="how" eyebrow="Three simple steps" title="How ordering works" />
       <ol className="grid gap-4 md:grid-cols-3 md:gap-5">
         {steps.map((s, i) => {
@@ -147,9 +147,9 @@ export function HowItWorks({ checkout, photos }: { checkout: HomeData["checkout"
 /** Final discovery prompt: simple, with the real catalogue size. */
 export function FinalCta({ total }: { total: number }) {
   return (
-    <section aria-labelledby="final-cta" className="mt-16 sm:mt-24">
+    <section aria-labelledby="final-cta" className="mt-10 sm:mt-14">
       <Reveal className="rounded-[2rem] bg-ink px-6 py-12 text-white sm:px-12 sm:py-20 lg:px-20">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">VALTA.LK</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">VOLTA.LK</p>
         <h2 id="final-cta" className="mt-3 max-w-3xl text-4xl font-bold leading-[1] tracking-[-0.04em] sm:text-6xl lg:text-7xl">Find your next favourite.</h2>
         <p className="mt-5 max-w-md text-base leading-7 text-white/70">
           {total > 0 ? `Browse ${total} ${total === 1 ? "product" : "products"} in the catalogue, with live prices and stock.` : "Browse the catalogue, with live prices and stock."}

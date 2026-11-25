@@ -17,7 +17,7 @@ export function CartLink() {
         e.preventDefault();
         uiActions.openCart();
       }}
-      className="group inline-flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-lg px-2 transition-colors hover:text-brand-600"
+      className="group inline-flex min-h-11 min-w-11 items-center justify-center gap-2.5 rounded-full px-2.5 transition-colors hover:bg-surface md:px-3.5"
       aria-label={`Cart, ${count} item${count === 1 ? "" : "s"}${count ? `, ${formatLkr(subtotal)}` : ""}`}
     >
       <span className="relative">

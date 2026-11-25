@@ -113,7 +113,7 @@ test.describe("homepage", () => {
     await page.goto("/");
     const opener = page.locator("header").getByRole("button", { name: /All categories/i });
     await opener.click();
-    const drawer = page.getByRole("dialog", { name: "Browse VALTA.LK" });
+    const drawer = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
     await expect(drawer).toBeVisible();
     await expect(drawer.getByRole("button", { name: "Close" })).toBeFocused();
     await expect(drawer.getByRole("tab", { name: "All categories" })).toHaveAttribute("aria-selected", "true");
@@ -309,11 +309,11 @@ test.describe("reference-inspired patterns", () => {
     }
   });
 
-  test("why shop with VALTA.LK: only verified facts, from live ERP settings", async ({ page }) => {
+  test("why shop with VOLTA.LK: only verified facts, from live ERP settings", async ({ page }) => {
     await page.goto("/");
     const why = page.locator("section[aria-labelledby=why]");
     await why.scrollIntoViewIfNeeded();
-    await expect(why.getByRole("heading", { name: "Why shop with VALTA.LK", level: 2 })).toBeVisible();
+    await expect(why.getByRole("heading", { name: "Why shop with VOLTA.LK", level: 2 })).toBeVisible();
     await expect(why.getByRole("heading", { level: 3 })).toHaveText(["Cash on delivery", "Clear delivery charge", "Live prices and stock", "Track and cancel online"]);
     await expect(why.getByText("A flat delivery charge of LKR 450 is shown before you place your order.")).toBeVisible(); // the ERP's real charge
     await expect(why.getByText(/warranty|authori[sz]ed|genuine|fast|installment|koko|mintpay/i)).toHaveCount(0); // nothing that is not verified

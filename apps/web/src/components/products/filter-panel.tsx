@@ -26,8 +26,17 @@ export function FilterPanel({ children, active }: { children: React.ReactNode; a
       const query = params.toString();
       window.location.assign(query ? `${form.action}?${query}` : form.action);
     }
+    // Picking a brand or ticking "available only" applies at once; the price boxes use their own Apply button.
+    function onChange(event: Event) {
+      const el = event.target;
+      if (el instanceof HTMLSelectElement || (el instanceof HTMLInputElement && el.type === "checkbox")) form?.requestSubmit();
+    }
     form.addEventListener("submit", onSubmit);
-    return () => form.removeEventListener("submit", onSubmit);
+    form.addEventListener("change", onChange);
+    return () => {
+      form.removeEventListener("submit", onSubmit);
+      form.removeEventListener("change", onChange);
+    };
   }, []);
 
   useDialogLifecycle(open, close, panelRef);

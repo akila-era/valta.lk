@@ -73,7 +73,9 @@ export async function refreshFromErp(db: PrismaClient, rows: WebOrder[], maxAgeM
   return rows.map((r) => updated.get(r.externalRef) ?? r);
 }
 
-export const paymentLabel = (r: Pick<WebOrder, "paymentMethod" | "erpPaymentStatus" | "syncStatus">): string => {
+export const paymentLabel = (r: Pick<WebOrder, "paymentMethod" | "erpPaymentStatus" | "syncStatus"> & { paymentStatus?: string | null }): string => {
+  if (r.paymentMethod === "KOKO") return r.paymentStatus === "PAID" ? "Koko: paid" : "Koko: awaiting payment";
+  if (r.paymentMethod === "PAYZY") return r.paymentStatus === "PAID" ? "Payzy: paid" : "Payzy: awaiting payment";
   if (r.paymentMethod !== "COD") return r.paymentMethod;
   if (r.erpPaymentStatus === "COD_COLLECTED") return "COD: cash collected";
   return r.syncStatus === "SYNCED" ? "COD: pending collection" : "COD: pending (not yet in ERP)";

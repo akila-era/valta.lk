@@ -1,7 +1,8 @@
 import "server-only";
-import { activeBanners, activeWideBanners, type WideBanner } from "./banners";
+import { activeBanners, activeSideBanners, activeWideBanners, type WideBanner } from "./banners";
 import { brandKey, brandLogoMap } from "./brand-logos";
 import { budgetBands, listBrands, listPrices, listProducts, type ProductListResult } from "./erp/catalogue";
+import { cleanCategories, looksLikeJunk } from "./hygiene";
 import { isOnSale } from "./erp/product-utils";
 import { getCheckoutAvailability } from "./erp/settings";
 import type { ErpProduct } from "./erp/types";
@@ -91,8 +92,10 @@ export interface HomeData {
   banners: ResolvedBanner[];
   /** True when the banners were created by staff in the admin (shown as written), false when derived from categories. */
   bannersFromStaff: boolean;
-  /** Full-width pictures staff placed between "Shop by budget" and "Why shop with VALTA.LK"; they rotate when there are several. */
+  /** Full-width pictures staff placed between "Shop by budget" and "Why shop with VOLTA.LK"; they rotate when there are several. */
   wideBanners: WideBanner[];
+  /** Pictures (up to six) staff placed beside the hero slider; the two side tiles rotate through them (Admin > Promotional banners > Hero side picture). */
+  sideBanners: WideBanner[];
   /** Further products beyond the ones already shown in "New Arrivals": same catalogue, next in line. */
   more: ErpProduct[];
   videos: { title: string; items: VideoConfig[] };
@@ -127,13 +130,13 @@ export async function getHomeData(): Promise<HomeData> {
     const ordered = [...items.filter((p) => p.images.length), ...items.filter((p) => !p.images.length)];
     return items.length ? [{ key: d.key, label: d.label, href: d.href, count: r.total, products: ordered.slice(0, 3) }] : [];
   });
-  const [logos, staffBanners, wideBanners] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners()]);
+  const [logos, staffBanners, wideBanners, sideBanners] = await Promise.all([brandLogoMap(), activeBanners(), activeWideBanners(), activeSideBanners()]);
 
   const all = newest?.items ?? [];
 
-  const categories = newest?.categories ?? [];
+  const categories = cleanCategories(newest?.categories ?? []);
   // One rail per larger category, newest first
-  const railCats = [...categories].filter((c) => c.count >= 3).sort((a, b) => b.count - a.count).slice(0, 3);
+  const railCats = [...categories].filter((c) => c.count >= 3).sort((a, b) => b.count - a.count).slice(0, 4);
   const rails = (
     await Promise.all(
       railCats.map(async (c) => {
@@ -155,11 +158,12 @@ export async function getHomeData(): Promise<HomeData> {
     })(),
     offers: (offers?.items ?? []).filter(isOnSale),
     featured: featured?.items ?? [],
-    brands: (brands ?? []).map((b) => ({ ...b, logo: logos.get(brandKey(b.name)) })),
+    brands: (brands ?? []).filter((b) => b.count > 0 && !looksLikeJunk(b.name)).map((b) => ({ ...b, logo: logos.get(brandKey(b.name)) })),
     // Banners staff created in the admin win; with none active the category-derived / HOME_BANNERS ones remain.
     banners: staffBanners.length ? staffBanners : resolveBanners(categories),
     bannersFromStaff: staffBanners.length > 0,
     wideBanners,
+    sideBanners,
     rails,
     budget: prices ? budgetBands(prices) : null,
     budgetPicks,

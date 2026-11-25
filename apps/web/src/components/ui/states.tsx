@@ -63,7 +63,7 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4" role="status" aria-label="Loading products">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="overflow-hidden rounded-xl border border-border bg-bg shadow-card">
+        <div key={i} className="overflow-hidden rounded-2xl border border-border bg-bg shadow-card">
           <Skeleton className="aspect-square w-full rounded-none" />
           <div className="px-4 pb-5 pt-3">
             <Skeleton className="h-3 w-1/4" />

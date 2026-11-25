@@ -6,7 +6,7 @@ import { ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
 
 export interface BannerRow {
   id: string;
-  placement: "CARDS" | "WIDE";
+  placement: "CARDS" | "WIDE" | "SIDE";
   eyebrow: string;
   headline: string;
   text: string;
@@ -55,7 +55,7 @@ export function BannerManager({ rows, max, shown }: { rows: BannerRow[]; max: nu
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">
-          <b>Promo cards</b>: the first {shown} active ones show on the homepage, in order; with none active the automatic category cards stay. <b>Wide banner</b>: full-width pictures between &quot;Shop by budget&quot; and &quot;Why shop with VALTA.LK&quot;; with several active, they slide automatically (up to 5, in order).
+          <b>Promo cards</b>: the first {shown} active ones show on the homepage, in order; with none active the automatic category cards stay. <b>Wide banner</b>: full-width pictures between &quot;Shop by budget&quot; and &quot;Why shop with VOLTA.LK&quot;; with several active, they slide automatically (up to 5, in order).
         </p>
         {editing === null && (
           <button type="button" className="btn-primary" disabled={rows.length >= max} onClick={() => { setError(null); setEditing("new"); }}>
@@ -93,14 +93,14 @@ export function BannerManager({ rows, max, shown }: { rows: BannerRow[]; max: nu
                 ) : (
                   <span className="flex flex-col items-center gap-1 text-xs text-muted"><ImageIcon className="h-6 w-6" aria-hidden />Stock photo</span>
                 )}
-                <span className={`badge absolute left-3 top-3 ${r.active ? "bg-success-bg text-success" : "bg-surface text-muted ring-1 ring-border"}`}>{r.active ? "Shown" : "Hidden"} · {r.placement === "WIDE" ? "Wide banner" : "Promo card"}</span>
+                <span className={`badge absolute left-3 top-3 ${r.active ? "bg-success-bg text-success" : "bg-surface text-muted ring-1 ring-border"}`}>{r.active ? "Shown" : "Hidden"} · {r.placement === "WIDE" ? "Wide banner" : r.placement === "SIDE" ? "Hero side picture" : "Promo card"}</span>
                 <span className="badge absolute right-3 top-3 bg-bg text-ink ring-1 ring-border">Order {r.sortOrder}</span>
               </div>
               <div className="p-4">
                 {r.eyebrow && <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">{r.eyebrow}</p>}
                 <p className="mt-0.5 font-semibold">{r.headline}</p>
                 {r.text && <p className="mt-1 text-sm text-muted">{r.text}</p>}
-                {r.placement === "WIDE" ? (
+                {r.placement !== "CARDS" ? (
                   <p className="mt-2 text-xs text-muted">Link: <span className="font-mono">{r.href || "none"}</span></p>
                 ) : (
                   <p className="mt-2 text-xs text-muted">Button: <b className="text-ink">{r.ctaLabel}</b> → <span className="font-mono">{r.href}</span></p>
@@ -121,8 +121,8 @@ export function BannerManager({ rows, max, shown }: { rows: BannerRow[]; max: nu
 function BannerForm({ initial, busy, error, onCancel, onSubmit }: { initial: BannerRow | null; busy: boolean; error: string | null; onCancel: () => void; onSubmit: (fd: FormData) => void | Promise<void> }) {
   const v = initial ?? { ...blank, id: "", imageUrl: null as string | null };
   const fileRef = useRef<HTMLInputElement>(null);
-  const [placement, setPlacement] = useState<"CARDS" | "WIDE">(v.placement);
-  const wide = placement === "WIDE";
+  const [placement, setPlacement] = useState<"CARDS" | "WIDE" | "SIDE">(v.placement);
+  const wide = placement !== "CARDS";
   const [preview, setPreview] = useState<string | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
   const shownImage = preview ?? (removeImage ? null : v.imageUrl);
@@ -132,7 +132,7 @@ function BannerForm({ initial, busy, error, onCancel, onSubmit }: { initial: Ban
     const fd = new FormData(e.currentTarget);
     fd.set("active", (e.currentTarget.elements.namedItem("active") as HTMLInputElement).checked ? "1" : "0");
     if (removeImage && !preview) fd.set("removeImage", "1");
-    if (wide && !preview && (removeImage || !v.imageUrl)) return window.alert("A wide banner needs a picture.");
+    if (wide && !preview && (removeImage || !v.imageUrl)) return window.alert("This kind of banner needs a picture.");
     void onSubmit(fd);
   }
 
@@ -141,7 +141,7 @@ function BannerForm({ initial, busy, error, onCancel, onSubmit }: { initial: Ban
       <fieldset className="lg:col-span-2">
         <legend className="label">Banner type</legend>
         <div className="flex flex-wrap gap-2">
-          {([["CARDS", "Promo card (picture + text + button)"], ["WIDE", "Wide banner (full-width picture, slides)"]] as const).map(([val, text]) => (
+          {([["CARDS", "Promo card (picture + text + button)"], ["WIDE", "Wide banner (full-width picture, slides)"], ["SIDE", "Hero side picture (beside the slider, slides)"]] as const).map(([val, text]) => (
             <label key={val} className={`cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium ${placement === val ? "border-brand-500 bg-brand-50 text-brand-700" : "border-border"}`}>
               <input type="radio" name="placement" value={val} checked={placement === val} onChange={() => setPlacement(val)} className="sr-only" /> {text}
             </label>
@@ -177,7 +177,7 @@ function BannerForm({ initial, busy, error, onCancel, onSubmit }: { initial: Ban
             <button type="button" className="btn-ghost min-h-9 px-3 text-xs text-danger" onClick={() => { setPreview(null); setRemoveImage(true); if (fileRef.current) fileRef.current.value = ""; }}>Remove</button>
           )}
         </div>
-        <p className="mt-2 text-xs text-muted">{wide ? "JPEG, PNG or WebP, up to 2 MB. About 1600 × 600 px, wide, works best." : "JPEG, PNG or WebP, up to 2 MB. A wide or square photo works best."}</p>
+        <p className="mt-2 text-xs text-muted">{placement === "SIDE" ? "JPEG, PNG or WebP, up to 2 MB. About 800 × 600 px works best. Add 2 or more: the two tiles beside the slider slide through all of them. No text is added on top, so put any words in the picture." : wide ? "JPEG, PNG or WebP, up to 2 MB. About 1600 × 600 px, wide, works best." : "JPEG, PNG or WebP, up to 2 MB. A wide or square photo works best."}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

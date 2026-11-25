@@ -122,7 +122,7 @@ export function QuickPreview({ doc, urls, erp, previewHref }: { doc: ContentDoc;
         <div className="relative order-1 aspect-square overflow-hidden rounded-xl border border-border bg-surface sm:order-2">
           {main ? <Image src={main.src} alt={main.alt || title} fill sizes="260px" className="object-contain p-3" unoptimized /> : <Smartphone className="m-auto h-full w-12 text-muted" aria-hidden />}
           <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
-            {badges.slice(0, 3).map((b) => <span key={b} className="badge whitespace-nowrap bg-brand-500 text-ink">{b}</span>)}
+            {badges.slice(0, 3).map((b) => <span key={b} className="badge whitespace-nowrap bg-brand-500 text-white">{b}</span>)}
           </div>
           <span className={`badge absolute bottom-2 left-2 whitespace-nowrap ${erp.availability === "out" ? "bg-danger text-white" : "bg-success text-white"}`}>{a.label}</span>
         </div>

@@ -1,5 +1,5 @@
 import { bannerFront, parseBannerForm } from "@/lib/admin/banner-api";
-import { MAX_BANNERS } from "@/lib/banners";
+import { isPictureBanner, MAX_BANNERS } from "@/lib/banners";
 import { errorResponse, json } from "@/lib/security/api";
 
 export const dynamic = "force-dynamic";
@@ -10,9 +10,9 @@ export async function POST(req: Request) {
   if (!ctx.ok) return ctx.response;
   const parsed = await parseBannerForm(req);
   if (!parsed.ok) return parsed.response;
-  if ((await ctx.db.banner.count().catch(() => MAX_BANNERS)) >= MAX_BANNERS) return errorResponse(422, "TOO_MANY", `You can keep at most ${MAX_BANNERS} banners. Delete one first.`);
+  if ((await ctx.db.banner.count({ where: { placement: { in: ["CARDS", "WIDE", "SIDE"] } } }).catch(() => MAX_BANNERS)) >= MAX_BANNERS) return errorResponse(422, "TOO_MANY", `You can keep at most ${MAX_BANNERS} banners. Delete one first.`);
   const { data, image, placement } = parsed.form;
-  if (placement === "WIDE" && !image) return errorResponse(422, "NO_FILE", "A wide banner needs a picture.");
+  if (isPictureBanner(placement) && !image) return errorResponse(422, "NO_FILE", "This kind of banner needs a picture.");
   const row = await ctx.db.banner
     .create({ data: { ...data, placement, imageType: image?.type ?? null, imageData: image ? Buffer.from(image.bytes) : null, updatedBy: ctx.email }, select: { id: true } })
     .catch(() => null);

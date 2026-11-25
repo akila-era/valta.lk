@@ -51,6 +51,16 @@ export const MARKETING_PAGES: Record<string, Unavailable> = {
     why: "The storefront has no banner slots backed by data, and no image upload storage exists.",
     needs: ["File/image storage", "A banners table and storefront slots that read from it"],
   },
+  wholesale: { title: "Wholesale registrations", why: "Registrations are listed on this page.", needs: [] },
+  pages: { title: "Info pages", why: "Pages are edited here.", needs: [] },
+  social: { title: "Social posts", why: "Posts are managed on this page.", needs: [] },
+  "hot-deals": { title: "Hot Deals", why: "Hot Deals are managed on this page.", needs: [] },
+  newsletter: { title: "Newsletter", why: "Subscribers are listed on this page.", needs: [] },
+  videos: {
+    title: "Homepage videos",
+    why: "Videos are managed on this page.",
+    needs: [],
+  },
   promotions: {
     title: "Promotions & discounts",
     why: "Prices and sale prices come from the ERP and the website cannot change them. There is no coupon or discount engine, and orders are validated against ERP prices.",

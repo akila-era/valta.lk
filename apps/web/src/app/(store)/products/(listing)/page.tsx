@@ -25,7 +25,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (brand) {
     return {
       title: `${brand.name} products`,
-      description: `Shop ${brand.name} products at VALTA.LK.`,
+      description: `Shop ${brand.name} products at VOLTA.LK.`,
       alternates: { canonical: `/products?brand=${encodeURIComponent(brand.name)}` },
     };
   }
