@@ -16,7 +16,10 @@ import { MobileMenu } from "./mobile-menu";
 import { MobileSearch } from "./mobile-search";
 import { SearchBox } from "./search-box";
 
-async function loadNavData() {
+type NavData = { categories: { slug: string; name: string; subs: { slug: string; name: string }[] }[]; hasDeals: boolean; hasBrands: boolean; quick: { label: string; href: string }[] };
+const navCache = globalThis as unknown as { __voltaNav?: NavData };
+
+async function loadNavData(): Promise<NavData> {
   try {
     const [cats, deals, brands] = await Promise.all([listProducts({ pageSize: 1 }), listProducts({ pageSize: 1, onSale: true }), listBrands()]);
     // "Popular" = the biggest brands and categories in the catalogue (we have no search-history data)
@@ -24,9 +27,12 @@ async function loadNavData() {
       ...brands.slice(0, 4).map((b) => ({ label: b.name, href: `/search?q=${encodeURIComponent(b.name)}` })),
       ...[...cats.categories].sort((a, b) => b.count - a.count).slice(0, 3).map((c) => ({ label: c.name, href: `/categories/${c.slug}` })),
     ];
-    return { categories: cats.categories.map((c) => ({ slug: c.slug, name: c.name, subs: c.subs.map((x) => ({ slug: x.slug, name: x.name })) })), hasDeals: deals.total > 0, hasBrands: brands.length > 0, quick };
+    const data: NavData = { categories: cats.categories.map((c) => ({ slug: c.slug, name: c.name, subs: c.subs.map((x) => ({ slug: x.slug, name: x.name })) })), hasDeals: deals.total > 0, hasBrands: brands.length > 0, quick };
+    if (data.categories.length) navCache.__voltaNav = data; // remember the last good menu
+    return data;
   } catch {
-    return { categories: [], hasDeals: false, hasBrands: false, quick: [] as { label: string; href: string }[] }; // the header must still render when the ERP is unreachable
+    // The header must still render when the ERP is briefly unreachable: keep showing the last menu that loaded instead of an empty bar.
+    return navCache.__voltaNav ?? { categories: [], hasDeals: false, hasBrands: false, quick: [] };
   }
 }
 
