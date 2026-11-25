@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { ArrowUp, ArrowUpRight, Check, Maximize2, Minimize2, RotateCcw, ShoppingCart, Volume2, VolumeX, X } from "lucide-react";
 import { AiLottie } from "./ai-lottie";
+import { Wave } from "./level-wave";
 import { AI_OPEN_EVENT } from "./ai-open";
 import { aiActions, useAiStore } from "@/store/ai";
 import { RobotFace, type FaceState } from "./robot-face";
@@ -35,15 +37,6 @@ function Typing() {
   );
 }
 
-function Wave() {
-  return (
-    <span className="flex h-6 items-center gap-[3px]" aria-hidden>
-      {[0.1, 0.3, 0.0, 0.4, 0.2, 0.5, 0.15, 0.35, 0.05].map((d, i) => (
-        <span key={i} className="h-full w-[3px] origin-center rounded-full bg-brand-500 animate-ai-bar" style={{ animationDelay: `${d}s` }} />
-      ))}
-    </span>
-  );
-}
 
 /** The robot face is the voice button: tap it to talk. It listens, thinks and speaks with the conversation. */
 function VoiceRobot({ state, onClick, className }: { state: FaceState; onClick: () => void; className: string }) {
@@ -162,7 +155,7 @@ export function AiChatPanel({
   autoFocus?: boolean;
 }) {
   const chat = useAiChat({ active, autoListen });
-  const { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay } = chat;
+  const { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay, level } = chat;
   const list = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -222,7 +215,7 @@ export function AiChatPanel({
               <p className="mx-auto mt-1 flex min-h-5 max-w-xs items-center justify-center gap-2 text-sm text-muted">
                 {listening ? (
                   <>
-                    <Wave /> {heard || "Listening, go ahead..."}
+                    <Wave level={level} /> {heard || "Listening, go ahead..."}
                   </>
                 ) : canListen ? (
                   "Tap me and speak, or type below."
@@ -296,7 +289,7 @@ export function AiChatPanel({
           {canListen && <VoiceRobot state={faceState} onClick={toggleMic} className="h-12 w-[2.3rem]" />}
           {listening ? (
             <div className="flex min-w-0 flex-1 items-center gap-3 px-2 text-sm">
-              <Wave /> <span className="truncate text-muted">{heard || "Listening, go ahead..."}</span>
+              <Wave level={level} /> <span className="truncate text-muted">{heard || "Listening, go ahead..."}</span>
             </div>
           ) : (
             <input
@@ -329,6 +322,19 @@ export function AiAssistant() {
   const open = mode !== "closed";
   const docked = mode === "dock";
 
+  // The home page has its own robot face; hide the floating one while that section is on screen so they never overlap.
+  const path = usePathname();
+  // Remember which page the "in view" reading belongs to, so it is ignored after navigating away from the home page.
+  const [faceSeen, setFaceSeen] = useState({ path: "", visible: false });
+  useEffect(() => {
+    const section = document.getElementById("ai-chat-title")?.closest("section");
+    if (!section) return;
+    const io = new IntersectionObserver(([e]) => setFaceSeen({ path, visible: e.isIntersecting }), { threshold: 0.1 });
+    io.observe(section);
+    return () => io.disconnect();
+  }, [path]);
+  const faceInView = faceSeen.path === path && faceSeen.visible;
+
   useEffect(() => {
     const onOpen = (e: Event) => aiActions.open(!!(e as CustomEvent<{ listen?: boolean }>).detail?.listen);
     window.addEventListener(AI_OPEN_EVENT, onOpen);
@@ -345,7 +351,7 @@ export function AiAssistant() {
 
   return (
     <>
-      {!open && (
+      {!open && !faceInView && (
         <button
           type="button"
           onClick={() => aiActions.open(false)}

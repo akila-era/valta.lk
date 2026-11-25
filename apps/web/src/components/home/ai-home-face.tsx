@@ -2,26 +2,18 @@
 
 import { Check, Volume2, VolumeX } from "lucide-react";
 import { openAi } from "@/components/assistant/ai-open";
+import { Wave } from "@/components/assistant/level-wave";
 import { RobotFace } from "@/components/assistant/robot-face";
 import { useAiChat } from "@/components/assistant/use-ai-chat";
 import { formatLkr } from "@/lib/utils/money";
 
-function Wave() {
-  return (
-    <span className="flex h-5 items-center gap-[3px]" aria-hidden>
-      {[0.1, 0.3, 0.0, 0.4, 0.2, 0.5, 0.15, 0.35, 0.05].map((d, i) => (
-        <span key={i} className="h-full w-[3px] origin-center rounded-full bg-[#5fcf93] animate-ai-bar" style={{ animationDelay: `${d}s` }} />
-      ))}
-    </span>
-  );
-}
 
 /**
  * The home-page robot face holds the whole voice conversation right here: tap it, speak, and it answers out loud
  * (mouth moving) while the words it heard and its reply appear underneath. Actions such as opening a page or adding to cart still happen.
  */
 export function AiHomeFace() {
-  const { msgs, busy, listening, speak, setSpeak, canListen, heard, go, toggleMic, faceState } = useAiChat();
+  const { msgs, busy, listening, speak, setSpeak, canListen, heard, go, toggleMic, faceState, level } = useAiChat();
   const lastUser = [...msgs].reverse().find((m) => m.role === "user");
   const last = msgs[msgs.length - 1];
   const reply = last?.role === "model" ? last : undefined;
@@ -56,7 +48,7 @@ export function AiHomeFace() {
       <div className="flex min-h-[3.5rem] w-full max-w-sm flex-col justify-start space-y-2 text-center lg:min-h-0" aria-live="polite">
         {listening ? (
           <p className="flex items-center justify-center gap-3 text-sm text-white">
-            <Wave /> <span className="line-clamp-2">{heard || "Listening, go ahead..."}</span>
+            <Wave level={level} tone="light" /> <span className="line-clamp-2">{heard || "Listening, go ahead..."}</span>
           </p>
         ) : busy ? (
           <p className="text-sm text-white/70">Thinking...</p>
