@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { ArrowUp, ArrowUpRight, Check, Maximize2, Minimize2, RotateCcw, ShoppingCart, Volume2, VolumeX, X } from "lucide-react";
 import { AiLottie } from "./ai-lottie";
 import { Wave } from "./level-wave";
@@ -327,18 +327,10 @@ export function AiAssistant() {
   const open = mode !== "closed";
   const docked = mode === "dock";
 
-  // The home page has its own robot face; hide the floating one while that section is on screen so they never overlap.
+  // The floating robot is on every shop page. Pages that pin their own bar to the bottom of a phone (buy bar, cart total,
+  // checkout total) get it lifted above that bar so it never covers a button.
   const path = usePathname();
-  // Remember which page the "in view" reading belongs to, so it is ignored after navigating away from the home page.
-  const [faceSeen, setFaceSeen] = useState({ path: "", visible: false });
-  useEffect(() => {
-    const section = document.getElementById("ai-chat-title")?.closest("section");
-    if (!section) return;
-    const io = new IntersectionObserver(([e]) => setFaceSeen({ path, visible: e.isIntersecting }), { threshold: 0.1 });
-    io.observe(section);
-    return () => io.disconnect();
-  }, [path]);
-  const faceInView = faceSeen.path === path && faceSeen.visible;
+  const lift = /^\/(products\/[^/]+|cart|checkout)/.test(path);
 
   useEffect(() => {
     const onOpen = (e: Event) => aiActions.open(!!(e as CustomEvent<{ listen?: boolean }>).detail?.listen);
@@ -357,13 +349,13 @@ export function AiAssistant() {
   return (
     <>
       {/* The floating launcher uses the animated robot (public/ai/ai-chatbot.json). */}
-      {SHOW_LAUNCHER && !open && !faceInView && (
+      {SHOW_LAUNCHER && !open && (
         <button
           type="button"
           onClick={() => aiActions.open(false)}
           aria-label="Open VOLTA AI shopping assistant"
           title="Ask VOLTA AI"
-          className="fixed bottom-16 right-0 z-40 h-32 w-32 transition-transform duration-200 hover:scale-110 active:scale-95 md:bottom-2 md:right-2 md:h-44 md:w-44"
+          className={`fixed ${lift ? "bottom-24" : "bottom-16"} right-0 z-40 h-32 w-32 transition-transform duration-200 hover:scale-110 active:scale-95 md:bottom-2 md:right-2 md:h-44 md:w-44`}
         >
           <AiLottie className="h-full w-full drop-shadow-[0_6px_10px_rgb(0_0_0/0.35)]" />
         </button>

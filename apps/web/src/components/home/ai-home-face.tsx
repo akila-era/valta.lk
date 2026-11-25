@@ -3,7 +3,7 @@
 import { Check, Volume2, VolumeX } from "lucide-react";
 import { openAi } from "@/components/assistant/ai-open";
 import { Wave } from "@/components/assistant/level-wave";
-import { AiLottie } from "@/components/assistant/ai-lottie";
+import { RobotFace } from "@/components/assistant/robot-face";
 import { useAiChat } from "@/components/assistant/use-ai-chat";
 import { formatLkr } from "@/lib/utils/money";
 
@@ -25,10 +25,10 @@ export function AiHomeFace() {
         onClick={canListen ? toggleMic : () => openAi(false)}
         aria-label={live ? "End the voice conversation" : "Talk to VOLTA AI"}
         aria-pressed={live}
-        className="group relative h-60 w-60 transition-transform duration-300 hover:scale-105 active:scale-95 sm:h-80 sm:w-80 lg:h-[19rem] lg:w-[19rem]"
+        className="group relative h-60 w-[11.5rem] transition-transform duration-300 hover:scale-105 active:scale-95 sm:h-80 sm:w-[15.3rem] lg:h-[19rem] lg:w-[14.6rem]"
       >
         <span aria-hidden className={`absolute inset-[-18%] rounded-full blur-3xl ${faceState === "idle" ? "bg-[#34b673]/30 animate-ai-glow" : "bg-cyan-300/40 animate-ai-glow"}`} />
-        <AiLottie className="relative h-full w-full drop-shadow-[0_20px_30px_rgb(0_0_0/0.5)]" />
+        <RobotFace state={faceState} className="relative h-full w-full drop-shadow-[0_20px_30px_rgb(0_0_0/0.5)]" />
       </button>
       {canListen && msgs.length > 0 && (
         <button
