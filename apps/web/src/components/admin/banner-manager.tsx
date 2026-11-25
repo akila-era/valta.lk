@@ -177,7 +177,7 @@ function BannerForm({ initial, busy, error, onCancel, onSubmit }: { initial: Ban
             <button type="button" className="btn-ghost min-h-9 px-3 text-xs text-danger" onClick={() => { setPreview(null); setRemoveImage(true); if (fileRef.current) fileRef.current.value = ""; }}>Remove</button>
           )}
         </div>
-        <p className="mt-2 text-xs text-muted">{placement === "SIDE" ? "JPEG, PNG or WebP, up to 2 MB. About 800 × 600 px works best. Add 2 or more: the two tiles beside the slider slide through all of them. No text is added on top, so put any words in the picture." : wide ? "JPEG, PNG or WebP, up to 2 MB. About 1600 × 600 px, wide, works best." : "JPEG, PNG or WebP, up to 2 MB. A wide or square photo works best."}</p>
+        <p className="mt-2 text-xs text-muted">{placement === "SIDE" ? "JPEG, PNG or WebP, up to 2 MB. About 1200 × 900 px (4:3) works best; keep the subject in the middle, the edges can be trimmed on wide screens. Add 2 or more: the two tiles beside the slider slide through all of them. No text is added on top, so put any words in the picture." : wide ? "JPEG, PNG or WebP, up to 2 MB. About 2100 × 800 px works best. Keep the main subject and any words in the centre 60%: phones show a narrower crop." : "JPEG, PNG or WebP, up to 2 MB. About 1920 × 900 px works best: keep the subject on the right and the left 40% calm, because the headline sits there. Phones show a taller crop of the right side."}</p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

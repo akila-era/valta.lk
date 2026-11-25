@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, ArrowUpRight, Check, Maximize2, Minimize2, RotateCcw, ShoppingCart, Volume2, VolumeX, X } from "lucide-react";
 import { AiLottie } from "./ai-lottie";
-import { LangPicker } from "./lang-picker";
 import { Wave } from "./level-wave";
 import { AI_OPEN_EVENT } from "./ai-open";
 import { aiActions, useAiStore } from "@/store/ai";
@@ -207,10 +206,6 @@ export function AiChatPanel({
         )}
       </header>
 
-      <div className="flex items-center gap-2 border-b border-border px-4 py-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Speak in</span>
-        <LangPicker />
-      </div>
       {speakNote && <p className="border-b border-border bg-surface px-4 py-1.5 text-xs text-muted">{speakNote}</p>}
 
       <div ref={list} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-5" aria-live="polite">
@@ -324,6 +319,8 @@ export function AiChatPanel({
  * The assistant, mounted once for the whole site. It is a centred window when opened, and shrinks into a corner panel
  * when the AI takes the shopper to another page, so the conversation never disappears and the page stays usable.
  */
+const SHOW_LAUNCHER = false;
+
 export function AiAssistant() {
   const { mode, listen } = useAiStore();
   const open = mode !== "closed";
@@ -358,7 +355,8 @@ export function AiAssistant() {
 
   return (
     <>
-      {!open && !faceInView && (
+      {/* The floating robot launcher is switched off on request; the home-page robot still opens the assistant. */}
+      {SHOW_LAUNCHER && !open && !faceInView && (
         <button
           type="button"
           onClick={() => aiActions.open(false)}

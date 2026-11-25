@@ -9,6 +9,7 @@ import { lineKey } from "@/lib/utils/cart-math";
 import { uiActions } from "@/store/ui";
 import type { AiAction, AiCompareItem, AiProduct } from "@/app/api/store/ai/route";
 import type { FaceState } from "./robot-face";
+import { canCapture, captureUtterance } from "./voice-capture";
 
 export interface Msg {
   role: "user" | "model";
@@ -129,7 +130,10 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   const [canListen, setCanListen] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [heard, setHeard] = useState("");
-  const rec = useRef<Recognition | null>(null);
+  // Whatever is capturing the microphone right now (the recorder, or the browser speech API as a fallback).
+  const rec = useRef<{ stop(): void } | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const discardCapture = useRef(false);
   const abort = useRef<AbortController | null>(null);
   const speakTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const speakStart = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -187,7 +191,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     startRef.current = startListening; // always the latest version, for the timer that resumes listening
   });
   useEffect(() => {
-    setCanListen(!!recognitionCtor());
+    setCanListen(canCapture() || !!recognitionCtor());
     window.speechSynthesis?.getVoices(); // voices load lazily in Chrome; ask early so one is ready when the answer comes
   }, []);
   useEffect(() => {
@@ -390,7 +394,8 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
 
   function startListening() {
     const Ctor = recognitionCtor();
-    if (!Ctor) return;
+    const recorder = canCapture();
+    if (!Ctor && !recorder) return;
     window.speechSynthesis?.cancel();
     clearTimeout(speakStart.current);
     clearTimeout(speakTimer.current);
@@ -407,8 +412,13 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       setMsgs((m) => [...m, { role: "model", text: "The microphone only works on a secure page. Open the site through https or http://localhost:3000.", error: true }]);
       return;
     }
+    if (recorder) {
+      startCapture();
+      return;
+    }
+    if (!Ctor) return;
     const r = new Ctor();
-    // Chrome accepts any BCP-47 tag; use the page/browser language, English as the fallback.
+    // Fallback (no microphone recording support): Chrome accepts any BCP-47 tag; use the language last detected.
     r.lang = RECOGNITION_LANG[lang];
     r.onstart = () => window.speechSynthesis?.cancel(); // belt and braces: nothing may still be speaking once the mic is open
     r.interimResults = true; // show what is being heard while the shopper speaks
@@ -489,9 +499,85 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       });
   }
 
+  /**
+   * Main voice path: record one sentence, let Gemini write it down (it works out English / Sinhala / Tamil by itself, so
+   * the shopper never picks a language), then answer it like a typed message.
+   */
+  function startCapture() {
+    discardCapture.current = false;
+    maxLevel.current = 0;
+    meterUsed.current = true;
+    setLevel(0);
+    setHeard("");
+    const cap = captureUtterance((v) => {
+      maxLevel.current = Math.max(maxLevel.current, v);
+      setLevel(v);
+    });
+    rec.current = { stop: () => cap.stop() };
+    listeningRef.current = true;
+    setListening(true);
+    void cap.result.then(async (r) => {
+      listeningRef.current = false;
+      setListening(false);
+      setLevel(0);
+      rec.current = null;
+      if (discardCapture.current) {
+        discardCapture.current = false;
+        return;
+      }
+      if (!r.ok) {
+        if (r.reason === "silence" && turns.current > 0) return onSilence(); // quiet mid-conversation: retry once, then stop
+        endLive();
+        setMsgs((m) => [
+          ...m,
+          {
+            role: "model",
+            error: true,
+            text:
+              r.reason === "denied"
+                ? "The microphone is blocked. Click the lock icon in the address bar, allow the microphone, then tap the robot again."
+                : r.reason === "no-mic"
+                  ? "No microphone was found on this device."
+                  : r.reason === "silence"
+                    ? r.maxLevel < 0.03
+                      ? "I can't hear your microphone at all. Check it isn't muted, and that the right microphone is chosen in your device or browser settings. Then tap the robot and try again."
+                      : "I heard sound but no words. Speak a little closer and louder, then tap the robot and try again."
+                    : "Voice input didn't work. Please try again.",
+          },
+        ]);
+        return;
+      }
+      setTranscribing(true);
+      try {
+        const res = await fetch("/api/store/ai/transcribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ wav: r.wav }) });
+        const data = (await res.json()) as { text?: string; error?: { message: string } };
+        if (!res.ok) throw new Error(data.error?.message);
+        const text = (data.text ?? "").trim();
+        if (!text) {
+          if (turns.current > 0) return onSilence();
+          endLive();
+          setMsgs((m) => [...m, { role: "model", text: "I couldn't make out any words. Speak a little closer, then tap the robot and try again.", error: true }]);
+          return;
+        }
+        silences.current = 0;
+        if (++turns.current > MAX_TURNS) {
+          endLive();
+          setMsgs((m) => [...m, { role: "model", text: "That was a long conversation, so I paused listening. Tap the robot to keep going.", error: true }]);
+        }
+        void sendRef.current(text, true);
+      } catch (e) {
+        endLive();
+        setMsgs((m) => [...m, { role: "model", text: (e as Error).message || "I could not understand the audio just now. Please try again.", error: true }]);
+      } finally {
+        setTranscribing(false);
+      }
+    });
+  }
+
   function reset() {
     endLive();
     abort.current?.abort();
+    discardCapture.current = true; // a recording in progress is dropped, not answered
     rec.current?.stop();
     window.speechSynthesis?.cancel();
     clearTimeout(speakStart.current);
@@ -501,7 +587,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     setInput("");
   }
 
-  const faceState: FaceState = listening ? "listening" : speaking && speak ? "speaking" : busy ? "thinking" : "idle";
+  const faceState: FaceState = listening ? "listening" : speaking && speak ? "speaking" : busy || transcribing ? "thinking" : "idle";
 
   return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay: speakReply, level, lang, speakNote, live };
 }

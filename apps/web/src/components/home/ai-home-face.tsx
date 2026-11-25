@@ -2,7 +2,6 @@
 
 import { Check, Volume2, VolumeX } from "lucide-react";
 import { openAi } from "@/components/assistant/ai-open";
-import { LangPicker } from "@/components/assistant/lang-picker";
 import { Wave } from "@/components/assistant/level-wave";
 import { RobotFace } from "@/components/assistant/robot-face";
 import { useAiChat } from "@/components/assistant/use-ai-chat";
@@ -31,9 +30,6 @@ export function AiHomeFace() {
         <span aria-hidden className={`absolute inset-[-18%] rounded-full blur-3xl ${faceState === "idle" ? "bg-[#34b673]/30 animate-ai-glow" : "bg-cyan-300/40 animate-ai-glow"}`} />
         <RobotFace state={faceState} className="relative h-full w-full drop-shadow-[0_20px_30px_rgb(0_0_0/0.5)]" />
       </button>
-      <div className="absolute left-0 top-0 lg:-left-10">
-        <LangPicker tone="dark" vertical />
-      </div>
       {canListen && msgs.length > 0 && (
         <button
           type="button"
