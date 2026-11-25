@@ -2,6 +2,7 @@
 
 import { Check, Volume2, VolumeX } from "lucide-react";
 import { openAi } from "@/components/assistant/ai-open";
+import { LangPicker } from "@/components/assistant/lang-picker";
 import { Wave } from "@/components/assistant/level-wave";
 import { RobotFace } from "@/components/assistant/robot-face";
 import { useAiChat } from "@/components/assistant/use-ai-chat";
@@ -13,7 +14,7 @@ import { formatLkr } from "@/lib/utils/money";
  * (mouth moving) while the words it heard and its reply appear underneath. Actions such as opening a page or adding to cart still happen.
  */
 export function AiHomeFace() {
-  const { msgs, busy, listening, speak, setSpeak, canListen, heard, go, toggleMic, faceState, level } = useAiChat();
+  const { msgs, busy, listening, speak, setSpeak, canListen, heard, go, toggleMic, faceState, level, speakNote, live } = useAiChat();
   const lastUser = [...msgs].reverse().find((m) => m.role === "user");
   const last = msgs[msgs.length - 1];
   const reply = last?.role === "model" ? last : undefined;
@@ -23,13 +24,16 @@ export function AiHomeFace() {
       <button
         type="button"
         onClick={canListen ? toggleMic : () => openAi(false)}
-        aria-label={listening ? "Stop listening" : "Talk to VOLTA AI"}
-        aria-pressed={listening}
+        aria-label={live ? "End the voice conversation" : "Talk to VOLTA AI"}
+        aria-pressed={live}
         className="group relative h-60 w-[11.5rem] transition-transform duration-300 hover:scale-105 active:scale-95 sm:h-80 sm:w-[15.3rem] lg:h-[19rem] lg:w-[14.6rem]"
       >
         <span aria-hidden className={`absolute inset-[-18%] rounded-full blur-3xl ${faceState === "idle" ? "bg-[#34b673]/30 animate-ai-glow" : "bg-cyan-300/40 animate-ai-glow"}`} />
         <RobotFace state={faceState} className="relative h-full w-full drop-shadow-[0_20px_30px_rgb(0_0_0/0.5)]" />
       </button>
+      <div className="absolute left-0 top-0 lg:-left-10">
+        <LangPicker tone="dark" vertical />
+      </div>
       {canListen && msgs.length > 0 && (
         <button
           type="button"
@@ -45,6 +49,7 @@ export function AiHomeFace() {
 
       {/* On desktop the reply and the voice toggle hang below the face, so the face itself stays centred in the card. */}
       <div className="flex w-full flex-col items-center gap-4 lg:absolute lg:left-1/2 lg:top-full lg:mt-4 lg:w-80 lg:-translate-x-1/2">
+      {speakNote && <p className="max-w-xs text-center text-xs text-white/60">{speakNote}</p>}
       <div className="flex min-h-[3.5rem] w-full max-w-sm flex-col justify-start space-y-2 text-center lg:min-h-0" aria-live="polite">
         {listening ? (
           <p className="flex items-center justify-center gap-3 text-sm text-white">

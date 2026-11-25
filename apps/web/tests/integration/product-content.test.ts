@@ -206,7 +206,7 @@ describe("draft, save, publish", () => {
     await expect(saveDraft(db, "p1", { gallery: [{ id: "doesnotexist1", alt: "", caption: "" }] }, 1, by)).rejects.toMatchObject({ code: "INVALID" });
     const asset = await db.mediaAsset.findUnique({ where: { id: a } });
     expect(asset?.contentType).toBe("image/png");
-    expect(Buffer.from(asset!.data).subarray(0, 4).toString("hex")).toBe("89504e47");
+    expect(Buffer.from(asset!.data!).subarray(0, 4).toString("hex")).toBe("89504e47");
   });
 
   it("cleans up uploads nobody uses, but not recent ones or ones the live page still shows", async () => {

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUp, ArrowUpRight, Check, Maximize2, Minimize2, RotateCcw, ShoppingCart, Volume2, VolumeX, X } from "lucide-react";
 import { AiLottie } from "./ai-lottie";
+import { LangPicker } from "./lang-picker";
 import { Wave } from "./level-wave";
 import { AI_OPEN_EVENT } from "./ai-open";
 import { aiActions, useAiStore } from "@/store/ai";
@@ -155,7 +156,7 @@ export function AiChatPanel({
   autoFocus?: boolean;
 }) {
   const chat = useAiChat({ active, autoListen });
-  const { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay, level } = chat;
+  const { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay, level, speakNote, live } = chat;
   const list = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -173,7 +174,7 @@ export function AiChatPanel({
           <h2 className="truncate text-sm font-semibold leading-tight">{heading}</h2>
           <p className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted">
             <span className={`h-1.5 w-1.5 rounded-full ${faceState === "thinking" ? "bg-amber-500" : "bg-brand-400"}`} aria-hidden />
-            {faceState === "listening" ? "Listening..." : faceState === "speaking" ? "Speaking..." : faceState === "thinking" ? "Thinking..." : "Ready to help"}
+            {live && faceState === "idle" ? "Live conversation" : faceState === "listening" ? (live ? "Listening... (live)" : "Listening...") : faceState === "speaking" ? "Speaking..." : faceState === "thinking" ? "Thinking..." : "Ready to help"}
           </p>
         </div>
         {msgs.length > 0 && (
@@ -205,6 +206,12 @@ export function AiChatPanel({
           </button>
         )}
       </header>
+
+      <div className="flex items-center gap-2 border-b border-border px-4 py-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">Speak in</span>
+        <LangPicker />
+      </div>
+      {speakNote && <p className="border-b border-border bg-surface px-4 py-1.5 text-xs text-muted">{speakNote}</p>}
 
       <div ref={list} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain px-4 py-5" aria-live="polite">
         {msgs.length === 0 && (

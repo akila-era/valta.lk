@@ -36,7 +36,7 @@ export async function adminProductRequest(req: Request, params: Promise<{ id: st
   return { ok: true, db, product, admin: access.admin, id };
 }
 
-const STATUS: Record<ContentError["code"], number> = { TOO_LARGE: 413, BAD_TYPE: 422, TOO_MANY: 422, INVALID: 422, CONFLICT: 409, NOT_FOUND: 404 };
+const STATUS: Record<ContentError["code"], number> = { TOO_LARGE: 413, BAD_TYPE: 422, TOO_MANY: 422, INVALID: 422, CONFLICT: 409, NOT_FOUND: 404, STORAGE: 503 };
 
 export function contentErrorResponse(e: unknown): Response {
   if (e instanceof ContentError) return errorResponse(STATUS[e.code], e.code, e.message, e.issues.length ? { issues: e.issues } : undefined);

@@ -1,5 +1,7 @@
 import { bannerFront, parseBannerForm } from "@/lib/admin/banner-api";
 import { isPictureBanner, MAX_BANNERS } from "@/lib/banners";
+import { storeBannerImage } from "@/lib/admin/banner-image";
+import { deleteObject } from "@/lib/media/storage";
 import { errorResponse, json } from "@/lib/security/api";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +15,14 @@ export async function POST(req: Request) {
   if ((await ctx.db.banner.count({ where: { placement: { in: ["CARDS", "WIDE", "SIDE"] } } }).catch(() => MAX_BANNERS)) >= MAX_BANNERS) return errorResponse(422, "TOO_MANY", `You can keep at most ${MAX_BANNERS} banners. Delete one first.`);
   const { data, image, placement } = parsed.form;
   if (isPictureBanner(placement) && !image) return errorResponse(422, "NO_FILE", "This kind of banner needs a picture.");
+  const stored = image ? await storeBannerImage(image) : null;
+  if (stored === "unavailable") return errorResponse(503, "STORAGE", "The image storage is unavailable. Please try again.");
   const row = await ctx.db.banner
-    .create({ data: { ...data, placement, imageType: image?.type ?? null, imageData: image ? Buffer.from(image.bytes) : null, updatedBy: ctx.email }, select: { id: true } })
+    .create({ data: { ...data, placement, ...(stored ?? { imageType: null, imageData: null, imageKey: null }), updatedBy: ctx.email }, select: { id: true } })
     .catch(() => null);
-  if (!row) return errorResponse(500, "SERVER_ERROR", "Could not save the banner. Please try again.");
+  if (!row) {
+    await deleteObject(stored?.imageKey);
+    return errorResponse(500, "SERVER_ERROR", "Could not save the banner. Please try again.");
+  }
   return json({ id: row.id }, 201);
 }

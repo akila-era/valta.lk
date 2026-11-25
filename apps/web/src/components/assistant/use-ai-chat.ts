@@ -39,6 +39,10 @@ const recognitionCtor = (): RecognitionCtor | undefined => {
 
 const setMsgs = aiActions.setMsgs;
 
+const MAX_TURNS = 20;
+
+const RECOGNITION_LANG = { en: "en-US", si: "si-LK", ta: "ta-LK" } as const;
+
 /** Language to speak a reply in: Sinhala and Tamil text get their own voice, everything else English. */
 const langOf = (text: string) => (/[඀-෿]/.test(text) ? "si-LK" : /[஀-௿]/.test(text) ? "ta-IN" : "en-US");
 
@@ -117,7 +121,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   const router = useRouter();
   const path = usePathname();
   // The conversation lives in a store, so it survives page changes and the AI window opening or docking.
-  const { msgs } = useAiStore();
+  const { msgs, lang } = useAiStore();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
@@ -132,6 +136,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   // True while the mic is open, so the AI never talks over the shopper (readable inside delayed callbacks).
   const listeningRef = useRef(false);
   // null = no live meter (phones): the bars then just animate.
+  const [speakNote, setSpeakNote] = useState("");
   const [level, setLevel] = useState<number | null>(null);
   const meterUsed = useRef(false);
   const meterStop = useRef<(() => void) | undefined>(undefined);
@@ -141,6 +146,46 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     meterStop.current = undefined;
   }, []);
 
+  // Live conversation: after each spoken answer the assistant listens again by itself, until the shopper taps to end it,
+  // goes quiet, or it hits MAX_TURNS (a cost safeguard).
+  const [live, setLive] = useState(false);
+  const liveRef = useRef(false);
+  const busyRef = useRef(false);
+  const turns = useRef(0);
+  const silences = useRef(0);
+  const mounted = useRef(true);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const startRef = useRef<() => void>(() => {});
+  const endLive = useCallback(() => {
+    liveRef.current = false;
+    setLive(false);
+    clearTimeout(resumeTimer.current);
+  }, []);
+  const resumeListening = useCallback(() => {
+    if (!liveRef.current || listeningRef.current) return;
+    clearTimeout(resumeTimer.current);
+    // A short gap, so the end of the assistant's own voice is not picked up as the shopper's.
+    resumeTimer.current = setTimeout(() => {
+      if (!liveRef.current || listeningRef.current || busyRef.current) return;
+      if (!mounted.current) {
+        aiActions.requestListen(); // this page is gone (the AI opened another one): the corner chat carries on listening
+        return;
+      }
+      startRef.current();
+    }, 450);
+  }, []);
+  const onSilence = useCallback(() => {
+    if (!liveRef.current) return;
+    silences.current += 1;
+    if (silences.current >= 2) {
+      endLive();
+      setMsgs((m) => [...m, { role: "model", text: "Still there? I stopped listening. Tap the robot to carry on.", error: true }]);
+    } else resumeListening();
+  }, [endLive, resumeListening]);
+
+  useEffect(() => {
+    startRef.current = startListening; // always the latest version, for the timer that resumes listening
+  });
   useEffect(() => {
     setCanListen(!!recognitionCtor());
     window.speechSynthesis?.getVoices(); // voices load lazily in Chrome; ask early so one is ready when the answer comes
@@ -151,16 +196,21 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     window.speechSynthesis?.cancel();
     setSpeaking(false);
   }, [active]);
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       rec.current?.stop();
-      window.speechSynthesis?.cancel();
-      setSpeaking(false);
+      clearTimeout(speakStart.current);
+      // In a live conversation let the answer finish, then the corner chat carries on listening.
+      if (!liveRef.current) {
+        window.speechSynthesis?.cancel();
+        clearTimeout(resumeTimer.current);
+      }
       abort.current?.abort();
       meterStop.current?.();
-    },
-    [],
-  );
+    };
+  }, []);
 
   useEffect(() => {
     // Opened from the home-page face: start listening straight away (the tap counts as the user gesture).
@@ -227,17 +277,29 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   }, []);
 
   /** Reads text aloud with the face's mouth moving. Also used by the replay button on each answer. */
-  const speakReply = useCallback((text: string) => {
+  const speakReply = useCallback((text: string, onDone?: () => void) => {
     const synth = typeof window === "undefined" ? undefined : window.speechSynthesis;
-    if (!synth || listeningRef.current) return; // the shopper is talking: show the answer as text only
+    if (!synth) return onDone?.();
+    if (listeningRef.current) return; // the shopper is talking: show the answer as text only
     synth.cancel();
     clearTimeout(speakTimer.current);
     clearTimeout(speakStart.current);
     const lang = langOf(text);
+    if (lang !== "en-US" && !pickVoice(lang)) {
+      // Many computers have no Sinhala/Tamil voice. Reading the text with an English voice would be nonsense, so say so instead.
+      setSpeakNote(lang === "si-LK" ? "This device has no Sinhala voice, so the reply is text only. Chrome on Android and Edge on Windows can read Sinhala aloud." : "This device has no Tamil voice, so the reply is text only.");
+      return onDone?.();
+    }
+    setSpeakNote("");
     const parts = sentences(text);
+    let finished = false;
     const stop = () => {
       clearTimeout(speakTimer.current);
       setSpeaking(false);
+      if (!finished) {
+        finished = true;
+        onDone?.();
+      }
     };
     setSpeaking(true);
     speakTimer.current = setTimeout(stop, text.length * 90 + 3000); // safety net if the browser never reports the end
@@ -267,13 +329,14 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       setMsgs(next);
       setInput("");
       setBusy(true);
+      busyRef.current = true;
       const ctl = new AbortController();
       abort.current = ctl;
       try {
         const res = await fetch("/api/store/ai", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ messages: next.filter((m) => !m.error).slice(-10).map(({ role, text: t }) => ({ role, text: t })), path, cart: getCartLines().map((l) => ({ slug: l.slug, name: l.name, quantity: l.quantity, unitPrice: l.unitPrice })) }),
+          body: JSON.stringify({ messages: next.filter((m) => !m.error).slice(-10).map(({ role, text: t }) => ({ role, text: t })), path, lang, cart: getCartLines().map((l) => ({ slug: l.slug, name: l.name, quantity: l.quantity, unitPrice: l.unitPrice })) }),
           signal: ctl.signal,
         });
         const data = (await res.json()) as { reply?: string; products?: AiProduct[]; compare?: AiCompareItem[]; actions?: AiAction[]; error?: { message: string } };
@@ -282,16 +345,21 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
         const notes = (data.actions ?? []).map(describe);
         setMsgs((m) => [...m, { role: "model", text: reply, products: data.compare?.length ? undefined : data.products, compare: data.compare, notes }]);
         // Spoken replies only when the question was spoken; typed questions get a text reply.
-        if (viaVoice && speak) speakReply(reply);
+        if (viaVoice) {
+          if (speak) speakReply(reply, resumeListening);
+          else resumeListening();
+        }
         data.actions?.forEach(run);
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
+        endLive(); // do not keep listening into a failing assistant
         setMsgs((m) => [...m, { role: "model", text: (e as Error).message || "Something went wrong. Please try again.", error: true }]);
       } finally {
+        busyRef.current = false;
         setBusy(false);
       }
     },
-    [msgs, busy, path, speak, run, speakReply],
+    [msgs, busy, path, speak, run, speakReply, lang, resumeListening, endLive],
   );
 
   const sendRef = useRef(send);
@@ -299,8 +367,27 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     sendRef.current = send;
   }, [send]);
 
+  /** Tap: start a live conversation; tap while the assistant is speaking to interrupt it and talk; tap while listening or waiting to end it. */
   function toggleMic() {
-    if (listening) return rec.current?.stop();
+    if (listening) {
+      endLive();
+      rec.current?.stop(); // whatever was heard so far is still answered
+      return;
+    }
+    if (liveRef.current && !speaking) {
+      endLive(); // tapped while waiting for an answer: stop the conversation
+      return;
+    }
+    if (!liveRef.current) {
+      turns.current = 0;
+      silences.current = 0;
+    }
+    liveRef.current = true;
+    setLive(true);
+    startListening();
+  }
+
+  function startListening() {
     const Ctor = recognitionCtor();
     if (!Ctor) return;
     window.speechSynthesis?.cancel();
@@ -315,12 +402,13 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     }
     if (!window.isSecureContext) {
       // Browsers only allow the microphone on https pages or localhost (not on http://192.168.x.x).
+      endLive();
       setMsgs((m) => [...m, { role: "model", text: "The microphone only works on a secure page. Open the site through https or http://localhost:3000.", error: true }]);
       return;
     }
     const r = new Ctor();
     // Chrome accepts any BCP-47 tag; use the page/browser language, English as the fallback.
-    r.lang = document.documentElement.lang || navigator.language || "en-US";
+    r.lang = RECOGNITION_LANG[lang];
     r.onstart = () => window.speechSynthesis?.cancel(); // belt and braces: nothing may still be speaking once the mic is open
     r.interimResults = true; // show what is being heard while the shopper speaks
     let lastHeard = "";
@@ -330,7 +418,12 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       lastHeard = text;
       if (e.results[e.results.length - 1].isFinal) {
         sent = true;
+        silences.current = 0;
         setHeard("");
+        if (++turns.current > MAX_TURNS) {
+          endLive();
+          setMsgs((m) => [...m, { role: "model", text: "That was a long conversation, so I paused listening. Tap the robot to keep going.", error: true }]);
+        }
         void sendRef.current(text, true);
       } else setHeard(text);
     };
@@ -341,6 +434,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       setHeard("");
       // Some browsers end without a "final" result: send what was heard rather than dropping it.
       if (!sent && lastHeard) void sendRef.current(lastHeard, true);
+      else if (!sent && !lastHeard && turns.current > 0) onSilence(); // the browser ended without hearing anything
     };
     r.onerror = (e) => {
       sent = true; // an error means nothing usable was heard
@@ -349,6 +443,8 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       setListening(false);
       setHeard("");
       const why = e?.error;
+      if (why === "no-speech" && turns.current > 0) return onSilence(); // quiet mid-conversation: retry once, then stop
+      if (why !== "aborted") endLive();
       const text =
         why === "not-allowed" || why === "service-not-allowed"
           ? "The microphone is blocked. Click the lock icon in the address bar, allow the microphone, then tap the robot again."
@@ -393,6 +489,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   }
 
   function reset() {
+    endLive();
     abort.current?.abort();
     rec.current?.stop();
     window.speechSynthesis?.cancel();
@@ -405,5 +502,5 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
 
   const faceState: FaceState = listening ? "listening" : speaking && speak ? "speaking" : busy ? "thinking" : "idle";
 
-  return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay: speakReply, level };
+  return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay: speakReply, level, lang, speakNote, live };
 }

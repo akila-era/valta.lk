@@ -1,11 +1,13 @@
 import "server-only";
+import { randomUUID } from "node:crypto";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { contentDocSchema, normalizeDoc, type ContentDoc } from "../content/schema";
+import { deleteObject, putObject, storageConfigured } from "../media/storage";
 import { MAX_IMAGE_BYTES, MAX_IMAGES_PER_PRODUCT, sniffImage } from "../media/sniff";
 
 export class ContentError extends Error {
   constructor(
-    public readonly code: "TOO_LARGE" | "BAD_TYPE" | "TOO_MANY" | "INVALID" | "CONFLICT" | "NOT_FOUND",
+    public readonly code: "TOO_LARGE" | "BAD_TYPE" | "TOO_MANY" | "INVALID" | "CONFLICT" | "NOT_FOUND" | "STORAGE",
     message: string,
     public readonly issues: string[] = [],
   ) {
@@ -46,8 +48,23 @@ export async function addImage(db: PrismaClient, erpItemId: string, bytes: Uint8
   if (!type) throw new ContentError("BAD_TYPE", "Only JPEG, PNG or WebP images are accepted.");
   const pending = await db.mediaAsset.count({ where: { erpItemId } });
   if (pending >= MAX_IMAGES_PER_PRODUCT + 8) throw new ContentError("TOO_MANY", "Too many uploaded images for this product. Save your changes or remove unused images first.");
-  const a = await db.mediaAsset.create({ data: { erpItemId, contentType: type, size: bytes.length, data: Buffer.from(bytes) }, select: { id: true } });
-  return a.id;
+  if (!storageConfigured()) {
+    const a = await db.mediaAsset.create({ data: { erpItemId, contentType: type, size: bytes.length, data: Buffer.from(bytes) }, select: { id: true } });
+    return a.id;
+  }
+  const storageKey = `products/${erpItemId}/${randomUUID()}`;
+  try {
+    await putObject(storageKey, bytes, type);
+  } catch {
+    throw new ContentError("STORAGE", "The image storage is unavailable. Please try again.");
+  }
+  try {
+    const a = await db.mediaAsset.create({ data: { erpItemId, contentType: type, size: bytes.length, storageKey }, select: { id: true } });
+    return a.id;
+  } catch (e) {
+    await deleteObject(storageKey);
+    throw e;
+  }
 }
 
 /**
@@ -118,5 +135,9 @@ export async function cleanupAssets(db: PrismaClient, erpItemId: string) {
     doc.gallery.forEach((g) => used.add(g.id));
     if (doc.seo.ogImageId) used.add(doc.seo.ogImageId);
   }
-  await db.mediaAsset.deleteMany({ where: { erpItemId, id: { notIn: [...used] }, createdAt: { lt: new Date(Date.now() - ORPHAN_GRACE_MS) } } });
+  const where = { erpItemId, id: { notIn: [...used] }, createdAt: { lt: new Date(Date.now() - ORPHAN_GRACE_MS) } };
+  const stale = await db.mediaAsset.findMany({ where, select: { id: true, storageKey: true } });
+  if (stale.length === 0) return;
+  await db.mediaAsset.deleteMany({ where: { ...where, id: { in: stale.map((a) => a.id) } } });
+  await Promise.all(stale.map((a) => deleteObject(a.storageKey)));
 }
