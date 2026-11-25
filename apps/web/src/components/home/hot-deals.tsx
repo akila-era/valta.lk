@@ -42,7 +42,7 @@ export function HotDeals({ products, timer, title = "Hot Deals", subtitle }: { p
         <ProductCarousel label="Hot deals" align="start">
           {list.slice(0, 12).map((p, i) => (
             <li key={p.id} className={`shrink-0 snap-start px-1.5 sm:px-2 sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 ${list.length === 1 ? "w-full max-sm:max-w-[16rem]" : "w-[62%]"}`}>
-              <div className="h-full rounded-2xl border border-border bg-white p-2.5 transition-shadow duration-200 hover:shadow-[0_16px_32px_-22px_rgba(17,17,17,0.5)] sm:p-3">
+              <div className="h-full rounded-2xl border border-border bg-white p-1.5 transition-shadow duration-200 hover:shadow-[0_16px_32px_-22px_rgba(17,17,17,0.5)] sm:p-2">
                 <ProductCard product={p} priority={i < 2} />
               </div>
             </li>

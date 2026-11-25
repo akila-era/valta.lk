@@ -11,8 +11,26 @@ export function slugify(input: string): string {
     .replace(/-+$/, "");
 }
 
-/** The ERP has no slug. Name + ERP id gives a stable, unique, readable URL segment. */
+/** The ERP has no slug. Name + ERP id gives a stable, unique segment: the first form of the URL, still accepted (and redirected). */
 export const productSlug = (name: string, id: string) => `${slugify(name) || "product"}-${id.toLowerCase()}`;
+
+/**
+ * The clean public URL segment: just the product name ("5c-battery"). Two products with the same name would clash, so only
+ * those get a short piece of their ID on the end. The segment is derived from the whole catalogue, so call it on all products.
+ */
+export function withCleanSlugs<T extends { id: string; name: string; slug: string }>(products: T[]): T[] {
+  const base = (p: T) => slugify(p.name) || "product";
+  const byBase = new Map<string, T[]>();
+  for (const p of products) byBase.set(base(p), [...(byBase.get(base(p)) ?? []), p]);
+  return products.map((p) => {
+    const same = byBase.get(base(p)) ?? [];
+    if (same.length === 1) return { ...p, slug: base(p) };
+    // Tail of the ID: unique enough in practice; fall back to the whole ID if two tails still collide.
+    const tail = p.id.toLowerCase().slice(-5);
+    const clash = same.filter((q) => q.id.toLowerCase().slice(-5) === tail).length > 1;
+    return { ...p, slug: `${base(p)}-${clash ? p.id.toLowerCase() : tail}` };
+  });
+}
 
 const isInStock = (availability: string) => availability === "IN_STOCK";
 

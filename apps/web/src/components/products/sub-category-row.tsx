@@ -36,6 +36,8 @@ function iconFor(label: string) {
 export function SubCategoryRow({ tiles, label }: { tiles: SubTile[]; label: string }) {
   const scroller = useRef<HTMLUListElement>(null);
   const [edge, setEdge] = useState({ start: true, end: true });
+  // A handful of tiles stay together in the middle; stretching them across a wide screen leaves big empty gaps.
+  const few = tiles.length <= 5;
 
   const measure = useCallback(() => {
     const el = scroller.current;
@@ -63,11 +65,11 @@ export function SubCategoryRow({ tiles, label }: { tiles: SubTile[]; label: stri
 
   return (
     <nav aria-label={label} className="relative">
-      <ul ref={scroller} onScroll={measure} className="scrollbar-none -mx-4 flex overflow-x-auto px-4 sm:mx-0 sm:px-0 md:px-6">
+      <ul ref={scroller} onScroll={measure} className={`scrollbar-none -mx-4 flex overflow-x-auto px-4 sm:mx-0 sm:px-0 md:px-6 ${few ? "sm:justify-center sm:gap-6 lg:gap-10" : ""}`}>
         {tiles.map((t, i) => {
           const Icon = t.all ? LayoutGrid : iconFor(t.label);
           return (
-            <li key={t.key} className="w-[6.75rem] shrink-0 animate-lift sm:min-w-[7.5rem] sm:flex-1" style={{ "--d": `${Math.min(i, 8) * 45}ms` } as React.CSSProperties}>
+            <li key={t.key} className={`w-[6.75rem] shrink-0 animate-lift ${few ? "sm:w-40" : "sm:min-w-[7.5rem] sm:flex-1"}`} style={{ "--d": `${Math.min(i, 8) * 45}ms` } as React.CSSProperties}>
               <Link href={t.href} aria-current={t.active ? "page" : undefined} aria-label={`${t.label}, ${t.count} ${t.count === 1 ? "product" : "products"}`} className="group flex flex-col items-center gap-3 px-1 py-3 text-center">
                 <Icon className={`h-12 w-12 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 motion-reduce:transition-none sm:h-14 sm:w-14 ${t.active ? "text-brand-600" : "text-ink group-hover:text-brand-600"}`} strokeWidth={1.25} aria-hidden />
                 <span className={`line-clamp-2 text-[13px] font-semibold leading-tight sm:text-sm ${t.active ? "text-brand-600" : "text-ink"}`}>{t.label}</span>

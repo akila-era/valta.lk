@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { Battery, Camera, Check, Cpu, Headphones, ShieldCheck, Smartphone, Store, Truck, Wifi, Zap, type LucideIcon } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui/chrome";
 import { Accordion } from "@/components/ui/accordion";
@@ -63,9 +63,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   return {
     title,
     description,
-    alternates: { canonical: `/products/${slug}` },
+    alternates: { canonical: `/products/${product.slug}` },
     robots: previewing || c?.seo.noindex ? { index: false, follow: false } : undefined,
-    openGraph: { title, description, url: `/products/${slug}`, images: image ? [image] : undefined },
+    openGraph: { title, description, url: `/products/${product.slug}`, images: image ? [image] : undefined },
   };
 }
 
@@ -80,6 +80,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const { product, failed, previewing } = await load(slug, (await searchParams).preview === "1");
   if (failed) return <ErpUnavailable retryHref={`/products/${slug}`} />;
   if (!product) notFound();
+  // An old link ("name-<id>") goes to the clean address.
+  if (!previewing && product.slug !== slug) permanentRedirect(`/products/${product.slug}`);
 
   const c: ContentDoc | undefined = product.content;
   const title = c?.displayTitle || product.name;

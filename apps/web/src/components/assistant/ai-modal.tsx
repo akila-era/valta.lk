@@ -7,8 +7,9 @@ import { AiLottie } from "./ai-lottie";
 import { Wave } from "./level-wave";
 import { AI_OPEN_EVENT } from "./ai-open";
 import { aiActions, useAiStore } from "@/store/ai";
-import { RobotFace, type FaceState } from "./robot-face";
+import type { FaceState } from "./robot-face";
 import { useAiChat } from "./use-ai-chat";
+import { stopLive } from "./gemini-live";
 import { CatalogueImage } from "@/components/products/catalogue-image";
 import { formatLkr } from "@/lib/utils/money";
 import type { AiCompareItem, AiProduct } from "@/app/api/store/ai/route";
@@ -16,10 +17,10 @@ import type { AiCompareItem, AiProduct } from "@/app/api/store/ai/route";
 const SUGGESTIONS = ["Best earbuds under 10,000 rupees", "Compare the two cheapest power banks", "Show me today's deals", "Open my cart"];
 
 /** Small avatar next to a message or in the header: the robot face, animated only when `state` says so. */
-function Orb({ size = "md", state = "idle" }: { size?: "sm" | "md"; state?: FaceState }) {
+function Orb({ size = "md" }: { size?: "sm" | "md"; state?: FaceState }) {
   return (
-    <span className={`relative flex shrink-0 items-end justify-center ${size === "md" ? "h-11 w-9" : "h-9 w-7"}`} aria-hidden>
-      <RobotFace state={state} still={size === "sm" && state === "idle"} className="h-full w-full drop-shadow-[0_2px_4px_rgb(0_0_0/0.2)]" />
+    <span className={`relative flex shrink-0 items-end justify-center ${size === "md" ? "h-11 w-11" : "h-9 w-9"}`} aria-hidden>
+      <AiLottie className="h-full w-full" />
     </span>
   );
 }
@@ -44,7 +45,7 @@ function VoiceRobot({ state, onClick, className }: { state: FaceState; onClick: 
   return (
     <button type="button" onClick={onClick} aria-label={listening ? "Stop listening" : "Tap to speak"} aria-pressed={listening} className={`relative shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95 ${className}`}>
       {state !== "idle" && <span aria-hidden className="absolute inset-[-12%] animate-ai-glow rounded-full bg-cyan-300/40 blur-xl" />}
-      <RobotFace state={state} className="relative h-full w-full drop-shadow-[0_8px_12px_rgb(0_0_0/0.25)]" />
+      <AiLottie className="relative h-full w-full drop-shadow-[0_8px_12px_rgb(0_0_0/0.25)]" />
     </button>
   );
 }
@@ -319,7 +320,7 @@ export function AiChatPanel({
  * The assistant, mounted once for the whole site. It is a centred window when opened, and shrinks into a corner panel
  * when the AI takes the shopper to another page, so the conversation never disappears and the page stays usable.
  */
-const SHOW_LAUNCHER = false;
+const SHOW_LAUNCHER = true;
 
 export function AiAssistant() {
   const { mode, listen } = useAiStore();
@@ -355,7 +356,7 @@ export function AiAssistant() {
 
   return (
     <>
-      {/* The floating robot launcher is switched off on request; the home-page robot still opens the assistant. */}
+      {/* The floating launcher uses the animated robot (public/ai/ai-chatbot.json). */}
       {SHOW_LAUNCHER && !open && !faceInView && (
         <button
           type="button"
@@ -384,7 +385,10 @@ export function AiAssistant() {
                 : "flex h-[min(44rem,94dvh)] w-full max-w-xl overflow-hidden rounded-t-3xl shadow-overlay animate-ai-rise sm:rounded-3xl"
             }
           >
-            <AiChatPanel autoFocus={!docked} autoListen={listen} docked={docked} onClose={aiActions.close} onToggleSize={() => (docked ? aiActions.open(false) : aiActions.dock())} className="h-full w-full" />
+            <AiChatPanel autoFocus={!docked} autoListen={listen} docked={docked} onClose={() => {
+                stopLive(); // closing the window also ends the voice conversation
+                aiActions.close();
+              }} onToggleSize={() => (docked ? aiActions.open(false) : aiActions.dock())} className="h-full w-full" />
           </div>
         </div>
       )}
