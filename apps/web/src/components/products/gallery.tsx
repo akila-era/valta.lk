@@ -61,7 +61,7 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
   return (
     <div className={many ? "lg:grid lg:grid-cols-[5rem_minmax(0,1fr)] lg:gap-3" : ""}>
       <div
-        className="relative aspect-square touch-pan-y overflow-hidden rounded-xl border border-border bg-white lg:order-2"
+        className="relative aspect-square touch-pan-y overflow-hidden rounded-2xl border border-border bg-white lg:order-2"
         tabIndex={many ? 0 : undefined}
         role={many ? "group" : undefined}
         aria-label={many ? `${alt}. Image ${index + 1} of ${images.length}. Use the arrow keys to change image.` : undefined}
@@ -120,7 +120,7 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
                 onClick={() => setActive(i)}
                 aria-label={`Show image ${i + 1} of ${images.length}`}
                 aria-current={i === index}
-                className={`relative block h-16 w-16 overflow-hidden rounded-lg border-2 bg-white transition-all duration-200 lg:h-20 lg:w-20 ${i === index ? "border-brand-500" : "border-border opacity-80 hover:border-ink hover:opacity-100"}`}
+                className={`relative block h-16 w-16 overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 lg:h-20 lg:w-20 ${i === index ? "border-brand-500" : "border-border opacity-80 hover:border-ink hover:opacity-100"}`}
               >
                 <ProductImage src={broken[i] ? undefined : src} alt="" sizes="80px" padding="p-1.5" onError={() => setBroken((current) => ({ ...current, [i]: true }))} />
               </button>

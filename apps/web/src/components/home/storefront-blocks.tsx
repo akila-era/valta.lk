@@ -5,6 +5,7 @@ import { BRAND_NAME } from "@/lib/brand";
 import type { HomeData } from "@/lib/home-data";
 import { siteConfig } from "@/lib/site-config";
 import { categoryVisual } from "./category-art";
+import { ProductCarousel } from "./product-carousel";
 import { Reveal } from "./reveal";
 
 type Cat = HomeData["categories"][number];
@@ -52,20 +53,19 @@ export function PromoPair({ categories }: { categories: HomeData["categories"] }
 
 /** Featured brands: a bordered grid. A brand shows its uploaded logo (grayscale, colour on hover) or, without one, its name. */
 export function BrandLogos({ brands }: { brands: HomeData["brands"] }) {
-  const all = brands.filter((b) => b.count > 0);
-  // Whole rows only (four across), so the grid never ends with empty cells.
-  const list = all.slice(0, Math.min(16, Math.floor(all.length / 4) * 4));
-  if (list.length < 4) return null;
+  const list = brands.filter((b) => b.count > 0).slice(0, 40);
+  if (list.length < 2) return null;
   return (
     <section id="brands" aria-labelledby="brands-title" className="container-page mt-10 scroll-mt-40 sm:mt-14">
       <div className="mb-6 text-center sm:mb-8">
         <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-brand-600">Brands at VOLTA.LK</p>
         <h2 id="brands-title" className="mt-1 text-2xl font-semibold tracking-tight text-ink sm:text-[2rem]">Featured Brands</h2>
       </div>
-      <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
+      {/* Every brand sits in one row you can move by hand: swipe, trackpad, arrows or the dots. */}
+      <ProductCarousel label="Brands" align="start" step="item" snap="proximity">
         {list.map((b) => (
-          <li key={b.name} className="bg-white">
-            <Link href={`/products?brand=${encodeURIComponent(b.name)}`} aria-label={`${b.name}, ${b.count} ${b.count === 1 ? "product" : "products"}`} className="group flex h-24 items-center justify-center p-5 transition-colors hover:bg-surface sm:h-28">
+          <li key={b.name} className="w-1/2 shrink-0 snap-start px-1.5 sm:w-1/3 md:w-1/4 lg:w-1/5">
+            <Link href={`/products?brand=${encodeURIComponent(b.name)}`} aria-label={`${b.name}, ${b.count} ${b.count === 1 ? "product" : "products"}`} className="group flex h-24 items-center justify-center rounded-2xl border border-border bg-white p-5 transition-colors hover:border-ink hover:bg-surface sm:h-28">
               {b.logo ? (
                 // eslint-disable-next-line @next/next/no-img-element -- staff-uploaded logo served by our own route
                 <img src={b.logo} alt={`${b.name} logo`} width={140} height={56} loading="lazy" className="max-h-12 w-auto max-w-full object-contain grayscale transition duration-200 group-hover:grayscale-0" />
@@ -75,8 +75,8 @@ export function BrandLogos({ brands }: { brands: HomeData["brands"] }) {
             </Link>
           </li>
         ))}
-      </ul>
-      <div className="mt-6 flex justify-center">
+      </ProductCarousel>
+      <div className="mt-2 flex justify-center">
         <Link href="/brands" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-6 text-sm font-semibold text-ink transition-colors hover:border-ink hover:bg-ink hover:text-white">
           View all brands <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>

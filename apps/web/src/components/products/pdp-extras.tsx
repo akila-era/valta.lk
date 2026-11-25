@@ -81,7 +81,7 @@ export function PdpTrust({ cod }: { cod: boolean }) {
     { icon: Headset, title: "Friendly support", text: "Here to help with any question" },
   ].filter(Boolean) as { icon: typeof Truck; title: string; text: string }[];
   return (
-    <ul className={`mt-12 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 ${items.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+    <ul className={`mt-12 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 ${items.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
       {items.map(({ icon: Icon, title, text }) => (
         <li key={title} className="flex items-center gap-3.5 bg-white p-4 sm:p-5">
           <Icon className="h-8 w-8 shrink-0 text-brand-600" strokeWidth={1.5} aria-hidden />

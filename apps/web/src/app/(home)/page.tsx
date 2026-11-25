@@ -19,6 +19,7 @@ import { CategoryShowcase, pickShowcase } from "@/components/home/category-showc
 import { Reviews } from "@/components/home/reviews";
 import { RecentlyViewed } from "@/components/home/recently-viewed";
 import { BrandLogos, ContactBlock, JoinStrip, WhyChoose } from "@/components/home/storefront-blocks";
+import { AiChatSection } from "@/components/home/ai-chat-section";
 import { TrustStrip } from "@/components/home/trust-strip";
 import { ErpUnavailable } from "@/components/ui/states";
 import { BRAND_NAME } from "@/lib/brand";
@@ -54,6 +55,7 @@ export default async function HomePage() {
     <>
       <BannerHero data={data} />
       <TrustStrip checkout={data.checkout} />
+      <AiChatSection />
       <CategoryIcons categories={data.categories} />
       <Reveal><ArrivalsTabs products={data.newArrivals} /></Reveal>
       {hot.enabled && <Reveal><HotDeals products={hot.products} title={hot.title} subtitle={hot.subtitle} timer={hot.endsAt ? <Countdown endsAt={hot.endsAt} label={hot.label} /> : undefined} /></Reveal>}

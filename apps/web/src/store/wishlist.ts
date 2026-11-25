@@ -65,6 +65,11 @@ const getSnapshot = () => {
 };
 
 export const wishlistActions = {
+  /** Adds when missing (never removes), so "save this" twice stays saved. */
+  add: (item: WishItem) => {
+    const cur = getSnapshot();
+    if (!cur.some((i) => i.productId === item.productId)) commit([item, ...cur].slice(0, MAX));
+  },
   toggle: (item: WishItem) => {
     const cur = getSnapshot();
     commit(cur.some((i) => i.productId === item.productId) ? cur.filter((i) => i.productId !== item.productId) : [item, ...cur].slice(0, MAX));

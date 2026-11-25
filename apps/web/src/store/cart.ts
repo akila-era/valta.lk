@@ -63,6 +63,9 @@ const getSnapshot = () => {
   return lines;
 };
 
+/** Current cart lines, readable outside React (used by the AI assistant). */
+export const getCartLines = () => getSnapshot();
+
 export const cartActions = {
   add: (line: CartLine) => commit(addLine(getSnapshot(), line)),
   setQuantity: (key: string, qty: number) => commit(setQuantity(getSnapshot(), key, qty)),

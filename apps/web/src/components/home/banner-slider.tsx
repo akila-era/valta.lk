@@ -39,7 +39,7 @@ export function BannerSlider({ slides, label, className = "" }: { slides: ReactN
       role="region"
       aria-roledescription="carousel"
       aria-label={label}
-      className={`relative overflow-hidden bg-ink ${className}`}
+      className={`relative overflow-hidden rounded-3xl bg-ink ${className}`}
       onMouseEnter={() => setHold(true)}
       onMouseLeave={() => setHold(false)}
       onFocusCapture={() => setHold(true)}

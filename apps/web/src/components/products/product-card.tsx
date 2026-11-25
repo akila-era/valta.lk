@@ -37,7 +37,7 @@ export function ProductCard({ product, priority }: { product: ErpProduct; priori
   return (
     <article className="group @container relative flex h-full flex-col">
       <div className="relative">
-        <Link href={`/products/${product.slug}`} aria-label={title} className="media-square block rounded-lg border border-border transition-colors duration-300 group-hover:border-ink/30 motion-reduce:transition-none">
+        <Link href={`/products/${product.slug}`} aria-label={title} className="media-square block rounded-2xl border border-border transition-colors duration-300 group-hover:border-ink/30 motion-reduce:transition-none">
           <span className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none">
             <ProductImage src={product.images[0]} alt={title} priority={priority} sizes="(min-width:1280px) 19vw, (min-width:768px) 30vw, 46vw" />
           </span>

@@ -3,6 +3,7 @@ import { Headset, MapPin, PackageSearch, Truck, Wallet, Zap } from "lucide-react
 import { Suspense } from "react";
 import { listBrands, listProducts } from "@/lib/erp/catalogue";
 import { getSettings } from "@/lib/erp/settings";
+import { DELIVERY_PROMISE } from "@/lib/brand";
 import { siteConfig } from "@/lib/site-config";
 import { formatLkr } from "@/lib/utils/money";
 import { accountsEnabled, getCurrentCustomer } from "@/lib/auth/session";
@@ -11,7 +12,6 @@ import { CartLink } from "./cart-link";
 import { WishlistLink } from "./wishlist-link";
 import { CategoryNav } from "./category-nav";
 import { HeaderShell } from "./header-shell";
-import { MobileCategoryChips } from "./mobile-category-chips";
 import { MobileMenu } from "./mobile-menu";
 import { MobileSearch } from "./mobile-search";
 import { SearchBox } from "./search-box";
@@ -98,6 +98,16 @@ export async function Header() {
           </nav>
         </div>
       </div>
+      {/* Phones: the delivery promise glides across, always moving (copies keep the loop endless and gap-free). */}
+      <div className="overflow-hidden bg-ink py-1.5 text-xs font-medium text-white md:hidden">
+        <div className="flex w-max animate-marquee [animation-duration:32s] motion-reduce:animate-none">
+          {[0, 1, 2, 3].map((run) => (
+            <p key={run} aria-hidden={run > 0 || undefined} className="shrink-0 whitespace-nowrap pr-10">
+              {DELIVERY_PROMISE}{cod ? " · Cash on delivery" : ""} · Island-wide, tracked online
+            </p>
+          ))}
+        </div>
+      </div>
       <HeaderShell>
         <div className="container-wide flex items-center gap-2 py-2 md:grid md:h-[4.5rem] md:transition-[height] md:duration-300 md:group-data-[scrolled=true]/hdr:h-14 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0 lg:gap-x-12">
           <MobileMenu categories={categories} hasDeals={hasDeals} />
@@ -106,12 +116,11 @@ export async function Header() {
             <SearchBox size="lg" />
           </div>
           <div className="ml-auto flex items-center gap-0.5 md:ml-0">
-            <MobileSearch quick={quick} />
             <Link href="/contact" className="hidden min-h-11 items-center gap-2 px-3 text-sm font-medium hover:text-brand-600 lg:inline-flex">
               <Headset className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Support
             </Link>
             {accounts ? (
-              <AccountMenu customer={customer ? { name: customer.name } : null} enabled />
+              <span className="hidden md:block"><AccountMenu customer={customer ? { name: customer.name } : null} enabled /></span>
             ) : (
               <Link href="/track-order" className="hidden items-center gap-2 pr-5 text-sm font-medium hover:text-brand-600 lg:inline-flex">
                 <PackageSearch className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Track Order
@@ -121,11 +130,11 @@ export async function Header() {
             <CartLink />
           </div>
         </div>
+        <div className="container-wide pb-2.5 md:hidden"><MobileSearch quick={quick} bar /></div>
         <Suspense fallback={null}>
           <CategoryNav categories={categories} showDeals={hasDeals} showBrands={hasBrands} />
         </Suspense>
       </HeaderShell>
-      <MobileCategoryChips categories={categories} showDeals={hasDeals} showBrands={hasBrands} />
     </>
   );
 }

@@ -13,7 +13,7 @@ export interface SidePic {
 function Tile({ pics, index, onSelect, label, eager }: { pics: SidePic[]; index: number; onSelect: (i: number) => void; label: string; eager: boolean }) {
   const n = pics.length;
   return (
-    <div role="region" aria-roledescription={n > 1 ? "carousel" : undefined} aria-label={label} className="relative h-full min-h-0 overflow-hidden bg-ink">
+    <div role="region" aria-roledescription={n > 1 ? "carousel" : undefined} aria-label={label} className="relative h-full min-h-0 overflow-hidden rounded-3xl bg-ink">
       {pics.map((p, i) => {
         const on = i === index;
         const img = <Image src={p.image} alt={p.alt} fill sizes="(min-width:1024px) 33vw, 100vw" loading={eager && on ? "eager" : "lazy"} unoptimized={p.image.startsWith("/api/")} className="kb-img object-cover" />;
@@ -41,7 +41,7 @@ function Tile({ pics, index, onSelect, label, eager }: { pics: SidePic[]; index:
         <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center">
           <div className="flex items-center rounded-full bg-black/35 px-1.5 backdrop-blur-sm" role="group" aria-label={`${label} pictures`}>
             {pics.map((_, i) => (
-              <button key={i} type="button" onClick={() => onSelect(i)} aria-label={`Picture ${i + 1} of ${n}`} aria-current={i === index} className="flex h-6 w-5 items-center justify-center">
+              <button key={i} type="button" onClick={() => onSelect(i)} aria-label={`Picture ${i + 1} of ${n}`} aria-current={i === index} className="flex h-8 w-7 items-center justify-center">
                 <span className={`block h-1.5 rounded-full transition-all ${i === index ? "w-4 bg-brand-500" : "w-1.5 bg-white/70"}`} />
               </button>
             ))}

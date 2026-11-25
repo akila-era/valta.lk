@@ -210,3 +210,35 @@
 .hero-in { opacity: 0; }
 .is-active .hero-in { animation: hero-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; animation-delay: var(--hd, 0ms); }
 @media (prefers-reduced-motion: reduce) { .is-active .kb-img { animation: none; } .hero-in { opacity: 1; } .is-active .hero-in { animation: none; } }
+
+/* VOLTA AI: voice bars, typing dots, and the slow glow behind the assistant orb. */
+@keyframes ai-bar { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+@keyframes ai-dot { 0%, 80%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+@keyframes ai-glow { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.12); } }
+@keyframes ai-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@utility animate-ai-bar { animation: ai-bar 0.9s ease-in-out infinite; }
+@utility animate-ai-dot { animation: ai-dot 1.2s ease-in-out infinite; }
+@utility animate-ai-glow { animation: ai-glow 4s ease-in-out infinite; }
+@utility animate-ai-rise { animation: ai-rise 0.3s ease-out both; }
+
+/* VOLTA AI robot face: blink, glowing eyes, and a mouth that moves while it speaks. */
+@keyframes ai-talk { 0%, 100% { transform: scaleY(0.1); } 15% { transform: scaleY(1); } 35% { transform: scaleY(0.4); } 55% { transform: scaleY(0.95); } 75% { transform: scaleY(0.3); } 88% { transform: scaleY(0.7); } }
+@keyframes ai-jaw { 0%, 100% { transform: translateY(0); } 15% { transform: translateY(11px); } 35% { transform: translateY(4px); } 55% { transform: translateY(10px); } 75% { transform: translateY(3px); } 88% { transform: translateY(7px); } }
+@keyframes ai-lip { 0%, 100% { transform: translateY(0); } 15% { transform: translateY(-2px); } 55% { transform: translateY(-2px); } }
+@keyframes ai-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.08); } }
+@keyframes ai-eye { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+@utility animate-ai-talk { transform-box: fill-box; transform-origin: center; animation: ai-talk 0.62s ease-in-out infinite; }
+@utility animate-ai-jaw { animation: ai-jaw 0.62s ease-in-out infinite; }
+@utility animate-ai-lip { animation: ai-lip 0.62s ease-in-out infinite; }
+@utility animate-ai-blink { transform-box: fill-box; transform-origin: center; animation: ai-blink 5s ease-in-out infinite; }
+@utility animate-ai-eye { animation: ai-eye 2.4s ease-in-out infinite; }
+
+/* Bottom bar on phones sits above the home indicator. */
+@utility pb-safe-nav { padding-bottom: env(safe-area-inset-bottom); }
+/* App feel on touch screens: no text selection flicker on buttons, smooth momentum scrolling in rows. */
+@media (hover: none) and (pointer: coarse) {
+  button, [role="button"], a { -webkit-user-select: none; user-select: none; }
+  input, textarea, select { -webkit-user-select: auto; user-select: auto; }
+  body { overscroll-behavior-y: none; }
+  .scrollbar-none { -webkit-overflow-scrolling: touch; }
+}

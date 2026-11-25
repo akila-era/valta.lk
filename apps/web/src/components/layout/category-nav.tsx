@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
-import { BadgeCheck, Boxes, ChevronDown, Flame, Menu, Sparkles } from "lucide-react";
+import { BadgeCheck, Boxes, ChevronDown, Flame, Menu } from "lucide-react";
 import { CategoryDrawer, type DrawerCategory } from "./category-drawer";
 
 export type NavCategory = DrawerCategory;
@@ -60,9 +60,6 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
               <BadgeCheck className="h-4 w-4 transition-colors group-hover:text-brand-600" aria-hidden /> Brands
             </Link>
           )}
-          <Link href="/#products" className={quick}>
-            <Sparkles className="h-4 w-4 transition-colors group-hover:text-brand-600" aria-hidden /> New Arrivals
-          </Link>
           {showDeals && (
             <Link
               href="/products?sale=1"

@@ -237,12 +237,12 @@ export default async function ProductPage({ params, searchParams }: Props) {
         )}
         {!hasWarranty && product.specs.Warranty && (
           <Section id="warranty" title="Warranty">
-            <p className="rounded-lg border border-border p-4 text-sm">{product.specs.Warranty}</p>
+            <p className="rounded-2xl border border-border p-4 text-sm">{product.specs.Warranty}</p>
           </Section>
         )}
         {hasWarranty && c && (
           <Section id="warranty" title="Warranty">
-            <div className="rounded-lg border border-border p-4 text-sm">
+            <div className="rounded-2xl border border-border p-4 text-sm">
               {c.warranty.duration && <p className="font-semibold">{c.warranty.duration}{c.warranty.provider ? ` · ${c.warranty.provider}` : ""}</p>}
               {!c.warranty.duration && c.warranty.provider && <p className="font-semibold">{c.warranty.provider}</p>}
               {c.warranty.description && <p className="mt-1 text-muted">{c.warranty.description}</p>}

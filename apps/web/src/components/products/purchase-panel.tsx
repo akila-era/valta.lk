@@ -189,7 +189,7 @@ export function PurchasePanel({ product, offerNames = {}, deliveryCharge, cod = 
           <MessageCircle className="h-4 w-4 text-success" aria-hidden /> Ask about this product on WhatsApp
         </a>
       ) : null}
-      {!compact && <ul className="grid divide-y divide-border rounded-lg border border-border px-3 text-sm sm:grid-cols-2 sm:divide-y-0 sm:[&>li:nth-child(n+3)]:border-t sm:[&>li:nth-child(n+3)]:border-border" aria-label="Delivery and payment">
+      {!compact && <ul className="grid divide-y divide-border rounded-2xl border border-border px-3 text-sm sm:grid-cols-2 sm:divide-y-0 sm:[&>li:nth-child(n+3)]:border-t sm:[&>li:nth-child(n+3)]:border-border" aria-label="Delivery and payment">
         {cod ? <Assurance icon={Wallet} title="Cash on delivery available">Pay when your order arrives</Assurance> : null}
         <Assurance icon={Truck} title={`Delivery ${deliveryTime ?? ""}`.trim()}>
           {deliveryCharge != null ? `${formatLkr(deliveryCharge)} · ` : ""}<Link href="/shipping-policy" className="underline underline-offset-2 hover:text-ink">Shipping policy</Link>

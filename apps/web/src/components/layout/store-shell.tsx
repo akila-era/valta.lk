@@ -4,6 +4,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { getKokoInstallmentParts } from "@/lib/payments/koko-public";
 import { Footer } from "./footer";
 import { Header } from "./header";
+import { MobileTabBar } from "./mobile-tab-bar";
 
 /** Shared page chrome. `contained` pages get a centred container; the homepage lays out its own full-width bands. */
 export async function StoreShell({ children, contained = true }: { children: React.ReactNode; contained?: boolean }) {
@@ -20,6 +21,7 @@ export async function StoreShell({ children, contained = true }: { children: Rea
       </main>
       <Footer />
       <StoreOverlays />
+      <MobileTabBar />
     </ToastProvider>
     </KokoPartsProvider>
   );

@@ -4,18 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Loader2, Smartphone } from "lucide-react";
+import { Check, ChevronDown, CreditCard, Loader2, Lock, MapPin, Minus, Plus, ShieldCheck, Smartphone, Trash2, User } from "lucide-react";
 import { useLiveCart } from "@/components/cart/use-live-cart";
 import { EmptyState } from "@/components/ui/states";
 import { addMoney, formatLkr, fromCents, multiplyMoney, toCents } from "@/lib/utils/money";
 import { generateOrderRef } from "@/lib/utils/order-ref";
-import { lineKey } from "@/lib/utils/cart-math";
-import { customerSchema, deliverySchema, DISTRICTS } from "@/lib/validation/checkout";
+import { lineKey, MAX_LINE_QTY } from "@/lib/utils/cart-math";
+import { customerSchema, deliverySchema, DISTRICTS, normalizeLkPhone } from "@/lib/validation/checkout";
 import { cartActions, useCart } from "@/store/cart";
 import { RedirectingToKoko, startKokoRedirect } from "./koko-redirect";
 import { RedirectingToPayzy, startPayzyRedirect } from "./payzy-redirect";
 
-const REF_KEY = "valta.checkout.ref";
+const REF_KEY = "valta.checkout.ref"; // unchanged so an order already in progress keeps its reference
+const SAVED_KEY = "volta.checkout.details";
+type Saved = { name?: string; phone?: string; altPhone?: string; email?: string; address?: string; city?: string; district?: string; postalCode?: string };
 
 type Method = "COD" | "KOKO" | "PAYZY";
 // One reference per payment method: the same reference cannot be reused for an order with different contents.
@@ -41,24 +43,15 @@ const resetRef = (m: Method) => {
 };
 
 type Errors = Record<string, string>;
-type Step = 1 | 2 | 3;
+const FIELD_ORDER = ["name", "phone", "altPhone", "email", "address", "city", "district", "postalCode", "notes", "acceptTerms"];
 
-const STEPS: { n: Step; label: string }[] = [
-  { n: 1, label: "Your details" },
-  { n: 2, label: "Delivery" },
-  { n: 3, label: "Review & place" },
-];
-const STEP_FIELDS: Record<Step, string[]> = {
-  1: ["name", "phone", "email"],
-  2: ["address", "city", "district", "postalCode", "notes"],
-  3: ["acceptTerms"],
-};
-const stepOfField = (f: string): Step => (STEP_FIELDS[1].includes(f) ? 1 : STEP_FIELDS[2].includes(f) ? 2 : 3);
-
-function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: React.ReactNode }) {
+function Field({ id, label, error, hint, ok, children }: { id: string; label: string; error?: string; hint?: string; ok?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label htmlFor={id} className="label">{label}</label>
+      <label htmlFor={id} className="label flex items-center gap-1.5">
+        {label}
+        {ok && !error && <Check className="h-3.5 w-3.5 text-success" aria-label="looks good" />}
+      </label>
       {children}
       {hint && !error && <p id={`${id}-hint`} className="mt-1.5 text-xs text-muted">{hint}</p>}
       {error && <p id={`${id}-err`} className="field-error" role="alert">{error}</p>}
@@ -71,26 +64,33 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
   const { lines, subtotal } = useCart();
   const { live } = useLiveCart();
   const formRef = useRef<HTMLFormElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const [step, setStep] = useState<Step>(1);
-  const [reached, setReached] = useState<Step>(1);
   const [errors, setErrors] = useState<Errors>({});
   const [banner, setBanner] = useState<{ kind: "error" | "warn"; text: string } | null>(notice === "cancelled" ? { kind: "warn", text: "Payment cancelled. Your cart is still here, so you can try again or choose another payment method." } : null);
   const [method, setMethod] = useState<Method>(methods.cod ? "COD" : methods.koko ? "KOKO" : "PAYZY");
   const [redirecting, setRedirecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
-  const [recap, setRecap] = useState<Record<string, string>>({});
   const inFlight = useRef(false);
-  const moved = useRef(false);
   const openedTotal = useRef<number | null>(null);
   const [priceAck, setPriceAck] = useState(false);
+  const [saved, setSaved] = useState<Saved | null>(null);
+  const [remember, setRemember] = useState(true);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  // Details this shopper chose to keep on this device (never sent anywhere): fill the form for the next order.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      try {
+        const raw = window.localStorage.getItem(SAVED_KEY);
+        if (raw) setSaved(JSON.parse(raw) as Saved);
+      } catch {
+        /* storage can be blocked: the form simply starts empty */
+      }
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []);
   const total = addMoney(subtotal, deliveryCharge);
 
-  // Move keyboard/screen-reader focus to the new step's heading whenever the step changes.
-  useEffect(() => {
-    if (moved.current) headingRef.current?.focus();
-  }, [step]);
   useEffect(() => {
     if (openedTotal.current == null && lines.length) openedTotal.current = total;
   }, [lines.length, total]);
@@ -114,33 +114,47 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
   const aria = (k: string) => ({ "aria-invalid": err(k) ? true : undefined, "aria-describedby": err(k) ? `${k}-err` : undefined });
   const values = () => Object.fromEntries([...new FormData(formRef.current!).entries()].map(([k, v]) => [k, String(v)])) as Record<string, string>;
 
-  /** Validates the fields of one step; returns the errors found (also shown inline). */
-  function validate(which: Step): Errors {
+  /** Validates every field of the form; returns the errors found (also shown inline). */
+  function validate(): Errors {
     const v = values();
     const found: Errors = {};
-    if (which === 1) {
-      const c = customerSchema.safeParse({ name: v.name ?? "", phone: v.phone ?? "", email: v.email ?? "" });
-      if (!c.success) for (const i of c.error.issues) found[String(i.path[0])] ??= i.message;
-    }
-    if (which === 2) {
-      const d = deliverySchema.safeParse({ address: v.address ?? "", city: v.city ?? "", district: v.district ?? "", postalCode: v.postalCode ?? "", notes: v.notes ?? "" });
-      if (!d.success) for (const i of d.error.issues) found[String(i.path[0])] ??= i.message;
-    }
-    if (which === 3 && v.acceptTerms !== "on") found.acceptTerms = "Please accept the terms to continue";
+    const c = customerSchema.safeParse({ name: v.name ?? "", phone: v.phone ?? "", email: v.email ?? "" });
+    if (!c.success) for (const i of c.error.issues) found[String(i.path[0])] ??= i.message;
+    const d = deliverySchema.safeParse({ address: v.address ?? "", city: v.city ?? "", district: v.district ?? "", postalCode: v.postalCode ?? "", notes: v.notes ?? "" });
+    if (!d.success) for (const i of d.error.issues) found[String(i.path[0])] ??= i.message;
+    if ((v.altPhone ?? "").trim() && normalizeLkPhone(v.altPhone) === null) found.altPhone = "Enter a valid Sri Lankan phone number, e.g. 0112345678";
+    if ((v.altPhone ?? "").trim() && normalizeLkPhone(v.altPhone) === normalizeLkPhone(v.phone ?? "")) found.altPhone ??= "Use a different number from the first one";
+    if (v.acceptTerms !== "on") found.acceptTerms = "Please accept the terms to continue";
     return found;
   }
 
-  function goTo(next: Step) {
-    if (next === 3) setRecap(values()); // the review always shows what is currently typed
-    moved.current = true;
-    setStep(next);
-    setReached((r) => (next > r ? next : r));
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  /** Checks one field when the shopper leaves it, so mistakes show up straight away instead of at the end. */
+  function checkField(name: string) {
+    const f = formRef.current;
+    if (!f) return;
+    setTouched((t) => ({ ...t, [name]: Boolean(values()[name]?.trim()) })); // optional fields only get a tick when filled
+    const all = validate();
+    const msg = all[name];
+    setErrors((e) => {
+      const next = { ...e };
+      if (msg && name !== "acceptTerms") next[name] = msg;
+      else delete next[name];
+      return next;
+    });
   }
+  const onBlurField = (e: React.FocusEvent<HTMLFormElement>) => {
+    const el = e.target as unknown as HTMLInputElement;
+    if (el.name && ["name", "phone", "altPhone", "email", "address", "city", "district", "postalCode"].includes(el.name)) checkField(el.name);
+  };
+  const ok = (k: string) => Boolean(touched[k] && !errors[k]);
 
   function focusFirstError() {
-    requestAnimationFrame(() => document.querySelector<HTMLElement>("[aria-invalid=true]")?.focus());
+    requestAnimationFrame(() => {
+      const bad = [...document.querySelectorAll<HTMLElement>("[aria-invalid=true]")];
+      bad.sort((a, b) => FIELD_ORDER.indexOf(a.getAttribute("name") ?? "") - FIELD_ORDER.indexOf(b.getAttribute("name") ?? ""));
+      bad[0]?.focus();
+      bad[0]?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -148,20 +162,9 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
     if (inFlight.current) return; // duplicate-submit guard
     setBanner(null);
 
-    if (step < 3) {
-      const found = validate(step);
-      setErrors(found);
-      if (Object.keys(found).length) return focusFirstError();
-      return goTo((step + 1) as Step);
-    }
-
-    // Final step: validate everything again, then place the order.
-    const found = { ...validate(1), ...validate(2), ...validate(3) };
+    const found = validate();
     setErrors(found);
-    if (Object.keys(found).length) {
-      goTo(Math.min(...Object.keys(found).map(stepOfField)) as Step);
-      return focusFirstError();
-    }
+    if (Object.keys(found).length) return focusFirstError();
     if (openedTotal.current != null && openedTotal.current !== total && !priceAck) {
       setPriceAck(true);
       setBanner({ kind: "warn", text: "Some prices changed. We have refreshed your cart, so please review the new total." });
@@ -169,8 +172,17 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
     }
     const v = values();
     const customer = customerSchema.parse({ name: v.name, phone: v.phone, email: v.email });
-    const delivery = deliverySchema.parse({ address: v.address, city: v.city, district: v.district, postalCode: v.postalCode, notes: v.notes });
+    // The order record has one phone field, so the second number travels with the delivery notes the delivery team reads.
+    const alt = (v.altPhone ?? "").trim() ? normalizeLkPhone(v.altPhone) : null;
+    const notesText = [alt ? `Second phone: ${alt}` : "", (v.notes ?? "").trim()].filter(Boolean).join(" | ").slice(0, 300);
+    const delivery = deliverySchema.parse({ address: v.address, city: v.city, district: v.district, postalCode: v.postalCode, notes: notesText });
 
+    try {
+      if (remember) window.localStorage.setItem(SAVED_KEY, JSON.stringify({ name: v.name, phone: v.phone, altPhone: v.altPhone, email: v.email, address: v.address, city: v.city, district: v.district, postalCode: v.postalCode } satisfies Saved));
+      else window.localStorage.removeItem(SAVED_KEY);
+    } catch {
+      /* ignore */
+    }
     inFlight.current = true;
     setSubmitting(true);
     const externalRef = getRef(method);
@@ -214,7 +226,6 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
         resetRef(method); // nothing was sent to the ERP
         setErrors(data.error.fields);
         setBanner({ kind: "error", text: data.error.message });
-        goTo(Math.min(...Object.keys(data.error.fields).map(stepOfField)) as Step);
         focusFirstError();
       } else if (code === "PRICE_CHANGED" || code === "INSUFFICIENT_STOCK") {
         resetRef(method); // definitive rejection: a corrected order gets a new reference
@@ -237,165 +248,126 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
     }
   }
 
-  const hide = (n: Step) => ({ hidden: step !== n, "aria-hidden": step !== n || undefined });
+  const card = "rounded-2xl border border-border bg-white p-5 sm:p-7";
+  const head = (n: number, title: string, icon: React.ReactNode, id: string) => (
+    <h2 id={id} className="mb-5 flex items-center gap-3 text-lg font-semibold tracking-tight text-ink">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-semibold text-on-brand" aria-hidden>{n}</span>
+      {title}
+      <span className="ml-auto hidden text-muted sm:block" aria-hidden>{icon}</span>
+    </h2>
+  );
+  const payOption = (id: Method, title: string, text: string) => (
+    <label key={id} className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 bg-white p-4 text-sm transition-colors ${method === id ? "border-brand-500 bg-brand-50/50" : "border-border hover:border-ink/40"}`}>
+      <input type="radio" name="payment" value={id} checked={method === id} onChange={() => setMethod(id)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
+      <span>
+        <span className="font-semibold text-ink">{title}</span>
+        <span className="block text-muted">{text}</span>
+      </span>
+    </label>
+  );
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} noValidate className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]" aria-busy={submitting}>
-      <div className="min-w-0 space-y-6">
-        <nav aria-label="Checkout progress">
-          <ol className="grid grid-cols-3 gap-2 text-sm">
-            {STEPS.map((s) => {
-              const done = s.n < step;
-              const current = s.n === step;
-              const canGo = s.n <= reached && s.n !== step && !submitting;
-              const inner = (
-                <>
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${current ? "border-brand-500 bg-brand-500 text-on-brand" : done ? "border-brand-600 bg-brand-50 text-brand-700" : "border-border text-muted"}`}>
-                    {done ? <Check className="h-4 w-4" aria-hidden /> : s.n}
-                  </span>
-                  <span className={`min-w-0 text-xs sm:text-sm ${current ? "font-semibold text-ink" : "text-muted"}`}>{s.label}</span>
-                </>
-              );
-              return (
-                <li key={s.n} className="min-w-0" aria-current={current ? "step" : undefined}>
-                  {canGo ? (
-                    <button type="button" onClick={() => goTo(s.n)} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-1" aria-label={`Go to step ${s.n}: ${s.label}`}>{inner}</button>
-                  ) : (
-                    <span className="flex min-h-11 w-full items-center gap-2 px-1"><span className="sr-only">Step {s.n}: {s.label}{current ? " (current)" : ""}</span>{inner}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
-
-        {redirecting && <div className="rounded-lg bg-surface p-4">{method === "PAYZY" ? <RedirectingToPayzy /> : <RedirectingToKoko />}</div>}
+    <form ref={formRef} onSubmit={onSubmit} onBlur={onBlurField} noValidate className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-8" aria-busy={submitting}>
+      <div className="min-w-0 space-y-5 max-lg:pb-24">
+        {redirecting && <div className="rounded-xl bg-surface p-4">{method === "PAYZY" ? <RedirectingToPayzy /> : <RedirectingToKoko />}</div>}
         {banner && (
-          <div role="alert" className={`rounded-lg p-4 text-sm ${banner.kind === "warn" ? "bg-warn-bg text-warn" : "bg-danger-bg text-danger"}`}>
+          <div role="alert" className={`rounded-xl p-4 text-sm ${banner.kind === "warn" ? "bg-warn-bg text-warn" : "bg-danger-bg text-danger"}`}>
             {banner.text}{" "}
             {banner.kind === "warn" && <Link href="/cart" className="font-semibold underline">Review cart</Link>}
           </div>
         )}
 
-        {/* All three steps stay in the page (inactive ones are hidden) so nothing the customer typed is ever lost. */}
-          <section {...hide(1)} className="space-y-4 rounded-3xl bg-surface p-5 sm:p-7" aria-labelledby="step-1">
-          <h2 id="step-1" ref={step === 1 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Your details</h2>
-          <Field id="name" label="Full name" error={err("name")}>
-            <input id="name" name="name" autoComplete="name" defaultValue={prefill?.name} className="input" {...aria("name")} maxLength={100} />
-          </Field>
+        <section className={card} aria-labelledby="co-contact">
+          {head(1, "Contact details", <User className="h-5 w-5" />, "co-contact")}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="phone" label="Phone number" error={err("phone")} hint="e.g. 0771234567">
-              <input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={prefill?.phone?.replace(/^\+94/, "0") ?? undefined} className="input" {...aria("phone")} />
+            <div className="sm:col-span-2">
+              <Field id="name" label="Full name" error={err("name")} ok={ok("name")}>
+                <input key={`n-${saved ? 1 : 0}`} id="name" name="name" autoComplete="name" defaultValue={prefill?.name || saved?.name} className="input min-h-12" {...aria("name")} maxLength={100} />
+              </Field>
+            </div>
+            <Field id="phone" label="Phone number" error={err("phone")} ok={ok("phone")} hint="07XXXXXXXX, e.g. 0771234567">
+              <input key={`p-${saved ? 1 : 0}`} id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={prefill?.phone?.replace(/^\+94/, "0") ?? saved?.phone} className="input min-h-12" placeholder="07X XXX XXXX" {...aria("phone")} />
             </Field>
-            <Field id="email" label="Email (optional)" error={err("email")}>
-              <input id="email" name="email" type="email" autoComplete="email" defaultValue={prefill?.email} className="input" {...aria("email")} maxLength={200} />
+            <Field id="altPhone" label="Second phone number (optional)" error={err("altPhone")} ok={ok("altPhone")} hint="Another number we can call if the first is busy">
+              <input key={`q-${saved ? 1 : 0}`} id="altPhone" name="altPhone" type="tel" inputMode="tel" autoComplete="tel" defaultValue={saved?.altPhone} className="input min-h-12" placeholder="07X XXX XXXX" {...aria("altPhone")} />
+            </Field>
+            <Field id="email" label="Email (optional)" error={err("email")} ok={ok("email")}>
+              <input key={`e-${saved ? 1 : 0}`} id="email" name="email" type="email" autoComplete="email" defaultValue={prefill?.email || saved?.email} className="input min-h-12" {...aria("email")} maxLength={200} />
             </Field>
           </div>
         </section>
 
-          <section {...hide(2)} className="space-y-4 rounded-3xl bg-surface p-5 sm:p-7" aria-labelledby="step-2">
-          <h2 id="step-2" ref={step === 2 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Delivery address</h2>
-          <Field id="address" label="Address" error={err("address")}>
-            <input id="address" name="address" autoComplete="street-address" className="input" {...aria("address")} maxLength={250} />
-          </Field>
+        <section className={card} aria-labelledby="co-delivery">
+          {head(2, "Delivery address", <MapPin className="h-5 w-5" />, "co-delivery")}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="city" label="City" error={err("city")}>
-              <input id="city" name="city" autoComplete="address-level2" className="input" {...aria("city")} maxLength={100} />
+            <div className="sm:col-span-2">
+              <Field id="address" label="Address" error={err("address")} ok={ok("address")}>
+                <input key={`a-${saved ? 1 : 0}`} id="address" name="address" autoComplete="street-address" defaultValue={saved?.address} className="input min-h-12" {...aria("address")} maxLength={250} />
+              </Field>
+            </div>
+            <Field id="city" label="City" error={err("city")} ok={ok("city")}>
+              <input key={`c-${saved ? 1 : 0}`} id="city" name="city" autoComplete="address-level2" defaultValue={saved?.city} className="input min-h-12" {...aria("city")} maxLength={100} />
             </Field>
-            <Field id="district" label="District" error={err("district")}>
-              <select id="district" name="district" defaultValue="" className="select" {...aria("district")}>
+            <Field id="district" label="District" error={err("district")} ok={ok("district")}>
+              <select key={`d-${saved ? 1 : 0}`} id="district" name="district" defaultValue={saved?.district ?? ""} className="select min-h-12" {...aria("district")}>
                 <option value="" disabled>Select district</option>
                 {DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </Field>
             <Field id="postalCode" label="Postal code (optional)" error={err("postalCode")}>
-              <input id="postalCode" name="postalCode" inputMode="numeric" autoComplete="postal-code" className="input" {...aria("postalCode")} maxLength={5} />
+              <input key={`z-${saved ? 1 : 0}`} id="postalCode" name="postalCode" inputMode="numeric" autoComplete="postal-code" defaultValue={saved?.postalCode} className="input min-h-12" {...aria("postalCode")} maxLength={5} />
             </Field>
-          </div>
-          <Field id="notes" label="Delivery notes (optional)" error={err("notes")}>
-            <textarea id="notes" name="notes" rows={2} maxLength={300} className="textarea" />
-          </Field>
-        </section>
-
-        <section {...hide(3)} className="space-y-6" aria-labelledby="step-3">
-          <h2 id="step-3" ref={step === 3 ? headingRef : undefined} tabIndex={-1} className="text-lg font-semibold outline-none">Review and place your order</h2>
-
-          <div className="divide-y divide-border rounded-3xl bg-surface px-5 text-sm sm:px-7" data-testid="recap">
-            <div className="flex items-start justify-between gap-4 p-4">
-              <div>
-                <p className="font-semibold">Contact</p>
-                <p className="mt-1 text-muted">{recap.name}<br />{recap.phone}{recap.email ? <><br />{recap.email}</> : null}</p>
-              </div>
-              <button type="button" className="font-semibold text-brand-600 hover:underline" onClick={() => goTo(1)}>Change<span className="sr-only"> contact details</span></button>
+            <div className="sm:col-span-2">
+              <Field id="notes" label="Delivery notes (optional)" error={err("notes")}>
+                <textarea id="notes" name="notes" rows={2} maxLength={300} className="textarea" />
+              </Field>
             </div>
-            <div className="flex items-start justify-between gap-4 p-4">
-              <div>
-                <p className="font-semibold">Deliver to</p>
-                <p className="mt-1 text-muted">{recap.address}, {recap.city}, {recap.district}{recap.postalCode ? ` ${recap.postalCode}` : ""}{recap.notes ? <><br />Note: {recap.notes}</> : null}</p>
-              </div>
-              <button type="button" className="font-semibold text-brand-600 hover:underline" onClick={() => goTo(2)}>Change<span className="sr-only"> delivery address</span></button>
-            </div>
-          </div>
-
-          <fieldset className="rounded-3xl bg-surface p-5 sm:p-7">
-            <legend className="px-1 text-base font-semibold">Payment method</legend>
-            <div className="space-y-3">
-              {methods.cod && (
-                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white p-4 text-sm ${method === "COD" ? "border-ink" : "border-border"}`}>
-                  <input type="radio" name="payment" value="COD" checked={method === "COD"} onChange={() => setMethod("COD")} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
-                  <span>
-                    <span className="font-semibold">Cash on delivery</span>
-                    <span className="block text-muted">Pay in cash when your order is delivered. Your order is not marked as paid until the cash is collected.</span>
-                  </span>
-                </label>
-              )}
-              {methods.koko && (
-                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white p-4 text-sm ${method === "KOKO" ? "border-ink" : "border-border"}`}>
-                  <input type="radio" name="payment" value="KOKO" checked={method === "KOKO"} onChange={() => setMethod("KOKO")} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
-                  <span>
-                    <span className="font-semibold">Koko: Buy Now Pay Later</span>
-                    <span className="block text-muted">Pay in 3 interest free instalments with Koko.</span>
-                  </span>
-                </label>
-              )}
-              {methods.payzy && (
-                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white p-4 text-sm ${method === "PAYZY" ? "border-ink" : "border-border"}`}>
-                  <input type="radio" name="payment" value="PAYZY" checked={method === "PAYZY"} onChange={() => setMethod("PAYZY")} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
-                  <span>
-                    <span className="font-semibold">Payzy: pay in instalments</span>
-                    <span className="block text-muted">Split your payment into instalments with Payzy.</span>
-                  </span>
-                </label>
-              )}
-            </div>
-          </fieldset>
-
-          <div>
-            <label className="flex items-start gap-3 text-sm">
-              <input type="checkbox" name="acceptTerms" className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" aria-invalid={err("acceptTerms") ? true : undefined} aria-describedby={err("acceptTerms") ? "acceptTerms-err" : undefined} />
-              <span>I agree to the <Link href="/terms" className="font-semibold text-brand-600 underline" target="_blank">terms and conditions</Link> and <Link href="/privacy-policy" className="font-semibold text-brand-600 underline" target="_blank">privacy policy</Link>.</span>
-            </label>
-            {err("acceptTerms") && <p id="acceptTerms-err" className="field-error" role="alert">{err("acceptTerms")}</p>}
           </div>
         </section>
 
-        <div className="pb-safe flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          {step > 1 ? (
-            <button type="button" className="btn-secondary" onClick={() => goTo((step - 1) as Step)} disabled={submitting}>Back</button>
-          ) : (
-            <Link href="/cart" className="btn-secondary whitespace-nowrap">Back to cart</Link>
-          )}
-          {step < 3 ? (
-            <button type="submit" className="btn-primary btn-lg w-full sm:w-auto sm:min-w-40">Continue</button>
-          ) : (
-            <button type="submit" className="btn-primary btn-lg w-full sm:w-auto sm:min-w-40" disabled={submitting}>
-              {redirecting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Redirecting to {method === "PAYZY" ? "Payzy" : "Koko"}…</> : submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : method === "KOKO" ? "Pay with Koko" : method === "PAYZY" ? "Pay with Payzy" : "Place order"}
-            </button>
-          )}
+        <fieldset className={card}>
+          <legend className="sr-only">Payment method</legend>
+          {head(3, "Payment method", <CreditCard className="h-5 w-5" />, "co-payment")}
+          <div className="space-y-3">
+            {methods.cod && payOption("COD", "Cash on delivery", "Pay in cash when your order is delivered. Your order is not marked as paid until the cash is collected.")}
+            {methods.koko && payOption("KOKO", "Koko: Buy Now Pay Later", "Pay in 3 interest free instalments with Koko.")}
+            {methods.payzy && payOption("PAYZY", "Payzy: pay in instalments", "Split your payment into instalments with Payzy.")}
+          </div>
+        </fieldset>
+
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
+          <span>Remember my details on this device for next time<span className="block text-xs text-muted">Stored only in this browser, never sent anywhere. Untick to remove them.</span></span>
+        </label>
+
+        <div>
+          <label className="flex items-start gap-3 text-sm">
+            <input type="checkbox" name="acceptTerms" className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" aria-invalid={err("acceptTerms") ? true : undefined} aria-describedby={err("acceptTerms") ? "acceptTerms-err" : undefined} />
+            <span>I agree to the <Link href="/terms" className="font-semibold text-brand-600 underline" target="_blank">terms and conditions</Link> and <Link href="/privacy-policy" className="font-semibold text-brand-600 underline" target="_blank">privacy policy</Link>.</span>
+          </label>
+          {err("acceptTerms") && <p id="acceptTerms-err" className="field-error" role="alert">{err("acceptTerms")}</p>}
+        </div>
+
+        <div className="pb-safe flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Link href="/cart" className="btn-secondary whitespace-nowrap">Back to cart</Link>
+          <button type="submit" className="btn-primary btn-lg w-full rounded-full sm:w-auto sm:min-w-56" disabled={submitting}>
+            {redirecting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Redirecting to {method === "PAYZY" ? "Payzy" : "Koko"}…</> : submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : <><Lock className="h-4 w-4" aria-hidden /> {method === "KOKO" ? "Pay with Koko" : method === "PAYZY" ? "Pay with Payzy" : "Place order"} · {formatLkr(total)}</>}
+          </button>
         </div>
       </div>
 
-      <aside className="order-first h-fit rounded-3xl bg-surface p-6 lg:sticky lg:top-40 lg:order-none" aria-label="Order summary">
+      <div className="pb-safe fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur lg:hidden">
+        <p className="min-w-0 flex-1">
+          <span className="block text-xs text-muted">{method === "COD" ? "Pay on delivery" : "Total"}</span>
+          <span className="block text-lg font-semibold tabular-nums text-ink">{formatLkr(total)}</span>
+        </p>
+        <button type="submit" className="btn-primary btn-lg shrink-0 rounded-full px-6" disabled={submitting}>
+          {submitting || redirecting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Lock className="h-4 w-4" aria-hidden />}
+          {method === "KOKO" ? "Pay with Koko" : method === "PAYZY" ? "Pay with Payzy" : "Place order"}
+        </button>
+      </div>
+
+      <aside className="order-first h-fit rounded-2xl border border-border bg-white p-5 sm:p-6 lg:sticky lg:top-40 lg:order-none" aria-label="Order summary">
         <h2 className="hidden text-lg font-semibold lg:block">Order summary</h2>
         {/* Phones: the summary sits above the form, so it starts collapsed to the total and opens on demand. */}
         <button
@@ -410,7 +382,7 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
             <span className="block text-xs text-muted">{lines.length} {lines.length === 1 ? "item" : "items"} · {summaryOpen ? "Hide details" : "Show details"}</span>
           </span>
           <span className="flex items-center gap-2">
-            <span className="whitespace-nowrap text-base font-extrabold tabular-nums text-ink sm:text-lg">{formatLkr(total)}</span>
+            <span className="whitespace-nowrap text-base font-semibold tabular-nums text-ink sm:text-lg">{formatLkr(total)}</span>
             <ChevronDown className={`h-5 w-5 text-muted transition-transform ${summaryOpen ? "rotate-180" : ""}`} aria-hidden />
           </span>
         </button>
@@ -420,29 +392,48 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
           </p>
         )}
         <div id="checkout-summary-details" className={summaryOpen ? "" : "max-lg:hidden"}>
-        <ul className="mt-4 space-y-3 text-sm">
-          {lines.map((l) => (
-            <li key={lineKey(l)} className="flex items-center gap-3">
-              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-surface">
-                {l.image ? <Image src={l.image} alt="" fill sizes="56px" className="object-contain p-1" /> : <Smartphone className="m-auto h-full w-6 text-muted" aria-hidden />}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-medium text-ink">{l.name}</span>
-                <span className="block text-xs text-muted">{l.variantLabel ? `${l.variantLabel} · ` : ""}Qty {l.quantity}</span>
-              </span>
-              <span className="shrink-0 font-semibold tabular-nums">{formatLkr(multiplyMoney(l.unitPrice, l.quantity))}</span>
-            </li>
-          ))}
+        <ul className="mt-4 space-y-4 text-sm">
+          {lines.map((l) => {
+            const key = lineKey(l);
+            const d = live?.find((x) => x.productId === l.productId && x.variantKey === l.variantKey);
+            const max = d?.maxQuantity ?? null;
+            return (
+              <li key={key} className="flex items-start gap-3">
+                <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-border bg-white">
+                  {l.image ? <Image src={l.image} alt={l.name} fill sizes="56px" className="object-contain p-1" /> : <Smartphone className="m-auto h-full w-6 text-muted" aria-hidden />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-medium text-ink">{l.name}</span>
+                  {l.variantLabel && <span className="block text-xs text-muted">{l.variantLabel}</span>}
+                  <span className="mt-1.5 flex items-center gap-2">
+                    <span className="flex items-center rounded-full border border-border" role="group" aria-label={`Quantity for ${l.name}`}>
+                      <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface disabled:opacity-40" aria-label={`Decrease quantity of ${l.name}`} disabled={l.quantity <= 1 || submitting} onClick={() => cartActions.setQuantity(key, l.quantity - 1)}>
+                        <Minus className="h-3.5 w-3.5" aria-hidden />
+                      </button>
+                      <span className="w-6 text-center text-sm font-semibold tabular-nums" aria-live="polite">{l.quantity}</span>
+                      <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-surface disabled:opacity-40" aria-label={`Increase quantity of ${l.name}`} disabled={l.quantity >= MAX_LINE_QTY || (max != null && l.quantity >= max) || submitting} onClick={() => cartActions.setQuantity(key, l.quantity + 1)}>
+                        <Plus className="h-3.5 w-3.5" aria-hidden />
+                      </button>
+                    </span>
+                    <button type="button" className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-surface hover:text-danger disabled:opacity-40" aria-label={`Remove ${l.name}`} disabled={submitting} onClick={() => cartActions.remove(key)}>
+                      <Trash2 className="h-4 w-4" aria-hidden />
+                    </button>
+                  </span>
+                </span>
+                <span className="shrink-0 font-semibold tabular-nums">{formatLkr(multiplyMoney(l.unitPrice, l.quantity))}</span>
+              </li>
+            );
+          })}
         </ul>
         <dl className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
           <div className="flex justify-between"><dt>Subtotal</dt><dd>{formatLkr(subtotal)}</dd></div>
           {savings > 0 && <div className="flex justify-between text-success"><dt>Catalogue savings included</dt><dd>{formatLkr(fromCents(savings))}</dd></div>}
           {offers.map((name) => <div key={name} className="text-xs text-muted">{name}</div>)}
           <div className="flex justify-between"><dt>Delivery</dt><dd data-testid="delivery">{formatLkr(deliveryCharge)}</dd></div>
-          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">{method === "COD" ? "Pay on delivery" : "Total"}</dt><dd className="text-xl font-extrabold tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd></div>
+          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">{method === "COD" ? "Pay on delivery" : "Total"}</dt><dd className="text-xl font-semibold tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd></div>
         </dl>
         <p className="mt-3 text-xs text-muted">The store has one delivery charge. No other delivery method is offered.</p>
-        <p className="mt-4 text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>
+        <p className="mt-4 flex items-start gap-2 rounded-xl bg-surface p-3 text-xs text-muted"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" aria-hidden />Prices and stock are confirmed again when you place your order.</p>
         </div>
       </aside>
     </form>

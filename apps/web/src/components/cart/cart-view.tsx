@@ -126,7 +126,7 @@ export function CartView() {
                   )}
                 </div>
                 <div className="col-span-2 flex items-center justify-between gap-2 sm:col-span-1 sm:justify-end">
-                  <div className="flex items-center rounded-lg border border-border bg-bg" role="group" aria-label={`Quantity for ${l.name}`}>
+                  <div className="flex items-center rounded-2xl border border-border bg-bg" role="group" aria-label={`Quantity for ${l.name}`}>
                     <button type="button" className="btn-ghost min-h-11 min-w-11 px-3" aria-label={`Decrease quantity of ${l.name}`} disabled={l.quantity <= 1} onClick={() => cartActions.setQuantity(key, l.quantity - 1)}>
                       <Minus className="h-4 w-4" aria-hidden />
                     </button>

@@ -15,13 +15,13 @@ export function HotDeals({ products, timer, title = "Hot Deals", subtitle }: { p
   const best = Math.max(0, ...list.map((p) => discountPercent(p) ?? 0));
   return (
     <section id="hot-deals" aria-labelledby="hot-deals-title" className="container-page mt-10 scroll-mt-40 sm:mt-14">
-      <div className="relative isolate overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-brand-50 p-5 sm:p-8">
+      <div className="relative isolate overflow-hidden rounded-3xl border border-brand-100 bg-gradient-to-br from-brand-50 via-white to-brand-50 p-4 sm:p-8">
         <span aria-hidden className="pointer-events-none absolute -right-20 -top-24 -z-10 h-64 w-64 rounded-full bg-brand-500/15 blur-3xl" />
         <Flame aria-hidden className="pointer-events-none absolute -bottom-10 -left-6 -z-10 h-56 w-56 -rotate-12 fill-brand-500/[0.06] text-brand-500/10" strokeWidth={1} />
 
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-          <div className="flex items-center gap-3.5">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-400 text-on-brand shadow-[0_12px_24px_-12px_rgba(6,121,61,0.9)]">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 sm:mb-6 sm:gap-y-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-400 text-on-brand shadow-[0_12px_24px_-12px_rgba(6,121,61,0.9)]">
               <Flame className="h-6 w-6 fill-current" aria-hidden />
             </span>
             <div>
@@ -31,9 +31,9 @@ export function HotDeals({ products, timer, title = "Hot Deals", subtitle }: { p
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <div className="flex w-full flex-wrap items-center gap-x-5 gap-y-3 sm:w-auto">
             {timer}
-            <Link href="/products?sale=1" className="group inline-flex min-h-10 items-center gap-1.5 rounded-full bg-ink px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 hover:text-on-brand">
+            <Link href="/products?sale=1" className="group inline-flex min-h-11 w-full items-center justify-center gap-1.5 sm:min-h-10 sm:w-auto rounded-full bg-ink px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 hover:text-on-brand">
               View all deals <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden />
             </Link>
           </div>
@@ -41,7 +41,7 @@ export function HotDeals({ products, timer, title = "Hot Deals", subtitle }: { p
 
         <ProductCarousel label="Hot deals" align="start">
           {list.slice(0, 12).map((p, i) => (
-            <li key={p.id} className="w-1/2 shrink-0 snap-start px-1.5 sm:px-2 md:w-1/3 lg:w-1/4 xl:w-1/5">
+            <li key={p.id} className={`shrink-0 snap-start px-1.5 sm:px-2 sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 ${list.length === 1 ? "w-full max-sm:max-w-[16rem]" : "w-[62%]"}`}>
               <div className="h-full rounded-2xl border border-border bg-white p-2.5 transition-shadow duration-200 hover:shadow-[0_16px_32px_-22px_rgba(17,17,17,0.5)] sm:p-3">
                 <ProductCard product={p} priority={i < 2} />
               </div>
