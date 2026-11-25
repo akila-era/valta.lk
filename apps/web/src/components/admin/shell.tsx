@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Bell, ChevronDown, ChevronRight, ExternalLink, Menu, PanelLeftClose, PanelLeftOpen, Search, X } from "lucide-react";
+import { Bell, ChevronDown, ChevronRight, ExternalLink, Menu, PanelLeftClose, PanelLeftOpen, Search, X, Zap } from "lucide-react";
 import { SignOutButton } from "@/components/account/sign-out-button";
-import { iconFor, isActive, NAV, type AdminBadges, type NavGroup } from "@/lib/admin/nav";
+import { isActive, NAV, type AdminBadges, type NavGroup } from "@/lib/admin/nav";
 
 const STORAGE = "valta-admin-sidebar";
 const listeners = new Set<() => void>();
@@ -38,13 +38,17 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
   const activeGroup = NAV.find((g) => g.items.some((i) => isActive(i, pathname, status, filter)))?.id;
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const isOpen = (g: NavGroup) => open[g.id] ?? g.id === activeGroup;
+  const row = "relative flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-[15px] font-medium transition-colors";
 
   return (
-    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-6">
+    <nav aria-label="Admin" className="scrollbar-none flex-1 space-y-1 overflow-y-auto px-3 pb-4 pt-2">
       {NAV.map((g) => {
         const Icon = g.icon;
         const single = g.items.length === 1;
         const groupActive = g.id === activeGroup;
+        // Live counts of the group's items, so a collapsed group still shows that something needs attention.
+        const alerts = g.items.reduce((sum, i) => sum + (i.badge ? badges[i.badge] : 0), 0);
+        const failed = g.items.some((i) => i.badge === "failed" && badges.failed > 0);
         if (single || collapsed) {
           const first = g.items[0];
           return (
@@ -55,52 +59,54 @@ function Nav({ collapsed, badges, onNavigate }: { collapsed: boolean; badges: Ad
               title={g.label}
               aria-label={collapsed ? g.label : undefined}
               aria-current={groupActive && single ? "page" : undefined}
-              className={`mt-1 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors ${
-                groupActive ? "bg-brand-50 font-semibold text-brand-700" : "text-ink/80 hover:bg-surface hover:text-ink"
-              } ${collapsed ? "justify-center px-0" : ""}`}
+              className={`${row} ${collapsed ? "justify-center px-0" : ""} ${groupActive ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white"}`}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+              {groupActive && <span aria-hidden className="absolute -left-3 top-2.5 h-6 w-1 rounded-r-full bg-brand-500" />}
+              <Icon className={`h-5 w-5 shrink-0 ${groupActive ? "text-brand-500" : ""}`} strokeWidth={1.75} aria-hidden />
               {!collapsed && g.label}
+              {collapsed && alerts > 0 && <span aria-hidden className={`absolute right-3 top-2.5 h-2 w-2 rounded-full ring-2 ring-dark ${failed ? "bg-danger" : "bg-brand-500"}`} />}
             </Link>
           );
         }
         const expanded = isOpen(g);
         return (
-          <div key={g.id} className="mt-3">
+          <div key={g.id}>
             <button
               type="button"
               aria-expanded={expanded}
               aria-controls={`nav-${g.id}`}
               onClick={() => setOpen((o) => ({ ...o, [g.id]: !expanded }))}
-              className="flex min-h-9 w-full items-center gap-2 rounded-lg px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted hover:text-ink"
+              className={`${row} ${groupActive ? "text-white" : "text-white/65 hover:bg-white/5 hover:text-white"}`}
             >
-              <Icon className="h-4 w-4 shrink-0" aria-hidden />
+              {groupActive && <span aria-hidden className="absolute -left-3 top-2.5 h-6 w-1 rounded-r-full bg-brand-500" />}
+              <Icon className={`h-5 w-5 shrink-0 ${groupActive ? "text-brand-500" : ""}`} strokeWidth={1.75} aria-hidden />
               <span>{g.label}</span>
-              <ChevronDown className={`ml-auto h-4 w-4 transition-transform ${expanded ? "" : "-rotate-90"}`} aria-hidden />
+              {!expanded && alerts > 0 && <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold ${failed ? "bg-danger text-white" : "bg-brand-500 text-on-brand"}`}>{alerts}</span>}
+              <ChevronRight className={`h-4 w-4 shrink-0 text-white/35 transition-transform duration-200 ${expanded ? "rotate-90" : ""} ${!expanded && alerts > 0 ? "" : "ml-auto"}`} aria-hidden />
             </button>
-            {expanded && (
-              <ul id={`nav-${g.id}`} className="mt-0.5 space-y-0.5">
+            <div className={`grid transition-[grid-template-rows] duration-200 motion-reduce:transition-none ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <ul id={`nav-${g.id}`} inert={!expanded} className="min-h-0 space-y-0.5 overflow-hidden">
+                <li aria-hidden className="h-1" />
                 {g.items.map((i) => {
                   const active = isActive(i, pathname, status, filter);
                   return (
-                    <li key={i.href}>
+                    <li key={i.href} className="ml-[1.4rem] border-l border-white/10 pl-3">
                       <Link
                         href={i.href}
                         onClick={onNavigate}
                         aria-current={active ? "page" : undefined}
-                        className={`flex min-h-11 items-center gap-3 rounded-lg py-1.5 pl-3 pr-3 text-sm font-medium transition-colors ${
-                          active ? "bg-brand-50 font-semibold text-brand-700" : "text-ink/75 hover:bg-surface hover:text-ink"
-                        }`}
+                        className={`flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm transition-colors ${active ? "bg-brand-500/15 font-semibold text-white" : "text-white/60 hover:bg-white/5 hover:text-white"}`}
                       >
-                        {(() => { const ItemIcon = iconFor(i.label); return <ItemIcon className="h-[18px] w-[18px] shrink-0" aria-hidden />; })()}
+                        {active && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />}
                         {i.label}
                         {i.badge && <Badge n={badges[i.badge]} tone={i.badge} />}
                       </Link>
                     </li>
                   );
                 })}
+                <li aria-hidden className="h-1" />
               </ul>
-            )}
+            </div>
           </div>
         );
       })}
@@ -177,16 +183,38 @@ function Notifications({ badges }: { badges: AdminBadges }) {
 
 function Brand({ collapsed }: { collapsed: boolean }) {
   return (
-    <Link href="/admin" className="flex h-16 shrink-0 items-center gap-2 px-5 text-ink" aria-label="VOLTA.LK admin home">
-      {collapsed ? (
-        <span className="mx-auto text-lg font-extrabold text-brand-500">V</span>
-      ) : (
+    <Link href="/admin" className={`flex h-16 shrink-0 items-center gap-3 px-5 text-white ${collapsed ? "justify-center px-0" : ""}`} aria-label="VOLTA.LK admin home">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-500 text-on-brand shadow-[0_8px_20px_-8px_rgba(6,121,61,0.9)]">
+        <Zap className="h-5 w-5 fill-current" aria-hidden />
+      </span>
+      {!collapsed && (
         <span className="leading-tight">
-          <span className="block text-lg font-extrabold tracking-tight">VOLTA<span className="text-brand-500">.LK</span></span>
-          <span className="block text-[11px] text-muted">E-commerce Admin</span>
+          <span className="block text-[17px] font-extrabold tracking-tight">VOLTA<span className="text-brand-500">.LK</span></span>
+          <span className="block text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">Admin</span>
         </span>
       )}
     </Link>
+  );
+}
+
+/** Pinned to the foot of the sidebar: who is signed in and a way back to the shop. */
+function SidebarFoot({ user, collapsed }: { user: { name: string; email: string }; collapsed: boolean }) {
+  return (
+    <div className="shrink-0 border-t border-white/10 p-3">
+      <Link href="/" target="_blank" rel="noopener" title="View store" className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-sm text-white/65 transition-colors hover:bg-white/5 hover:text-white ${collapsed ? "justify-center px-0" : ""}`}>
+        <ExternalLink className="h-[18px] w-[18px] shrink-0" aria-hidden />
+        {!collapsed ? "View store" : <span className="sr-only">View store</span>}
+      </Link>
+      <div className={`mt-1 flex items-center gap-3 rounded-xl bg-white/5 p-2.5 ${collapsed ? "justify-center p-1.5" : ""}`}>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-on-brand" aria-hidden>{user.name.charAt(0).toUpperCase()}</span>
+        {!collapsed && (
+          <span className="min-w-0 leading-tight">
+            <span className="block truncate text-sm font-semibold text-white">{user.name}</span>
+            <span className="block truncate text-xs text-white/50">{user.email}</span>
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -247,23 +275,25 @@ export function AdminShell({ children, user, badges }: { children: React.ReactNo
       <a href="#admin-main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[80] focus:rounded focus:bg-bg focus:px-3 focus:py-2">Skip to content</a>
 
       {/* Desktop sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border bg-bg transition-[width] duration-200 motion-reduce:transition-none lg:flex ${collapsed ? "w-[4.5rem]" : "w-64"}`}>
+      <aside className={`on-dark fixed inset-y-0 left-0 z-40 hidden flex-col bg-dark text-white transition-[width] duration-200 motion-reduce:transition-none lg:flex ${collapsed ? "w-[4.5rem]" : "w-64"}`}>
         <Brand collapsed={collapsed} />
         <Suspense fallback={<div className="flex-1" />}><Nav collapsed={collapsed} badges={badges} /></Suspense>
+        <SidebarFoot user={user} collapsed={collapsed} />
       </aside>
 
       {/* Mobile drawer */}
       {drawer && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Admin menu">
           <button type="button" aria-label="Close menu" className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} tabIndex={-1} />
-          <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-bg shadow-xl">
+          <aside className="on-dark absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-dark pb-[env(safe-area-inset-bottom)] text-white shadow-xl">
             <div className="flex items-center justify-between pr-3">
               <Brand collapsed={false} />
-              <button ref={closeRef} type="button" className="flex h-10 w-10 items-center justify-center rounded-lg text-ink hover:bg-surface" aria-label="Close menu" onClick={() => setDrawer(false)}>
+              <button ref={closeRef} type="button" className="flex h-11 w-11 items-center justify-center rounded-lg text-white/80 hover:bg-white/10" aria-label="Close menu" onClick={() => setDrawer(false)}>
                 <X className="h-5 w-5" aria-hidden />
               </button>
             </div>
             <Suspense fallback={<div className="flex-1" />}><Nav collapsed={false} badges={badges} onNavigate={() => setDrawer(false)} /></Suspense>
+            <SidebarFoot user={user} collapsed={false} />
           </aside>
         </div>
       )}

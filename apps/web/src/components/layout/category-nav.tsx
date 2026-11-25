@@ -36,10 +36,11 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
         </button>
         <CategoryDrawer open={open} onClose={close} categories={categories} hasDeals={showDeals} />
         <ul className="hidden items-center gap-x-6 lg:flex">
-          {categories.slice(0, 6).map((c) => {
+          {categories.slice(0, 6).map((c, i) => {
             const active = pathname === `/categories/${c.slug}`;
+            // Fewer categories on narrower desktops so the right-hand buttons (Wholesale, Brands, Hot Deals) always fit.
             return (
-              <li key={c.slug}>
+              <li key={c.slug} className={i >= 5 ? "hidden min-[1900px]:block" : i >= 4 ? "hidden 2xl:block" : i >= 3 ? "hidden min-[1400px]:block" : i >= 2 ? "hidden xl:block" : undefined}>
                 <Link href={`/categories/${c.slug}`} aria-current={active ? "page" : undefined} className={tab(active)}>
                   {c.name}
                 </Link>
@@ -47,7 +48,7 @@ export function CategoryNav({ categories, showDeals, showBrands = false }: { cat
             );
           })}
         </ul>
-        <div className="ml-auto flex shrink-0 items-center gap-6">
+        <div className="ml-auto flex shrink-0 items-center gap-4 xl:gap-6">
           <Link
             href="/wholesale"
             aria-current={pathname === "/wholesale" ? "page" : undefined}
