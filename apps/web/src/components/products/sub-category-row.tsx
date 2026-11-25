@@ -59,28 +59,19 @@ export function SubCategoryRow({ tiles, label }: { tiles: SubTile[]; label: stri
   }, [measure]);
 
   const move = (dir: -1 | 1) => scroller.current?.scrollBy({ left: dir * (scroller.current.clientWidth * 0.8), behavior: "smooth" });
-  const arrow = "absolute top-[3rem] z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white shadow-sm transition-opacity hover:border-ink md:flex";
+  const arrow = "absolute top-[2.75rem] z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white shadow-sm transition-opacity hover:border-ink md:flex";
 
   return (
     <nav aria-label={label} className="relative">
-      <ul ref={scroller} onScroll={measure} className="scrollbar-none -mx-4 flex gap-1 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 md:px-6">
+      <ul ref={scroller} onScroll={measure} className="scrollbar-none -mx-4 flex overflow-x-auto px-4 sm:mx-0 sm:px-0 md:px-6">
         {tiles.map((t, i) => {
           const Icon = t.all ? LayoutGrid : iconFor(t.label);
           return (
-            <li key={t.key} className="shrink-0 animate-lift" style={{ "--d": `${Math.min(i, 8) * 45}ms` } as React.CSSProperties}>
-              <Link href={t.href} aria-current={t.active ? "page" : undefined} aria-label={`${t.label}, ${t.count} ${t.count === 1 ? "product" : "products"}`} className="group flex w-[6.25rem] flex-col items-center gap-2.5 py-2 text-center sm:w-32">
-                <span
-                  className={`relative flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full border transition-all duration-300 group-hover:-translate-y-1 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 sm:h-24 sm:w-24 ${
-                    t.active
-                      ? "border-brand-500 bg-gradient-to-br from-brand-400 to-brand-500 shadow-[0_14px_28px_-14px_rgba(6,121,61,0.9)]"
-                      : "border-border bg-gradient-to-br from-white to-surface group-hover:border-brand-500 group-hover:shadow-[0_14px_28px_-16px_rgba(17,17,17,0.45)]"
-                  }`}
-                >
-                  <span aria-hidden className={`absolute inset-1.5 rounded-full border ${t.active ? "border-white/40" : "border-border/60 group-hover:border-brand-500/30"}`} />
-                  <Icon className={`relative h-8 w-8 transition-transform duration-300 group-hover:scale-110 sm:h-9 sm:w-9 ${t.active ? "text-ink" : "text-ink/75 group-hover:text-brand-600"}`} strokeWidth={1.5} aria-hidden />
-                  <span aria-hidden className={`absolute -right-0.5 -top-0.5 flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums ring-2 ring-white ${t.active ? "bg-ink text-white" : "bg-white text-ink/70 shadow-sm group-hover:bg-ink group-hover:text-white"}`}>{t.count}</span>
-                </span>
-                <span className={`line-clamp-2 text-[13px] leading-tight sm:text-sm ${t.active ? "font-semibold text-ink" : "font-medium text-ink/80 group-hover:text-ink"}`}>{t.label}</span>
+            <li key={t.key} className="w-[6.75rem] shrink-0 animate-lift sm:min-w-[7.5rem] sm:flex-1" style={{ "--d": `${Math.min(i, 8) * 45}ms` } as React.CSSProperties}>
+              <Link href={t.href} aria-current={t.active ? "page" : undefined} aria-label={`${t.label}, ${t.count} ${t.count === 1 ? "product" : "products"}`} className="group flex flex-col items-center gap-3 px-1 py-3 text-center">
+                <Icon className={`h-12 w-12 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 motion-reduce:transition-none sm:h-14 sm:w-14 ${t.active ? "text-brand-600" : "text-ink group-hover:text-brand-600"}`} strokeWidth={1.25} aria-hidden />
+                <span className={`line-clamp-2 text-[13px] font-semibold leading-tight sm:text-sm ${t.active ? "text-brand-600" : "text-ink"}`}>{t.label}</span>
+                <span aria-hidden className={`h-0.5 rounded-full bg-brand-500 transition-all duration-300 ${t.active ? "w-8" : "w-0 group-hover:w-5"}`} />
               </Link>
             </li>
           );

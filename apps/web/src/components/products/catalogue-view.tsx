@@ -207,7 +207,7 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
             {result.total === 0 ? "No results" : <>Showing <b className="font-semibold text-ink">{from}–{to}</b> of <b className="font-semibold text-ink">{result.total}</b> {result.total === 1 ? "result" : "results"}</>}
             {query.q ? ` for “${query.q}”` : ""}
           </p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div className="flex w-full flex-wrap items-center gap-x-5 gap-y-2 sm:w-auto">
             <nav aria-label="Products per page" className="hidden items-center gap-1 text-sm sm:flex">
               <span className="mr-1 text-muted">Show</span>
               {PER_PAGE.map((n) => {

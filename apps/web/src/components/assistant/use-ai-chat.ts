@@ -50,6 +50,38 @@ function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
   return same.find((v) => /google|natural|online/i.test(v.name)) ?? same[0] ?? base.find((v) => /google|natural|online/i.test(v.name)) ?? base[0];
 }
 
+/**
+ * Opens the microphone only to measure how loud it is (0 to 1), so the shopper can SEE that their voice is arriving.
+ * Returns a function that stops the meter and releases the microphone.
+ */
+async function startMeter(onLevel: (v: number) => void): Promise<() => void> {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const ctx = new AudioContext();
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 512;
+  ctx.createMediaStreamSource(stream).connect(analyser);
+  const buf = new Uint8Array(analyser.fftSize);
+  let raf = 0;
+  let last = 0;
+  const tick = (t: number) => {
+    analyser.getByteTimeDomainData(buf);
+    let sum = 0;
+    for (const b of buf) sum += ((b - 128) / 128) ** 2;
+    if (t - last > 60) {
+      last = t;
+      onLevel(Math.min(1, Math.sqrt(sum / buf.length) * 6));
+    }
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+  return () => {
+    cancelAnimationFrame(raf);
+    stream.getTracks().forEach((t) => t.stop());
+    void ctx.close();
+    onLevel(0);
+  };
+}
+
 /** Short pieces: Chrome stops reading a single long utterance after about 15 seconds. */
 const sentences = (text: string) => (text.match(/[^.!?\n]+[.!?]*/g) ?? [text]).map((t) => t.trim()).filter(Boolean);
 
@@ -99,6 +131,15 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   const speakStart = useRef<ReturnType<typeof setTimeout>>(undefined);
   // True while the mic is open, so the AI never talks over the shopper (readable inside delayed callbacks).
   const listeningRef = useRef(false);
+  // null = no live meter (phones): the bars then just animate.
+  const [level, setLevel] = useState<number | null>(null);
+  const meterUsed = useRef(false);
+  const meterStop = useRef<(() => void) | undefined>(undefined);
+  const maxLevel = useRef(0);
+  const stopMeter = useCallback(() => {
+    meterStop.current?.();
+    meterStop.current = undefined;
+  }, []);
 
   useEffect(() => {
     setCanListen(!!recognitionCtor());
@@ -116,6 +157,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       window.speechSynthesis?.cancel();
       setSpeaking(false);
       abort.current?.abort();
+      meterStop.current?.();
     },
     [],
   );
@@ -294,6 +336,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     };
     r.onend = () => {
       listeningRef.current = false;
+      stopMeter();
       setListening(false);
       setHeard("");
       // Some browsers end without a "final" result: send what was heard rather than dropping it.
@@ -302,6 +345,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     r.onerror = (e) => {
       sent = true; // an error means nothing usable was heard
       listeningRef.current = false;
+      stopMeter();
       setListening(false);
       setHeard("");
       const why = e?.error;
@@ -309,7 +353,11 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
         why === "not-allowed" || why === "service-not-allowed"
           ? "The microphone is blocked. Click the lock icon in the address bar, allow the microphone, then tap the robot again."
           : why === "no-speech"
-            ? "I didn't hear anything. Tap the robot and try again."
+            ? !meterUsed.current
+              ? "I didn't hear anything. Speak right after tapping the robot, check the microphone isn't muted or blocked, then try again."
+              : maxLevel.current < 0.03
+              ? "I can't hear your microphone at all. Check it isn't muted, and that the right microphone is chosen: in Windows Sound settings (Input), and under the lock icon next to the address bar. Then tap the robot and try again."
+              : "I heard sound but no words. Speak a little closer and louder, then tap the robot and try again."
             : why === "audio-capture"
               ? "No microphone was found on this device."
               : why === "network"
@@ -323,6 +371,25 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     listeningRef.current = true;
     setListening(true);
     r.start();
+    maxLevel.current = 0;
+    // On phones the microphone can only be used by one thing at a time, and speech recognition must have it, so no meter there.
+    meterUsed.current = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !!navigator.mediaDevices?.getUserMedia;
+    if (!meterUsed.current) {
+      setLevel(null);
+      return;
+    }
+    setLevel(0);
+    startMeter((v) => {
+      maxLevel.current = Math.max(maxLevel.current, v);
+      setLevel(v);
+    })
+      .then((stop) => {
+        if (listeningRef.current) meterStop.current = stop;
+        else stop(); // listening already ended while the microphone was opening
+      })
+      .catch(() => {
+        /* no meter (permission or device): speech recognition itself still reports what went wrong */
+      });
   }
 
   function reset() {
@@ -338,5 +405,5 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
 
   const faceState: FaceState = listening ? "listening" : speaking && speak ? "speaking" : busy ? "thinking" : "idle";
 
-  return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay: speakReply };
+  return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay: speakReply, level };
 }

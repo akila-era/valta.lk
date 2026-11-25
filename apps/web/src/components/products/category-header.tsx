@@ -26,7 +26,7 @@ export function CategoryHeader({ slug, name, count, subs, activeSub }: CategoryH
         <p className="type-meta">{count} {count === 1 ? "product" : "products"}</p>
       </div>
       {subs.length > 0 && (
-        <div className="mt-5 border-b border-border pb-4">
+        <div className="mt-4 border-b border-border pb-2">
           <SubCategoryRow tiles={tiles} label={`${name} sub-categories`} />
         </div>
       )}
