@@ -191,6 +191,7 @@
   .rich ol { list-style: decimal; }
   .rich li + li { margin-top: 0.3em; }
   .rich a { color: var(--color-brand-600); text-decoration: underline; }
+  .rich img { display: block; max-width: 100%; height: auto; margin-inline: auto; border-radius: 0.75rem; }
   .rich blockquote { border-left: 3px solid var(--color-border); padding-left: 1rem; color: var(--color-muted); }
 }
 

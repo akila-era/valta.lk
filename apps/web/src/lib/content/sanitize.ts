@@ -9,6 +9,10 @@ const RENAME: Record<string, string> = { b: "strong", i: "em", h1: "h2", h4: "h3
 const DROP_WITH_CONTENT = /<(script|style|iframe|object|embed|noscript|template|svg|math)\b[\s\S]*?<\/\1\s*>/gi;
 
 const SAFE_URL = /^(https?:\/\/|mailto:|tel:)/i;
+/** The only image address a description may use: a picture uploaded through the admin (served by /api/media/<id>). */
+export const MEDIA_SRC = /^\/api\/media\/[a-z0-9]{10,40}$/i;
+/** Ids of the uploaded pictures a description uses, so clean-up never deletes them. */
+export const descriptionMediaIds = (html: string): string[] => [...String(html ?? "").matchAll(/\/api\/media\/([a-z0-9]{10,40})\b/gi)].map((m) => m[1]);
 
 function safeHref(raw: string): string | null {
   const v = raw.replace(/[\u0000- \u007f-\u009f]/g, "").replace(/&#x?[0-9a-f]+;?/gi, "");
@@ -21,6 +25,7 @@ function safeHref(raw: string): string | null {
   return v.replace(/"/g, "%22").replace(/</g, "%3C").replace(/>/g, "%3E");
 }
 
+const htmlAttr = (t: string) => t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").replace(/[\u0000-\u001f]/g, " ");
 const escapeText = (t: string) => t.replace(/&(?!(?:amp|lt|gt|quot|#39|nbsp);)/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export function sanitizeHtml(input: string, maxLength = 20_000): string {
@@ -49,6 +54,16 @@ export function sanitizeHtml(input: string, maxLength = 20_000): string {
         if ((name === "li") && open.at(-1) === "li") close("li");
         out.push(`<${name}>`);
         open.push(name);
+      }
+    } else if (name === "img") {
+      if (!closing) {
+        const src = /\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(m[3]);
+        const raw = (src?.[1] ?? src?.[2] ?? src?.[3] ?? "").trim().replace(/^https?:\/\/[^/]+(?=\/api\/media\/)/i, "");
+        if (MEDIA_SRC.test(raw)) {
+          const altm = /\balt\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(m[3]);
+          const alt = escapeText(htmlAttr(altm?.[1] ?? altm?.[2] ?? "")).replace(/"/g, "&quot;").slice(0, 150);
+          out.push(`<img src="${raw}" alt="${alt}" loading="lazy">`);
+        }
       }
     } else if (name === "a") {
       if (closing) close("a");
