@@ -38,6 +38,8 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
   });
   const payload = canSee && local ? (local.payload as unknown as CreateOrderRequest) : null;
   const pending = order.status === "RECEIVED";
+  const payzy = local?.paymentMethod === "PAYZY" || order.paymentMethod === "PAYZY";
+  const koko = payzy || order.paymentMethod === "KOKO" || order.paymentMethod === "ONLINE";
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -64,13 +66,13 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ r
           <dt className="text-muted">Order status</dt>
           <dd><OrderStatusBadge status={order.status} testId="order-status" /></dd>
           <dt className="text-muted">Payment method</dt>
-          <dd>{order.paymentMethod === "COD" ? "Cash on delivery" : order.paymentMethod}</dd>
+          <dd>{order.paymentMethod === "COD" ? "Cash on delivery" : payzy ? "Payzy: pay in instalments" : order.paymentMethod === "KOKO" || order.paymentMethod === "ONLINE" ? "Koko: Buy Now Pay Later" : order.paymentMethod}</dd>
           <dt className="text-muted">Payment status</dt>
-          <dd data-testid="payment-status">{order.codCollected ? "Paid (cash collected)" : "Pending: pay in cash on delivery"}</dd>
+          <dd data-testid="payment-status">{koko ? (local?.paymentStatus === "PAID" ? (payzy ? "Paid with Payzy" : "Paid with Koko") : "Awaiting payment") : order.codCollected ? "Paid (cash collected)" : "Pending: pay in cash on delivery"}</dd>
         </dl>
       </section>
 
-      <CodNote collected={order.codCollected} />
+      {!koko && <CodNote collected={order.codCollected} />}
       {(order.trackingNumber || order.carrier) && (
         <section className="rounded-3xl border border-border p-5 sm:p-7" aria-label="Tracking">
           <h2 className="text-lg font-semibold tracking-tight">Tracking</h2>

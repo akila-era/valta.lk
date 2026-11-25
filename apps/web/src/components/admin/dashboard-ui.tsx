@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 /* Dashboard building blocks (server components, no client JS). */
 
 const TONES = {
-  orange: { box: "bg-brand-50 text-brand-700", stroke: "#f97316", glow: "from-brand-500/10" },
+  orange: { box: "bg-brand-50 text-brand-700", stroke: "#06793d", glow: "from-brand-500/10" },
   green: { box: "bg-success-bg text-success", stroke: "#067647", glow: "from-success/10" },
   blue: { box: "bg-surface text-ink", stroke: "#525252", glow: "from-ink/5" }, // the old blue tone is now neutral grey; the key stays for existing callers
   purple: { box: "bg-violet-50 text-violet-700", stroke: "#7c3aed", glow: "from-brand-500/10" },

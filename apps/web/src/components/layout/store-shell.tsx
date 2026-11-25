@@ -1,11 +1,15 @@
 import { StoreOverlays } from "./store-overlays";
+import { KokoPartsProvider } from "@/components/products/koko-instalment";
 import { ToastProvider } from "@/components/ui/toast";
+import { getKokoInstallmentParts } from "@/lib/payments/koko-public";
 import { Footer } from "./footer";
 import { Header } from "./header";
 
 /** Shared page chrome. `contained` pages get a centred container; the homepage lays out its own full-width bands. */
-export function StoreShell({ children, contained = true }: { children: React.ReactNode; contained?: boolean }) {
+export async function StoreShell({ children, contained = true }: { children: React.ReactNode; contained?: boolean }) {
+  const parts = await getKokoInstallmentParts();
   return (
+    <KokoPartsProvider parts={parts}>
     <ToastProvider>
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-bg focus:px-3 focus:py-2 focus:text-ink">
         Skip to content
@@ -17,5 +21,6 @@ export function StoreShell({ children, contained = true }: { children: React.Rea
       <Footer />
       <StoreOverlays />
     </ToastProvider>
+    </KokoPartsProvider>
   );
 }

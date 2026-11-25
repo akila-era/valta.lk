@@ -12,23 +12,29 @@ import { generateOrderRef } from "@/lib/utils/order-ref";
 import { lineKey } from "@/lib/utils/cart-math";
 import { customerSchema, deliverySchema, DISTRICTS } from "@/lib/validation/checkout";
 import { cartActions, useCart } from "@/store/cart";
+import { RedirectingToKoko, startKokoRedirect } from "./koko-redirect";
+import { RedirectingToPayzy, startPayzyRedirect } from "./payzy-redirect";
 
 const REF_KEY = "valta.checkout.ref";
 
-function getRef(): string {
+type Method = "COD" | "KOKO" | "PAYZY";
+// One reference per payment method: the same reference cannot be reused for an order with different contents.
+const refKey = (m: Method) => (m === "KOKO" ? `${REF_KEY}.koko` : m === "PAYZY" ? `${REF_KEY}.payzy` : REF_KEY);
+
+function getRef(m: Method): string {
   try {
-    const existing = window.sessionStorage.getItem(REF_KEY);
+    const existing = window.sessionStorage.getItem(refKey(m));
     if (existing) return existing;
     const ref = generateOrderRef();
-    window.sessionStorage.setItem(REF_KEY, ref);
+    window.sessionStorage.setItem(refKey(m), ref);
     return ref;
   } catch {
     return generateOrderRef();
   }
 }
-const resetRef = () => {
+const resetRef = (m: Method) => {
   try {
-    window.sessionStorage.removeItem(REF_KEY);
+    window.sessionStorage.removeItem(refKey(m));
   } catch {
     /* ignore */
   }
@@ -60,7 +66,7 @@ function Field({ id, label, error, hint, children }: { id: string; label: string
   );
 }
 
-export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: number; prefill?: { name: string; email: string; phone: string | null } }) {
+export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, koko: false, payzy: false }, notice }: { deliveryCharge: number; prefill?: { name: string; email: string; phone: string | null }; methods?: { cod: boolean; koko: boolean; payzy?: boolean }; notice?: "cancelled" }) {
   const router = useRouter();
   const { lines, subtotal } = useCart();
   const { live } = useLiveCart();
@@ -69,7 +75,9 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
   const [step, setStep] = useState<Step>(1);
   const [reached, setReached] = useState<Step>(1);
   const [errors, setErrors] = useState<Errors>({});
-  const [banner, setBanner] = useState<{ kind: "error" | "warn"; text: string } | null>(null);
+  const [banner, setBanner] = useState<{ kind: "error" | "warn"; text: string } | null>(notice === "cancelled" ? { kind: "warn", text: "Payment cancelled. Your cart is still here, so you can try again or choose another payment method." } : null);
+  const [method, setMethod] = useState<Method>(methods.cod ? "COD" : methods.koko ? "KOKO" : "PAYZY");
+  const [redirecting, setRedirecting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [recap, setRecap] = useState<Record<string, string>>({});
@@ -165,7 +173,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
 
     inFlight.current = true;
     setSubmitting(true);
-    const externalRef = getRef();
+    const externalRef = getRef(method);
     try {
       const res = await fetch("/api/store/orders", {
         method: "POST",
@@ -176,14 +184,26 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           customer,
           delivery,
           expectedTotal: total,
+          paymentMethod: method,
           acceptTerms: true,
         }),
       });
       const data = await res.json().catch(() => null);
 
       // 201 = confirmed by the ERP, 202 = saved on the website and being confirmed: both are a successful order.
+      if (res.ok && data?.state === "payment_required") {
+        // Koko/Payzy: the order is saved but unpaid. Keep the cart and reference until the gateway confirms, then go to its result page.
+        setRedirecting(true);
+        try {
+          await (method === "PAYZY" ? startPayzyRedirect(externalRef) : startKokoRedirect(externalRef));
+        } catch (e) {
+          setRedirecting(false);
+          setBanner({ kind: "error", text: e instanceof Error ? e.message : `We could not start the ${method === "PAYZY" ? "Payzy" : "Koko"} payment. Please try again.` });
+        }
+        return;
+      }
       if (res.ok) {
-        resetRef();
+        resetRef(method);
         cartActions.clear();
         router.push(`/order-confirmation/${externalRef}`);
         return;
@@ -191,17 +211,17 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
 
       const code: string | undefined = data?.error?.code;
       if (res.status === 422 && data?.error?.fields) {
-        resetRef(); // nothing was sent to the ERP
+        resetRef(method); // nothing was sent to the ERP
         setErrors(data.error.fields);
         setBanner({ kind: "error", text: data.error.message });
         goTo(Math.min(...Object.keys(data.error.fields).map(stepOfField)) as Step);
         focusFirstError();
       } else if (code === "PRICE_CHANGED" || code === "INSUFFICIENT_STOCK") {
-        resetRef(); // definitive rejection: a corrected order gets a new reference
+        resetRef(method); // definitive rejection: a corrected order gets a new reference
         if (Array.isArray(data.error.refreshed)) cartActions.applyPrices(data.error.refreshed.filter((r: { available: boolean; unitPrice: number }) => r.available && r.unitPrice > 0));
         setBanner({ kind: "warn", text: data.error.message });
       } else if (code === "CANNOT_COMBINE" || code === "VALIDATION_FAILED") {
-        resetRef(); // definitive rejection of the request contents
+        resetRef(method); // definitive rejection of the request contents
         setBanner({ kind: "error", text: data.error.message });
       } else if (res.status === 409 || res.status === 429) {
         setBanner({ kind: "error", text: data?.error?.message ?? "Please try again." });
@@ -249,6 +269,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           </ol>
         </nav>
 
+        {redirecting && <div className="rounded-lg bg-surface p-4">{method === "PAYZY" ? <RedirectingToPayzy /> : <RedirectingToKoko />}</div>}
         {banner && (
           <div role="alert" className={`rounded-lg p-4 text-sm ${banner.kind === "warn" ? "bg-warn-bg text-warn" : "bg-danger-bg text-danger"}`}>
             {banner.text}{" "}
@@ -318,13 +339,35 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
 
           <fieldset className="rounded-3xl bg-surface p-5 sm:p-7">
             <legend className="px-1 text-base font-semibold">Payment method</legend>
-            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-ink bg-white p-4 text-sm">
-              <input type="radio" name="payment" value="COD" defaultChecked readOnly className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
-              <span>
-                <span className="font-semibold">Cash on delivery</span>
-                <span className="block text-muted">Pay in cash when your order is delivered. Your order is not marked as paid until the cash is collected.</span>
-              </span>
-            </label>
+            <div className="space-y-3">
+              {methods.cod && (
+                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white p-4 text-sm ${method === "COD" ? "border-ink" : "border-border"}`}>
+                  <input type="radio" name="payment" value="COD" checked={method === "COD"} onChange={() => setMethod("COD")} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
+                  <span>
+                    <span className="font-semibold">Cash on delivery</span>
+                    <span className="block text-muted">Pay in cash when your order is delivered. Your order is not marked as paid until the cash is collected.</span>
+                  </span>
+                </label>
+              )}
+              {methods.koko && (
+                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white p-4 text-sm ${method === "KOKO" ? "border-ink" : "border-border"}`}>
+                  <input type="radio" name="payment" value="KOKO" checked={method === "KOKO"} onChange={() => setMethod("KOKO")} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
+                  <span>
+                    <span className="font-semibold">Koko: Buy Now Pay Later</span>
+                    <span className="block text-muted">Pay in 3 interest free instalments with Koko.</span>
+                  </span>
+                </label>
+              )}
+              {methods.payzy && (
+                <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white p-4 text-sm ${method === "PAYZY" ? "border-ink" : "border-border"}`}>
+                  <input type="radio" name="payment" value="PAYZY" checked={method === "PAYZY"} onChange={() => setMethod("PAYZY")} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
+                  <span>
+                    <span className="font-semibold">Payzy: pay in instalments</span>
+                    <span className="block text-muted">Split your payment into instalments with Payzy.</span>
+                  </span>
+                </label>
+              )}
+            </div>
           </fieldset>
 
           <div>
@@ -346,7 +389,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
             <button type="submit" className="btn-primary btn-lg w-full sm:w-auto sm:min-w-40">Continue</button>
           ) : (
             <button type="submit" className="btn-primary btn-lg w-full sm:w-auto sm:min-w-40" disabled={submitting}>
-              {submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : "Place order"}
+              {redirecting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Redirecting to {method === "PAYZY" ? "Payzy" : "Koko"}…</> : submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Placing order…</> : method === "KOKO" ? "Pay with Koko" : method === "PAYZY" ? "Pay with Payzy" : "Place order"}
             </button>
           )}
         </div>
@@ -396,7 +439,7 @@ export function CheckoutForm({ deliveryCharge, prefill }: { deliveryCharge: numb
           {savings > 0 && <div className="flex justify-between text-success"><dt>Catalogue savings included</dt><dd>{formatLkr(fromCents(savings))}</dd></div>}
           {offers.map((name) => <div key={name} className="text-xs text-muted">{name}</div>)}
           <div className="flex justify-between"><dt>Delivery</dt><dd data-testid="delivery">{formatLkr(deliveryCharge)}</dd></div>
-          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">Pay on delivery</dt><dd className="text-xl font-extrabold tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd></div>
+          <div className="flex items-baseline justify-between border-t border-border pt-3"><dt className="font-semibold">{method === "COD" ? "Pay on delivery" : "Total"}</dt><dd className="text-xl font-extrabold tabular-nums text-ink" data-testid="total">{formatLkr(total)}</dd></div>
         </dl>
         <p className="mt-3 text-xs text-muted">The store has one delivery charge. No other delivery method is offered.</p>
         <p className="mt-4 text-xs text-muted">Prices and stock are confirmed again when you place your order.</p>

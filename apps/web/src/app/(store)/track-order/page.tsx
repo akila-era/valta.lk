@@ -3,7 +3,7 @@ import { OrderTracker } from "@/components/orders/order-tracker";
 
 export const metadata: Metadata = {
   title: "Track your order",
-  description: "Check the status of your VALTA.LK order.",
+  description: "Check the status of your VOLTA.LK order.",
   alternates: { canonical: "/track-order" },
 };
 

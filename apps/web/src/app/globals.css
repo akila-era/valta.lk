@@ -1,25 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* VALTA palette: ink black, white, light grey surfaces, one signature orange accent. */
+  /* VOLTA palette: charcoal text, white, light grey surfaces and one green accent (the UGREEN Sri Lanka green #06793D, Poppins type). */
   --color-bg: #ffffff;
   --color-surface: #f5f5f5;
   --color-border: #e5e5e5;
-  --color-ink: #111111;
-  --color-muted: #6b6b6b; /* #737373 is only 4.4:1 on #F5F5F5; this is 4.9:1 on it and 5.3:1 on white */
-  --color-dark: #111111;
+  --color-ink: #242424;
+  --color-muted: #6f6f6f; /* 4.9:1 on white and 4.5:1 on #F5F5F5 */
+  --color-dark: #1b1b1b;
 
-  /* Signature orange #F97316 is a FILL colour and always carries black text (6.7:1); white text on it is only 2.8:1. On black it is also a readable accent (6.7:1). Orange TEXT on white or light grey uses brand-600 #C2410C (5.2:1) or brand-700. */
-  --color-brand-50: #fff7ed;
-  --color-brand-100: #ffedd5;
-  --color-brand-400: #fb923c;
-  --color-brand-500: #f97316;
-  --color-brand-600: #c2410c;
-  --color-brand-700: #9a3412;
+  /* Accent green #06793D is a FILL colour that carries white text (5.9:1). Green TEXT on white uses it too. On dark surfaces (.on-dark) the accent is brightened so it stays readable, and fills there carry dark text. */
+  --color-brand-50: #eaf6ef;
+  --color-brand-100: #d2ebdd;
+  --color-brand-400: #2fa062;
+  --color-brand-500: #06793d;
+  --color-brand-600: #06793d;
+  --color-brand-700: #045a2d;
+  --color-on-brand: #ffffff;
 
-  /* Status colors stay clearly distinct from the brand orange */
+  /* Status colors stay clearly distinct from the brand green */
+  --color-sale: #d92d20;
   --color-danger: #b42318;
   --color-danger-strong: #8f1c14;
   --color-danger-bg: #fef3f2;
@@ -32,7 +34,7 @@
 
   /* Admin navigation uses the same charcoal, not a second brand colour */
   --color-navy-950: #0b0b0b;
-  --color-navy-900: #111111;
+  --color-navy-900: #1b1b1b;
   --color-navy-800: #242424;
   --color-navy-700: #333333;
 
@@ -62,6 +64,8 @@
     border-radius: 4px;
   }
   .on-dark :focus-visible { outline-color: #ffffff; }
+  /* Dark surfaces: a brighter green so icons, eyebrows and fills stay readable, with dark text on the fills. */
+  .on-dark { --color-brand-500: #34b673; --color-brand-600: #34b673; --color-brand-400: #5fcf93; --color-on-brand: #0b2417; }
 }
 
 /* One content width for the whole site so header, hero text, service bar and sections share the same left/right edges. */
@@ -70,12 +74,12 @@
 @utility container-wide { @apply mx-auto w-full max-w-[100rem] px-4 sm:px-6 lg:px-10; }
 @utility card { @apply rounded-xl border border-border bg-bg; }
 @utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-colors
-    disabled:cursor-not-allowed disabled:opacity-50;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+    active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:opacity-50;
 }
-@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-brand-400; }
+@utility btn-primary { @apply btn bg-brand-500 text-on-brand hover:bg-brand-400 hover:shadow-[0_10px_20px_-10px_rgba(6,121,61,0.65)]; }
 /* Fixed black for text on the orange fill: it must not flip with the dark header scope below. */
-@utility text-on-brand { color: #111111; }
+@utility text-on-brand { color: var(--color-on-brand); }
 @utility btn-secondary { @apply btn border border-border bg-bg text-ink hover:border-ink; }
 @utility btn-outline { @apply btn border border-border bg-bg text-ink hover:border-ink; }
 @utility btn-ghost { @apply btn text-ink hover:bg-surface; }
@@ -197,3 +201,12 @@
   --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
 }
 .admin-theme .card { box-shadow: var(--shadow-card); }
+
+/* Hero "film" feel: the active picture drifts and zooms slowly (Ken Burns) and the words rise in one after another. */
+@keyframes kb-zoom { from { transform: scale(1) translate3d(0, 0, 0); } to { transform: scale(1.09) translate3d(-1.2%, -0.8%, 0); } }
+@keyframes hero-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.kb-img { transform-origin: 60% 45%; will-change: transform; }
+.is-active .kb-img { animation: kb-zoom 9s ease-out forwards; }
+.hero-in { opacity: 0; }
+.is-active .hero-in { animation: hero-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; animation-delay: var(--hd, 0ms); }
+@media (prefers-reduced-motion: reduce) { .is-active .kb-img { animation: none; } .hero-in { opacity: 1; } .is-active .hero-in { animation: none; } }

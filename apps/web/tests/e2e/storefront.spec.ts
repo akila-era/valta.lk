@@ -235,11 +235,11 @@ test.describe("responsive @mobile", () => {
   test("mobile menu opens, navigates and closes", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Open menu" }).click();
-    const menu = page.getByRole("dialog", { name: "Browse VALTA.LK" });
+    const menu = page.getByRole("dialog", { name: "Browse VOLTA.LK" });
     await expect(menu).toBeVisible();
     await menu.getByRole("link", { name: "Audio" }).click();
     await expect(page).toHaveURL(/categories\/audio/);
-    await expect(page.getByRole("dialog", { name: "Browse VALTA.LK" })).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: "Browse VOLTA.LK" })).toHaveCount(0);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);
   });

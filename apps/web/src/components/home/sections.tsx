@@ -17,7 +17,7 @@ function bannerPhoto(banner: ResolvedBanner): string {
 export function WideBanner({ banners }: { banners: HomeData["wideBanners"] }) {
   if (!banners.length) return null;
   return (
-    <section aria-label="Promotions" className="mt-16 sm:mt-24">
+    <section aria-label="Promotions" className="mt-10 sm:mt-14">
       <WideBannerSlider slides={banners} />
     </section>
   );

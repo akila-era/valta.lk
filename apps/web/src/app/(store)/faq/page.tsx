@@ -1,23 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { Body } from "@/components/layout/info-content";
 import { PolicyPage } from "@/components/layout/policy-page";
 import { faqItems } from "@/components/home/more-sections";
 import { getSettings } from "@/lib/erp/settings";
+import { getInfoPage } from "@/lib/info-pages";
 
-export const metadata: Metadata = {
-  title: "Frequently asked questions",
-  description: "Answers about paying, delivery, stock, tracking and returns at VALTA.LK.",
-  alternates: { canonical: "/faq" },
-};
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata(): Promise<Metadata> {
+  const { content } = await getInfoPage("faq");
+  return { title: content.title, description: "Answers about paying, delivery, stock, tracking and returns at VOLTA.LK.", alternates: { canonical: "/faq" } };
+}
+
 export default async function FaqPage() {
-  const settings = await getSettings().catch(() => null);
-  const items = faqItems({ cod: settings?.paymentMethods.COD === true, deliveryCharge: settings ? settings.deliveryCharge : null });
+  const { content, custom } = await getInfoPage("faq");
+  // Until the owner edits the FAQ, the questions come from the live ERP settings (delivery charge, cash on delivery).
+  const settings = custom ? null : await getSettings().catch(() => null);
+  const items = custom
+    ? content.sections.map((s) => ({ q: s.heading, a: s.body }))
+    : faqItems({ cod: settings?.paymentMethods.COD === true, deliveryCharge: settings ? settings.deliveryCharge : null }).map((i) => ({ q: i.q, a: i.a }));
   return (
-    <PolicyPage title="Frequently asked questions" intro="Quick answers about paying, delivery, stock, tracking and returns.">
-      <section className="!border-t-0 !pt-0">
+    <PolicyPage title={content.title} intro={content.intro} layout="stack">
+      <section>
         <div className="divide-y divide-border border-y border-border">
           {items.map((i) => (
             <details key={i.q} className="group">
@@ -27,7 +33,9 @@ export default async function FaqPage() {
                   <Plus className="h-4 w-4 transition-transform duration-200 group-open:rotate-45 motion-reduce:transition-none" aria-hidden />
                 </span>
               </summary>
-              <p className="max-w-2xl pb-5 pr-12 text-sm leading-6">{i.a}</p>
+              <div className="max-w-2xl space-y-3 pb-5 pr-12 text-sm leading-6">
+                <Body text={i.a} />
+              </div>
             </details>
           ))}
         </div>

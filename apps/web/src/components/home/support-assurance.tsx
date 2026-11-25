@@ -11,7 +11,7 @@ export function Assurances() {
   const lines = siteConfig.highlights;
   if (!lines.length) return null;
   return (
-    <section aria-labelledby="assurances" className="mt-16 sm:mt-24">
+    <section aria-labelledby="assurances" className="mt-10 sm:mt-14">
       <div className="rounded-[1.75rem] bg-brand-50 p-6 sm:p-10">
         <h2 id="assurances" className="text-2xl font-bold tracking-[-0.03em] sm:text-3xl">Good to know</h2>
         <ul className="mt-5 grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -46,7 +46,7 @@ export function SupportSection() {
     { icon: PackageSearch, title: "Track your order", text: "Use the reference from your confirmation.", href: "/track-order" },
   ];
   return (
-    <section aria-labelledby="support" className="mt-16 sm:mt-24">
+    <section aria-labelledby="support" className="mt-10 sm:mt-14">
       <SectionIntro id="support" eyebrow="Support" title="Need help choosing?">
         We are happy to help with an order or a product.
       </SectionIntro>

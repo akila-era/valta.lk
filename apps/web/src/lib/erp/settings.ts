@@ -3,6 +3,8 @@ import { z } from "zod";
 import { erpRequest } from "./client";
 import { endpoints } from "./endpoints";
 import { ErpError } from "./errors";
+import { isKokoOffered } from "../payments/koko-config";
+import { isPayzyOffered } from "../payments/payzy-public";
 import { erpSettingsSchema, type ErpSettings } from "./types";
 
 export async function ping(): Promise<boolean> {
@@ -26,6 +28,7 @@ export interface CheckoutAvailability {
     | "store_inactive"
     | "orders_disabled"
     | "cod_disabled"
+    | "online_disabled"
     | "currency_unsupported"
     | "invalid_delivery_charge";
   settings?: ErpSettings;
@@ -35,7 +38,7 @@ export interface CheckoutAvailability {
  * Whether checkout may be offered right now, derived strictly from live ERP settings.
  * Credential problems (401) and paused integrations (403) both mean the store cannot take orders.
  */
-export async function getCheckoutAvailability(opts: { fresh?: boolean } = {}): Promise<CheckoutAvailability> {
+export async function getCheckoutAvailability(opts: { fresh?: boolean; method?: "COD" | "ONLINE"; gateway?: "KOKO" | "PAYZY" } = {}): Promise<CheckoutAvailability> {
   let s: ErpSettings;
   try {
     s = await getSettings(opts);
@@ -47,7 +50,12 @@ export async function getCheckoutAvailability(opts: { fresh?: boolean } = {}): P
     return { enabled: false, reason: "unreachable" };
   }
   if (!s.ordersEnabled) return { enabled: false, reason: "orders_disabled", settings: s };
-  if (!s.paymentMethods.COD) return { enabled: false, reason: "cod_disabled", settings: s };
+  if (opts.method === "ONLINE") {
+    // Koko orders reach the ERP as ONLINE orders once paid, so the ERP must accept them (KOKO_ALLOW_WITHOUT_ERP_ONLINE is for QA only).
+    const erpOnline = Boolean(s.paymentMethods.ONLINE) || process.env[opts.gateway === "PAYZY" ? "PAYZY_ALLOW_WITHOUT_ERP_ONLINE" : "KOKO_ALLOW_WITHOUT_ERP_ONLINE"] === "true";
+    const offered = opts.gateway === "PAYZY" ? await isPayzyOffered() : await isKokoOffered();
+    if (!offered || !erpOnline) return { enabled: false, reason: "online_disabled", settings: s };
+  } else if (!s.paymentMethods.COD) return { enabled: false, reason: "cod_disabled", settings: s };
   if (s.currency !== "LKR") return { enabled: false, reason: "currency_unsupported", settings: s };
   if (!Number.isFinite(s.deliveryCharge) || s.deliveryCharge < 0) return { enabled: false, reason: "invalid_delivery_charge", settings: s };
   return { enabled: true, settings: s };

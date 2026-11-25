@@ -52,7 +52,7 @@ export function HeroSlider({ intro, slides, labels }: HeroSliderProps) {
       role="region"
       aria-roledescription="carousel"
       aria-label="Featured products"
-      className="container-wide grid gap-8 pb-8 pt-10 sm:pb-12 sm:pt-16 lg:min-h-[38rem] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:grid-rows-[1fr_auto] lg:gap-x-12 lg:gap-y-0 lg:pb-14 lg:pt-20"
+      className="grid gap-6 px-5 pb-6 pt-8 sm:px-10 sm:pb-9 sm:pt-12 lg:min-h-[30rem] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:grid-rows-[1fr_auto] lg:gap-x-12 lg:gap-y-0 lg:px-14 lg:pb-10 lg:pt-12"
       onMouseEnter={() => setHold(true)}
       onMouseLeave={() => setHold(false)}
       onFocusCapture={() => setHold(true)}
@@ -74,7 +74,7 @@ export function HeroSlider({ intro, slides, labels }: HeroSliderProps) {
           if (count > 1 && start != null && end != null && Math.abs(end - start) > 45) go(index + (end < start ? 1 : -1));
         }}
       >
-        <div className="animate-lift relative aspect-[6/5] [--d:150ms] sm:aspect-[16/11] lg:aspect-auto lg:h-[30rem]" aria-live={auto ? "off" : "polite"}>
+        <div className="animate-lift relative aspect-[6/5] [--d:150ms] sm:aspect-[16/11] lg:aspect-auto lg:h-[22rem]" aria-live={auto ? "off" : "polite"}>
           {slides.map((slide, i) => (
             <div
               key={i}
@@ -92,7 +92,7 @@ export function HeroSlider({ intro, slides, labels }: HeroSliderProps) {
       </div>
 
       {count > 1 && (
-        <div className="flex items-center gap-3 lg:col-start-1 lg:row-start-2 lg:mt-10 lg:gap-5">
+        <div className="flex items-center gap-3 lg:col-start-1 lg:row-start-2 lg:mt-8 lg:gap-5">
           <ol className="flex items-center gap-3 sm:gap-4">
             {labels.map((label, i) => (
               <li key={i}>

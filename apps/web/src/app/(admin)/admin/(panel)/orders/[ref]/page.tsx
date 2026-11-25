@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ErpBadge, SyncBadge } from "@/components/admin/badges";
 import { CopyButton } from "@/components/admin/copy-button";
 import { Facts, PageHeader, Panel } from "@/components/admin/ui";
+import { KokoRecheckButton } from "@/components/admin/koko-recheck-button";
 import { RetryButton } from "@/components/admin/retry-button";
 import { adminDb, adminGate } from "@/lib/admin/gate";
 import { paymentLabel } from "@/lib/admin/orders";
@@ -122,7 +123,13 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ ref
                 ...(row.lastError ? [{ k: "Last error", v: <span className="text-danger">{row.lastError} <span className="text-muted">({row.lastErrorCode})</span></span>, testId: "last-error" }] : []),
               ]}
             />
-            {row.syncStatus !== "SYNCED" && (
+            {row.paymentMethod === "KOKO" && row.paymentStatus !== "PAID" && (
+              <div className="mt-5 border-t border-border pt-4">
+                <KokoRecheckButton orderRef={row.externalRef} />
+                <p className="mt-2 text-xs text-muted">This order is held back from the ERP until Koko confirms payment. Rechecking asks Koko directly and only accepts a signed answer.</p>
+              </div>
+            )}
+            {row.syncStatus !== "SYNCED" && !row.awaitingPayment && (
               <div className="mt-5 border-t border-border pt-4">
                 <RetryButton orderRef={row.externalRef} />
                 <p className="mt-2 text-xs text-muted">Sending again is safe: the ERP recognises the order reference and never creates a second order.</p>

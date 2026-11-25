@@ -304,6 +304,6 @@ describe("homepage videos config", () => {
     ]) {
       expect(parseVideos(JSON.stringify([bad]))).toEqual([]);
     }
-    expect(parseVideos(JSON.stringify(Array.from({ length: 5 }, (_, i) => ({ ...ok, id: `dQw4w9WgXc${i}` }))))).toEqual([]); // more than 4
+    expect(parseVideos(JSON.stringify(Array.from({ length: 13 }, (_, i) => ({ ...ok, id: `dQw4w9WgX${String(i).padStart(2, "0")}` }))))).toEqual([]); // more than 12 (the homepage slider limit)
   });
 });

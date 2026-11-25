@@ -63,7 +63,7 @@ export function RecentlyViewed({ exclude }: { exclude?: string } = {}) {
   const products = ready ? loaded.products.slice(0, SHOWN) : [];
 
   return (
-    <section aria-labelledby="recent" className="mt-16 sm:mt-24">
+    <section aria-labelledby="recent" className="mt-10 sm:mt-14">
       <SectionIntro id="recent" eyebrow="Pick up where you left off" title="Recently viewed">
         Products you opened on this device.{" "}
         <button type="button" onClick={clearRecent} className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 font-semibold text-ink underline underline-offset-4 hover:text-brand-600">

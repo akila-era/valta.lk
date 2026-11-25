@@ -30,7 +30,7 @@ function Banner({ c }: { c: Collection }) {
       >
         {c.art && <Image src={c.art} alt="" fill sizes="(min-width:1024px) 40vw, 92vw" className="-z-20 object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none" />}
         <span aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/35 to-transparent" />
-        <p className={`${eyebrow} text-brand-500`}>Collection</p>
+        <p className={`${eyebrow} text-white/90 [text-shadow:0_1px_6px_rgba(0,0,0,0.5)]`}>Collection</p>
         <h2 id={`collection-${rail.slug}`} className="mt-2 text-3xl font-bold leading-[1.05] tracking-[-0.035em] sm:text-4xl">{rail.name}</h2>
         <p className="mt-2 text-sm text-white/80">{countText(rail.count)}</p>
         <span className="mt-5 inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-brand-500 px-5 text-sm font-semibold text-on-brand transition-colors group-hover:bg-brand-400">
@@ -119,7 +119,7 @@ export function Collections({ data, from = 0, to = 3 }: { data: HomeData; from?:
       {shown.map((c, n) => {
         const Variant = VARIANTS[(from + n) % VARIANTS.length];
         return (
-          <section key={c.rail.slug} aria-labelledby={`collection-${c.rail.slug}`} className="mt-16 sm:mt-24">
+          <section key={c.rail.slug} aria-labelledby={`collection-${c.rail.slug}`} className="mt-10 sm:mt-14">
             <Variant c={c} />
           </section>
         );

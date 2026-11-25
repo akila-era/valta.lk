@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { BadgePercent, ChevronRight, Search, X } from "lucide-react";
+import { BadgePercent, Boxes, ChevronRight, Search, X } from "lucide-react";
 import { categoryIcon } from "@/components/ui/category-icon";
 
 export interface DrawerCategory {
@@ -103,7 +103,7 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label="Browse VALTA.LK"
+        aria-label="Browse VOLTA.LK"
         className="absolute inset-y-0 left-0 flex w-[88%] max-w-[22rem] animate-[slide-in_0.25s_cubic-bezier(0.2,0.7,0.2,1)] flex-col bg-bg shadow-2xl"
       >
         <div className="flex items-center justify-end border-b border-border px-5 py-4">
@@ -146,6 +146,12 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
         <div className="flex-1 overflow-y-auto overscroll-contain">
           {tab === "categories" ? (
             <ul id={`${id}-categories`} role="tabpanel" aria-labelledby={`${id}-categories-tab`}>
+              <li className="flex border-b border-border">
+                <Link href="/wholesale" onClick={onClose} className={`${row} font-semibold text-brand-600`}>
+                  <Boxes className="h-5 w-5 shrink-0" aria-hidden />
+                  Apply Wholesale
+                </Link>
+              </li>
               {hasDeals && (
                 <li className="flex border-b border-border">
                   <Link href="/products?sale=1" onClick={onClose} className={`${row} font-semibold text-brand-600`}>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Play } from "lucide-react";
 import type { VideoConfig } from "@/lib/home-config";
+import { ProductCarousel } from "./product-carousel";
 
 /**
  * Owner-configured videos (HOME_VIDEOS). Each card shows a thumbnail and a play button; the YouTube player (privacy-enhanced
@@ -11,16 +12,16 @@ import type { VideoConfig } from "@/lib/home-config";
 export function VideoShowcase({ title, videos }: { title: string; videos: VideoConfig[] }) {
   const [playing, setPlaying] = useState<string | null>(null);
   if (!videos.length) return null;
-  const grid = videos.length === 1 ? "max-w-3xl" : videos.length === 2 ? "max-w-4xl sm:grid-cols-2" : "max-w-6xl sm:grid-cols-2 lg:grid-cols-3";
   return (
-    <section aria-labelledby="videos" className="mt-14 sm:mt-20">
-      <h2 id="videos" className="section-title mb-6 sm:mb-8">{title}</h2>
-      <ul className={`mx-auto grid gap-4 sm:gap-5 ${grid}`}>
+    <section aria-labelledby="videos" className="container-page mt-10 sm:mt-14">
+      <h2 id="videos" className="mb-6 text-center text-2xl font-semibold tracking-tight text-ink sm:mb-8 sm:text-[2rem]">{title}</h2>
+      {/* Every video is in one row you can scroll freely (swipe, trackpad, arrows). A piece of the next video shows, so it is clear there is more. */}
+      <ProductCarousel label="Videos" align="start" step="item" snap="proximity">
         {videos.map((v) => {
           const on = playing === v.id;
           return (
-            <li key={v.id}>
-              <div className="relative aspect-video overflow-hidden rounded-xl border border-border bg-ink">
+            <li key={v.id} className="w-[82%] shrink-0 snap-start px-2 sm:w-[46%] lg:w-[36%]">
+              <div className="relative aspect-video overflow-hidden rounded-2xl border border-border bg-ink">
                 {on ? (
                   <iframe
                     src={`https://www.youtube-nocookie.com/embed/${v.id}?autoplay=1&rel=0`}
@@ -51,7 +52,7 @@ export function VideoShowcase({ title, videos }: { title: string; videos: VideoC
             </li>
           );
         })}
-      </ul>
+      </ProductCarousel>
     </section>
   );
 }

@@ -1,96 +1,77 @@
 import type { Metadata } from "next";
-import { Hero, type HeroSlide } from "@/components/home/hero";
-import { CategoryTiles } from "@/components/home/home-sections";
-import { Collections } from "@/components/home/collections";
-import { NewArrivals, SpecialOffers, StaffPicks } from "@/components/home/product-sections";
-import { Assurances, SupportSection } from "@/components/home/support-assurance";
-import { TrustStrip } from "@/components/home/trust-strip";
-import { BrandShowcase } from "@/components/home/brand-showcase";
-import { BudgetShortcuts, FinalCta, HowItWorks, WhyChoose } from "@/components/home/journey-sections";
-import { Faq } from "@/components/home/more-sections";
-import { RecentlyViewed } from "@/components/home/recently-viewed";
-import { StaffBanners, WideBanner } from "@/components/home/sections";
+import { Reveal } from "@/components/home/reveal";
+import { Countdown } from "@/components/home/countdown";
+import { Newsletter } from "@/components/home/newsletter";
+import { SocialFeed } from "@/components/home/social-feed";
 import { VideoShowcase } from "@/components/home/video-showcase";
+import { homeVideos } from "@/lib/videos";
+import { activeSocialPosts } from "@/lib/home-extras";
+import { resolveHotDeals } from "@/lib/hot-deals";
+import { socialLinks } from "@/lib/home-config";
+import { CategoryIcons } from "@/components/home/category-icons";
+import { BannerHero } from "@/components/home/banner-hero";
+import { HotDeals } from "@/components/home/hot-deals";
+import { ArrivalsTabs } from "@/components/home/arrivals-tabs";
+import { PromoBanner } from "@/components/home/promo-banner";
+import { FeaturedCarousel } from "@/components/home/featured-carousel";
+import { CategoryBento } from "@/components/home/category-bento";
+import { CategoryShowcase, pickShowcase } from "@/components/home/category-showcase";
+import { Reviews } from "@/components/home/reviews";
+import { RecentlyViewed } from "@/components/home/recently-viewed";
+import { BrandLogos, ContactBlock, JoinStrip, WhyChoose } from "@/components/home/storefront-blocks";
+import { TrustStrip } from "@/components/home/trust-strip";
 import { ErpUnavailable } from "@/components/ui/states";
-import type { ErpProduct } from "@/lib/erp/types";
+import { BRAND_NAME } from "@/lib/brand";
 import { getHomeData } from "@/lib/home-data";
 
 export const metadata: Metadata = {
-  title: { absolute: "VALTA.LK | Mobile phones, electronics & accessories in Sri Lanka" },
-  description: "Discover mobile phones, electronics and everyday essentials at VALTA.LK. Prices in LKR, cash on delivery.",
+  title: { absolute: `${BRAND_NAME} | Mobile phones, electronics & accessories in Sri Lanka` },
+  description: `Shop mobile phones, chargers, smart watches and accessories at ${BRAND_NAME}. Prices in LKR, cash on delivery, island-wide delivery.`,
   alternates: { canonical: "/" },
   openGraph: {
-    title: "VALTA.LK | Technology that moves you",
-    description: "Discover mobile phones, electronics and everyday essentials at VALTA.LK.",
+    title: `${BRAND_NAME} | Phones, electronics & accessories`,
+    description: `Shop phones, chargers, smart watches and accessories at ${BRAND_NAME}.`,
     url: "/",
     type: "website",
   },
 };
 
 export default async function HomePage() {
-  const data = await getHomeData();
-  const withImage = (list: ErpProduct[]) => list.find((p) => p.available && p.images.length > 0);
-  // Up to three distinct, in-stock, photographed products for the hero: staff-featured, newest, and one with a real sale price.
-  const used = new Set<string>();
-  const heroSlides: HeroSlide[] = [];
-  const addSlide = (list: ErpProduct[], kind: HeroSlide["kind"]) => {
-    const product = withImage(list.filter((p) => !used.has(p.id)));
-    if (product) {
-      used.add(product.id);
-      heroSlides.push({ product, kind });
-    }
-  };
-  addSlide(data.featured, "featured");
-  addSlide(data.newArrivals, "new");
-  addSlide(data.offers, "offer");
-  if (heroSlides.length < 3) addSlide(data.newArrivals, "new");
-  if (!heroSlides.length) addSlide(data.more, "new");
-  // Distinct real products with photos, reused as supporting imagery further down the page.
-  const photographed = [...data.newArrivals, ...data.more, ...data.featured].filter(
-    (p, i, all) => p.available && p.images.length > 0 && !used.has(p.id) && all.findIndex((x) => x.id === p.id) === i,
-  );
-  const hasBrands = data.brands.filter((b) => b.count > 0).length >= 2;
+  const [data, videos, social] = await Promise.all([getHomeData(), homeVideos(), activeSocialPosts()]);
+  if (!data.catalogueOk) {
+    return (
+      <div className="container-page">
+        <div className="mt-10">
+          <ErpUnavailable retryHref="/" />
+        </div>
+      </div>
+    );
+  }
+  const featured = data.featured.filter((p) => p.available);
+  const hot = await resolveHotDeals(data.offers);
+  const showcase = pickShowcase(data.rails);
   return (
     <>
-      <Hero
-        brandsHref={hasBrands ? "/brands" : undefined}
-        slides={heroSlides}
-      />
-      {data.catalogueOk && <TrustStrip checkout={data.checkout} />}
-      {data.catalogueOk ? (
-        <div className="container-page pb-10 sm:pb-16">
-          <CategoryTiles categories={data.categories} />
-          <BrandShowcase brands={data.brands} />
-          <NewArrivals products={data.newArrivals} />
-          <SpecialOffers offers={data.offers.filter((p) => p.available)} />
-          <Collections data={data} from={0} to={1} />
-          <StaffPicks products={data.featured} />
-          <Collections data={data} from={1} to={2} />
-          <BudgetShortcuts picks={data.budgetPicks} />
-          <Collections data={data} from={2} to={3} />
-          <WhyChoose checkout={data.checkout} />
-          <Assurances />
-          <RecentlyViewed />
-          {data.bannersFromStaff && (
-            <div className="mt-16 sm:mt-24">
-              <StaffBanners banners={data.banners} />
-            </div>
-          )}
-          <WideBanner banners={data.wideBanners} />
-          <HowItWorks checkout={data.checkout} photos={photographed.slice(6, 9).concat(photographed.slice(0, 3)).slice(0, 3)} />
-          <VideoShowcase title={data.videos.title} videos={data.videos.items} />
-          <SupportSection />
-          <Faq checkout={data.checkout} />
-          <FinalCta total={data.totalProducts} />
-        </div>
-      ) : (
-        <div className="container-page pb-10 sm:pb-14">
-          <div className="mt-14">
-            <ErpUnavailable retryHref="/" />
-          </div>
-          <Faq checkout={data.checkout} />
-        </div>
-      )}
+      <BannerHero data={data} />
+      <TrustStrip checkout={data.checkout} />
+      <CategoryIcons categories={data.categories} />
+      <Reveal><ArrivalsTabs products={data.newArrivals} /></Reveal>
+      {hot.enabled && <Reveal><HotDeals products={hot.products} title={hot.title} subtitle={hot.subtitle} timer={hot.endsAt ? <Countdown endsAt={hot.endsAt} label={hot.label} /> : undefined} /></Reveal>}
+      <Reveal><PromoBanner data={data} /></Reveal>
+      <Reveal><BrandLogos brands={data.brands} /></Reveal>
+      <Reveal><Reviews /></Reveal>
+      <Reveal><CategoryShowcase rail={showcase} /></Reveal>
+      <Reveal><CategoryBento categories={data.categories} /></Reveal>
+      <Reveal>{featured.length >= 4 ? <FeaturedCarousel products={featured} /> : <FeaturedCarousel products={data.more} title="More Products" />}</Reveal>
+      <Reveal><WhyChoose cod={data.checkout.cod} /></Reveal>
+      <div className="container-page">
+        <RecentlyViewed />
+      </div>
+      <Reveal><SocialFeed posts={social} profiles={socialLinks().filter((l) => l.label === "Instagram" || l.label === "TikTok")} /></Reveal>
+      <Reveal><VideoShowcase title={videos.title} videos={videos.items} /></Reveal>
+      <Reveal><Newsletter /></Reveal>
+      <Reveal><ContactBlock /></Reveal>
+      <Reveal><JoinStrip /></Reveal>
     </>
   );
 }

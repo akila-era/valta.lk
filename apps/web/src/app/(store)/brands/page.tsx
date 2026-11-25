@@ -7,7 +7,7 @@ import { listBrands } from "@/lib/erp/catalogue";
 
 export const metadata: Metadata = {
   title: "Shop by brand",
-  description: "Every brand in the VALTA.LK catalogue. Choose a brand to see its products.",
+  description: "Every brand in the VOLTA.LK catalogue. Choose a brand to see its products.",
   alternates: { canonical: "/brands" },
 };
 

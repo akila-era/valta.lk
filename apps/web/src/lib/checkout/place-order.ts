@@ -42,7 +42,8 @@ export interface PlaceOrderContext {
 
 /** `created`: the ERP confirmed the order. `accepted`: saved on the website, the ERP is retried automatically. */
 export interface PlaceOrderResult {
-  state: "created" | "accepted";
+  /** `payment_required`: a Koko order saved on the website and held back from the ERP until the customer has paid. */
+  state: "created" | "accepted" | "payment_required";
   order: PublicOrder;
 }
 
@@ -71,7 +72,11 @@ export function placeOrder(input: PlaceOrderInput, ctx: PlaceOrderContext = { ac
 }
 
 async function doPlaceOrder(input: PlaceOrderInput, ctx: PlaceOrderContext): Promise<PlaceOrderResult> {
-  const gate = await getCheckoutAvailability({ fresh: true });
+  const online = input.paymentMethod === "KOKO" || input.paymentMethod === "PAYZY";
+  const gateway = input.paymentMethod === "PAYZY" ? "PAYZY" : "KOKO";
+  const db = getDb();
+  if (online && !db) throw new ErpError("ORDERS_NOT_ENABLED", 503, "Online payment needs the website database");
+  const gate = await getCheckoutAvailability({ fresh: true, method: online ? "ONLINE" : "COD", gateway });
   if (!gate.enabled || !gate.settings) {
     throw new ErpError(gate.reason === "unreachable" ? "UNREACHABLE" : "ORDERS_NOT_ENABLED", 503, "Checkout unavailable");
   }
@@ -104,7 +109,7 @@ async function doPlaceOrder(input: PlaceOrderInput, ctx: PlaceOrderContext): Pro
   const request: CreateOrderRequest = {
     externalRef: input.externalRef,
     currency: settings.currency,
-    paymentMethod: "COD",
+    paymentMethod: online ? "ONLINE" : "COD",
     lines: orderLines,
     deliveryCharge: settings.deliveryCharge,
     total,
@@ -126,7 +131,6 @@ async function doPlaceOrder(input: PlaceOrderInput, ctx: PlaceOrderContext): Pro
     throw e;
   };
 
-  const db = getDb();
   if (!db) {
     // No website database: send straight to the ERP (idempotent). A failure is reported to the customer, who can retry.
     try {
@@ -163,8 +167,12 @@ async function doPlaceOrder(input: PlaceOrderInput, ctx: PlaceOrderContext): Pro
     customerId: ctx.customerId,
     accessToken: ctx.accessToken,
     priceBreakdown: breakdownJson(quote) as Prisma.InputJsonValue,
+    ...(online ? { onlinePayment: gateway as "KOKO" | "PAYZY" } : {}),
   });
   if (created) await recordAdvertisedRedemptions(db, row.externalRef, ctx.customerId ?? null, quote).catch(() => undefined);
+
+  // Online (Koko/Payzy): nothing goes to the ERP until the gateway's verified result confirms payment.
+  if (online && row.paymentStatus !== "PAID") return { state: "payment_required", order: localPublicOrder(row) };
 
   if (row.syncStatus === "SYNCED") {
     // Same reference submitted again after the ERP already has it (e.g. the browser lost the first response).

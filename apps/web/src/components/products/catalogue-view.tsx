@@ -4,8 +4,11 @@ import { X } from "lucide-react";
 import { listProducts, type ProductQuery, type SortKey } from "@/lib/erp/catalogue";
 import { Pagination } from "@/components/ui/chrome";
 import { EmptyState, ErpUnavailable } from "@/components/ui/states";
+import { Accordion } from "@/components/ui/accordion";
 import { FilterPanel } from "./filter-panel";
-import { ProductGrid } from "./product-card";
+import { SortSelect } from "./sort-select";
+import { ViewSwitch } from "./view-switch";
+import { ProductCard } from "./product-card";
 
 export interface RawParams {
   q?: string;
@@ -18,6 +21,7 @@ export interface RawParams {
   sale?: string;
   sub?: string;
   brand?: string;
+  per?: string;
 }
 
 const SORTS: { value: SortKey; label: string }[] = [
@@ -26,6 +30,8 @@ const SORTS: { value: SortKey; label: string }[] = [
   { value: "price-desc", label: "Price: high to low" },
   { value: "name", label: "Name" },
 ];
+
+const PER_PAGE = [12, 24, 36, 48];
 
 const num = (v?: string) => (v && /^\d{1,9}(\.\d{1,2})?$/.test(v) ? Number(v) : undefined);
 
@@ -43,7 +49,7 @@ export function parseParams(p: RawParams, fixedCategory?: string): ProductQuery 
     maxPrice: num(p.max),
     inStockOnly: p.stock === "1",
     onSale: p.sale === "1",
-    pageSize: 12,
+    pageSize: PER_PAGE.includes(Number(p.per)) ? Number(p.per) : 12,
   };
 }
 
@@ -112,103 +118,115 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
   if (query.page !== result.page) redirect(href(basePath, params, { page: result.page > 1 ? String(result.page) : "" }));
   const filtered = Boolean(query.sub || query.q || query.brand || query.minPrice || query.maxPrice || query.inStockOnly || query.onSale || (!fixedCategory && query.category));
   const brandValue = result.brands.find((b) => b.name.toLowerCase() === (query.brand ?? "").toLowerCase())?.name ?? "";
+  const size = query.pageSize ?? 12;
+  const from = result.total === 0 ? 0 : (result.page - 1) * size + 1;
+  const to = Math.min(result.total, (result.page - 1) * size + result.items.length);
 
   return (
     <div className="grid min-w-0 gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
       <FilterPanel active={filtered}>
-        <form action={basePath} method="get" className="space-y-5">
+        <form action={basePath} method="get">
           {query.q && <input type="hidden" name="q" value={query.q} />}
           {query.onSale && <input type="hidden" name="sale" value="1" />}
           {query.sub && <input type="hidden" name="sub" value={query.sub} />}
           {!fixedCategory && query.category && <input type="hidden" name="category" value={query.category} />}
+          {query.pageSize !== 12 && <input type="hidden" name="per" value={String(query.pageSize)} />}
+          <input type="hidden" name="sort" value={query.sort} />
+
+          <Accordion title="Stock status" defaultOpen>
+            <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-[15px]">
+              <input type="checkbox" name="stock" value="1" defaultChecked={query.inStockOnly} className="check" />
+              Available items only
+            </label>
+          </Accordion>
+
           {result.brands.length > 0 && (
-            <div>
-              <label htmlFor="brand" className="label">Brand</label>
+            <Accordion title="Brand" defaultOpen>
+              <label htmlFor="brand" className="sr-only">Brand</label>
               <select id="brand" name="brand" defaultValue={brandValue} className="select">
                 <option value="">All brands</option>
                 {result.brands.map((b) => (
                   <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
                 ))}
               </select>
-            </div>
+            </Accordion>
           )}
-          <input type="hidden" name="sort" value={query.sort} />
-          <fieldset>
-            <legend className="label">Price (LKR)</legend>
+
+          <Accordion title="Price (LKR)" defaultOpen>
             <div className="flex gap-2">
               <input aria-label="Minimum price" name="min" inputMode="numeric" placeholder="Min" defaultValue={params.min} className="input" />
               <input aria-label="Maximum price" name="max" inputMode="numeric" placeholder="Max" defaultValue={params.max} className="input" />
             </div>
-          </fieldset>
-          <label className="flex min-h-11 items-center gap-2 text-sm">
-            <input type="checkbox" name="stock" value="1" defaultChecked={query.inStockOnly} className="check" />
-            Available items only
-          </label>
-          <button className="btn-dark w-full" type="submit">Apply filters</button>
-          {filtered && <Link href={fixedCategory ? basePath : "/products"} className="btn-secondary w-full">Clear all</Link>}
+            <button className="btn-dark mt-3 w-full rounded-full" type="submit">Apply price</button>
+          </Accordion>
+
+          {filtered && <Link href={fixedCategory ? basePath : "/products"} className="btn-secondary mt-4 w-full rounded-full">Clear all filters</Link>}
         </form>
 
         {showCategories && result.categories.length > 0 && (
-          <nav aria-label="Filter by category" className="mt-8">
-            <h2 className="label">Categories</h2>
-            <ul className="space-y-1 text-sm">
-              {result.categories.map((c) => (
-                <li key={c.slug}>
-                  <Link
-                    href={`/categories/${c.slug}`}
-                    aria-current={fixedCategory === c.slug ? "page" : undefined}
-                    className={`flex justify-between rounded-lg px-3 py-2 hover:bg-surface ${fixedCategory === c.slug ? "bg-surface font-semibold text-ink" : ""}`}
-                  >
-                    <span>{c.name}</span>
-                    <span className="text-muted">{c.count}</span>
-                  </Link>
-                  {fixedCategory === c.slug && c.subs.length > 0 && (
-                    <ul className="ml-3 mt-1 space-y-1 border-l border-border pl-2">
-                      {c.subs.map((sc) => (
-                        <li key={sc.slug}>
-                          <Link
-                            href={`/categories/${c.slug}?sub=${sc.slug}`}
-                            aria-current={query.sub === sc.slug ? "page" : undefined}
-                            className={`flex justify-between rounded-lg px-3 py-1.5 hover:bg-surface ${query.sub === sc.slug ? "font-semibold text-ink" : "text-ink/80"}`}
-                          >
-                            <span>{sc.name}</span>
-                            <span className="text-muted">{sc.count}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
+          <nav aria-label="Filter by category" className="mt-2">
+            <Accordion title="Product categories" defaultOpen>
+              <ul className="-mx-2 space-y-0.5 text-[15px]">
+                {result.categories.map((c) => (
+                  <li key={c.slug}>
+                    <Link
+                      href={`/categories/${c.slug}`}
+                      aria-current={fixedCategory === c.slug ? "page" : undefined}
+                      className={`flex min-h-10 items-center justify-between rounded-md px-2 transition-colors hover:bg-surface ${fixedCategory === c.slug ? "bg-surface font-semibold text-ink" : "text-ink/80"}`}
+                    >
+                      <span>{c.name}</span>
+                      <span className="text-muted">{c.count}</span>
+                    </Link>
+                    {fixedCategory === c.slug && c.subs.length > 0 && (
+                      <ul className="ml-3 mt-0.5 space-y-0.5 border-l border-border pl-2">
+                        {c.subs.map((sc) => (
+                          <li key={sc.slug}>
+                            <Link
+                              href={`/categories/${c.slug}?sub=${sc.slug}`}
+                              aria-current={query.sub === sc.slug ? "page" : undefined}
+                              className={`flex min-h-9 items-center justify-between rounded-md px-2 transition-colors hover:bg-surface ${query.sub === sc.slug ? "font-semibold text-ink" : "text-ink/75"}`}
+                            >
+                              <span>{sc.name}</span>
+                              <span className="text-muted">{sc.count}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Accordion>
           </nav>
         )}
       </FilterPanel>
 
       <section aria-label="Products" className="min-w-0">
-        <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="type-meta" role="status">
-            {result.total} {result.total === 1 ? "product" : "products"}
+        <div className="mb-4 flex min-w-0 flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-border pb-4">
+          <p className="text-[15px] text-muted" role="status">
+            {result.total === 0 ? "No results" : <>Showing <b className="font-semibold text-ink">{from}–{to}</b> of <b className="font-semibold text-ink">{result.total}</b> {result.total === 1 ? "result" : "results"}</>}
             {query.q ? ` for “${query.q}”` : ""}
           </p>
-          <nav aria-label="Sort" className="min-w-0 max-w-full overflow-x-auto">
-            <ul className="flex w-max gap-0.5 rounded-xl bg-surface p-1">
-              {SORTS.map((s) => {
-                const on = query.sort === s.value;
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <nav aria-label="Products per page" className="hidden items-center gap-1 text-sm sm:flex">
+              <span className="mr-1 text-muted">Show</span>
+              {PER_PAGE.map((n) => {
+                const on = size === n;
                 return (
-                  <li key={s.value}>
-                    <Link
-                      href={href(basePath, params, { sort: s.value === "newest" ? "" : s.value, page: "" })}
-                      aria-current={on ? "page" : undefined}
-                      className={`inline-flex min-h-10 items-center rounded-lg px-3.5 text-sm font-semibold transition-colors ${on ? "bg-bg text-ink shadow-card ring-1 ring-border" : "text-muted hover:text-ink"}`}
-                    >
-                      {s.label}
-                    </Link>
-                  </li>
+                  <Link
+                    key={n}
+                    href={href(basePath, params, { per: n === 12 ? "" : String(n), page: "" })}
+                    aria-current={on ? "true" : undefined}
+                    className={`inline-flex h-9 min-w-9 items-center justify-center rounded-md px-2 font-semibold tabular-nums transition-colors ${on ? "bg-ink text-white" : "text-muted hover:bg-surface hover:text-ink"}`}
+                  >
+                    {n}
+                  </Link>
                 );
               })}
-            </ul>
-          </nav>
+            </nav>
+            <ViewSwitch />
+            <SortSelect value={query.sort ?? "newest"} options={SORTS.map((o) => ({ ...o, href: href(basePath, params, { sort: o.value === "newest" ? "" : o.value, page: "" }) }))} />
+          </div>
         </div>
         <ActiveFilters basePath={basePath} params={params} query={query} categories={result.categories} filtered={filtered} fixedCategory={fixedCategory} />
         {result.items.length === 0 ? (
@@ -220,9 +238,9 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
                   ? "Try a different search or adjust your filters."
                   : "Products will appear here once they are available."}
             </EmptyState>
-            {query.q && result.categories.length > 0 && (
+            {result.categories.length > 0 && (
               <nav aria-label="Browse categories" className="mt-6">
-                <h2 className="text-sm font-semibold text-ink">Browse a category</h2>
+                <h2 className="text-sm font-semibold text-ink">Try browsing a category</h2>
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {result.categories.map((c) => (
                     <li key={c.slug}>
@@ -234,7 +252,13 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
             )}
           </>
         ) : (
-          <ProductGrid products={result.items} />
+          <ul id="product-grid" data-cols="4" className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-4 md:grid-cols-3 lg:data-[cols=2]:grid-cols-2 lg:data-[cols=3]:grid-cols-3 lg:data-[cols=4]:grid-cols-4">
+            {result.items.map((p, i) => (
+              <li key={p.id} className="animate-lift" style={{ "--d": `${Math.min(i, 11) * 45}ms` } as React.CSSProperties}>
+                <ProductCard product={p} priority={i < 4} />
+              </li>
+            ))}
+          </ul>
         )}
         <Pagination
           page={result.page}

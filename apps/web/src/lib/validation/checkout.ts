@@ -60,6 +60,7 @@ export const placeOrderSchema = z.object({
   delivery: deliverySchema,
   /** Total the customer saw. Used only to detect price changes; never used to price the order. */
   expectedTotal: z.number().nonnegative(),
+  paymentMethod: z.enum(["COD", "KOKO", "PAYZY"]).optional(),
   acceptTerms: z.literal(true, { error: "Please accept the terms to continue" }),
 });
 

@@ -14,7 +14,8 @@ export { effectivePrice };
 
 const PAGE_SIZE = 100; // ERP maximum
 const MAX_PAGES = 100;
-const TTL_MS = 60_000;
+// Dev refreshes the catalogue almost live; production keeps the 60 s cache to spare the ERP.
+const TTL_MS = process.env.NODE_ENV === "production" ? 60_000 : 5_000;
 
 interface Snapshot {
   products: Map<string, ErpProduct>;

@@ -51,7 +51,7 @@ export function SpecialOffers({ offers }: { offers: ErpProduct[] }) {
   // One or two offers: a single compact band, so a lone product never sits in a wide empty row.
   if (offers.length <= 2) {
     return (
-      <section aria-labelledby="offers" className="mt-16 sm:mt-24">
+      <section aria-labelledby="offers" className="mt-10 sm:mt-14">
         <div className="flex flex-col gap-8 rounded-[1.75rem] bg-ink p-6 text-white sm:p-8 lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:p-10">
           {copy}
           <ul className={`grid gap-3 sm:gap-4 ${offers.length === 1 ? "w-full max-w-[16rem] grid-cols-1" : "w-full grid-cols-2 lg:w-[34rem]"}`}>
@@ -67,7 +67,7 @@ export function SpecialOffers({ offers }: { offers: ErpProduct[] }) {
   }
 
   return (
-    <section aria-labelledby="offers" className="mt-16 sm:mt-24">
+    <section aria-labelledby="offers" className="mt-10 sm:mt-14">
       <div className="grid gap-3 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-4">
         <div className="rounded-[1.75rem] bg-ink p-6 text-white sm:p-8">{copy}</div>
         <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:max-xl:[&>li:nth-child(n+4)]:hidden">
@@ -90,7 +90,7 @@ export function StaffPicks({ products }: { products: ErpProduct[] }) {
   const [lead, ...rest] = list;
   const title = lead.content?.displayTitle || lead.name;
   return (
-    <section aria-labelledby="picks" className="mt-16 sm:mt-24">
+    <section aria-labelledby="picks" className="mt-10 sm:mt-14">
       <SectionIntro id="picks" eyebrow="Staff picks" title="Selected by our team" action={{ href: "/products", label: "View all products" }}>
         Products the shop has marked as featured.
       </SectionIntro>
