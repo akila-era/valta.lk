@@ -120,7 +120,7 @@ export async function Header() {
               <Headset className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Support
             </Link>
             {accounts ? (
-              <span><AccountMenu customer={customer ? { name: customer.name } : null} enabled /></span>
+              <span className="hidden md:block"><AccountMenu customer={customer ? { name: customer.name } : null} enabled /></span>
             ) : (
               <Link href="/track-order" className="hidden items-center gap-2 pr-5 text-sm font-medium hover:text-brand-600 lg:inline-flex">
                 <PackageSearch className="h-5 w-5" strokeWidth={1.5} aria-hidden /> Track Order

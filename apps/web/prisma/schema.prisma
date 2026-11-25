@@ -135,13 +135,15 @@ model ProductContent {
   updatedAt   DateTime  @updatedAt
 }
 
-/// Uploaded product image, stored in the database so no object-storage service is needed. Served by /api/media/[id].
+/// Uploaded product image. New uploads live in the private object storage (storageKey); rows from before that keep their
+/// bytes in `data`. Served by /api/media/[id].
 model MediaAsset {
   id          String   @id @default(cuid())
   erpItemId   String
   contentType String
   size        Int
-  data        Bytes
+  data        Bytes?
+  storageKey  String?
   createdAt   DateTime @default(now())
 
   @@index([erpItemId])
@@ -266,6 +268,8 @@ model Banner {
   href      String
   imageType String?
   imageData Bytes?
+  /// Object-storage key of the picture; when set, imageData is empty. Older banners keep the bytes in imageData.
+  imageKey  String?
   sortOrder Int      @default(0)
   active    Boolean  @default(true)
   updatedBy String?

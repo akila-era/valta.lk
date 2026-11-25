@@ -50,25 +50,29 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
         <p className="text-sm text-white/40">VOLTA.LK</p>
       </aside>
 
-      {/* Sign-in card. */}
-      <section className="relative flex flex-col px-5 py-6 pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-10">
+      {/* Sign-in side. */}
+      <section className="relative isolate flex flex-col overflow-hidden bg-gradient-to-br from-brand-50 via-white to-white px-5 py-6 pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-10">
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full bg-brand-500/15 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 -z-10 h-80 w-80 rounded-full bg-brand-400/10 blur-3xl" />
         <div className="flex items-center justify-between">
           <span className="lg:hidden"><Wordmark className="text-2xl" /></span>
-          <Link href="/" className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted transition-colors hover:text-ink">
+          <Link href="/" className="ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted transition-colors hover:bg-white hover:text-ink">
             <ArrowLeft className="h-4 w-4" aria-hidden /> Back to store
           </Link>
         </div>
-        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-8">
-          <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500 text-on-brand shadow-[0_14px_28px_-14px_rgba(6,121,61,0.9)]">
-            <Lock className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-          </span>
-          <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight text-ink sm:text-3xl">Admin sign in</h1>
-          <p className="mt-2 text-[15px] leading-6 text-muted">For VOLTA.LK store staff only.</p>
-          <div className="mt-7 rounded-3xl border border-border bg-white p-5 shadow-[0_24px_48px_-32px_rgba(17,17,17,0.35)] sm:p-7">
-            <AuthForm mode="admin" next={next} />
+        <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center py-8">
+          <div className="rounded-[2rem] border border-white bg-white/80 p-6 shadow-[0_40px_80px_-40px_rgba(6,60,30,0.35)] ring-1 ring-black/5 backdrop-blur sm:p-9">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-400 to-brand-500 text-on-brand shadow-[0_16px_30px_-14px_rgba(6,121,61,0.9)]">
+              <Lock className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+            </span>
+            <h1 className="mt-6 text-[1.875rem] font-semibold leading-tight tracking-tight text-ink">Welcome back</h1>
+            <p className="mt-1.5 text-[15px] leading-6 text-muted">Sign in to manage VOLTA.LK. Store staff only.</p>
+            <div className="mt-7">
+              <AuthForm mode="admin" next={next} />
+            </div>
           </div>
           <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-muted">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Secure sign-in. Unauthorised access is not permitted.
+            <ShieldCheck className="h-3.5 w-3.5 text-brand-600" aria-hidden /> Protected sign-in. Unauthorised access is not permitted.
           </p>
         </div>
       </section>

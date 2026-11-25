@@ -15,9 +15,11 @@
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "dev-db": "tsx scripts/dev-db.ts",
-    "payzy:test-order": "tsx --conditions=react-server scripts/payzy-test-order.ts"
+    "payzy:test-order": "tsx --conditions=react-server scripts/payzy-test-order.ts",
+    "media:migrate": "tsx --conditions=react-server scripts/migrate-media-to-storage.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1177.0",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "lottie-web": "^5.13.0",

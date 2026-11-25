@@ -18,11 +18,11 @@ const ENDPOINT: Record<Mode, string> = {
 
 const SUBMIT: Record<Mode, string> = { login: "Sign in", admin: "Sign in to admin", register: "Create account", forgot: "Send reset link", reset: "Set new password" };
 
-function Field(props: { id: string; label: string; error?: string; hint?: string; children: React.ReactNode }) {
-  const { id, label, error, hint, children } = props;
+function Field(props: { id: string; label: string; error?: string; hint?: string; floating?: boolean; children: React.ReactNode }) {
+  const { id, label, error, hint, floating, children } = props;
   return (
     <div>
-      <label htmlFor={id} className="label">{label}</label>
+      {!floating && <label htmlFor={id} className="label">{label}</label>}
       {children}
       {hint && !error && <p id={`${id}-hint`} className="mt-1.5 text-xs text-muted">{hint}</p>}
       {error && <p id={`${id}-error`} className="field-error" role="alert">{error}</p>}
@@ -84,8 +84,12 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
 
   // Admin sign-in gets roomier, icon-led fields; the customer forms keep the standard inputs.
   const modern = mode === "admin";
-  const fieldCls = modern ? "input min-h-13 rounded-2xl border-transparent bg-surface pl-12 text-base transition-shadow focus:border-brand-500 focus:bg-white focus:shadow-[0_0_0_4px_rgb(6_121_61/0.12)] focus:outline-none focus-visible:outline-none" : "input";
+  const fieldCls = modern ? "peer input min-h-14 rounded-2xl border-transparent bg-surface pb-1 pl-12 pt-6 text-base md:text-base placeholder-transparent transition-shadow focus:border-brand-500 focus:bg-white focus:shadow-[0_0_0_4px_rgb(6_121_61/0.12)] focus:outline-none focus-visible:outline-none" : "input";
   const leadIcon = (Icon: typeof Mail) => modern && <Icon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" strokeWidth={1.6} aria-hidden />;
+  /** Floating label: sits in the field, then lifts to the top edge once the field is focused or filled. */
+  const floatLabel = (id: string, text: string) => modern && (
+    <label htmlFor={id} className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 text-[15px] text-muted transition-all duration-200 peer-focus:top-2 peer-focus:translate-y-0 peer-focus:text-[11px] peer-focus:font-semibold peer-focus:text-brand-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:-webkit-autofill]:top-2 peer-[:-webkit-autofill]:translate-y-0 peer-[:-webkit-autofill]:text-[11px]">{text}</label>
+  );
   const pwType = show ? "text" : "password";
   const toggle = (
     <button
@@ -114,10 +118,11 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
       )}
 
       {mode !== "reset" && (
-        <Field id="email" label="Email" error={errors.email}>
+        <Field id="email" label="Email" error={errors.email} floating={modern}>
           <div className="relative">
-            <input id="email" name="email" type="email" autoComplete="email" required maxLength={200} placeholder={modern ? "you@volta.lk" : undefined} className={fieldCls} {...aria("email")} />
+            <input id="email" name="email" type="email" autoComplete="email" required maxLength={200} placeholder={modern ? " " : undefined} className={fieldCls} {...aria("email")} />
             {leadIcon(Mail)}
+            {floatLabel("email", "Email address")}
           </div>
         </Field>
       )}
@@ -133,6 +138,7 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
           id="password"
           label={mode === "reset" ? "New password" : "Password"}
           error={errors.password}
+          floating={modern}
           hint={mode === "login" || mode === "admin" ? undefined : "At least 8 characters, with letters and a number"}
         >
           <div className="relative">
@@ -143,10 +149,12 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
               required
               maxLength={128}
               autoComplete={mode === "login" || mode === "admin" ? "current-password" : "new-password"}
+              placeholder={modern ? " " : undefined}
               className={`${fieldCls} pr-12`}
               {...aria("password", mode !== "login" && mode !== "admin")}
             />
             {leadIcon(Lock)}
+            {floatLabel("password", "Password")}
             {toggle}
           </div>
         </Field>
@@ -164,7 +172,7 @@ export function AuthForm({ mode, next, token }: { mode: Mode; next?: string; tok
         </p>
       )}
 
-      <button type="submit" disabled={busy} className={`btn-primary w-full ${modern ? "min-h-13 rounded-2xl text-base" : ""}`}>
+      <button type="submit" disabled={busy} className={`btn-primary w-full ${modern ? "min-h-14 rounded-2xl text-base shadow-[0_16px_32px_-16px_rgba(6,121,61,0.9)]" : ""}`}>
         {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         {SUBMIT[mode]}
       </button>

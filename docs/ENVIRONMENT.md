@@ -43,6 +43,16 @@ These are business claims, so the site shows them only when the owner sets them.
 | `ORDER_SYNC_SECRET` | At least 16 characters. Bearer secret for `POST /api/internal/sync-orders`, which a scheduler calls every minute to send orders that could not reach the ERP. Unset = the endpoint returns 404. Example: `curl -X POST -H "Authorization: Bearer $ORDER_SYNC_SECRET" https://<site>/api/internal/sync-orders`. |
 | `ORDER_SYNC_BACKOFF_MS` | Test-only override of the retry backoff (default 1m, 5m, 15m, 1h, 3h, 6h; orders still unsent after 24h are marked "Needs attention"). Never set in production. |
 
+### Image storage
+
+| Variable | Description |
+| --- | --- |
+| `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY` | docker compose only: root login of the private `storage` container (S3-compatible, no public port, data in the `storage-data` volume). Required by `docker-compose.yml`. Use long random values; never reuse the database password. |
+| `STORAGE_BUCKET` | docker compose only: bucket name (default `valta-media`). Created automatically on first upload. |
+| `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION` | What the web app uses to reach the storage server (compose sets the first four). All four must be set to turn it on; otherwise new images go into the database as before. `S3_REGION` defaults to `us-east-1`. |
+
+Images are still served through `/api/media/[id]` and `/api/banner-image/[id]`, so URLs do not change and the storage server is never exposed. Images uploaded before storage was turned on keep working from the database; move them with `npm run media:migrate -w @valta/web` (see the script header; it is safe to re-run).
+
 Set up a new database:
 
 ```bash

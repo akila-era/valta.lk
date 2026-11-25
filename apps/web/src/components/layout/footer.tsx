@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Link from "next/link";
-import { Banknote, ChevronRight, Clock, Heart, Mail, MapPin, MessageCircle, PackageSearch, Phone, Share2, type LucideIcon } from "lucide-react";
+import { Banknote, ChevronRight, Clock, Mail, MapPin, MessageCircle, PackageSearch, Phone, Share2, type LucideIcon } from "lucide-react";
 import { listProducts } from "@/lib/erp/catalogue";
 import { BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import { cleanCategories } from "@/lib/hygiene";
@@ -45,7 +45,7 @@ function PaymentBadge({ id }: { id: string }) {
   );
 }
 
-const linkCls = "group/l inline-flex min-h-9 items-center gap-1.5 text-[15px] text-white/75 transition-colors duration-200 hover:text-white";
+const linkCls = "group/l inline-flex min-h-11 items-center gap-1.5 text-[15px] sm:min-h-9 text-white/75 transition-colors duration-200 hover:text-white";
 const chev = "h-3.5 w-3.5 text-white/40 transition-transform duration-200 group-hover/l:translate-x-0.5 group-hover/l:text-brand-500 motion-reduce:transition-none";
 
 const help = [
@@ -63,12 +63,12 @@ const company = [
   { href: "/terms", label: "Terms & conditions" },
 ];
 
-function Column({ title, label, children }: { title: string; label: string; children: React.ReactNode }) {
+function Column({ title, label, children, className = "" }: { title: string; label: string; children: React.ReactNode; className?: string }) {
   return (
-    <nav aria-label={label}>
+    <nav aria-label={label} className={className}>
       <h2 className="text-[13px] font-semibold uppercase tracking-[0.1em] text-white">{title}</h2>
       <span aria-hidden className="mt-2 block h-0.5 w-8 rounded-full bg-brand-500" />
-      <ul className="mt-3">{children}</ul>
+      <ul className="mt-2 sm:mt-3">{children}</ul>
     </nav>
   );
 }
@@ -106,10 +106,10 @@ export async function Footer() {
   return (
     <footer className="on-dark mt-14 bg-dark text-white sm:mt-20">
       <div className="container-page">
-        <div className="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1.2fr] lg:gap-8 lg:py-16">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-9 py-10 sm:gap-10 sm:py-12 lg:grid-cols-[1.3fr_1fr_1fr_1fr_1.2fr] lg:gap-8 lg:py-16">
           {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <Wordmark dark className="text-3xl" />
+          <div className="col-span-2 lg:col-span-1">
+            <Wordmark dark className="text-[1.75rem] sm:text-3xl" />
             <p className="mt-4 max-w-xs text-[15px] leading-6 text-white/70">{BRAND_TAGLINE}. Genuine products, delivered island-wide.</p>
             {contact.length > 0 && (
               <ul className="mt-5 space-y-2.5">
@@ -155,14 +155,14 @@ export async function Footer() {
               <Item key={l.href} href={l.href}>{l.label}</Item>
             ))}
           </Column>
-          <Column title="Company" label="Company">
+          <Column title="Company" label="Company" className="col-span-2 max-sm:[&_ul]:columns-2 sm:col-span-1">
             {company.map((l) => (
               <Item key={l.href} href={l.href}>{l.label}</Item>
             ))}
           </Column>
 
           {/* Help card, in the same rounded card style as the rest of the site */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="col-span-2 lg:col-span-1">
             <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-5">
               <p className="text-lg font-semibold leading-snug text-white">Need help choosing?</p>
               <p className="mt-1.5 text-[15px] leading-6 text-white/65">Call or message us, or check where your order is.</p>
@@ -186,18 +186,21 @@ export async function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="grid items-center gap-4 border-t border-white/10 py-6 md:grid-cols-[1fr_auto_1fr]">
+        <div className="grid items-center gap-4 border-t border-white/10 py-6 max-md:justify-items-center max-md:text-center md:grid-cols-[1fr_auto_1fr]">
           <p className="text-[13px] text-white/55">© {new Date().getFullYear()} {BRAND_NAME}. All rights reserved.</p>
-          <ul className="flex flex-wrap items-center gap-2 md:justify-center" aria-label="Accepted payment methods">
+          <ul className="flex flex-wrap items-center gap-2 max-md:justify-center md:justify-center" aria-label="Accepted payment methods">
             <li className="inline-flex h-8 items-center gap-1.5 rounded-md bg-white px-2.5 text-[13px] font-semibold text-ink">
               <Banknote className="h-4 w-4" aria-hidden />
               Cash on Delivery
             </li>
             {payments.map((id) => <PaymentBadge key={id} id={id} />)}
           </ul>
-          <div className="flex items-center gap-4 md:justify-end">
-            <p className="inline-flex items-center gap-1.5 text-[13px] text-white/55">
-              Made with <Heart className="h-3.5 w-3.5 fill-brand-500 text-brand-500" aria-label="love" /> in Sri Lanka
+          <div className="flex flex-col items-center gap-3 md:flex-row md:gap-4 md:justify-end">
+            <p className="text-[13px] text-white/55">
+              Developed by{" "}
+              <a href="https://hexalyte.com/" target="_blank" rel="noopener noreferrer" className="font-semibold text-white/80 underline-offset-4 transition-colors hover:text-white hover:underline">
+                Hexalyte Innovations<span className="sr-only"> (opens in a new tab)</span>
+              </a>
             </p>
             <BackToTop />
           </div>
