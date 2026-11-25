@@ -326,6 +326,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       const text = raw.trim();
       if (!text || busy) return;
       const next: Msg[] = [...msgs, { role: "user", text }];
+      const msgLang = aiActions.langFor(text); // auto mode follows the language the shopper just used
       setMsgs(next);
       setInput("");
       setBusy(true);
@@ -336,7 +337,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
         const res = await fetch("/api/store/ai", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ messages: next.filter((m) => !m.error).slice(-10).map(({ role, text: t }) => ({ role, text: t })), path, lang, cart: getCartLines().map((l) => ({ slug: l.slug, name: l.name, quantity: l.quantity, unitPrice: l.unitPrice })) }),
+          body: JSON.stringify({ messages: next.filter((m) => !m.error).slice(-10).map(({ role, text: t }) => ({ role, text: t })), path, lang: msgLang, cart: getCartLines().map((l) => ({ slug: l.slug, name: l.name, quantity: l.quantity, unitPrice: l.unitPrice })) }),
           signal: ctl.signal,
         });
         const data = (await res.json()) as { reply?: string; products?: AiProduct[]; compare?: AiCompareItem[]; actions?: AiAction[]; error?: { message: string } };
