@@ -24,6 +24,7 @@ interface Recognition {
   lang: string;
   interimResults: boolean;
   onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onstart?: (() => void) | null;
   onend: (() => void) | null;
   onerror: ((e: { error?: string }) => void) | null;
   start(): void;
@@ -37,6 +38,20 @@ const recognitionCtor = (): RecognitionCtor | undefined => {
 
 
 const setMsgs = aiActions.setMsgs;
+
+/** Language to speak a reply in: Sinhala and Tamil text get their own voice, everything else English. */
+const langOf = (text: string) => (/[඀-෿]/.test(text) ? "si-LK" : /[஀-௿]/.test(text) ? "ta-IN" : "en-US");
+
+/** Best installed voice for a language: network/"natural" voices first, then any voice of that language. */
+function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
+  const voices = window.speechSynthesis.getVoices();
+  const same = voices.filter((v) => v.lang.replace("_", "-").toLowerCase() === lang.toLowerCase());
+  const base = voices.filter((v) => v.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
+  return same.find((v) => /google|natural|online/i.test(v.name)) ?? same[0] ?? base.find((v) => /google|natural|online/i.test(v.name)) ?? base[0];
+}
+
+/** Short pieces: Chrome stops reading a single long utterance after about 15 seconds. */
+const sentences = (text: string) => (text.match(/[^.!?\n]+[.!?]*/g) ?? [text]).map((t) => t.trim()).filter(Boolean);
 
 /** Short confirmation chip for an action the AI performed. */
 const describe = (a: AiAction): string => {
@@ -81,9 +96,13 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   const rec = useRef<Recognition | null>(null);
   const abort = useRef<AbortController | null>(null);
   const speakTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const speakStart = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // True while the mic is open, so the AI never talks over the shopper (readable inside delayed callbacks).
+  const listeningRef = useRef(false);
 
   useEffect(() => {
     setCanListen(!!recognitionCtor());
+    window.speechSynthesis?.getVoices(); // voices load lazily in Chrome; ask early so one is ready when the answer comes
   }, []);
   useEffect(() => {
     if (active) return;
@@ -165,6 +184,39 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     uiActions.openCart();
   }, []);
 
+  /** Reads text aloud with the face's mouth moving. Also used by the replay button on each answer. */
+  const speakReply = useCallback((text: string) => {
+    const synth = typeof window === "undefined" ? undefined : window.speechSynthesis;
+    if (!synth || listeningRef.current) return; // the shopper is talking: show the answer as text only
+    synth.cancel();
+    clearTimeout(speakTimer.current);
+    clearTimeout(speakStart.current);
+    const lang = langOf(text);
+    const parts = sentences(text);
+    const stop = () => {
+      clearTimeout(speakTimer.current);
+      setSpeaking(false);
+    };
+    setSpeaking(true);
+    speakTimer.current = setTimeout(stop, text.length * 90 + 3000); // safety net if the browser never reports the end
+    // Chrome drops speech that starts in the same moment as cancel(), so wait a beat.
+    speakStart.current = setTimeout(() => {
+      if (listeningRef.current) return stop(); // the shopper started talking during the pause
+      parts.forEach((part, i) => {
+        const u = new SpeechSynthesisUtterance(part);
+        u.lang = lang;
+        const voice = pickVoice(lang);
+        if (voice) u.voice = voice;
+        if (i === parts.length - 1) u.onend = stop;
+        u.onerror = (e) => {
+          if (e.error !== "interrupted" && e.error !== "canceled") stop();
+        };
+        synth.speak(u);
+      });
+      synth.resume();
+    }, 80);
+  }, []);
+
   const send = useCallback(
     async (raw: string, viaVoice = false) => {
       const text = raw.trim();
@@ -188,22 +240,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
         const notes = (data.actions ?? []).map(describe);
         setMsgs((m) => [...m, { role: "model", text: reply, products: data.compare?.length ? undefined : data.products, compare: data.compare, notes }]);
         // Spoken replies only when the question was spoken; typed questions get a text reply.
-        if (viaVoice && speak && window.speechSynthesis) {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(reply);
-          // Some browsers never fire onstart/onend reliably, so the mouth starts right away and a timer is the safety net.
-          clearTimeout(speakTimer.current);
-          const stop = () => {
-            clearTimeout(speakTimer.current);
-            setSpeaking(false);
-          };
-          u.onstart = () => setSpeaking(true);
-          u.onend = stop;
-          u.onerror = stop;
-          setSpeaking(true);
-          speakTimer.current = setTimeout(stop, reply.length * 90 + 2500);
-          window.speechSynthesis.speak(u);
-        }
+        if (viaVoice && speak) speakReply(reply);
         data.actions?.forEach(run);
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
@@ -212,7 +249,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
         setBusy(false);
       }
     },
-    [msgs, busy, path, speak, run],
+    [msgs, busy, path, speak, run, speakReply],
   );
 
   const sendRef = useRef(send);
@@ -225,7 +262,15 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     const Ctor = recognitionCtor();
     if (!Ctor) return;
     window.speechSynthesis?.cancel();
+    clearTimeout(speakStart.current);
+    clearTimeout(speakTimer.current);
     setSpeaking(false);
+    if (window.speechSynthesis) {
+      // Speech output is only allowed after a tap; speaking a silent word now unlocks it for the answer that comes later.
+      const unlock = new SpeechSynthesisUtterance(" ");
+      unlock.volume = 0;
+      window.speechSynthesis.speak(unlock);
+    }
     if (!window.isSecureContext) {
       // Browsers only allow the microphone on https pages or localhost (not on http://192.168.x.x).
       setMsgs((m) => [...m, { role: "model", text: "The microphone only works on a secure page. Open the site through https or http://localhost:3000.", error: true }]);
@@ -234,6 +279,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     const r = new Ctor();
     // Chrome accepts any BCP-47 tag; use the page/browser language, English as the fallback.
     r.lang = document.documentElement.lang || navigator.language || "en-US";
+    r.onstart = () => window.speechSynthesis?.cancel(); // belt and braces: nothing may still be speaking once the mic is open
     r.interimResults = true; // show what is being heard while the shopper speaks
     let lastHeard = "";
     let sent = false;
@@ -247,6 +293,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       } else setHeard(text);
     };
     r.onend = () => {
+      listeningRef.current = false;
       setListening(false);
       setHeard("");
       // Some browsers end without a "final" result: send what was heard rather than dropping it.
@@ -254,6 +301,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     };
     r.onerror = (e) => {
       sent = true; // an error means nothing usable was heard
+      listeningRef.current = false;
       setListening(false);
       setHeard("");
       const why = e?.error;
@@ -272,6 +320,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
       if (text) setMsgs((m) => [...m, { role: "model", text, error: true }]);
     };
     rec.current = r;
+    listeningRef.current = true;
     setListening(true);
     r.start();
   }
@@ -280,6 +329,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     abort.current?.abort();
     rec.current?.stop();
     window.speechSynthesis?.cancel();
+    clearTimeout(speakStart.current);
     setSpeaking(false);
     setMsgs([]);
     setBusy(false);
@@ -288,5 +338,5 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
 
   const faceState: FaceState = listening ? "listening" : speaking && speak ? "speaking" : busy ? "thinking" : "idle";
 
-  return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState };
+  return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay: speakReply };
 }
