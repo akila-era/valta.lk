@@ -162,7 +162,7 @@ export function AiChatPanel({
   autoFocus?: boolean;
 }) {
   const chat = useAiChat({ active, autoListen });
-  const { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState } = chat;
+  const { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay } = chat;
   const list = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -251,7 +251,14 @@ export function AiChatPanel({
             <div key={i} className="flex items-start gap-2 animate-ai-rise">
               <Orb size="sm" />
               <div className="min-w-0 flex-1 space-y-2.5">
-                <p className={`max-w-[92%] rounded-2xl rounded-tl-md px-4 py-2.5 text-sm leading-6 ${m.error ? "bg-danger-bg text-danger" : "bg-surface"}`}>{m.text}</p>
+                <div className="flex max-w-[92%] items-start gap-1">
+                  <p className={`rounded-2xl rounded-tl-md px-4 py-2.5 text-sm leading-6 ${m.error ? "bg-danger-bg text-danger" : "bg-surface"}`}>{m.text}</p>
+                  {!m.error && (
+                    <button type="button" onClick={() => replay(m.text)} aria-label="Play this answer aloud" title="Play aloud" className="mt-1.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink">
+                      <Volume2 className="h-4 w-4" aria-hidden />
+                    </button>
+                  )}
+                </div>
                 {m.notes && m.notes.length > 0 && (
                   <ul className="flex flex-wrap gap-1.5">
                     {m.notes.map((n, j) => (
