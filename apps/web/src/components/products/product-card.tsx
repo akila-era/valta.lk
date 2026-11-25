@@ -37,9 +37,9 @@ export function ProductCard({ product, priority }: { product: ErpProduct; priori
   return (
     <article className="group @container relative flex h-full flex-col">
       <div className="relative">
-        <Link href={`/products/${product.slug}`} aria-label={title} className="media-square block rounded-2xl border border-border transition-colors duration-300 group-hover:border-ink/30 motion-reduce:transition-none">
+        <Link href={`/products/${product.slug}`} aria-label={title} className="media-square block overflow-hidden rounded-2xl border border-border transition-colors duration-300 group-hover:border-ink/30 motion-reduce:transition-none">
           <span className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none">
-            <ProductImage src={product.images[0]} alt={title} priority={priority} sizes="(min-width:1280px) 19vw, (min-width:768px) 30vw, 46vw" />
+            <ProductImage src={product.images[0]} alt={title} padding="p-0" priority={priority} sizes="(min-width:1280px) 19vw, (min-width:768px) 30vw, 46vw" />
           </span>
         </Link>
         {badge && <span className={`pointer-events-none absolute left-2 top-2 rounded-md px-2 py-1 text-[13px] font-semibold leading-none ${badge.cls}`}>{badge.text}</span>}
@@ -67,7 +67,7 @@ export function ProductCard({ product, priority }: { product: ErpProduct; priori
               </>
             )}
           </p>
-          {product.available && <KokoInstalment price={current} />}
+          <KokoInstalment price={current} />
           <p className={`mt-1 inline-flex items-center gap-1.5 text-[13px] font-medium ${!product.available ? "text-muted" : low ? "text-warn" : "text-success"}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${!product.available ? "bg-muted" : low ? "bg-amber-500" : "bg-success"}`} aria-hidden />
             {!product.available ? "Out of stock" : low ? `Only ${product.purchasableQuantity} left` : "In stock"}

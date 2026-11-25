@@ -3,7 +3,7 @@ import { getActiveErpEnv } from "./connection";
 import { erpRequest } from "./client";
 import { withContent } from "./content-overlay";
 import { endpoints } from "./endpoints";
-import { mapProduct } from "./product-mapper";
+import { mapProduct, withCleanSlugs } from "./product-mapper";
 import { effectivePrice } from "./product-utils";
 import { queryProducts, type ProductQuery } from "./query";
 import { erpCataloguePageSchema, rawProductSchema, type ErpProduct } from "./types";
@@ -52,7 +52,7 @@ async function fetchAll(updatedSince?: string) {
 
 async function fullSync(): Promise<Snapshot> {
   const { items, watermark } = await fetchAll();
-  return (g.__valtaCatalogue = { products: new Map(items.map((p) => [p.id, p])), syncedAt: Date.now(), watermark });
+  return (g.__valtaCatalogue = { products: new Map(withCleanSlugs(items).map((p) => [p.id, p])), syncedAt: Date.now(), watermark });
 }
 
 async function sync(): Promise<Snapshot> {
@@ -63,7 +63,9 @@ async function sync(): Promise<Snapshot> {
   const products = new Map(prev.products);
   removed.forEach((id) => products.delete(id));
   items.forEach((p) => products.set(p.id, p));
-  return (g.__valtaCatalogue = { products, syncedAt: Date.now(), watermark: watermark ?? prev.watermark });
+  // Slugs depend on the whole catalogue (duplicate names), so they are worked out again after every change.
+  const clean = new Map(withCleanSlugs([...products.values()]).map((p) => [p.id, p]));
+  return (g.__valtaCatalogue = { products: clean, syncedAt: Date.now(), watermark: watermark ?? prev.watermark });
 }
 
 /** ERP catalogue with the website's own images/descriptions layered on top (see content-overlay.ts). */
@@ -111,7 +113,9 @@ export async function listProducts(query: ProductQuery = {}) {
 
 export async function getProductBySlug(slug: string): Promise<ErpProduct | null> {
   const { products } = await getSnapshot();
-  return [...products.values()].find((p) => p.slug === slug) ?? null;
+  const all = [...products.values()];
+  // The old form of the URL ("name-<id>", also saved in carts and wishlists) still finds the product.
+  return all.find((p) => p.slug === slug) ?? all.find((p) => slug.endsWith(`-${p.id.toLowerCase()}`)) ?? null;
 }
 
 export async function getRelated(product: ErpProduct, limit = 4): Promise<ErpProduct[]> {

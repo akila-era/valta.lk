@@ -10,6 +10,7 @@ import { uiActions } from "@/store/ui";
 import type { AiAction, AiCompareItem, AiProduct } from "@/app/api/store/ai/route";
 import type { FaceState } from "./robot-face";
 import { canCapture, captureUtterance } from "./voice-capture";
+import { canLive, liveActive, setLiveMuted, startLive, stopLive, useLiveState } from "./gemini-live";
 
 export interface Msg {
   role: "user" | "model";
@@ -190,6 +191,74 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   useEffect(() => {
     startRef.current = startListening; // always the latest version, for the timer that resumes listening
   });
+
+  // Real-time voice (Gemini Live): the session itself lives in gemini-live.ts; this hook only shows it in the chat.
+  const L = useLiveState();
+  const liveOn = L.status === "live";
+  const openUser = useRef(false);
+  const openModel = useRef(false);
+  const pendingOut = useRef<{ products?: AiProduct[]; compare?: AiCompareItem[]; notes: string[] }>({ notes: [] });
+  useEffect(() => {
+    setLiveMuted(!speak);
+  }, [speak]);
+
+  /** Live transcripts arrive in small pieces: grow the current bubble of that speaker, or start a new one. */
+  function appendChunk(role: "user" | "model", chunk: string) {
+    const mine = role === "user" ? openUser : openModel;
+    if (role === "user") openModel.current = false;
+    else openUser.current = false;
+    const extend = mine.current;
+    mine.current = true;
+    setMsgs((m) => {
+      const last = m[m.length - 1];
+      if (extend && last?.role === role && !last.error) return [...m.slice(0, -1), { ...last, text: last.text + chunk }];
+      return [...m, { role, text: chunk.trimStart() }];
+    });
+  }
+
+  /** End of a spoken turn: attach the product cards / comparison / action chips the tools produced to the answer. */
+  function flushTurn() {
+    openUser.current = false;
+    openModel.current = false;
+    const p = pendingOut.current;
+    pendingOut.current = { notes: [] };
+    if (!p.notes.length && !p.products?.length && !p.compare?.length) return;
+    setMsgs((m) => {
+      const last = m[m.length - 1];
+      const extra = { products: p.compare?.length ? undefined : p.products, compare: p.compare, notes: p.notes };
+      if (last?.role === "model" && !last.error) return [...m.slice(0, -1), { ...last, ...extra }];
+      return [...m, { role: "model", text: "Here is what I found.", ...extra }];
+    });
+  }
+
+  async function startRealtime() {
+    endLive(); // the older listen-then-answer loop stays off while the live session runs
+    window.speechSynthesis?.cancel();
+    const r = await startLive({
+      path,
+      getCart: () => getCartLines().map((l) => ({ slug: l.slug, name: l.name, quantity: l.quantity, unitPrice: l.unitPrice })),
+      onUserText: (c) => appendChunk("user", c),
+      onModelText: (c) => appendChunk("model", c),
+      onTurnEnd: flushTurn,
+      onTool: (out) => {
+        const p = pendingOut.current;
+        if (out.products.length) p.products = out.products;
+        if (out.compare.length) p.compare = out.compare;
+        out.actions.forEach((a) => {
+          p.notes.push(describe(a));
+          run(a);
+        });
+      },
+      onEnd: (reason) => {
+        flushTurn();
+        if (reason === "idle") setMsgs((m) => [...m, { role: "model", text: "Still there? I stopped listening. Tap the robot to carry on.", error: true }]);
+        else if (reason === "closed") setMsgs((m) => [...m, { role: "model", text: "The voice connection ended. Tap the robot to start again.", error: true }]);
+      },
+    });
+    if (r.ok) return;
+    if (r.reason === "failed") return classicToggle(); // live voice unavailable here: use the recorder path instead
+    setMsgs((m) => [...m, { role: "model", text: r.message, error: true }]);
+  }
   useEffect(() => {
     setCanListen(canCapture() || !!recognitionCtor());
     window.speechSynthesis?.getVoices(); // voices load lazily in Chrome; ask early so one is ready when the answer comes
@@ -374,6 +443,16 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
 
   /** Tap: start a live conversation; tap while the assistant is speaking to interrupt it and talk; tap while listening or waiting to end it. */
   function toggleMic() {
+    if (liveActive()) return stopLive(); // tap ends the real-time conversation
+    if (L.status === "connecting") return;
+    if (!listening && !liveRef.current && canLive()) {
+      void startRealtime();
+      return;
+    }
+    classicToggle();
+  }
+
+  function classicToggle() {
     if (listening) {
       endLive();
       rec.current?.stop(); // whatever was heard so far is still answered
@@ -575,6 +654,7 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
   }
 
   function reset() {
+    stopLive();
     endLive();
     abort.current?.abort();
     discardCapture.current = true; // a recording in progress is dropped, not answered
@@ -587,7 +667,42 @@ export function useAiChat({ active = true, autoListen = false }: { active?: bool
     setInput("");
   }
 
-  const faceState: FaceState = listening ? "listening" : speaking && speak ? "speaking" : busy || transcribing ? "thinking" : "idle";
+  const connecting = L.status === "connecting";
+  const faceState: FaceState = liveOn
+    ? L.speaking && speak
+      ? "speaking"
+      : "listening"
+    : connecting
+      ? "thinking"
+      : listening
+        ? "listening"
+        : speaking && speak
+          ? "speaking"
+          : busy || transcribing
+            ? "thinking"
+            : "idle";
 
-  return { msgs, input, setInput, busy, listening, speak, setSpeak, canListen, speaking, heard, go, addCard, send, toggleMic, reset, faceState, replay: speakReply, level, lang, speakNote, live };
+  return {
+    msgs,
+    input,
+    setInput,
+    busy,
+    listening: listening || (liveOn && !L.speaking),
+    speak,
+    setSpeak,
+    canListen,
+    speaking: speaking || (liveOn && L.speaking),
+    heard,
+    go,
+    addCard,
+    send,
+    toggleMic,
+    reset,
+    faceState,
+    replay: speakReply,
+    level: liveOn ? L.level : level,
+    lang,
+    speakNote,
+    live: live || liveOn || connecting,
+  };
 }

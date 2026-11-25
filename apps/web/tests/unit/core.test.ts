@@ -102,7 +102,7 @@ describe("error mapping", () => {
 });
 
 import { parseDecimal, toDecimalString } from "@/lib/utils/money";
-import { mapProduct, productSlug, slugify } from "@/lib/erp/product-mapper";
+import { mapProduct, productSlug, slugify, withCleanSlugs } from "@/lib/erp/product-mapper";
 import { rawProductSchema, erpOrderSchema, erpSettingsSchema } from "@/lib/erp/types";
 
 describe("ERP decimal strings", () => {
@@ -145,6 +145,10 @@ describe("catalogue mapping", () => {
   it("builds stable slugs and category slugs", () => {
     expect(slugify("  Nova X1 -- Phone! ")).toBe("nova-x1-phone");
     expect(productSlug("Nova X1", "CM0Item1")).toBe("nova-x1-cm0item1");
+    // Clean URLs: the name alone, with a short ID tail only where two products share a name.
+    const p = (id: string, name: string) => ({ id, name, slug: productSlug(name, id) });
+    expect(withCleanSlugs([p("cm0aaaa11", "5C Battery"), p("cm0bbbb22", "Nova X1")]).map((x) => x.slug)).toEqual(["5c-battery", "nova-x1"]);
+    expect(withCleanSlugs([p("cm0aaaa11", "Case"), p("cm0bbbb22", "Case")]).map((x) => x.slug)).toEqual(["case-aaa11", "case-bbb22"]);
     expect(mapProduct(raw(), null).category).toEqual({ slug: "mobile-phones", name: "Mobile Phones" });
   });
   it("applies the sale price only while the discount is active", () => {
