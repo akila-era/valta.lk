@@ -25,6 +25,7 @@ export interface RawParams {
 }
 
 const SORTS: { value: SortKey; label: string }[] = [
+  { value: "relevance", label: "Best match" },
   { value: "newest", label: "Newest" },
   { value: "price-asc", label: "Price: low to high" },
   { value: "price-desc", label: "Price: high to low" },
@@ -36,7 +37,8 @@ const PER_PAGE = [12, 24, 36, 48];
 const num = (v?: string) => (v && /^\d{1,9}(\.\d{1,2})?$/.test(v) ? Number(v) : undefined);
 
 export function parseParams(p: RawParams, fixedCategory?: string): ProductQuery {
-  const sort = SORTS.some((s) => s.value === p.sort) ? (p.sort as SortKey) : "newest";
+  // A search lists the best matches first unless the shopper picks another order.
+  const sort = SORTS.some((s) => s.value === p.sort) ? (p.sort as SortKey) : p.q?.trim() ? "relevance" : "newest";
   const page = /^\d{1,4}$/.test(p.page ?? "") ? Number(p.page) : 1;
   return {
     q: p.q?.trim().slice(0, 100) || undefined,
@@ -225,7 +227,14 @@ export async function CatalogueView({ basePath, params, fixedCategory, showCateg
               })}
             </nav>
             <ViewSwitch />
-            <SortSelect value={query.sort ?? "newest"} options={SORTS.map((o) => ({ ...o, href: href(basePath, params, { sort: o.value === "newest" ? "" : o.value, page: "" }) }))} />
+            <SortSelect
+              value={query.sort ?? "newest"}
+              options={SORTS.filter((o) => o.value !== "relevance" || query.q).map((o) => ({
+                ...o,
+                // The default order (best match while searching, newest otherwise) needs no sort in the address.
+                href: href(basePath, params, { sort: o.value === (query.q ? "relevance" : "newest") ? "" : o.value, page: "" }),
+              }))}
+            />
           </div>
         </div>
         <ActiveFilters basePath={basePath} params={params} query={query} categories={result.categories} filtered={filtered} fixedCategory={fixedCategory} />

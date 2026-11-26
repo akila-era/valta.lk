@@ -1,7 +1,8 @@
 import type { ErpProduct } from "./types";
-import { effectivePrice, isOnSale, matchesBrand, matchesSearch } from "./product-utils";
+import { effectivePrice, isOnSale, matchesBrand, matchesSearch, relevanceScore } from "./product-utils";
 
-export type SortKey = "newest" | "price-asc" | "price-desc" | "name";
+/** "relevance" (best match for the search words) is the default whenever there is a search; otherwise newest first. */
+export type SortKey = "relevance" | "newest" | "price-asc" | "price-desc" | "name";
 
 export interface ProductQuery {
   q?: string;
@@ -96,9 +97,12 @@ export function queryProducts(all: ErpProduct[], query: ProductQuery = {}): Prod
     return true;
   });
 
-  const sort = query.sort ?? "newest";
+  const sort = query.sort ?? (query.q?.trim() ? "relevance" : "newest");
+  const newest = (a: ErpProduct, b: ErpProduct) => (b.publishedAt ?? b.updatedAt).localeCompare(a.publishedAt ?? a.updatedAt);
+  const scores = new Map(list.map((p) => [p.id, relevanceScore(p, query.q)] as const));
   list = list.sort((a, b) =>
-    sort === "price-asc" ? effectivePrice(a) - effectivePrice(b)
+    sort === "relevance" ? (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0) || newest(a, b)
+    : sort === "price-asc" ? effectivePrice(a) - effectivePrice(b)
     : sort === "price-desc" ? effectivePrice(b) - effectivePrice(a)
     : sort === "name" ? a.name.localeCompare(b.name)
     : (b.publishedAt ?? b.updatedAt).localeCompare(a.publishedAt ?? a.updatedAt),

@@ -139,7 +139,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
       />
 
       <VariantChoice initial={initialVariant}>
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+      {/* One column that may shrink below its content on phones: otherwise the row of picture thumbnails stretches the page wider than the screen. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2 lg:gap-12">
         <Gallery images={product.images} alt={title} alts={c?.gallery.length ? c.gallery.map((g) => g.alt) : undefined} captions={c?.gallery.length ? c.gallery.map((g) => g.caption) : undefined} />
         <div>
           {product.brand && <p className="text-[13px] uppercase tracking-[0.04em] text-muted">{product.brand}</p>}

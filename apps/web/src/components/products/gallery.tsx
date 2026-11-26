@@ -59,7 +59,7 @@ export function Gallery({ images, alt, alts, captions }: { images: string[]; alt
   const arrow = "absolute top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white text-ink opacity-90 transition-all hover:border-ink hover:opacity-100 focus-visible:opacity-100";
 
   return (
-    <div className={many ? "lg:grid lg:grid-cols-[5rem_minmax(0,1fr)] lg:gap-3" : ""}>
+    <div className={many ? "min-w-0 lg:grid lg:grid-cols-[5rem_minmax(0,1fr)] lg:gap-3" : "min-w-0"}>
       <div
         className="relative aspect-square touch-pan-y overflow-hidden rounded-2xl border border-border bg-white lg:order-2"
         tabIndex={many ? 0 : undefined}

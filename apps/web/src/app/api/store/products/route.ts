@@ -10,7 +10,7 @@ const querySchema = z.object({
   q: z.string().trim().max(100).optional(),
   category: z.string().trim().max(100).optional(),
   brand: z.string().trim().max(80).optional(),
-  sort: z.enum(["newest", "price-asc", "price-desc", "name"]).optional(),
+  sort: z.enum(["relevance", "newest", "price-asc", "price-desc", "name"]).optional(),
   page: z.coerce.number().int().min(1).max(1000).optional(),
   pageSize: z.coerce.number().int().min(1).max(48).optional(),
   onSale: z.enum(["1"]).transform(() => true).optional(),

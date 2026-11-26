@@ -71,6 +71,32 @@ export function searchHaystack(p: SearchableProduct): string {
     .toLowerCase();
 }
 
+/**
+ * How well a product answers a search, for ordering results: a name that starts with or contains the words counts most,
+ * then an exact SKU/model, then brand and category. A product that only matched through its category sorts below
+ * products with the words in their name ("charger" lists chargers before a Bluetooth adapter filed under Chargers).
+ */
+export function relevanceScore(p: SearchableProduct, q: string | undefined): number {
+  const needle = q?.trim().toLowerCase();
+  if (!needle) return 0;
+  const name = `${p.name} ${p.content?.displayTitle ?? ""}`.toLowerCase();
+  const words = name.split(/[^a-z0-9]+/).filter(Boolean);
+  const skus = [p.sku, ...(p.variants ?? []).map((v) => v.sku)].filter((s): s is string => Boolean(s)).map((s) => s.toLowerCase());
+  const brand = (p.brand ?? "").toLowerCase();
+  const cats = `${p.category?.name ?? ""} ${p.subCategory?.name ?? ""}`.toLowerCase();
+  let score = name.startsWith(needle) ? 40 : name.includes(needle) ? 25 : 0;
+  for (const t of needle.split(/\s+/)) {
+    if (skus.some((s) => s === t)) score += 50;
+    else if (skus.some((s) => s.includes(t))) score += 15;
+    if (words.some((w) => w === t)) score += 20;
+    else if (words.some((w) => w.startsWith(t))) score += 14;
+    else if (name.includes(t)) score += 8;
+    if (brand.includes(t)) score += 5;
+    if (cats.includes(t)) score += 3;
+  }
+  return score;
+}
+
 /** Every word must appear. An empty query matches everything. */
 export function matchesSearch(p: SearchableProduct, q: string | undefined): boolean {
   const needle = q?.trim().toLowerCase();
