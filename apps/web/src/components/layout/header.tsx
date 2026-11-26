@@ -116,7 +116,7 @@ export async function Header() {
       </div>
       <HeaderShell>
         <div className="container-wide flex items-center gap-2 py-2 md:grid md:h-[4.5rem] md:transition-[height] md:duration-300 md:group-data-[scrolled=true]/hdr:h-14 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-x-8 md:py-0 lg:gap-x-12">
-          <MobileMenu categories={categories} hasDeals={hasDeals} />
+          <MobileMenu categories={categories} hasDeals={hasDeals} hasBrands={hasBrands} />
           <Wordmark className="text-xl transition-[font-size] duration-300 min-[360px]:text-[1.375rem] md:text-[1.625rem] md:group-data-[scrolled=true]/hdr:text-[1.375rem]" />
           <div className="hidden md:block">
             <SearchBox size="lg" />

@@ -5,7 +5,7 @@ import { createContext, useContext, useMemo } from "react";
 import { formatLkr } from "@/lib/utils/money";
 
 /** Payzy splits a purchase into 4 monthly payments. */
-const PAYZY_PARTS = 4;
+export const PAYZY_PARTS = 4;
 
 const PartsContext = createContext({ parts: 0, payzy: false });
 
@@ -40,5 +40,27 @@ export function KokoInstalment({ price, parts: override = 0, className = "mt-0.5
         </p>
       )}
     </>
+  );
+}
+
+/** The payments a purchase is split into, shown under the chosen method at checkout. The last one absorbs the rounding. */
+export function KokoInstalmentSchedule({ total, parts, monthly }: { total: number; parts: number; monthly: boolean }) {
+  const each = Math.ceil(total / parts);
+  const rows = Array.from({ length: parts }, (_, i) => (i < parts - 1 ? each : Math.max(0, Math.round((total - each * (parts - 1)) * 100) / 100)));
+  return (
+    <div className="mx-4 mb-4 rounded-lg bg-white/70 ring-1 ring-border">
+      <p className="px-3 pt-2.5 text-xs font-semibold uppercase tracking-wide text-muted">Your {parts} {monthly ? "monthly " : ""}payments</p>
+      <ol className="divide-y divide-border px-3 pb-1">
+        {rows.map((amount, i) => (
+          <li key={i} className="flex items-center justify-between py-2.5">
+            <span className="flex items-center gap-2.5 text-ink">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-xs font-semibold text-on-brand">{i + 1}</span>
+              {i === 0 ? "Pay today" : `Instalment ${i + 1}`}
+            </span>
+            <span className="font-semibold tabular-nums text-ink">{formatLkr(amount)}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

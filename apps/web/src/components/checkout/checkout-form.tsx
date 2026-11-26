@@ -12,6 +12,7 @@ import { generateOrderRef } from "@/lib/utils/order-ref";
 import { lineKey, MAX_LINE_QTY } from "@/lib/utils/cart-math";
 import { customerSchema, deliverySchema, DISTRICTS, normalizeLkPhone } from "@/lib/validation/checkout";
 import { cartActions, useCart } from "@/store/cart";
+import { KokoInstalmentSchedule, PAYZY_PARTS, useKokoParts } from "@/components/products/koko-instalment";
 import { RedirectingToKoko, startKokoRedirect } from "./koko-redirect";
 import { RedirectingToPayzy, startPayzyRedirect } from "./payzy-redirect";
 
@@ -89,6 +90,7 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
     }, 0);
     return () => window.clearTimeout(t);
   }, []);
+  const kokoParts = useKokoParts();
   const total = addMoney(subtotal, deliveryCharge);
 
   useEffect(() => {
@@ -256,15 +258,29 @@ export function CheckoutForm({ deliveryCharge, prefill, methods = { cod: true, k
       <span className="ml-auto hidden text-muted sm:block" aria-hidden>{icon}</span>
     </h2>
   );
-  const payOption = (id: Method, title: string, text: string) => (
-    <label key={id} className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 bg-white p-4 text-sm transition-colors ${method === id ? "border-brand-500 bg-brand-50/50" : "border-border hover:border-ink/40"}`}>
-      <input type="radio" name="payment" value={id} checked={method === id} onChange={() => setMethod(id)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
-      <span>
-        <span className="font-semibold text-ink">{title}</span>
-        <span className="block text-muted">{text}</span>
-      </span>
-    </label>
-  );
+  const payOption = (id: Method, title: string, text: string) => {
+    const logo = id === "KOKO" ? { src: "/images/koko-logo.png", w: 240, h: 74, cls: "h-5" } : id === "PAYZY" ? { src: "/images/payzy-logo.png", w: 260, h: 72, cls: "h-[18px]" } : null;
+    const parts = id === "KOKO" ? kokoParts : id === "PAYZY" ? PAYZY_PARTS : 0;
+    return (
+      <div key={id} className={`rounded-xl border-2 bg-white text-sm transition-colors ${method === id ? "border-brand-500 bg-brand-50/50" : "border-border hover:border-ink/40"}`}>
+        <label className="flex cursor-pointer items-start gap-3 p-4">
+          <input type="radio" name="payment" value={id} checked={method === id} onChange={() => setMethod(id)} className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600" />
+          <span className="min-w-0 flex-1">
+            <span className="font-semibold text-ink">{title}</span>
+            <span className="block text-muted">{text}</span>
+          </span>
+          {logo && <Image src={logo.src} alt="" width={logo.w} height={logo.h} className={`${logo.cls} w-auto shrink-0 self-center`} />}
+        </label>
+        {parts >= 2 && (
+          <div className={`grid transition-[grid-template-rows] duration-300 motion-reduce:transition-none ${method === id ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+            <div className="overflow-hidden">
+              <KokoInstalmentSchedule total={total} parts={parts} monthly={id === "PAYZY"} />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <form ref={formRef} onSubmit={onSubmit} onBlur={onBlurField} noValidate className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-8" aria-busy={submitting}>

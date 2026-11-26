@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { BadgePercent, Boxes, ChevronRight, Loader2, Search, X } from "lucide-react";
+import { BadgeCheck, BadgePercent, Boxes, ChevronRight, Loader2, Search, X } from "lucide-react";
 import { formatLkr } from "@/lib/utils/money";
 import { categoryIcon } from "@/components/ui/category-icon";
 
@@ -21,6 +21,7 @@ interface Props {
   onClose: () => void;
   categories: DrawerCategory[];
   hasDeals: boolean;
+  hasBrands?: boolean;
   initialTab?: "categories" | "menu";
 }
 
@@ -41,7 +42,7 @@ const MENU_LINKS = [
  * Off-canvas navigation drawer (left side): search, an "All categories" tab with expandable sub-categories,
  * and a "Menu" tab with site pages. Used by the desktop "All Categories" button and the mobile menu button.
  */
-export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab = "categories" }: Props) {
+export function CategoryDrawer({ open, onClose, categories, hasDeals, hasBrands = false, initialTab = "categories" }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<"categories" | "menu">(initialTab);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -204,6 +205,14 @@ export function CategoryDrawer({ open, onClose, categories, hasDeals, initialTab
                   Apply Wholesale
                 </Link>
               </li>
+              {hasBrands && (
+                <li className="flex border-b border-border">
+                  <Link href="/brands" onClick={onClose} className={`${row} font-semibold text-brand-600`}>
+                    <BadgeCheck className="h-5 w-5 shrink-0" aria-hidden />
+                    Brands
+                  </Link>
+                </li>
+              )}
               {hasDeals && (
                 <li className="flex border-b border-border">
                   <Link href="/products?sale=1" onClick={onClose} className={`${row} font-semibold text-brand-600`}>
